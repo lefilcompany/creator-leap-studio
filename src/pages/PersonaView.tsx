@@ -36,16 +36,33 @@ interface EditableFieldProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  type?: 'input' | 'textarea' | 'select';
+  type?: 'input' | 'textarea' | 'select' | 'datalist';
   placeholder?: string;
   options?: { value: string; label: string }[];
+  datalistId?: string;
+  suggestions?: string[];
 }
 
-const EditableField = ({ label, value, onChange, type = 'textarea', placeholder, options }: EditableFieldProps) => (
+const EditableField = ({ label, value, onChange, type = 'textarea', placeholder, options, datalistId, suggestions }: EditableFieldProps) => (
   <div className="space-y-1.5">
     <Label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{label}</Label>
     {type === 'select' && options ? (
       <NativeSelect value={value} onValueChange={onChange} options={options} className="bg-background/80 backdrop-blur-sm border-border/20" />
+    ) : type === 'datalist' && datalistId && suggestions ? (
+      <>
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder || label}
+          list={datalistId}
+          className="bg-background/80 backdrop-blur-sm border-border/20 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
+        />
+        <datalist id={datalistId}>
+          {suggestions.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
+      </>
     ) : type === 'input' ? (
       <Input
         value={value}
