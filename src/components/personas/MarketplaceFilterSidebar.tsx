@@ -68,7 +68,7 @@ export function MarketplaceFilterSidebar({ filters, onChange, facets, totalResul
   const reset = () => onChange(initialFilters);
 
   return (
-    <aside className="bg-card rounded-2xl shadow-md p-4 lg:p-5 lg:sticky lg:top-4 lg:self-start max-h-[70vh] lg:max-h-[calc(100vh-2rem)] flex flex-col min-h-0">
+    <aside className="bg-card rounded-2xl shadow-md p-4 lg:p-5 max-h-[70vh] lg:max-h-none lg:h-full flex flex-col min-h-0 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -141,25 +141,7 @@ export function MarketplaceFilterSidebar({ filters, onChange, facets, totalResul
       )}
 
       {/* Filter groups */}
-      <ScrollArea
-        className="flex-1 min-h-0 -mr-2 pr-2"
-        onWheel={(e) => {
-          const viewport = e.currentTarget.querySelector(
-            '[data-radix-scroll-area-viewport]'
-          ) as HTMLElement | null;
-          if (!viewport) return;
-          const { scrollTop, scrollHeight, clientHeight } = viewport;
-          const delta = e.deltaY;
-          const atTop = scrollTop === 0 && delta < 0;
-          const atBottom = scrollTop + clientHeight >= scrollHeight && delta > 0;
-          // Only block page scroll while there is room to scroll inside
-          if (!atTop && !atBottom) {
-            e.stopPropagation();
-            viewport.scrollTop += delta;
-            e.preventDefault();
-          }
-        }}
-      >
+      <ScrollArea className="flex-1 min-h-0 -mr-2 pr-2 overscroll-contain">
         <Accordion
           type="multiple"
           defaultValue={['categories', 'genders', 'ageRanges']}
