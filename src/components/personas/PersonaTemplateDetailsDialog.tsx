@@ -156,7 +156,7 @@ export function PersonaTemplateDetailsDialog({
               </div>
             </div>
 
-            <div className="mt-auto pt-3 border-t border-border/40">
+            <div className="pt-3 border-t border-border/40">
               <div className="flex items-center justify-between mb-2 sm:mb-3">
                 {owned ? (
                   <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-xs font-semibold">
