@@ -515,7 +515,7 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
               <DetailItem label="Marca" value={action.details.brandName} />
             )}
             {action.details?.themeName && (
-              <DetailItem label="Tema Estratégico" value={action.details.themeName} />
+              <DetailItem label="Editoria" value={action.details.themeName} />
             )}
             {action.result?.review && (
               <div className="space-y-2 mb-6">

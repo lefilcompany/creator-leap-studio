@@ -415,7 +415,7 @@ const PlanContent = () => {
 
                 <div id="plan-themes-field" className="space-y-1.5">
                   <Label htmlFor="theme" className="text-sm font-bold text-foreground">
-                    Tema Estratégico <span className="text-destructive">*</span>
+                    Editoria <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
                     <Skeleton className="h-10 w-full rounded-xl" />
@@ -428,13 +428,13 @@ const PlanContent = () => {
                         options={filteredThemes
                           .filter((t) => !formData.theme.includes(t.id))
                           .map((t) => ({ value: t.id, label: t.title }))}
-                        placeholder={!formData.brand ? "Selecione uma marca primeiro" : formData.theme.length > 0 ? "Adicionar mais temas..." : "Adicionar tema estratégico"}
+                        placeholder={!formData.brand ? "Selecione uma marca primeiro" : formData.theme.length > 0 ? "Adicionar mais editorias..." : "Adicionar editoria"}
                         disabled={!formData.brand || filteredThemes.filter((t) => !formData.theme.includes(t.id)).length === 0}
                         triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors disabled:opacity-50"
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        <span>O planejamento seguirá o tom de voz, público-alvo e objetivos do tema selecionado</span>
+                        <span>O planejamento seguirá o tom de voz, público-alvo e objetivos da editoria selecionada</span>
                       </p>
                     </>
                   )}
@@ -484,7 +484,7 @@ const PlanContent = () => {
                         <button
                           onClick={() => handleThemeRemove(themeId)}
                           className="ml-0.5 w-4 h-4 rounded-full bg-primary/20 text-primary hover:bg-destructive hover:text-destructive-foreground transition-colors flex items-center justify-center"
-                          aria-label={`Remover tema ${theme?.title || themeId}`}
+                          aria-label={`Remover editoria ${theme?.title || themeId}`}
                         >
                           <X size={10} />
                         </button>

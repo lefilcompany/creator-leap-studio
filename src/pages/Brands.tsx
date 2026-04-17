@@ -260,7 +260,7 @@ export default function MarcasPage() {
                       <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
                       <ul className="text-muted-foreground space-y-1 list-disc list-inside">
                         <li>Crie uma marca com os dados do seu cliente ou projeto</li>
-                        <li>Adicione personas e temas estratégicos à marca</li>
+                        <li>Adicione personas e editorias à marca</li>
                         <li>Use a marca ao criar conteúdos para manter consistência</li>
                       </ul>
                       <p className="text-xs text-muted-foreground/70 mt-2">

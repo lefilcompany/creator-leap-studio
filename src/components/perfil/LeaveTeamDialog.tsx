@@ -97,7 +97,7 @@ export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveT
           <AlertDialogDescription>
             Tem certeza que deseja sair da equipe <span className="font-bold">{teamName}</span>?
             <br /><br />
-            Você perderá acesso a todas as marcas, temas e conteúdos da equipe e será desconectado.
+            Você perderá acesso a todas as marcas, editorias e conteúdos da equipe e será desconectado.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

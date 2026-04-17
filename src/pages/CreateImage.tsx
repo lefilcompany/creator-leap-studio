@@ -691,7 +691,7 @@ export default function CreateImage() {
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!formData.brand || !uuidRegex.test(formData.brand)) { toast.error("Selecione uma marca válida"); return; }
-      if (formData.theme && !uuidRegex.test(formData.theme)) { toast.error("Tema inválido"); return; }
+      if (formData.theme && !uuidRegex.test(formData.theme)) { toast.error("Editoria inválida"); return; }
       if (formData.persona && !uuidRegex.test(formData.persona)) { toast.error("Persona inválida"); return; }
 
       const capturedSession = session;
@@ -885,7 +885,7 @@ export default function CreateImage() {
                   </PopoverTrigger>
                   <PopoverContent className="text-sm w-72" side="bottom">
                     <p className="font-medium mb-1">Criar Imagem</p>
-                    <p className="text-muted-foreground text-xs">Gere imagens profissionais com IA. Selecione marca, tema e persona para personalizar o resultado.</p>
+                    <p className="text-muted-foreground text-xs">Gere imagens profissionais com IA. Selecione marca, editoria e persona para personalizar o resultado.</p>
                   </PopoverContent>
                 </Popover>
               </div>
@@ -1077,12 +1077,12 @@ export default function CreateImage() {
                     />
                   )}
 
-                  {/* Tema */}
+                  {/* Editoria */}
                   {isLoadingData ? <Skeleton className="h-24 flex-1 min-w-[140px] rounded-xl" /> : (
                     <CustomizationCardInline
                       icon={<Palette className="h-4 w-4" />}
-                      title="Tema"
-                      description="Tema estratégico"
+                      title="Editoria"
+                      description="Linha editorial"
                       options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
                       value={formData.theme}
                       onChange={v => handleSelectChange("theme", v)}
