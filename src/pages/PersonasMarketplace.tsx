@@ -404,7 +404,7 @@ export default function PersonasMarketplacePage() {
 
         {/* Cards grid */}
         <div className="bg-card rounded-2xl shadow-md p-3 sm:p-4 lg:p-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
             {isLoading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="h-44 rounded-xl bg-muted/40 animate-pulse" />
