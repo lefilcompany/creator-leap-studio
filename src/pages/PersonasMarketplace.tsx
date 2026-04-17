@@ -501,7 +501,7 @@ export default function PersonasMarketplacePage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between gap-1.5 pt-1.5 sm:pt-2 border-t border-border/40">
+                    <div className="flex flex-col items-stretch gap-1.5 pt-1.5 sm:pt-2 border-t border-border/40">
                       {owned ? (
                         <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-[9px] sm:text-[10px] font-semibold px-1.5 py-0.5">
                           <Check className="h-2.5 w-2.5 mr-0.5" />
