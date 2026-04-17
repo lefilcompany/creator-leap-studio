@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound, SlidersHorizontal } from 'lucide-react';
+import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound, SlidersHorizontal, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
