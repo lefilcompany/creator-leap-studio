@@ -14,7 +14,7 @@ export const navbarSteps: Step[] = [
   },
   {
     target: '#nav-themes',
-    content: 'Temas Estratégicos: defina temas para suas campanhas, incluindo objetivos, público-alvo e tom de voz.',
+    content: 'Editorias: defina editorias para suas campanhas, incluindo objetivos, público-alvo e tom de voz.',
     placement: 'right',
   },
   {
@@ -88,7 +88,7 @@ export const dashboardSteps: Step[] = [
   },
   {
     target: '#dashboard-stats',
-    content: 'Estatísticas gerais: veja quantas marcas, personas e temas você já criou.',
+    content: 'Estatísticas gerais: veja quantas marcas, personas e editorias você já criou.',
     placement: 'bottom',
   },
   {
@@ -120,13 +120,13 @@ export const brandsSteps: Step[] = [
 export const themesSteps: Step[] = [
   {
     target: '#themes-create-button',
-    content: 'Crie temas estratégicos para organizar suas campanhas de conteúdo.',
+    content: 'Crie editorias para organizar suas campanhas de conteúdo.',
     disableBeacon: true,
     placement: 'left',
   },
   {
     target: '#themes-list',
-    content: 'Visualize todos os temas criados e suas paletas de cores.',
+    content: 'Visualize todas as editorias criadas e suas paletas de cores.',
     placement: 'bottom',
   },
 ];
@@ -154,7 +154,7 @@ export const createContentSteps: Step[] = [
   },
   {
     target: '#select-theme',
-    content: 'Escolha o tema estratégico que guiará a criação do conteúdo.',
+    content: 'Escolha a editoria que guiará a criação do conteúdo.',
     placement: 'bottom',
   },
   {
@@ -197,7 +197,7 @@ export const createContentSteps: Step[] = [
 export const quickContentSteps: Step[] = [
   {
     target: '#quick-content-form',
-    content: 'A Criação Rápida permite gerar imagens com IA de forma simples e intuitiva, sem precisar configurar marca, persona ou tema estratégico.',
+    content: 'A Criação Rápida permite gerar imagens com IA de forma simples e intuitiva, sem precisar configurar marca, persona ou editoria.',
     disableBeacon: true,
     placement: 'top',
   },
@@ -277,7 +277,7 @@ export const planContentSteps: Step[] = [
   },
   {
     target: '#plan-themes-field',
-    content: 'Temas Estratégicos (obrigatório): Selecione um ou mais temas que devem guiar o planejamento. Cada tema tem objetivos, público-alvo e tom de voz específicos que a IA usará para criar posts coerentes.',
+    content: 'Editorias (obrigatório): Selecione uma ou mais editorias que devem guiar o planejamento. Cada editoria tem objetivos, público-alvo e tom de voz específicos que a IA usará para criar posts coerentes.',
     placement: 'top',
   },
   {
@@ -361,7 +361,7 @@ export const reviewContentImageSteps: Step[] = [
   },
   {
     target: '#review-theme-field',
-    content: 'Tema Estratégico (opcional): escolha um tema se quiser alinhar as sugestões visuais com uma campanha ou linha editorial específica.',
+    content: 'Editoria (opcional): escolha uma editoria se quiser alinhar as sugestões visuais com uma campanha ou linha editorial específica.',
     placement: 'top',
   },
   {
@@ -390,7 +390,7 @@ export const reviewContentCaptionSteps: Step[] = [
   },
   {
     target: '#review-theme-field',
-    content: 'Tema Estratégico (opcional): use para alinhar a revisão da legenda com campanhas, objetivos de comunicação ou linha editorial específica.',
+    content: 'Editoria (opcional): use para alinhar a revisão da legenda com campanhas, objetivos de comunicação ou linha editorial específica.',
     placement: 'top',
   },
   {
@@ -419,7 +419,7 @@ export const reviewContentTextSteps: Step[] = [
   },
   {
     target: '#review-theme-field',
-    content: 'Tema Estratégico (opcional): escolha um tema para alinhar o texto com campanhas ou objetivos específicos de comunicação.',
+    content: 'Editoria (opcional): escolha uma editoria para alinhar o texto com campanhas ou objetivos específicos de comunicação.',
     placement: 'top',
   },
   {
