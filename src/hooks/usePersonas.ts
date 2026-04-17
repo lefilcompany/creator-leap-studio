@@ -8,29 +8,39 @@ export type PersonaInsert = TablesInsert<'personas'>;
 export type PersonaUpdate = TablesUpdate<'personas'>;
 
 export const usePersonas = (brandId?: string) => {
-  const { team } = useAuth();
+  const { user, team } = useAuth();
 
   return useQuery({
-    queryKey: ['personas', team?.id, brandId],
+    queryKey: ['personas', team?.id, user?.id, brandId],
     queryFn: async () => {
-      if (!team?.id) return [];
-      
+      if (!user?.id) return [];
+
+      // Fetch personas accessible to the user (own + team).
+      // RLS already enforces visibility; we just need to ensure we don't
+      // hide personas for users without a team by filtering too narrowly.
       let query = supabase
         .from('personas')
         .select('*')
-        .eq('team_id', team.id)
         .order('name');
-      
+
+      if (team?.id) {
+        // Team users: include personas owned by them OR by their team
+        query = query.or(`team_id.eq.${team.id},user_id.eq.${user.id}`);
+      } else {
+        // Solo users: only their own personas
+        query = query.eq('user_id', user.id);
+      }
+
       if (brandId) {
         query = query.eq('brand_id', brandId);
       }
-      
+
       const { data, error } = await query;
-      
+
       if (error) throw error;
       return data;
     },
-    enabled: !!team?.id,
+    enabled: !!user?.id,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
