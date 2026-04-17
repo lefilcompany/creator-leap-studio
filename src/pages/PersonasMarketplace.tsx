@@ -390,7 +390,7 @@ export default function PersonasMarketplacePage() {
       </div>
 
       {/* Two-column layout: sidebar + grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] xl:grid-cols-[280px_1fr] gap-3 lg:gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] xl:grid-cols-[240px_1fr] gap-3 lg:gap-4 items-start">
         {/* Desktop sidebar */}
         <div className="hidden lg:block">
           <MarketplaceFilterSidebar
