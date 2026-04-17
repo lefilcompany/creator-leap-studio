@@ -141,7 +141,25 @@ export function MarketplaceFilterSidebar({ filters, onChange, facets, totalResul
       )}
 
       {/* Filter groups */}
-      <ScrollArea className="flex-1 min-h-0 -mr-2 pr-2">
+      <ScrollArea
+        className="flex-1 min-h-0 -mr-2 pr-2"
+        onWheel={(e) => {
+          const viewport = e.currentTarget.querySelector(
+            '[data-radix-scroll-area-viewport]'
+          ) as HTMLElement | null;
+          if (!viewport) return;
+          const { scrollTop, scrollHeight, clientHeight } = viewport;
+          const delta = e.deltaY;
+          const atTop = scrollTop === 0 && delta < 0;
+          const atBottom = scrollTop + clientHeight >= scrollHeight && delta > 0;
+          // Only block page scroll while there is room to scroll inside
+          if (!atTop && !atBottom) {
+            e.stopPropagation();
+            viewport.scrollTop += delta;
+            e.preventDefault();
+          }
+        }}
+      >
         <Accordion
           type="multiple"
           defaultValue={['categories', 'genders', 'ageRanges']}
