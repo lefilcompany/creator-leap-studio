@@ -48,6 +48,7 @@ type Props = {
   selected: boolean;
   onToggleSelect: () => void;
   costPerPersona: number;
+  owned?: boolean;
 };
 
 const InfoBlock = ({
