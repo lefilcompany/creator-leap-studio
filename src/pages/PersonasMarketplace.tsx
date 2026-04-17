@@ -48,6 +48,7 @@ export default function PersonasMarketplacePage() {
   const [filters, setFilters] = useState<MarketplaceFilters>(initialFilters);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<PersonaTemplate | null>(null);
+  const [ownedNames, setOwnedNames] = useState<Set<string>>(new Set());
 
   const userCredits = user?.credits || 0;
 
@@ -92,7 +93,49 @@ export default function PersonasMarketplacePage() {
     load();
   }, []);
 
+  // Load personas already owned by selected brand (match by name, case-insensitive)
+  useEffect(() => {
+    if (!selectedBrandId) {
+      setOwnedNames(new Set());
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('personas')
+          .select('name')
+          .eq('brand_id', selectedBrandId);
+        if (error) throw error;
+        if (cancelled) return;
+        const names = new Set((data || []).map((p: any) => (p.name || '').trim().toLowerCase()));
+        setOwnedNames(names);
+        // Auto-deselect any selections that are now owned
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          for (const t of templates) {
+            if (names.has((t.name || '').trim().toLowerCase())) next.delete(t.id);
+          }
+          return next;
+        });
+      } catch (e) {
+        console.error('[marketplace] failed to load owned personas', e);
+        if (!cancelled) setOwnedNames(new Set());
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedBrandId, templates]);
+
+  const isOwned = (name: string) => ownedNames.has((name || '').trim().toLowerCase());
+
   const toggleSelection = (id: string) => {
+    const tpl = templates.find((t) => t.id === id);
+    if (tpl && isOwned(tpl.name)) {
+      toast.info('Você já tem essa persona nesta marca');
+      return;
+    }
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
