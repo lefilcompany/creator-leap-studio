@@ -179,12 +179,15 @@ export default function PersonaMarketplaceDialog({
 
       const purchased = (data as any).purchased || 0;
       const skipped = (data as any).skipped || 0;
+      const duplicates = (data as any).duplicates_skipped || 0;
 
       await refreshUserCredits();
 
-      if (skipped > 0) {
+      if (purchased === 0 && duplicates > 0) {
+        toast.info("Você já tem essa(s) persona(s) nesta marca.", { id: toastId });
+      } else if (skipped > 0) {
         toast.success(
-          `${purchased} persona(s) adicionada(s)! ${skipped} ignorada(s) por créditos insuficientes.`,
+          `${purchased} persona(s) adicionada(s)! ${skipped} ignorada(s) (já existentes ou créditos insuficientes).`,
           { id: toastId }
         );
       } else {

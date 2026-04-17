@@ -90,11 +90,41 @@ serve(async (req) => {
     if (tmplErr) throw tmplErr;
     if (!templates || templates.length === 0) throw new Error("Nenhuma persona válida encontrada");
 
-    const totalCost = templates.length * COST_PER_PERSONA;
+    // Filter out templates whose name already exists for this brand (avoid duplicates)
+    const { data: existingPersonas, error: existErr } = await admin
+      .from("personas")
+      .select("name")
+      .eq("brand_id", brand_id);
+    if (existErr) throw existErr;
+
+    const existingNames = new Set(
+      (existingPersonas || []).map((p: any) => (p.name || "").trim().toLowerCase())
+    );
+
+    const templatesToCreate = templates.filter(
+      (t: any) => !existingNames.has((t.name || "").trim().toLowerCase())
+    );
+    const duplicatesSkipped = templates.length - templatesToCreate.length;
+
+    if (templatesToCreate.length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          purchased: 0,
+          skipped: template_ids.length,
+          duplicates_skipped: duplicatesSkipped,
+          message: "Todas as personas selecionadas já existem nesta marca",
+          new_balance: currentCredits,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const totalCost = templatesToCreate.length * COST_PER_PERSONA;
     const newBalance = currentCredits - totalCost;
 
     // Insert personas
-    const personasToInsert = templates.map((t: any) => ({
+    const personasToInsert = templatesToCreate.map((t: any) => ({
       brand_id,
       user_id: user.id,
       team_id: profile.team_id,
@@ -133,16 +163,16 @@ serve(async (req) => {
       credits_used: totalCost,
       credits_before: currentCredits,
       credits_after: newBalance,
-      description: `Compra de ${templates.length} persona(s) para a marca ${brand.name}`,
+      description: `Compra de ${templatesToCreate.length} persona(s) para a marca ${brand.name}`,
       metadata: {
         brand_id,
         brand_name: brand.name,
-        persona_count: templates.length,
-        persona_names: templates.map((t: any) => t.name),
+        persona_count: templatesToCreate.length,
+        persona_names: templatesToCreate.map((t: any) => t.name),
       },
     });
 
-    const skipped = template_ids.length - toPurchaseIds.length;
+    const skipped = (template_ids.length - toPurchaseIds.length) + duplicatesSkipped;
 
     return new Response(
       JSON.stringify({
