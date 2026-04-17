@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Palette, Plus, HelpCircle } from 'lucide-react';
+import { Newspaper, Plus, HelpCircle } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import ThemeList from '@/components/temas/ThemeList';
 import type { BrandInfo } from '@/components/temas/ThemeList';
@@ -304,7 +304,7 @@ export default function Themes() {
         <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="bg-secondary/10 border border-secondary/20 shadow-sm rounded-xl p-2.5 lg:p-3">
-              <Palette className="h-6 w-6 lg:h-7 lg:w-7 text-secondary" />
+              <Newspaper className="h-6 w-6 lg:h-7 lg:w-7 text-secondary" />
             </div>
             <div>
               <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-2">

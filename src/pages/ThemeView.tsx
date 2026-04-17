@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Trash2, Tag, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, List, Info, Palette } from 'lucide-react';
+import { Trash2, Tag, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, List, Info, Palette, Newspaper } from 'lucide-react';
 import type { ColorItem } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -287,7 +287,7 @@ export default function ThemeView() {
   if (!theme) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <Palette className="h-16 w-16 text-muted-foreground/50 mb-4" />
+        <Newspaper className="h-16 w-16 text-muted-foreground/50 mb-4" />
         <h3 className="text-xl font-semibold">Editoria não encontrada</h3>
         <Button variant="outline" className="mt-4" onClick={() => navigate('/themes')}>
           Voltar para editorias

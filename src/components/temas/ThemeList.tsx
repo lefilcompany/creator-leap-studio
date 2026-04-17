@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Palette, Search, List, LayoutGrid, X, ChevronDown, ChevronRight, Filter } from 'lucide-react';
+import { Newspaper, Search, List, LayoutGrid, X, ChevronDown, ChevronRight, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -249,7 +249,7 @@ export default function ThemeList({ themes, brands, isLoading = false, initialVi
         </>
       ) : (
         <>
-          <Palette className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <Newspaper className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <p className="text-base">Nenhuma editoria encontrada</p>
           <p className="text-sm mt-1 opacity-75">Clique em "Nova editoria" para começar.</p>
         </>
