@@ -95,7 +95,7 @@ export function PersonaTemplateDetailsDialog({
 
         <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] lg:grid-cols-[300px_1fr] flex-1 min-h-0 overflow-hidden">
           {/* Left — photo & quick facts (fixed) */}
-          <div className="bg-gradient-to-br from-muted/60 to-muted/20 p-4 sm:p-5 flex flex-col gap-3 sm:gap-4 border-b md:border-b-0 md:border-r border-border/40 shrink-0 md:shrink md:overflow-hidden">
+          <div className="bg-gradient-to-br from-muted/60 to-muted/20 p-4 sm:p-5 pb-3 sm:pb-3 flex flex-col gap-2 sm:gap-2.5 border-b md:border-b-0 md:border-r border-border/40 shrink-0 md:shrink md:overflow-hidden md:self-start">
             <div className="flex md:block gap-4">
               <div className="w-24 sm:w-32 md:w-full aspect-square rounded-2xl overflow-hidden bg-muted shadow-md ring-1 ring-border/40 shrink-0">
                 {t.avatar_url ? (
