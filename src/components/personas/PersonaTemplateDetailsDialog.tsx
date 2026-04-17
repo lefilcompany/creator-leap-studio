@@ -79,6 +79,7 @@ export function PersonaTemplateDetailsDialog({
   selected,
   onToggleSelect,
   costPerPersona,
+  owned = false,
 }: Props) {
   if (!template) return null;
   const t = template;
