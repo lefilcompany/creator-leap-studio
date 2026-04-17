@@ -191,8 +191,8 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
     } catch (error) {
       console.error('Erro ao salvar tema:', error);
       toast.error(themeToEdit 
-        ? 'Erro ao atualizar o tema. Por favor, tente novamente.' 
-        : 'Erro ao criar o tema. Por favor, tente novamente.'
+        ? 'Erro ao atualizar a editoria. Por favor, tente novamente.' 
+        : 'Erro ao criar a editoria. Por favor, tente novamente.'
       );
     } finally {
       setIsLoading(false);
@@ -239,9 +239,9 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle>{themeToEdit ? 'Editar Tema Estratégico' : 'Criar Novo Tema Estratégico'}</DialogTitle>
+              <DialogTitle>{themeToEdit ? 'Editar Editoria' : 'Criar Nova Editoria'}</DialogTitle>
               <DialogDescription>
-                {themeToEdit ? 'Altere as informações do seu tema.' : 'Preencha os campos abaixo para adicionar um novo tema.'}
+                {themeToEdit ? 'Altere as informações da sua editoria.' : 'Preencha os campos abaixo para adicionar uma nova editoria.'}
               </DialogDescription>
             </div>
             {!themeToEdit && hasDraft() && (
@@ -271,7 +271,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                     autoComplete="off"
                   >
                     <option value="" disabled>
-                      {brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca para criar o tema"}
+                      {brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca para criar a editoria"}
                     </option>
                     {brands.map(brand => (
                       <option key={brand.id} value={brand.id}>{brand.name}</option>
@@ -281,7 +281,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 {brands.length === 0 && (
                   <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5 mt-1">
                     <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                    <span>Cadastre uma marca antes de criar temas estratégicos</span>
+                    <span>Cadastre uma marca antes de criar editorias</span>
                   </p>
                 )}
               </div>
@@ -337,16 +337,16 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                   id="objectives" 
                   value={formData.objectives} 
                   onChange={handleInputChange} 
-                  placeholder="Liste os objetivos específicos e mensuráveis que deseja alcançar com este tema estratégico" 
+                  placeholder="Liste os objetivos específicos e mensuráveis que deseja alcançar com esta editoria" 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="macroThemes">Quais macro-temas ou categorias sustentam a promessa de valor da marca?</Label>
+                <Label htmlFor="macroThemes">Quais macro-editorias ou categorias sustentam a promessa de valor da marca?</Label>
                 <Textarea 
                   id="macroThemes" 
                   value={formData.macroThemes} 
                   onChange={handleInputChange} 
-                  placeholder="Liste os principais temas que representam os valores da marca. Ex: inovação, sustentabilidade, bem-estar" 
+                  placeholder="Liste as principais editorias que representam os valores da marca. Ex: inovação, sustentabilidade, bem-estar" 
                 />
               </div>
               <div className="space-y-2">
@@ -368,7 +368,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                   id="title" 
                   value={formData.title} 
                   onChange={handleInputChange} 
-                  placeholder="Nome descritivo que identifique facilmente este tema estratégico" 
+                  placeholder="Nome descritivo que identifique facilmente esta editoria" 
                 />
               </div>
               <div className="space-y-2 pt-1">
@@ -410,7 +410,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                   id="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  placeholder="Descreva o propósito do tema e como ele se alinha aos objetivos da marca"
+                  placeholder="Descreva o propósito da editoria e como ela se alinha aos objetivos da marca"
                   className="min-h-[80px]"
                 />
               </div>
@@ -448,7 +448,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 id="additionalInfo"
                 value={formData.additionalInfo}
                 onChange={handleInputChange}
-                placeholder="Adicione outras informações relevantes como referências, dicas ou restrições importantes para este tema"
+                placeholder="Adicione outras informações relevantes como referências, dicas ou restrições importantes para esta editoria"
               />
             </div>
           </div>
@@ -491,7 +491,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                 {themeToEdit ? 'Atualizando...' : 'Criando...'}
               </span>
             ) : (
-              themeToEdit ? 'Atualizar' : 'Criar Tema'
+              themeToEdit ? 'Atualizar' : 'Criar Editoria'
             )}
           </Button>
         </DialogFooter>
