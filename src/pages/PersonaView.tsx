@@ -110,29 +110,11 @@ interface BrandData {
 
 const translations = formTranslations.pt.forms.personas;
 
-const genderOptions = [
-  { value: 'male', label: translations.genderOptions.male },
-  { value: 'female', label: translations.genderOptions.female },
-  { value: 'non-binary', label: translations.genderOptions.nonBinary },
-  { value: 'preferNotToSay', label: translations.genderOptions.preferNotToSay },
-];
+const genderSuggestions = ['Feminino', 'Masculino', 'Não-binário', 'Prefere não informar'];
 
-const toneOptions = [
-  { value: 'professional', label: translations.toneOptions.professional },
-  { value: 'casual', label: translations.toneOptions.casual },
-  { value: 'friendly', label: translations.toneOptions.friendly },
-  { value: 'inspiring', label: translations.toneOptions.inspiring },
-  { value: 'direct', label: translations.toneOptions.direct },
-  { value: 'educational', label: translations.toneOptions.educational },
-];
+const toneSuggestions = ['Profissional', 'Casual', 'Amigável', 'Inspirador', 'Direto', 'Educativo'];
 
-const journeyOptions = [
-  { value: 'awareness', label: translations.journeyStages.awareness },
-  { value: 'consideration', label: translations.journeyStages.consideration },
-  { value: 'decision', label: translations.journeyStages.decision },
-  { value: 'postPurchase', label: translations.journeyStages.postPurchase },
-  { value: 'advocacy', label: translations.journeyStages.advocacy },
-];
+const journeySuggestions = ['Descoberta', 'Conhecimento', 'Consciência', 'Consideração', 'Avaliação', 'Decisão', 'Pós-compra', 'Advocacia'];
 
 export default function PersonaView() {
   const { personaId } = useParams<{ personaId: string }>();
