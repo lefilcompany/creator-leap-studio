@@ -627,6 +627,7 @@ export default function PersonasMarketplacePage() {
         open={!!previewTemplate}
         onOpenChange={(o) => !o && setPreviewTemplate(null)}
         selected={previewTemplate ? selectedIds.has(previewTemplate.id) : false}
+        owned={previewTemplate ? isOwned(previewTemplate.name) : false}
         onToggleSelect={() => previewTemplate && toggleSelection(previewTemplate.id)}
         costPerPersona={COST_PER_PERSONA}
       />
