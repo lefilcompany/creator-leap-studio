@@ -156,21 +156,36 @@ export function PersonaTemplateDetailsDialog({
 
             <div className="mt-auto pt-3 border-t border-border/40">
               <div className="flex items-center justify-between mb-2 sm:mb-3">
-                <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
-                  <Coins className="h-4 w-4" />
-                  {costPerPersona} créditos
-                </div>
+                {owned ? (
+                  <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-xs font-semibold">
+                    <Check className="h-3 w-3 mr-1" />
+                    Já adicionada nesta marca
+                  </Badge>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+                    <Coins className="h-4 w-4" />
+                    {costPerPersona} créditos
+                  </div>
+                )}
               </div>
               <Button
                 onClick={onToggleSelect}
+                disabled={owned}
                 className={cn(
                   'w-full h-10',
-                  selected
+                  owned
+                    ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                    : selected
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-gradient-to-r from-primary to-secondary text-primary-foreground'
                 )}
               >
-                {selected ? (
+                {owned ? (
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    Já em uso nesta marca
+                  </>
+                ) : selected ? (
                   <>
                     <Check className="mr-2 h-4 w-4" />
                     Adicionada ao carrinho
