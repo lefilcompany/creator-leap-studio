@@ -451,6 +451,12 @@ export default function PersonasMarketplacePage() {
                     </div>
                   ) : null}
 
+                  {/* Hover hint — clickable indicator */}
+                  <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-10 flex items-center gap-1 bg-background/90 backdrop-blur-sm border border-border rounded-full px-1.5 py-0.5 sm:px-2 sm:py-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                    <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
+                    <span className="text-[9px] sm:text-[10px] font-medium text-foreground">Ver detalhes</span>
+                  </div>
+
                   {/* Left — realistic persona photo */}
                   <div className="w-[38%] xs:w-[35%] shrink-0 relative bg-muted overflow-hidden">
                     {t.avatar_url ? (
