@@ -86,14 +86,14 @@ export function PersonaTemplateDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl w-[calc(100vw-1rem)] sm:w-[calc(100vw-3rem)] max-h-[92vh] sm:max-h-[90vh] p-0 overflow-hidden gap-0">
+      <DialogContent className="max-w-5xl w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] md:w-[calc(100vw-3rem)] h-[95vh] sm:h-auto sm:max-h-[90vh] p-0 overflow-hidden gap-0 flex flex-col">
         <DialogHeader className="sr-only">
           <DialogTitle>{t.name}</DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] lg:grid-cols-[300px_1fr] max-h-[92vh] sm:max-h-[90vh] overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] lg:grid-cols-[300px_1fr] flex-1 min-h-0 overflow-hidden">
           {/* Left — photo & quick facts */}
-          <div className="bg-gradient-to-br from-muted/60 to-muted/20 p-4 sm:p-5 flex flex-col gap-3 sm:gap-4 border-b md:border-b-0 md:border-r border-border/40 md:max-h-[90vh] md:overflow-y-auto">
+          <div className="bg-gradient-to-br from-muted/60 to-muted/20 p-4 sm:p-5 flex flex-col gap-3 sm:gap-4 border-b md:border-b-0 md:border-r border-border/40 md:overflow-y-auto shrink-0 md:shrink">
             <div className="flex md:block gap-4">
               <div className="w-24 sm:w-32 md:w-full aspect-square rounded-2xl overflow-hidden bg-muted shadow-md ring-1 ring-border/40 shrink-0">
                 {t.avatar_url ? (
@@ -201,7 +201,7 @@ export function PersonaTemplateDetailsDialog({
           </div>
 
           {/* Right — full persona details */}
-          <ScrollArea className="max-h-[55vh] md:max-h-[90vh]">
+          <ScrollArea className="flex-1 min-h-0 md:h-full">
             <div className="p-4 sm:p-5 lg:p-6 space-y-3">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-foreground mb-1">Perfil completo</h3>
