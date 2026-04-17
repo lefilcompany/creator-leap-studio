@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
 
@@ -68,7 +68,7 @@ export function MarketplaceFilterSidebar({ filters, onChange, facets, totalResul
   const reset = () => onChange(initialFilters);
 
   return (
-    <aside className="bg-card rounded-2xl shadow-md p-4 lg:p-5 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] flex flex-col">
+    <aside className="bg-card rounded-2xl shadow-md p-4 lg:p-5 lg:sticky lg:top-4 lg:self-start max-h-[70vh] lg:max-h-[calc(100vh-2rem)] flex flex-col min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -141,11 +141,11 @@ export function MarketplaceFilterSidebar({ filters, onChange, facets, totalResul
       )}
 
       {/* Filter groups */}
-      <ScrollArea className="flex-1 -mr-2 pr-2">
+      <ScrollArea className="flex-1 min-h-0 -mr-2 pr-2">
         <Accordion
           type="multiple"
           defaultValue={['categories', 'genders', 'ageRanges']}
-          className="space-y-1"
+          className="space-y-1 pb-2"
         >
           <FilterGroup
             id="categories"
@@ -184,6 +184,7 @@ export function MarketplaceFilterSidebar({ filters, onChange, facets, totalResul
             onToggle={(v) => toggleArrayValue('journeyStages', v)}
           />
         </Accordion>
+        <ScrollBar orientation="vertical" />
       </ScrollArea>
     </aside>
   );
