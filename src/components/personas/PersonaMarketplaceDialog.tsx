@@ -60,6 +60,7 @@ export default function PersonaMarketplaceDialog({
   const [selectedBrandId, setSelectedBrandId] = useState<string>("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [ownedNames, setOwnedNames] = useState<Set<string>>(new Set());
 
   const userCredits = user?.credits || 0;
 
@@ -89,7 +90,45 @@ export default function PersonaMarketplaceDialog({
     load();
   }, [isOpen, defaultBrandId, brands]);
 
-  const toggleSelection = (id: string) => {
+  // Load personas already owned by the selected brand (match by name)
+  useEffect(() => {
+    if (!isOpen || !selectedBrandId) {
+      setOwnedNames(new Set());
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("personas")
+          .select("name")
+          .eq("brand_id", selectedBrandId);
+        if (error) throw error;
+        if (cancelled) return;
+        const names = new Set((data || []).map((p: any) => (p.name || "").trim().toLowerCase()));
+        setOwnedNames(names);
+        // Remove any selections that became "owned" after brand change
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          for (const t of templates) {
+            if (names.has((t.name || "").trim().toLowerCase())) next.delete(t.id);
+          }
+          return next;
+        });
+      } catch (e) {
+        console.error("[marketplace] failed to load owned personas", e);
+        if (!cancelled) setOwnedNames(new Set());
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, selectedBrandId, templates]);
+
+  const isOwned = (name: string) => ownedNames.has((name || "").trim().toLowerCase());
+
+  const toggleSelection = (id: string, name: string) => {
+    if (isOwned(name)) return;
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -235,23 +274,31 @@ export default function PersonaMarketplaceDialog({
             ) : (
               templates.map((t) => {
                 const selected = selectedIds.has(t.id);
+                const owned = isOwned(t.name);
                 return (
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => toggleSelection(t.id)}
+                    onClick={() => toggleSelection(t.id, t.name)}
+                    disabled={owned}
                     className={cn(
-                      "relative text-left rounded-xl border-2 p-4 transition-all hover:shadow-md",
-                      selected
-                        ? "border-primary bg-primary/5 shadow-md"
-                        : "border-border bg-card hover:border-primary/40"
+                      "relative text-left rounded-xl border-2 p-4 transition-all",
+                      owned
+                        ? "border-border bg-muted/40 opacity-60 cursor-not-allowed"
+                        : selected
+                        ? "border-primary bg-primary/5 shadow-md hover:shadow-md"
+                        : "border-border bg-card hover:border-primary/40 hover:shadow-md"
                     )}
                   >
-                    {selected && (
+                    {owned ? (
+                      <div className="absolute top-3 right-3 bg-emerald-500 rounded-full p-1 shadow-md">
+                        <Check className="h-3 w-3 text-white" />
+                      </div>
+                    ) : selected ? (
                       <div className="absolute top-3 right-3 bg-primary rounded-full p-1 shadow-md">
                         <Check className="h-3 w-3 text-primary-foreground" />
                       </div>
-                    )}
+                    ) : null}
                     <div className="flex items-start gap-3 mb-3">
                       <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
                         {t.avatar_url && <AvatarImage src={t.avatar_url} alt={t.name} />}
@@ -281,12 +328,18 @@ export default function PersonaMarketplaceDialog({
                       <span className="truncate">{t.location}</span>
                     </div>
                     <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/40">
-                      <div className="flex items-center gap-1 text-xs font-medium text-primary">
-                        <Coins className="h-3 w-3" />
-                        {COST_PER_PERSONA} créditos
-                      </div>
+                      {owned ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px] font-medium">
+                          Já adicionada
+                        </Badge>
+                      ) : (
+                        <div className="flex items-center gap-1 text-xs font-medium text-primary">
+                          <Coins className="h-3 w-3" />
+                          {COST_PER_PERSONA} créditos
+                        </div>
+                      )}
                       <span className="text-[11px] text-muted-foreground">
-                        {selected ? "Selecionada" : "Adicionar"}
+                        {owned ? "Nesta marca" : selected ? "Selecionada" : "Adicionar"}
                       </span>
                     </div>
                   </button>
