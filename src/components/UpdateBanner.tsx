@@ -185,7 +185,7 @@ export function UpdateBanner() {
                 onClick={handleDismiss}
                 variant="ghost"
                 size="sm"
-                className="w-full text-muted-foreground hover:text-foreground"
+                className="w-full text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors"
               >
                 Atualizar mais tarde
               </Button>
