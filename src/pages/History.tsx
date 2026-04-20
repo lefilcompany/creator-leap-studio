@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useSoftDelete } from '@/hooks/useTrash';
 import { History as HistoryIcon, HelpCircle, Star } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -21,12 +21,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { BulkSelectionBar } from '@/components/historico/BulkSelectionBar';
 import { toast } from 'sonner';
 import { exportActionsToPptx } from '@/lib/exportHistoryToPptx';
+import { ExportPptxDialog, type ExportPptxOptions } from '@/components/historico/ExportPptxDialog';
 
 type SortField = 'date' | 'type';
 type SortDirection = 'asc' | 'desc';
 
 export default function History() {
-  const { user } = useAuth();
+  const { user, refreshUserCredits } = useAuth();
   const queryClient = useQueryClient();
   const [selectedActionSummary, setSelectedActionSummary] = useState<ActionSummary | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'favorites'>('all');
@@ -130,9 +131,41 @@ export default function History() {
     setSelectionMode(false);
   }, [bulkSelectedIds, queryClient]);
 
-  const handleBulkExportPptx = useCallback(async () => {
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  // Tracks if the user already paid for watermark removal in this attempt window — prevents double charge on retry
+  const paidWatermarkRemovalRef = React.useRef(false);
+
+  const handleOpenExportDialog = useCallback(() => {
+    if (bulkSelectedIds.size === 0) return;
+    setExportDialogOpen(true);
+  }, [bulkSelectedIds]);
+
+  const handleConfirmExport = useCallback(async (options: ExportPptxOptions) => {
     const ids = Array.from(bulkSelectedIds);
     if (ids.length === 0) return;
+
+    let includeWatermark = !options.removeWatermark;
+    let chargedNow = false;
+
+    // Charge first if removing watermark and not already paid
+    if (options.removeWatermark && !paidWatermarkRemovalRef.current) {
+      const chargeToast = toast.loading('Processando cobrança...');
+      try {
+        const { data, error } = await supabase.functions.invoke('charge-pptx-export');
+        if (error || data?.error) {
+          toast.error(data?.error || error?.message || 'Erro ao cobrar créditos', { id: chargeToast });
+          return;
+        }
+        paidWatermarkRemovalRef.current = true;
+        chargedNow = true;
+        toast.success(`Cobrança realizada (${data.charged} créditos)`, { id: chargeToast });
+        await refreshUserCredits();
+      } catch (e: any) {
+        toast.error(e?.message || 'Erro ao cobrar créditos', { id: chargeToast });
+        return;
+      }
+    }
+
     if (ids.length > 50) {
       toast.info('A geração pode demorar alguns segundos para muitos itens.');
     }
@@ -140,15 +173,26 @@ export default function History() {
     try {
       await exportActionsToPptx(ids, (current, total, label) => {
         toast.loading(`${label} (${current}/${total})`, { id: toastId });
+      }, {
+        periodStart: options.periodStart,
+        periodEnd: options.periodEnd,
+        includeWatermark,
       });
       toast.success(`PPT exportado com ${ids.length} ${ids.length === 1 ? 'slide' : 'slides'}!`, { id: toastId });
       setBulkSelectedIds(new Set());
       setSelectionMode(false);
+      setExportDialogOpen(false);
+      // Reset paid flag after successful export
+      paidWatermarkRemovalRef.current = false;
     } catch (e: any) {
       console.error('Export PPTX error:', e);
-      toast.error(e?.message || 'Erro ao gerar PPT', { id: toastId });
+      const baseMsg = e?.message || 'Erro ao gerar PPT';
+      const extra = chargedNow || paidWatermarkRemovalRef.current
+        ? ' Sua cobrança foi mantida — tente novamente sem custo adicional.'
+        : '';
+      toast.error(baseMsg + extra, { id: toastId });
     }
-  }, [bulkSelectedIds]);
+  }, [bulkSelectedIds, refreshUserCredits]);
 
   const handleBulkDelete = useCallback(async () => {
     const ids = Array.from(bulkSelectedIds);
