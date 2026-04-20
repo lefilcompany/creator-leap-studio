@@ -432,7 +432,7 @@ export default function ThemeView() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:sticky lg:top-4 lg:self-start">
             <SectionCard title="Paleta de Cores" icon={<Palette className="h-4 w-4" />} accentColor={brandColor}>
               <ColorPicker
                 colors={colorPalette}
