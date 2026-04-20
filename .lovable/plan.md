@@ -1,89 +1,76 @@
 
 
-## Plano: Exportar Histórico Selecionado para PowerPoint (.pptx)
+## Plano: Refinamentos no Export PPTX
 
-### Visão Geral
+Três ajustes no fluxo de exportação de histórico para PPT.
 
-Adicionar a capacidade de exportar conteúdos selecionados do histórico como um arquivo `.pptx` editável usando **PptxGenJS**. O fluxo aproveita o sistema de seleção em massa que já existe (`BulkSelectionBar`).
+### 1. Logo da marca no header de cada slide
 
-### Fluxo do Usuário
+No header de cada slide (ao lado do nome da marca), inserir a logo da marca quando `brands.avatar_url` existir.
 
-1. No `/history`, o usuário ativa o modo seleção e marca os conteúdos desejados.
-2. Na barra flutuante de ações em massa surge um novo botão **"Exportar PPT"**.
-3. Ao clicar, o sistema busca os dados completos das ações (legenda, imagem, marca, plataforma) e gera o `.pptx`.
-4. Um overlay de progresso é exibido enquanto as imagens são baixadas e convertidas em base64.
-5. O arquivo é baixado automaticamente: `historico-creator-AAAA-MM-DD.pptx`.
+- Em `src/lib/exportHistoryToPptx.ts`:
+  - Pré-buscar todas as logos únicas das marcas selecionadas (1 fetch por marca, em paralelo) e converter para base64 — assim como já fazemos com as imagens.
+  - Em `addContentSlide`, se a marca tiver logo: renderizar um quadrado de ~0.4" x 0.4" à esquerda do nome (x: 0.3) e empurrar o texto do nome para `x: 0.8`. Sem logo, mantém layout atual.
+  - Aplicar o mesmo tratamento no slide de capa (logo da marca dominante ou múltiplas logos pequenas, se houver várias marcas).
 
-### Estrutura do PPTX
+### 2. Modal de exportação com período de referência
 
-Cada ação selecionada vira **um slide** (16:9, 10" x 5.625"), com layout dividido:
+Criar um novo componente `src/components/historico/ExportPptxDialog.tsx`:
 
 ```text
-+----------------------------------------------------------+
-|  [Logo/Marca] Nome da Marca         Data  •  Plataforma  |
-|----------------------------------------------------------|
-|                          |                               |
-|   IMAGEM/THUMB           |  Título (negrito)             |
-|   (com aspect ratio      |                               |
-|    correto, sem corte)   |  Legenda completa             |
-|                          |  ...                          |
-|                          |                               |
-|                          |  #hashtag1 #hashtag2          |
-|----------------------------------------------------------|
-|  Tipo de ação                       Criado por: Creator  |
-+----------------------------------------------------------+
++----------------------------------------+
+|  Exportar para PowerPoint              |
+|----------------------------------------|
+|  ○ Sem período específico              |
+|    (usa a data de hoje na capa)        |
+|                                        |
+|  ● Conteúdo de um período              |
+|    [De: 07/04/2026] [Até: 13/04/2026]  |
+|----------------------------------------|
+|  ☐ Exportar sem marca d'água Creator   |
+|    (consome 2 créditos)                |
+|----------------------------------------|
+|  Você tem 47 créditos disponíveis      |
+|                                        |
+|         [Cancelar]  [Exportar (12)]    |
++----------------------------------------+
 ```
 
-- **Slide de capa**: título "Histórico Creator", contagem de itens, data de exportação, marca d'água "Creator by Lefil".
-- **Slides sem imagem** (texto puro / planos): layout single-column ocupando a largura toda.
-- **Vídeos**: usa o thumbnail (frame extraído do vídeo) ou um ícone placeholder + link clicável para a URL.
+- Dois `Popover` com `Calendar` (date picker) para "De" e "Até" — só ativos quando o radio "período" está selecionado.
+- Validação: se período escolhido, ambas as datas obrigatórias e `de <= até`.
+- O contador no botão mostra a contagem de slides selecionados.
+- Switch "sem marca d'água" desabilitado quando o usuário não tem 2 créditos, com mensagem inline.
 
-### Implementação Técnica
+### 3. Marca d'água do Creator + opção paga de remover
 
-**1. Dependência**
-- Adicionar `pptxgenjs` (~150 KB gzipped, roda 100% no client).
+**Marca d'água (padrão):**
+- Adicionar a logo `creator-symbol.png` (já existe em `src/assets/`) como marca d'água em todos os slides — incluindo o slide de capa.
+- Posição: canto inferior direito, tamanho ~0.55" x 0.55", opacidade ~25% (via `transparency: 75` do PptxGenJS).
+- Carregar a logo uma única vez no início da geração e converter para base64.
 
-**2. Novo arquivo: `src/lib/exportHistoryToPptx.ts`**
-- Função `exportActionsToPptx(actionIds: string[], onProgress?)`.
-- Busca dados completos via `supabase.from('actions').select('*, brands(name, brand_color, avatar_url)').in('id', actionIds)`.
-- Converte cada `imageUrl` para base64 via `fetch` + `FileReader` (PptxGenJS exige base64 ou URL com CORS — base64 é mais confiável para o storage do Supabase).
-- Detecta dimensões da imagem para preservar proporção (usa `Image()` em memória).
-- Sanitiza textos (remove markdown, normaliza quebras de linha).
-- Trata fallbacks: imagem ausente → ícone, marca nula → "Sem marca".
+**Sem marca d'água (custo: 2 créditos):**
+- Quando o usuário marca a opção, ao confirmar:
+  1. Frontend chama uma nova edge function `charge-pptx-export` que valida créditos e deduz 2 (`deductUserCredits`) registrando em `credit_history` com `action_type: 'PPTX_EXPORT_NO_WATERMARK'`.
+  2. Só após o sucesso da cobrança, a geração começa sem incluir a logo do Creator nos slides.
+  3. Refresh do saldo via `refreshUserCredits()` do `AuthContext`.
+- Em caso de falha pós-cobrança (ex: erro ao baixar imagens), mostrar toast informando que a cobrança foi efetuada mas a geração falhou; o usuário pode retentar gratuitamente nessa mesma sessão (controle simples via flag local: se `paidWatermarkRemoval === true`, próxima retry não cobra).
 
-**3. Novo botão em `BulkSelectionBar.tsx`**
-- Adicionar prop `onBulkExportPptx: () => Promise<void>`.
-- Botão entre "Categoria" e "Apagar" com ícone `FileDown` ou `Presentation` e label **"Exportar PPT"**.
-- Mostra `Loader2` girando enquanto exporta.
-
-**4. Handler em `History.tsx`**
-- `handleBulkExportPptx`: chama `exportActionsToPptx(Array.from(bulkSelectedIds))`, mostra toast de progresso ("Baixando imagens..." → "Gerando PPT..."), e ao final um toast de sucesso com a contagem.
-- Limpa a seleção após sucesso.
-
-**5. Tratamento de Erros**
-- Imagens que falharem ao baixar (CORS/404): slide é gerado sem imagem, com aviso visual sutil ("Imagem indisponível").
-- Erro fatal: toast de erro + mantém seleção para o usuário tentar de novo.
-- Limite de segurança: alerta se >50 itens selecionados ("A geração pode demorar alguns segundos").
-
-### Design dos Slides
-
-- **Fonte**: Calibri (compatível PowerPoint/Keynote/Google Slides).
-- **Paleta**: cinza-escuro `#2D1F28` (header), branco (fundo), accent `#E91E63` para badges de tipo de ação, cores reais da marca quando disponível em `brand_color`.
-- **Imagem**: encaixada em uma área de 4.5" x 4.5" com `sizing: { type: 'contain' }` para nunca cortar.
-- **Sem efeitos AI-genéricos**: sem linhas decorativas abaixo de títulos, sem accent lines.
-
-### Arquivos Afetados
+### Mudanças técnicas resumidas
 
 | Arquivo | Mudança |
 |---|---|
-| `package.json` | + `pptxgenjs` |
-| `src/lib/exportHistoryToPptx.ts` | **novo** — toda a lógica de geração |
-| `src/components/historico/BulkSelectionBar.tsx` | + botão "Exportar PPT" + estado de loading |
-| `src/pages/History.tsx` | + `handleBulkExportPptx` + passagem da prop |
+| `src/lib/exportHistoryToPptx.ts` | Aceita opções `{ periodStart?, periodEnd?, includeWatermark }`. Pré-busca logos das marcas. Renderiza marca d'água condicionalmente. Capa mostra "Conteúdo de DD/MM/AAAA a DD/MM/AAAA" quando há período. |
+| `src/components/historico/ExportPptxDialog.tsx` | **novo** — modal com radio de período, date pickers, switch de marca d'água, exibição do saldo. |
+| `src/components/historico/BulkSelectionBar.tsx` | Botão "Exportar PPT" agora abre o modal em vez de chamar export direto. |
+| `src/pages/History.tsx` | `handleBulkExportPptx` recebe as opções do modal; chama edge function de cobrança quando `removeWatermark === true` antes de gerar. |
+| `supabase/functions/charge-pptx-export/index.ts` | **nova edge function** — valida JWT, verifica e deduz 2 créditos, registra no histórico. Retorna `{ success, newCredits }`. |
+| `supabase/config.toml` | Registra a nova função (`verify_jwt = true`). |
+| `src/lib/creditCosts.ts` | Adiciona `PPTX_EXPORT_NO_WATERMARK: 2` para reuso na UI. |
 
 ### Notas
 
-- Tudo client-side: nenhuma edge function necessária, sem custo de créditos.
-- Imagens no bucket `content-images` são públicas, então o `fetch` direto funciona; CORS já está habilitado pelo Supabase Storage.
-- O `.pptx` gerado é totalmente editável (texto, imagem e layout) no PowerPoint, Keynote e Google Slides.
+- A logo do Creator já existe em `src/assets/creator-symbol.png` — será importada como módulo e convertida para base64 no client.
+- As logos de marca vêm de bucket público do Supabase Storage (mesma origem das imagens de conteúdo, já testado e funcional).
+- Custo de 2 créditos alinhado com `CAPTION_REVIEW`/`TEXT_REVIEW` (operações leves), refletindo que é cobrança simbólica por personalização e não geração de IA.
+- O fluxo mantém retrocompatibilidade: se o usuário escolher "sem período" e "com marca d'água", o PPT é idêntico ao atual + watermark.
 
