@@ -1,6 +1,7 @@
 import PptxGenJS from 'pptxgenjs';
 import { supabase } from '@/integrations/supabase/client';
 import { ACTION_TYPE_DISPLAY, type ActionType } from '@/types/action';
+import creatorWatermark from '@/assets/creator-symbol.png';
 
 // Color palette (no '#' for PptxGenJS)
 const COLORS = {
@@ -19,7 +20,17 @@ const FONT = 'Calibri';
 const SLIDE_W = 10;
 const SLIDE_H = 5.625;
 
+// Watermark dims
+const WM_SIZE = 0.55;
+const WM_MARGIN = 0.18;
+
 type ProgressFn = (current: number, total: number, label: string) => void;
+
+export interface ExportPptxOptions {
+  periodStart?: Date;
+  periodEnd?: Date;
+  includeWatermark?: boolean;
+}
 
 interface ActionRow {
   id: string;
@@ -58,6 +69,14 @@ const formatDate = (iso: string): string => {
   }
 };
 
+const formatDateLong = (d: Date): string => {
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+};
+
+const formatDateShort = (d: Date): string => {
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
 const fetchImageAsDataUrl = async (url: string): Promise<FetchedImage> => {
   try {
     const res = await fetch(url, { mode: 'cors' });
@@ -69,7 +88,6 @@ const fetchImageAsDataUrl = async (url: string): Promise<FetchedImage> => {
       fr.onerror = reject;
       fr.readAsDataURL(blob);
     });
-    // Get dimensions
     const dims = await new Promise<{ w: number; h: number }>((resolve) => {
       const img = new Image();
       img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
@@ -80,6 +98,22 @@ const fetchImageAsDataUrl = async (url: string): Promise<FetchedImage> => {
   } catch (e) {
     console.warn('Failed to fetch image:', url, e);
     return { dataUrl: null, width: 0, height: 0 };
+  }
+};
+
+const fetchAssetAsDataUrl = async (url: string): Promise<string | null> => {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result as string);
+      fr.onerror = reject;
+      fr.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
   }
 };
 
@@ -120,7 +154,6 @@ const extractPlatform = (action: ActionRow): string => {
   return stripMarkdown(d.platform || d.format || '');
 };
 
-// Compute "contain" fit inside a box, returns image position+size
 const fitContain = (imgW: number, imgH: number, boxX: number, boxY: number, boxW: number, boxH: number) => {
   if (!imgW || !imgH) return { x: boxX, y: boxY, w: boxW, h: boxH };
   const imgRatio = imgW / imgH;
@@ -138,7 +171,26 @@ const fitContain = (imgW: number, imgH: number, boxX: number, boxY: number, boxW
   return { x, y, w, h };
 };
 
-const addCoverSlide = (pptx: PptxGenJS, count: number) => {
+const addWatermark = (slide: any, dataUrl: string | null) => {
+  if (!dataUrl) return;
+  slide.addImage({
+    data: dataUrl,
+    x: SLIDE_W - WM_SIZE - WM_MARGIN,
+    y: SLIDE_H - WM_SIZE - WM_MARGIN,
+    w: WM_SIZE,
+    h: WM_SIZE,
+    transparency: 75,
+  });
+};
+
+const addCoverSlide = (
+  pptx: PptxGenJS,
+  count: number,
+  periodStart: Date | undefined,
+  periodEnd: Date | undefined,
+  watermarkData: string | null,
+  brandLogos: string[],
+) => {
   const slide = pptx.addSlide();
   slide.background = { color: COLORS.text };
 
@@ -146,35 +198,68 @@ const addCoverSlide = (pptx: PptxGenJS, count: number) => {
   slide.addShape('rect', { x: 0, y: 0, w: 0.25, h: SLIDE_H, fill: { color: COLORS.accent }, line: { type: 'none' } });
 
   slide.addText('Histórico Creator', {
-    x: 0.8, y: 1.8, w: 8.5, h: 1.0,
+    x: 0.8, y: 1.6, w: 8.5, h: 1.0,
     fontFace: FONT, fontSize: 44, bold: true, color: 'FFFFFF',
     align: 'left', valign: 'middle',
   });
 
   slide.addText(`${count} ${count === 1 ? 'conteúdo selecionado' : 'conteúdos selecionados'}`, {
-    x: 0.8, y: 2.85, w: 8.5, h: 0.5,
+    x: 0.8, y: 2.65, w: 8.5, h: 0.5,
     fontFace: FONT, fontSize: 20, color: 'FCE4EC',
     align: 'left', valign: 'middle',
   });
 
-  slide.addText(`Exportado em ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}`, {
-    x: 0.8, y: 3.5, w: 8.5, h: 0.4,
+  // Period or export date
+  let periodText = '';
+  if (periodStart && periodEnd) {
+    periodText = `Conteúdo de ${formatDateShort(periodStart)} a ${formatDateShort(periodEnd)}`;
+  } else {
+    periodText = `Exportado em ${formatDateLong(new Date())}`;
+  }
+
+  slide.addText(periodText, {
+    x: 0.8, y: 3.3, w: 8.5, h: 0.4,
     fontFace: FONT, fontSize: 14, color: 'B8A0AC',
     align: 'left', valign: 'middle',
   });
 
+  // Brand logos row (if any)
+  if (brandLogos.length > 0) {
+    const logoSize = 0.5;
+    const gap = 0.15;
+    const maxLogos = Math.min(brandLogos.length, 8);
+    const totalWidth = maxLogos * logoSize + (maxLogos - 1) * gap;
+    let x = 0.8;
+    for (let i = 0; i < maxLogos; i++) {
+      slide.addImage({
+        data: brandLogos[i],
+        x,
+        y: 4.0,
+        w: logoSize,
+        h: logoSize,
+        sizing: { type: 'cover', w: logoSize, h: logoSize },
+      });
+      x += logoSize + gap;
+    }
+    void totalWidth;
+  }
+
   slide.addText('Creator by Lefil', {
-    x: 0.8, y: SLIDE_H - 0.6, w: 8.5, h: 0.4,
+    x: 0.8, y: SLIDE_H - 0.5, w: 6.0, h: 0.4,
     fontFace: FONT, fontSize: 11, color: 'B8A0AC', italic: true,
     align: 'left', valign: 'middle',
   });
+
+  addWatermark(slide, watermarkData);
 };
 
 const addContentSlide = (
   pptx: PptxGenJS,
   action: ActionRow,
   image: FetchedImage,
+  brandLogo: string | null,
   brandColorHex: string,
+  watermarkData: string | null,
 ) => {
   const slide = pptx.addSlide();
   slide.background = { color: COLORS.bg };
@@ -198,9 +283,17 @@ const addContentSlide = (
     fill: { color: brandColorHex }, line: { type: 'none' },
   });
 
-  // Brand name (left of header)
+  // Brand logo + name
+  const hasLogo = !!brandLogo;
+  if (hasLogo) {
+    slide.addImage({
+      data: brandLogo!,
+      x: 0.3, y: 0.075, w: 0.4, h: 0.4,
+      sizing: { type: 'contain', w: 0.4, h: 0.4 },
+    });
+  }
   slide.addText(brandName, {
-    x: 0.3, y: 0.05, w: 5.0, h: 0.45,
+    x: hasLogo ? 0.8 : 0.3, y: 0.05, w: 4.5, h: 0.45,
     fontFace: FONT, fontSize: 13, bold: true, color: COLORS.text,
     align: 'left', valign: 'middle', margin: 0,
   });
@@ -219,13 +312,11 @@ const addContentSlide = (
   const contentH = contentBottom - contentTop;
 
   if (hasImage) {
-    // Image area (left half)
     const imgBoxX = 0.3;
     const imgBoxY = contentTop;
     const imgBoxW = 4.5;
     const imgBoxH = contentH;
 
-    // Subtle background frame
     slide.addShape('rect', {
       x: imgBoxX, y: imgBoxY, w: imgBoxW, h: imgBoxH,
       fill: { color: COLORS.surface }, line: { type: 'none' },
@@ -237,7 +328,6 @@ const addContentSlide = (
       x: fit.x, y: fit.y, w: fit.w, h: fit.h,
     });
 
-    // Text column (right)
     const textX = 5.0;
     const textW = SLIDE_W - textX - 0.3;
     let cursorY = contentTop;
@@ -268,7 +358,6 @@ const addContentSlide = (
       });
     }
   } else {
-    // No image: full width text layout
     const textX = 0.5;
     const textW = SLIDE_W - 1.0;
     let cursorY = contentTop + 0.1;
@@ -312,7 +401,6 @@ const addContentSlide = (
     fill: { color: COLORS.surface }, line: { type: 'none' },
   });
 
-  // Type badge
   slide.addShape('roundRect', {
     x: 0.3, y: SLIDE_H - 0.32, w: 2.0, h: 0.24,
     fill: { color: COLORS.accentSoft }, line: { type: 'none' },
@@ -324,11 +412,8 @@ const addContentSlide = (
     align: 'center', valign: 'middle', margin: 0,
   });
 
-  slide.addText('Creator by Lefil', {
-    x: SLIDE_W - 2.5, y: SLIDE_H - 0.32, w: 2.2, h: 0.24,
-    fontFace: FONT, fontSize: 9, color: COLORS.muted, italic: true,
-    align: 'right', valign: 'middle', margin: 0,
-  });
+  // Watermark
+  addWatermark(slide, watermarkData);
 };
 
 const normalizeBrandColor = (color: string | null | undefined): string => {
@@ -344,8 +429,11 @@ const normalizeBrandColor = (color: string | null | undefined): string => {
 export async function exportActionsToPptx(
   actionIds: string[],
   onProgress?: ProgressFn,
+  options: ExportPptxOptions = {},
 ): Promise<void> {
   if (actionIds.length === 0) throw new Error('Nenhum item selecionado');
+
+  const includeWatermark = options.includeWatermark !== false; // default true
 
   onProgress?.(0, actionIds.length, 'Buscando conteúdos...');
 
@@ -359,15 +447,39 @@ export async function exportActionsToPptx(
   if (error) throw error;
   if (!actions || actions.length === 0) throw new Error('Conteúdos não encontrados');
 
+  // Pre-fetch unique brand logos
+  onProgress?.(0, actions.length, 'Carregando logos das marcas...');
+  const uniqueBrandLogos = new Map<string, string>(); // brandId -> avatar_url
+  (actions as any[]).forEach((a) => {
+    if (a.brands?.id && a.brands?.avatar_url && !uniqueBrandLogos.has(a.brands.id)) {
+      uniqueBrandLogos.set(a.brands.id, a.brands.avatar_url);
+    }
+  });
+
+  const logoEntries = Array.from(uniqueBrandLogos.entries());
+  const logoResults = await Promise.all(
+    logoEntries.map(async ([id, url]) => [id, await fetchAssetAsDataUrl(url)] as const)
+  );
+  const brandLogoMap = new Map<string, string>();
+  logoResults.forEach(([id, data]) => {
+    if (data) brandLogoMap.set(id, data);
+  });
+
+  // Watermark
+  let watermarkData: string | null = null;
+  if (includeWatermark) {
+    watermarkData = await fetchAssetAsDataUrl(creatorWatermark);
+  }
+
   const pptx = new PptxGenJS();
-  pptx.layout = 'LAYOUT_WIDE';
-  pptx.defineLayout({ name: 'LAYOUT_WIDE', width: SLIDE_W, height: SLIDE_H });
-  pptx.layout = 'LAYOUT_WIDE';
+  pptx.defineLayout({ name: 'LAYOUT_WIDE_CUSTOM', width: SLIDE_W, height: SLIDE_H });
+  pptx.layout = 'LAYOUT_WIDE_CUSTOM';
   pptx.title = 'Histórico Creator';
   pptx.author = 'Creator by Lefil';
   pptx.company = 'Lefil';
 
-  addCoverSlide(pptx, actions.length);
+  const coverLogos = Array.from(brandLogoMap.values());
+  addCoverSlide(pptx, actions.length, options.periodStart, options.periodEnd, watermarkData, coverLogos);
 
   for (let i = 0; i < actions.length; i++) {
     const action = actions[i] as unknown as ActionRow;
@@ -379,7 +491,8 @@ export async function exportActionsToPptx(
       : { dataUrl: null, width: 0, height: 0 };
 
     const brandColor = normalizeBrandColor(action.brands?.brand_color);
-    addContentSlide(pptx, action, image, brandColor);
+    const brandLogo = action.brands?.id ? brandLogoMap.get(action.brands.id) || null : null;
+    addContentSlide(pptx, action, image, brandLogo, brandColor, watermarkData);
   }
 
   onProgress?.(actions.length, actions.length, 'Gerando arquivo...');
