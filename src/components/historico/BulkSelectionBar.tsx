@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Star, FolderOpen, X, ChevronDown, User, Users, Plus, Minus, Trash2 } from 'lucide-react';
+import { Star, FolderOpen, X, ChevronDown, User, Users, Plus, Minus, Trash2, Presentation, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useCategories } from '@/hooks/useCategories';
@@ -12,6 +12,7 @@ interface BulkSelectionBarProps {
   onBulkAddToCategory: (categoryId: string) => void;
   onBulkRemoveFromCategory: (categoryId: string) => void;
   onBulkDelete?: () => void;
+  onBulkExportPptx?: () => Promise<void> | void;
   hasTeam: boolean;
   actionCategoryMap: Map<string, string[]>;
 }
@@ -23,12 +24,24 @@ export function BulkSelectionBar({
   onBulkAddToCategory,
   onBulkRemoveFromCategory,
   onBulkDelete,
+  onBulkExportPptx,
   hasTeam,
   actionCategoryMap,
 }: BulkSelectionBarProps) {
   const { categories } = useCategories();
   const [catOpen, setCatOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const count = selectedIds.size;
+
+  const handleExport = async () => {
+    if (!onBulkExportPptx || exporting) return;
+    setExporting(true);
+    try {
+      await onBulkExportPptx();
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Find categories that at least one selected action belongs to (for removal)
   const categoriesWithSelected = useMemo(() => {
@@ -182,6 +195,21 @@ export function BulkSelectionBar({
             )}
           </PopoverContent>
         </Popover>
+
+        {/* Export PPT */}
+        {onBulkExportPptx && (
+          <>
+            <div className="w-px h-4 bg-border/50" />
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-foreground/70 hover:bg-muted/60 transition-colors active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Presentation className="h-3.5 w-3.5" />}
+              {exporting ? 'Exportando...' : 'Exportar PPT'}
+            </button>
+          </>
+        )}
 
         {/* Delete */}
         {onBulkDelete && (
