@@ -489,9 +489,9 @@ export default function BrandView() {
 
       {/* Content */}
       <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* Main editable fields */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 self-start">
             <SectionCard title="Informações Gerais" icon={<Tag className="h-4 w-4" />} accentColor={brandColor}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <EditableField label="Nome da Marca" value={formData.name || ''} onChange={(v) => updateField('name', v)} type="input" />
@@ -532,7 +532,7 @@ export default function BrandView() {
           </div>
 
           {/* Sidebar - visual assets */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pr-1 lg:[scrollbar-width:thin]">
             <SectionCard title="Identidade Visual" icon={<Sparkles className="h-4 w-4" />} accentColor={brandColor}>
               <BrandVisualIdentity
                 brandId={brand.id}
