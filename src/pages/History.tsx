@@ -455,9 +455,17 @@ export default function History() {
         onBulkAddToCategory={handleBulkAddToCategory}
         onBulkRemoveFromCategory={handleBulkRemoveFromCategory}
         onBulkDelete={handleBulkDelete}
-        onBulkExportPptx={handleBulkExportPptx}
+        onBulkExportPptx={handleOpenExportDialog}
         hasTeam={hasTeam}
         actionCategoryMap={actionCategoryMap}
+      />
+
+      <ExportPptxDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        selectedCount={bulkSelectedIds.size}
+        userCredits={user?.credits ?? 0}
+        onConfirm={handleConfirmExport}
       />
 
       <TourSelector 
