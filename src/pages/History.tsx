@@ -20,6 +20,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BulkSelectionBar } from '@/components/historico/BulkSelectionBar';
 import { toast } from 'sonner';
+import { exportActionsToPptx } from '@/lib/exportHistoryToPptx';
 
 type SortField = 'date' | 'type';
 type SortDirection = 'asc' | 'desc';
@@ -128,6 +129,26 @@ export default function History() {
     setBulkSelectedIds(new Set());
     setSelectionMode(false);
   }, [bulkSelectedIds, queryClient]);
+
+  const handleBulkExportPptx = useCallback(async () => {
+    const ids = Array.from(bulkSelectedIds);
+    if (ids.length === 0) return;
+    if (ids.length > 50) {
+      toast.info('A geração pode demorar alguns segundos para muitos itens.');
+    }
+    const toastId = toast.loading(`Preparando ${ids.length} ${ids.length === 1 ? 'slide' : 'slides'}...`);
+    try {
+      await exportActionsToPptx(ids, (current, total, label) => {
+        toast.loading(`${label} (${current}/${total})`, { id: toastId });
+      });
+      toast.success(`PPT exportado com ${ids.length} ${ids.length === 1 ? 'slide' : 'slides'}!`, { id: toastId });
+      setBulkSelectedIds(new Set());
+      setSelectionMode(false);
+    } catch (e: any) {
+      console.error('Export PPTX error:', e);
+      toast.error(e?.message || 'Erro ao gerar PPT', { id: toastId });
+    }
+  }, [bulkSelectedIds]);
 
   const handleBulkDelete = useCallback(async () => {
     const ids = Array.from(bulkSelectedIds);
@@ -390,6 +411,7 @@ export default function History() {
         onBulkAddToCategory={handleBulkAddToCategory}
         onBulkRemoveFromCategory={handleBulkRemoveFromCategory}
         onBulkDelete={handleBulkDelete}
+        onBulkExportPptx={handleBulkExportPptx}
         hasTeam={hasTeam}
         actionCategoryMap={actionCategoryMap}
       />
