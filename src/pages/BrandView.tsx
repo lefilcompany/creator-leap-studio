@@ -532,7 +532,7 @@ export default function BrandView() {
           </div>
 
           {/* Sidebar - visual assets */}
-          <div className="space-y-6 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pr-1 lg:[scrollbar-width:thin]">
+          <div className="space-y-6 lg:sticky lg:top-4 lg:self-start">
             <SectionCard title="Identidade Visual" icon={<Sparkles className="h-4 w-4" />} accentColor={brandColor}>
               <BrandVisualIdentity
                 brandId={brand.id}
