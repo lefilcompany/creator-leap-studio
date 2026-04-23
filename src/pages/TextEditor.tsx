@@ -427,6 +427,24 @@ export default function TextEditor() {
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px]">
         {/* === Canvas (left) === */}
         <section className="flex flex-col min-w-0 min-h-0 overflow-hidden bg-muted/30">
+          {/* Canvas top toolbar */}
+          <div className="h-12 shrink-0 border-b border-border/40 bg-card/60 backdrop-blur flex items-center justify-between px-4 gap-2">
+            <div className="text-xs text-muted-foreground">
+              {naturalSize.w > 0 && `${naturalSize.w} × ${naturalSize.h}px`}
+              {layers.length > 0 && (
+                <span className="ml-3">{layers.length} camada{layers.length === 1 ? "" : "s"}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button size="sm" variant="outline" onClick={addLayer} className="gap-1.5 h-8">
+                <Plus className="h-3.5 w-3.5" /> Camada
+              </Button>
+              <Button size="sm" variant="ghost" onClick={resetLayers} className="gap-1.5 h-8">
+                <RotateCcw className="h-3.5 w-3.5" /> Resetar
+              </Button>
+            </div>
+          </div>
+
           <div
             ref={stageRef}
             className="flex-1 min-h-0 min-w-0 p-3 sm:p-4 flex items-center justify-center overflow-hidden"
@@ -516,24 +534,6 @@ export default function TextEditor() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Canvas footer toolbar */}
-          <div className="h-12 shrink-0 border-t border-border/40 bg-card/60 backdrop-blur flex items-center justify-between px-4 gap-2">
-            <div className="text-xs text-muted-foreground">
-              {naturalSize.w > 0 && `${naturalSize.w} × ${naturalSize.h}px`}
-              {layers.length > 0 && (
-                <span className="ml-3">{layers.length} camada{layers.length === 1 ? "" : "s"}</span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Button size="sm" variant="outline" onClick={addLayer} className="gap-1.5 h-8">
-                <Plus className="h-3.5 w-3.5" /> Camada
-              </Button>
-              <Button size="sm" variant="ghost" onClick={resetLayers} className="gap-1.5 h-8">
-                <RotateCcw className="h-3.5 w-3.5" /> Resetar
-              </Button>
-            </div>
           </div>
         </section>
 
