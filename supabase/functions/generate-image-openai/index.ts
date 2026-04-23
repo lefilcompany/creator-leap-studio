@@ -199,6 +199,147 @@ async function callOpenAIImage(
   return { imageBase64: finalB64, partialImages };
 }
 
+/**
+ * Chama a API OpenAI GPT Image 2 EDIT endpoint (/v1/images/edits) com suporte a
+ * edição com imagem base + máscara opcional. Aceita streaming SSE também.
+ *
+ * - `baseImages`: 1 ou mais imagens base (data URL ou bytes). A primeira é usada
+ *    como referência principal de edição.
+ * - `mask`: PNG opcional com canal alpha — pixels transparentes serão regenerados.
+ *    Deve ter o MESMO tamanho da primeira imagem base.
+ */
+async function callOpenAIImageEdit(
+  apiKey: string,
+  request: OpenAIImageRequest & {
+    baseImages: Array<{ bytes: Uint8Array; mime: string; filename: string }>;
+    mask?: { bytes: Uint8Array; mime: string; filename: string };
+  },
+  onPartial?: (b64: string, index: number) => void,
+): Promise<{ imageBase64: string; partialImages: string[] }> {
+  const useStream = request.stream ?? (request.partial_images && request.partial_images > 0);
+
+  const form = new FormData();
+  form.append('model', 'gpt-image-2');
+  form.append('prompt', request.prompt);
+  form.append('size', request.size ?? '1024x1024');
+  form.append('quality', request.quality ?? 'medium');
+  form.append('background', request.background ?? 'auto');
+  form.append('output_format', request.output_format ?? 'png');
+  if (request.output_compression !== undefined) {
+    form.append('output_compression', String(request.output_compression));
+  }
+  form.append('n', String(request.n ?? 1));
+
+  // image[] — múltiplas imagens base permitidas
+  for (const img of request.baseImages) {
+    form.append('image[]', new Blob([img.bytes], { type: img.mime }), img.filename);
+  }
+
+  // mask — opcional, deve ser PNG com transparência (deve ter tamanho idêntico à imagem base)
+  if (request.mask) {
+    form.append('mask', new Blob([request.mask.bytes], { type: request.mask.mime }), request.mask.filename);
+  }
+
+  if (useStream) {
+    form.append('stream', 'true');
+    form.append('partial_images', String(Math.min(Math.max(request.partial_images ?? 1, 0), 3)));
+  }
+
+  console.log('[OpenAI Edit] Request:', {
+    size: request.size ?? '1024x1024',
+    quality: request.quality ?? 'medium',
+    baseImagesCount: request.baseImages.length,
+    hasMask: !!request.mask,
+    stream: useStream,
+    promptChars: request.prompt.length,
+  });
+
+  const response = await fetch('https://api.openai.com/v1/images/edits', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}` },
+    body: form,
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error('[OpenAI Edit] HTTP', response.status, errText);
+    if (response.status === 403 || response.status === 401) {
+      throw new Error(`OpenAI ${response.status}: organização não verificada ou API key inválida.`);
+    }
+    if (response.status === 429) {
+      throw new Error('OpenAI 429: limite de requisições excedido.');
+    }
+    throw new Error(`OpenAI Edit ${response.status}: ${errText.slice(0, 500)}`);
+  }
+
+  const partialImages: string[] = [];
+
+  if (!useStream) {
+    const data = await response.json();
+    const b64 = data?.data?.[0]?.b64_json;
+    if (!b64) throw new Error('OpenAI Edit: resposta sem b64_json');
+    return { imageBase64: b64, partialImages };
+  }
+
+  // ===== Streaming SSE =====
+  if (!response.body) throw new Error('OpenAI Edit: stream sem body');
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let finalB64: string | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    let idx: number;
+    while ((idx = buffer.indexOf('\n')) !== -1) {
+      let line = buffer.slice(0, idx);
+      buffer = buffer.slice(idx + 1);
+      if (line.endsWith('\r')) line = line.slice(0, -1);
+      if (!line.startsWith('data: ')) continue;
+
+      const payload = line.slice(6).trim();
+      if (payload === '[DONE]') break;
+
+      try {
+        const evt = JSON.parse(payload);
+        const isPartial = evt.type === 'image_edit.partial_image' || evt.type === 'image_generation.partial_image';
+        const isCompleted = evt.type === 'image_edit.completed' || evt.type === 'image_generation.completed';
+        if (isPartial && evt.b64_json) {
+          partialImages.push(evt.b64_json);
+          onPartial?.(evt.b64_json, evt.partial_image_index ?? partialImages.length - 1);
+        } else if (isCompleted && evt.b64_json) {
+          finalB64 = evt.b64_json;
+        }
+      } catch {
+        buffer = line + '\n' + buffer;
+        break;
+      }
+    }
+  }
+
+  if (!finalB64) {
+    if (partialImages.length > 0) finalB64 = partialImages[partialImages.length - 1];
+    else throw new Error('OpenAI Edit stream encerrado sem imagem final');
+  }
+
+  return { imageBase64: finalB64, partialImages };
+}
+
+/** Converte data URL ou URL pública em { bytes, mime } */
+async function toBytesWithMime(input: string, fallbackMime = 'image/png'): Promise<{ bytes: Uint8Array; mime: string }> {
+  if (input.startsWith('data:')) {
+    const match = input.match(/^data:([^;]+);base64,(.+)$/);
+    const mime = match?.[1] || fallbackMime;
+    return { bytes: decodeBase64Image(input), mime };
+  }
+  const r = await fetch(input);
+  const ct = r.headers.get('content-type') || fallbackMime;
+  return { bytes: new Uint8Array(await r.arrayBuffer()), mime: ct };
+}
+
 /** Converte data URL ou URL pública em Uint8Array */
 async function toBytes(input: string): Promise<Uint8Array> {
   if (input.startsWith('data:')) return decodeBase64Image(input);
