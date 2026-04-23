@@ -558,11 +558,31 @@ serve(async (req) => {
     };
 
     // ===== Detecção de modo EDIÇÃO (/v1/images/edits) =====
-    // Ativado quando há `openaiEditMode: true` E ao menos uma imagem base
-    // (campo `editBaseImages: string[]` com URLs/data-URLs). Máscara opcional via `editMask`.
-    const editMode: boolean = formData.openaiEditMode === true
-      && Array.isArray(formData.editBaseImages)
-      && formData.editBaseImages.length > 0;
+    // Ativado quando:
+    //  (a) `openaiEditMode: true` explícito + `editBaseImages` informado, OU
+    //  (b) o usuário enviou imagens de referência (preserveImages / userReferenceImages /
+    //      brandReferenceImages). Nesse caso usamos as referências como base do edit endpoint
+    //      para que a OpenAI as utilize VISUALMENTE — e não apenas como descrição textual.
+    const explicitEditBase: string[] = Array.isArray(formData.editBaseImages)
+      ? (formData.editBaseImages as string[]).filter((s) => typeof s === 'string' && s.length > 0)
+      : [];
+
+    // Combina referências preservadas (marca + usuário) com prioridade. Limite 4 (OpenAI).
+    const autoEditBase: string[] = [...new Set([
+      ...preserveImages,
+      ...styleReferenceImages,
+    ])].slice(0, 4);
+
+    const editBaseImagesResolved: string[] = explicitEditBase.length > 0
+      ? explicitEditBase.slice(0, 4)
+      : autoEditBase;
+
+    const editMode: boolean = editBaseImagesResolved.length > 0
+      && (formData.openaiEditMode === true || autoEditBase.length > 0);
+
+    if (editMode && explicitEditBase.length === 0) {
+      console.log('[generate-image-openai] Auto edit mode ativado:', editBaseImagesResolved.length, 'imagem(ns) de referência');
+    }
 
     // Função principal que executa a geração e (opcionalmente) emite SSE
     const runGeneration = async () => {
