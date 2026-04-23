@@ -376,7 +376,7 @@ export default function TextEditor() {
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col bg-background animate-fade-in">
+    <div className="h-[calc(100vh-4rem)] -mx-4 sm:-mx-6 lg:-mx-8 -my-4 sm:-my-6 flex flex-col bg-background overflow-hidden animate-fade-in">
       {/* === Top bar === */}
       <header className="h-14 shrink-0 border-b border-border/40 bg-card/80 backdrop-blur flex items-center justify-between px-4 gap-3">
         <div className="flex items-center gap-3 min-w-0">
