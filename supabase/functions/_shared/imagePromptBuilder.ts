@@ -466,58 +466,27 @@ export function buildDirectorPrompt(params: BuildDirectorPromptParams): string {
 
   sections.push(`### 3. COMPOSIÇÃO DA IMAGEM\n${compParts.join('\n')}`);
 
-  // SECTION 4: TEXTO E DESIGN
-  const isAd = params.contentType === 'ads';
-  const hasUserText = params.includeText && params.textContent;
-  const hasRefinerText = params.headline || params.subtexto;
-  
-  if (hasUserText || (isAd && hasRefinerText)) {
-    const fontDesc = FONT_STYLES[params.fontStyle] || FONT_STYLES['modern'];
-    const primaryText = params.textContent || params.headline || '';
-    const ctaText = params.ctaText || (isAd ? params.subtexto : '') || '';
-    
-    const textParts = [`### 4. TEXTO E DESIGN
-- IDIOMA OBRIGATÓRIO: Português Brasileiro (pt-BR). Todo texto DEVE seguir ortografia, acentuação e gramática do Português do Brasil. Use acentos corretamente (é, ã, ç, ô, etc.). NUNCA use português de Portugal ou espanhol.`];
+  // SECTION 4: RESERVA PARA OVERLAY DE TEXTO
+  const hasAnyOverlayText = params.includeText && Boolean(
+    params.textContent || params.ctaText || params.disclaimerText || params.headline || params.subtexto
+  );
 
-    if (primaryText) {
-      textParts.push(`- Headline: Renderize PERFEITAMENTE o texto EXATO: "${primaryText}"
-  - CADA LETRA deve ser renderizada com precisão absoluta. Verifique caractere por caractere.
-  - Acentos e cedilhas (á, é, í, ó, ú, â, ê, ô, ã, õ, ç) DEVEM estar corretos e visíveis.
-  - NÃO altere, omita ou substitua nenhuma letra ou acento do texto fornecido.
-  - NÃO invente texto adicional além do fornecido.`);
-    }
-    
-    if (ctaText) {
-      textParts.push(`- CTA (Call-to-Action): Renderize PERFEITAMENTE o texto EXATO: "${ctaText}"
-  - O CTA deve estar posicionado de forma destacada, geralmente na parte inferior da imagem.
-  - Use um botão ou destaque visual para o CTA (fundo contrastante, borda arredondada).
-  - O CTA deve ser menor que a headline mas igualmente legível.`);
-    }
-    
+  if (hasAnyOverlayText) {
     const designPrompt = TEXT_DESIGN_PROMPTS[params.textDesignStyle] || TEXT_DESIGN_PROMPTS['clean'];
-    const fontFamilyDesc = params.fontFamily ? `Família tipográfica: "${params.fontFamily}"` : '';
-    const fontWeightDesc = params.fontWeight ? `, peso ${params.fontWeight === '900' ? 'extra-bold/black' : params.fontWeight === '700' ? 'bold' : params.fontWeight === '600' ? 'semi-bold' : params.fontWeight === '400' ? 'regular' : params.fontWeight === '300' ? 'light' : `peso ${params.fontWeight}`}` : '';
-    const fontItalicDesc = params.fontItalic ? ', estilo itálico' : '';
-    const fontSizeDesc = params.fontSize ? `. Tamanho visual: ${params.fontSize <= 16 ? 'PEQUENO (discreto, texto de apoio)' : params.fontSize <= 24 ? 'MÉDIO (legível, destaque moderado)' : params.fontSize <= 32 ? 'GRANDE (destaque forte, hero text)' : 'EXTRA GRANDE (impacto máximo, display)'}` : '';
-    
-    const fullTypoDesc = `${fontDesc}${fontFamilyDesc ? `. ${fontFamilyDesc}${fontWeightDesc}${fontItalicDesc}` : ''}${fontSizeDesc}`;
+    const reservedTexts = [params.textContent, params.ctaText, params.disclaimerText]
+      .filter((value): value is string => Boolean(value && value.trim()))
+      .map((value) => `"${value.trim()}"`)
+      .join(', ');
 
-    textParts.push(`- Tipografia: ${fullTypoDesc}
-- Posição: ${params.textPosition || 'center'}. O texto NÃO deve obstruir o rosto.
+    sections.push(`### 4. RESERVA PARA OVERLAY DE TEXTO
+- NÃO renderize, escreva, desenhe, insira ou gere qualquer tipografia, letras, palavras, números, logotipos tipográficos, CTA ou aviso legal dentro da imagem base.
+- A imagem final DEVE vir sem texto embutido. Todo o texto será aplicado depois, em pós-processamento.
+- Crie composição com espaço negativo limpo e contraste suficiente para receber overlay posterior.
+- Área preferencial do espaço livre: ${params.textPosition || 'center'}.
+- O espaço reservado deve acomodar estes textos sem sobreposição com o sujeito principal: ${reservedTexts || 'texto configurado externamente'}.
 - ${designPrompt}
-- Legibilidade: O texto DEVE ser 100% legível. O design do texto deve fazer parte de uma composição profissional em formato para ${params.platform || 'redes sociais'}.
-- VERIFICAÇÃO FINAL: Antes de finalizar, releia o texto renderizado e confirme que está IDÊNTICO ao texto fornecido, letra por letra, acento por acento.`);
-    
-    sections.push(textParts.join('\n'));
-  } else if (params.includeText) {
-    sections.push(`### 4. TEXTO E DESIGN
-- IDIOMA OBRIGATÓRIO: Português Brasileiro (pt-BR).
-- Crie uma headline curta (máx. 8 palavras) em português brasileiro relacionada ao objetivo do post.
-- Se for anúncio, inclua também um CTA (Call-to-Action) curto e direto (ex: "Saiba mais", "Compre agora", "Garanta o seu").
-- Tipografia: ${FONT_STYLES[params.fontStyle] || FONT_STYLES['modern']}
-- Posição: ${params.textPosition || 'center'}.
-- Legibilidade: 100% legível com contraste absoluto.`);
-  } else {
+- Evite elementos visuais de alto contraste, ruído, detalhes críticos ou objetos importantes na região reservada para o texto.`);
+  }
     sections.push(`### 4. SEM TEXTO\n- SEM TEXTO: CRÍTICO: NÃO inclua NENHUM texto, palavras, letras, números ou símbolos visíveis na imagem. A imagem deve ser puramente visual.`);
   }
 
