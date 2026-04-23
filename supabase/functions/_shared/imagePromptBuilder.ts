@@ -486,7 +486,7 @@ export function buildDirectorPrompt(params: BuildDirectorPromptParams): string {
 - O espaço reservado deve acomodar estes textos sem sobreposição com o sujeito principal: ${reservedTexts || 'texto configurado externamente'}.
 - ${designPrompt}
 - Evite elementos visuais de alto contraste, ruído, detalhes críticos ou objetos importantes na região reservada para o texto.`);
-  }
+  } else {
     sections.push(`### 4. SEM TEXTO\n- SEM TEXTO: CRÍTICO: NÃO inclua NENHUM texto, palavras, letras, números ou símbolos visíveis na imagem. A imagem deve ser puramente visual.`);
   }
 
