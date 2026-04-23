@@ -388,7 +388,7 @@ serve(async (req) => {
       ? Math.min(100, Math.max(0, Number(formData.openaiCompression ?? 75)))
       : undefined;
     const openaiN: number = Math.min(10, Math.max(1, Number(formData.openaiN ?? 1)));
-    const openaiPartialImages: number = Math.min(3, Math.max(0, Number(formData.openaiPartialImages ?? (wantsSSE ? 2 : 0))));
+    const openaiPartialImages: number = Math.min(3, Math.max(0, Number(formData.openaiPartialImages ?? (wantsSSE ? 1 : 0))));
 
     const requiredCredits = getOpenAIImageCost(openaiQuality);
 
