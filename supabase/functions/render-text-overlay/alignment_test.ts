@@ -203,28 +203,33 @@ Deno.test("align=right + shadow → right edge unchanged for main glyph (±2px)"
   );
 });
 
-Deno.test("rotation=15° + align=right → bbox stays near anchor (±6px)", async () => {
+Deno.test("rotation=15° → text-block top-left lands at (layer.x, layer.y) (±4px)", async () => {
+  // Use small rotation + center area so the rotated text stays inside the
+  // canvas. The renderer rotates around the text-block's top-left point
+  // (matching CSS `transform-origin: top left`) and anchors that point
+  // at (layer.x, layer.y).
   const layer = baseLayer({
-    align: "right",
-    x: 120,
-    y: 150,
-    maxWidth: 500,
+    align: "left",
+    x: 200,
+    y: 180,
+    maxWidth: 400,
+    fontSize: 36,
     rotate: 15,
+    text: "ABC",
   });
   const bbox = await renderLayer(layer);
-  assert(bbox, "expected text pixels");
-  // After rotation around the block's top-left, the rightmost pixel
-  // shifts predictably. We just assert the block didn't drift wildly:
-  // bbox center should be within TOL_ROTATION of the unrotated center.
-  const unrotatedRight = layer.x + layer.maxWidth;
-  const drift = Math.abs(bbox!.maxX - unrotatedRight);
+  assert(bbox, "expected text pixels inside canvas after rotation");
+
+  // The leftmost glyph pixel should be roughly at layer.x (plus left
+  // bearing). After a small CW rotation it can drift a couple of px.
+  const dx = bbox!.minX - layer.x;
+  const dy = bbox!.minY - layer.y;
   console.log(
-    `[rotated+right] maxX=${bbox!.maxX} expected≈${unrotatedRight} drift=${drift}px`,
+    `[rotated TL] minX=${bbox!.minX} minY=${bbox!.minY} expected≈(${layer.x},${layer.y}) Δ=(${dx},${dy})`,
   );
-  assert(
-    drift <= 60, // rotation legitimately shifts geometry; we just bound it
-    `rotated bbox drifted ${drift}px from expected anchor`,
-  );
+  assert(dx >= -4, `rotated text leaked ${-dx}px left of anchor`);
+  assert(dy >= -4, `rotated text leaked ${-dy}px above anchor`);
+  assert(dx <= TOL_LEFT_BEARING + 4, `rotated text starts ${dx}px right of anchor`);
 });
 
 Deno.test("multi-line right align → all lines share the same right edge (±2px)", async () => {
