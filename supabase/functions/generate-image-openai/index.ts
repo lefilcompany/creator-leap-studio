@@ -87,6 +87,8 @@ async function callOpenAIImage(
   onPartial?: (b64: string, index: number) => void,
 ): Promise<{ imageBase64: string; partialImages: string[] }> {
   const useStream = request.stream ?? (request.partial_images && request.partial_images > 0);
+  // OpenAI exige n=1 quando stream=true. Forçamos para evitar HTTP 400.
+  const safeN = useStream ? 1 : (request.n ?? 1);
 
   const body = {
     model: 'gpt-image-2',
@@ -96,7 +98,7 @@ async function callOpenAIImage(
     background: request.background ?? 'auto',
     output_format: request.output_format ?? 'png',
     ...(request.output_compression !== undefined && { output_compression: request.output_compression }),
-    n: request.n ?? 1,
+    n: safeN,
     ...(useStream && {
       stream: true,
       partial_images: Math.min(Math.max(request.partial_images ?? 1, 0), 3),
@@ -217,6 +219,8 @@ async function callOpenAIImageEdit(
   onPartial?: (b64: string, index: number) => void,
 ): Promise<{ imageBase64: string; partialImages: string[] }> {
   const useStream = request.stream ?? (request.partial_images && request.partial_images > 0);
+  // OpenAI exige n=1 quando stream=true.
+  const safeN = useStream ? 1 : (request.n ?? 1);
 
   const form = new FormData();
   form.append('model', 'gpt-image-2');
@@ -228,7 +232,7 @@ async function callOpenAIImageEdit(
   if (request.output_compression !== undefined) {
     form.append('output_compression', String(request.output_compression));
   }
-  form.append('n', String(request.n ?? 1));
+  form.append('n', String(safeN));
 
   // image[] — múltiplas imagens base permitidas
   for (const img of request.baseImages) {
@@ -384,7 +388,7 @@ serve(async (req) => {
       ? Math.min(100, Math.max(0, Number(formData.openaiCompression ?? 75)))
       : undefined;
     const openaiN: number = Math.min(10, Math.max(1, Number(formData.openaiN ?? 1)));
-    const openaiPartialImages: number = Math.min(3, Math.max(0, Number(formData.openaiPartialImages ?? (wantsSSE ? 2 : 0))));
+    const openaiPartialImages: number = Math.min(3, Math.max(0, Number(formData.openaiPartialImages ?? (wantsSSE ? 1 : 0))));
 
     const requiredCredits = getOpenAIImageCost(openaiQuality);
 
@@ -685,44 +689,32 @@ serve(async (req) => {
           publicUrl = supabase.storage.from('content-images').getPublicUrl(fileName).data.publicUrl;
         }
 
-        // ===== STEP 8: Compliance =====
-        sseSend('progress', { stage: 'compliance', message: 'Verificando conformidade...' });
-        let complianceResult: ComplianceResult | null = null;
-        let finalPublicUrl = publicUrl;
-        if (GEMINI_API_KEY) {
-          try {
-            const brandContext = formData.brandId ? `Marca: ${formData.description}` : '';
-            complianceResult = await checkCompliance(publicUrl, formData.description || '', GEMINI_API_KEY, brandContext);
-          } catch (e) {
-            console.error('[Step 8] compliance error:', e);
-          }
-        }
-
-        // ===== Deduzir créditos =====
+        // ===== Deduzir créditos (antes do complete para o front já receber saldo correto) =====
         const deductResult = await deductUserCredits(supabase, authenticatedUserId, requiredCredits);
         const creditsAfter = deductResult.newCredits;
-        await recordUserCreditUsage(supabase, {
-          userId: authenticatedUserId,
-          teamId: authenticatedTeamId,
-          actionType: 'COMPLETE_IMAGE',
-          creditsUsed: requiredCredits,
-          creditsBefore,
-          creditsAfter,
-          description: `Geração de imagem (OpenAI GPT Image 2 - ${openaiQuality})`,
-          metadata: {
-            provider: 'openai',
-            model: 'gpt-image-2',
-            quality: openaiQuality,
-            size: openaiSize,
-            output_format: openaiOutputFormat,
-            n: openaiN,
-            partial_images: openaiPartialImages,
-            platform: formData.platform,
-            visualStyle,
-          },
-        });
 
-        // ===== Salvar histórico =====
+        // ===== Monta payload final SEM compliance (compliance roda em background) =====
+        const finalPayload = {
+          imageUrl: publicUrl,
+          description: 'Imagem gerada com OpenAI GPT Image 2',
+          headline: briefingResult.headline || null,
+          subtexto: briefingResult.subtexto || null,
+          legenda: briefingResult.legenda || null,
+          actionId: undefined as string | undefined, // preenchido após insert
+          success: true,
+          finalWidth: postProcessResult.finalWidth,
+          finalHeight: postProcessResult.finalHeight,
+          finalAspectRatio: postProcessResult.finalAspectRatio,
+          requestedAspectRatio: postProcessResult.requestedAspectRatio,
+          complianceCheck: null as ComplianceResult | null,
+          partialImagesCount: partialImages.length,
+          provider: 'openai',
+          model: 'gpt-image-2',
+          quality: openaiQuality,
+          creditsUsed: requiredCredits,
+        };
+
+        // ===== Insert action ANTES do complete para garantir actionId no payload =====
         const { data: actionData } = await supabase.from('actions').insert({
           type: 'CRIAR_CONTEUDO',
           user_id: authenticatedUserId,
@@ -754,7 +746,7 @@ serve(async (req) => {
             openaiEditHasMask: editMode && !!formData.editMask,
           },
           result: {
-            imageUrl: finalPublicUrl,
+            imageUrl: publicUrl,
             description: 'Imagem gerada com OpenAI GPT Image 2',
             headline: briefingResult.headline || null,
             subtexto: briefingResult.subtexto || null,
@@ -765,31 +757,79 @@ serve(async (req) => {
             requestedAspectRatio: postProcessResult.requestedAspectRatio,
             wasCropped: postProcessResult.wasCropped,
             wasResized: postProcessResult.wasResized,
-            complianceCheck: complianceResult,
           }
-        }).select().single();
+        }).select('id').single();
 
-        const finalPayload = {
-          imageUrl: finalPublicUrl,
-          description: 'Imagem gerada com OpenAI GPT Image 2',
-          headline: briefingResult.headline || null,
-          subtexto: briefingResult.subtexto || null,
-          legenda: briefingResult.legenda || null,
-          actionId: actionData?.id,
-          success: true,
-          finalWidth: postProcessResult.finalWidth,
-          finalHeight: postProcessResult.finalHeight,
-          finalAspectRatio: postProcessResult.finalAspectRatio,
-          requestedAspectRatio: postProcessResult.requestedAspectRatio,
-          complianceCheck: complianceResult,
-          partialImagesCount: partialImages.length,
-          provider: 'openai',
-          model: 'gpt-image-2',
-          quality: openaiQuality,
-          creditsUsed: requiredCredits,
-        };
+        finalPayload.actionId = actionData?.id;
 
+        // ===== ENVIA `complete` AGORA — cliente já pode renderizar =====
         sseSend('complete', finalPayload);
+
+        // ===== Tarefas em background (compliance Gemini + credit history) =====
+        // Movidas para cá para evitar "CPU Time exceeded" antes do cliente receber resposta.
+        const backgroundWork = (async () => {
+          try {
+            await recordUserCreditUsage(supabase, {
+              userId: authenticatedUserId,
+              teamId: authenticatedTeamId,
+              actionType: 'COMPLETE_IMAGE',
+              creditsUsed: requiredCredits,
+              creditsBefore,
+              creditsAfter,
+              description: `Geração de imagem (OpenAI GPT Image 2 - ${openaiQuality})`,
+              metadata: {
+                provider: 'openai',
+                model: 'gpt-image-2',
+                quality: openaiQuality,
+                size: openaiSize,
+                output_format: openaiOutputFormat,
+                n: openaiN,
+                partial_images: openaiPartialImages,
+                platform: formData.platform,
+                visualStyle,
+              },
+            });
+
+            if (GEMINI_API_KEY && actionData?.id) {
+              try {
+                const brandContext = formData.brandId ? `Marca: ${formData.description}` : '';
+                const compliance = await checkCompliance(publicUrl, formData.description || '', GEMINI_API_KEY, brandContext);
+                // Atualiza o registro com o resultado do compliance
+                await supabase.from('actions').update({
+                  result: {
+                    imageUrl: publicUrl,
+                    description: 'Imagem gerada com OpenAI GPT Image 2',
+                    headline: briefingResult.headline || null,
+                    subtexto: briefingResult.subtexto || null,
+                    legenda: briefingResult.legenda || null,
+                    finalWidth: postProcessResult.finalWidth,
+                    finalHeight: postProcessResult.finalHeight,
+                    finalAspectRatio: postProcessResult.finalAspectRatio,
+                    requestedAspectRatio: postProcessResult.requestedAspectRatio,
+                    wasCropped: postProcessResult.wasCropped,
+                    wasResized: postProcessResult.wasResized,
+                    complianceCheck: compliance,
+                  }
+                }).eq('id', actionData.id);
+              } catch (e) {
+                console.error('[bg] compliance error:', e);
+              }
+            }
+          } catch (e) {
+            console.error('[bg] post-complete work failed:', e);
+          }
+        })();
+
+        // EdgeRuntime.waitUntil mantém o worker vivo até o trabalho de background terminar,
+        // mas a resposta HTTP já foi enviada — não conta no CPU window do request.
+        try {
+          // @ts-ignore — EdgeRuntime é injetado pelo Supabase Edge Runtime
+          if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
+            // @ts-ignore
+            EdgeRuntime.waitUntil(backgroundWork);
+          }
+        } catch { /* fallback: deixa rodar best-effort */ }
+
         return finalPayload;
       } catch (err) {
         console.error('[generate-image-openai] error:', err);
