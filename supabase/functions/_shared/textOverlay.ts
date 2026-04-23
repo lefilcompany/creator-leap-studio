@@ -1,19 +1,12 @@
 /**
  * Text overlay engine for generated images.
- * Uses ImageScript + SVG-based text rendering to apply typographic
- * elements (headline, subtitle, CTA, disclaimer) onto images.
+ * Uses ImageScript's native Image.renderText (TTF rasterization) to apply
+ * typographic elements (headline, subtitle, CTA, disclaimer) onto images.
+ *
+ * Why not SVG? imagescript@1.3.0's renderSVG signature is unstable in Deno
+ * Edge runtime (throws "Invalid SVG scaling mode" / RangeError on alloc).
+ * renderText is the supported, deterministic API.
  */
-
-export interface TextElement {
-  type: 'headline' | 'subtitle' | 'cta' | 'disclaimer';
-  text: string;
-  fontSize: number;
-  fontWeight: number;
-  color: string;
-  x: number;
-  y: number;
-  maxWidth: number;
-}
 
 export interface TextOverlayConfig {
   headline?: string;
@@ -37,277 +30,325 @@ export interface TextOverlayResult {
   elementsApplied: number;
 }
 
-// Google Fonts download helper
+interface LaidOutElement {
+  type: 'headline' | 'subtitle' | 'cta' | 'disclaimer';
+  text: string;
+  fontSize: number;
+  weight: 'bold' | 'regular';
+  color: number; // 0xRRGGBBAA
+  align: 'left' | 'center' | 'right';
+  x: number; // anchor x (depends on align)
+  y: number; // top y of text block
+  maxWidth: number;
+  rotate?: number; // degrees
+}
+
+// ---------- Color utilities ----------
+function hexToRgba(hex: string, alpha = 255): number {
+  let h = hex.trim().replace('#', '');
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return (255 << 24) | (255 << 16) | (255 << 8) | alpha;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return ((r & 0xff) << 24) | ((g & 0xff) << 16) | ((b & 0xff) << 8) | (alpha & 0xff);
+}
+
+function rgbaArr(r: number, g: number, b: number, a: number): number {
+  return ((r & 0xff) << 24) | ((g & 0xff) << 16) | ((b & 0xff) << 8) | (a & 0xff);
+}
+
+// Pick a readable text color: if brand color is too dark/light, default to white
+function chooseTextColor(brandHex: string | undefined): number {
+  // Default to white for max readability over arbitrary photos
+  if (!brandHex) return rgbaArr(255, 255, 255, 255);
+  return hexToRgba(brandHex, 255);
+}
+
+// ---------- Font loading ----------
+const fontCache = new Map<string, Uint8Array>();
+
 async function downloadGoogleFont(family: string, weight: number): Promise<Uint8Array> {
+  const key = `${family}:${weight}`;
+  if (fontCache.has(key)) return fontCache.get(key)!;
+
   const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@${weight}&display=swap`;
   const cssResp = await fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
   });
   const css = await cssResp.text();
-
   const fontUrlMatch = css.match(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/);
-  if (!fontUrlMatch) throw new Error(`Could not find font URL for ${family} ${weight}`);
-
+  if (!fontUrlMatch) throw new Error(`Font URL not found for ${family} ${weight}`);
   const fontResp = await fetch(fontUrlMatch[1]);
-  const fontBuffer = await fontResp.arrayBuffer();
-  console.log(`[TextOverlay] Font: ${family} ${weight} (${fontBuffer.byteLength} bytes)`);
-  return new Uint8Array(fontBuffer);
+  const buf = new Uint8Array(await fontResp.arrayBuffer());
+  console.log(`[TextOverlay] Loaded font ${family} ${weight} (${buf.length} bytes)`);
+  fontCache.set(key, buf);
+  return buf;
 }
 
-function escapeXml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-}
+// ---------- Layout ----------
+function buildLayout(config: TextOverlayConfig): LaidOutElement[] {
+  const { imageWidth: W, imageHeight: H } = config;
+  const padding = Math.round(W * 0.06);
+  const maxTextWidth = W - padding * 2;
 
-// Calculate text layout positions based on config
-function calculateLayout(config: TextOverlayConfig): TextElement[] {
-  const { imageWidth, imageHeight } = config;
-  const elements: TextElement[] = [];
-  const padding = Math.round(imageWidth * 0.08);
-  const maxTextWidth = imageWidth - padding * 2;
+  // Base font size: respect user setting (12-72px), else compute from image width
+  const userFs = typeof config.fontSize === 'number' && config.fontSize > 0 ? config.fontSize : null;
+  const baseFs = userFs ?? Math.round(W * 0.045);
+  // Scale ratios
+  const headlineFs = Math.max(18, Math.round(baseFs * 1.4));
+  const subtitleFs = Math.max(14, Math.round(baseFs * 0.85));
+  const ctaFs = Math.max(14, Math.round(baseFs * 0.95));
+  const disclaimerFs = Math.max(11, Math.round(W * 0.014));
 
-  // Determine base font sizes
-  const baseFontSize = config.fontSize || Math.round(imageWidth * 0.06);
-  const headlineFontSize = Math.round(baseFontSize * 1.3);
-  const subtitleFontSize = Math.round(baseFontSize * 0.72);
-  const ctaFontSize = Math.round(baseFontSize * 0.82);
-  const disclaimerFontSize = Math.round(Math.max(12, imageWidth * 0.015));
+  // Position
+  const position = (config.textPosition || 'top').toLowerCase();
+  const isBottom = position.includes('bottom');
+  const isMiddle = position === 'middle' || position === 'center' || position.includes('center');
+  const isRight = position.includes('right');
+  const isLeftAligned = position.includes('left') || (!isRight && !position.includes('center'));
 
-  // Position calculation
-  const position = config.textPosition || 'top';
-  let startY: number;
+  const align: 'left' | 'center' | 'right' = isRight ? 'right' : (position.includes('center') && !position.includes('right') && !position.includes('left')) ? 'center' : 'left';
 
-  if (position.includes('center') || position === 'middle') {
-    startY = Math.round(imageHeight * 0.35);
-  } else if (position.includes('bottom')) {
-    startY = Math.round(imageHeight * 0.6);
-  } else {
-    // top (default)
-    startY = Math.round(imageHeight * 0.08);
-  }
+  // Anchor X
+  let anchorX: number;
+  if (align === 'right') anchorX = W - padding;
+  else if (align === 'center') anchorX = Math.round(W / 2);
+  else anchorX = padding;
 
-  let startX = padding;
-  if (position.includes('right')) {
-    startX = Math.round(imageWidth * 0.15);
-  } else if (position.includes('left')) {
-    startX = padding;
-  }
+  // Starting Y
+  let currentY: number;
+  if (isMiddle) currentY = Math.round(H * 0.32);
+  else if (isBottom) currentY = Math.round(H * 0.55);
+  else currentY = Math.round(H * 0.07);
 
-  const color = config.brandColor || '#FFFFFF';
-  let currentY = startY;
+  const color = chooseTextColor(config.brandColor);
+  const elements: LaidOutElement[] = [];
 
-  if (config.headline) {
+  if (config.headline?.trim()) {
     elements.push({
       type: 'headline',
-      text: config.headline,
-      fontSize: headlineFontSize,
-      fontWeight: 700,
+      text: config.headline.trim(),
+      fontSize: headlineFs,
+      weight: 'bold',
       color,
-      x: startX,
+      align,
+      x: anchorX,
       y: currentY,
       maxWidth: maxTextWidth,
     });
-    // Estimate lines for headline
-    const estimatedCharsPerLine = Math.floor(maxTextWidth / (headlineFontSize * 0.55));
-    const lines = Math.ceil(config.headline.length / estimatedCharsPerLine);
-    currentY += headlineFontSize * 1.3 * lines + Math.round(imageHeight * 0.03);
+    const lines = estimateLines(config.headline, headlineFs, maxTextWidth);
+    currentY += Math.round(headlineFs * 1.25 * lines + H * 0.025);
   }
 
-  if (config.subtexto) {
+  if (config.subtexto?.trim()) {
     elements.push({
       type: 'subtitle',
-      text: config.subtexto,
-      fontSize: subtitleFontSize,
-      fontWeight: 400,
+      text: config.subtexto.trim(),
+      fontSize: subtitleFs,
+      weight: 'regular',
       color,
-      x: startX,
+      align,
+      x: anchorX,
       y: currentY,
       maxWidth: maxTextWidth,
     });
-    const estimatedCharsPerLine = Math.floor(maxTextWidth / (subtitleFontSize * 0.5));
-    const lines = Math.ceil(config.subtexto.length / estimatedCharsPerLine);
-    currentY += subtitleFontSize * 1.3 * lines + Math.round(imageHeight * 0.04);
+    const lines = estimateLines(config.subtexto, subtitleFs, maxTextWidth);
+    currentY += Math.round(subtitleFs * 1.3 * lines + H * 0.03);
   }
 
-  if (config.ctaText) {
+  if (config.ctaText?.trim()) {
     elements.push({
       type: 'cta',
-      text: config.ctaText,
-      fontSize: ctaFontSize,
-      fontWeight: 700,
+      text: config.ctaText.trim().toUpperCase(),
+      fontSize: ctaFs,
+      weight: 'bold',
       color,
-      x: startX,
+      align,
+      x: anchorX,
       y: currentY,
       maxWidth: maxTextWidth,
     });
   }
 
-  // Disclaimer at the very bottom, separate positioning
-  if (config.disclaimerText) {
-    const disclaimerY = imageHeight - padding;
-    let disclaimerX = padding;
-    
-    if (config.disclaimerStyle === 'bottom_right_vertical') {
-      disclaimerX = imageWidth - padding;
-    } else if (config.disclaimerStyle === 'bottom_left_vertical') {
-      disclaimerX = padding;
+  if (config.disclaimerText?.trim()) {
+    const ds = config.disclaimerStyle || 'bottom_horizontal';
+    if (ds === 'bottom_right_vertical' || ds === 'bottom_left_vertical') {
+      const right = ds === 'bottom_right_vertical';
+      elements.push({
+        type: 'disclaimer',
+        text: config.disclaimerText.trim(),
+        fontSize: disclaimerFs,
+        weight: 'regular',
+        color: rgbaArr(255, 255, 255, 200),
+        align: 'left',
+        x: right ? W - Math.round(disclaimerFs * 1.2) : Math.round(disclaimerFs * 0.4),
+        y: H - padding,
+        maxWidth: H - padding * 2,
+        rotate: right ? -90 : 90,
+      });
+    } else {
+      elements.push({
+        type: 'disclaimer',
+        text: config.disclaimerText.trim(),
+        fontSize: disclaimerFs,
+        weight: 'regular',
+        color: rgbaArr(255, 255, 255, 220),
+        align: 'center',
+        x: Math.round(W / 2),
+        y: H - Math.round(disclaimerFs * 1.8),
+        maxWidth: maxTextWidth,
+      });
     }
-
-    elements.push({
-      type: 'disclaimer',
-      text: config.disclaimerText,
-      fontSize: disclaimerFontSize,
-      fontWeight: 400,
-      color: 'rgba(255,255,255,0.7)',
-      x: disclaimerX,
-      y: disclaimerY,
-      maxWidth: maxTextWidth,
-    });
   }
 
   return elements;
 }
 
-// SVG text wrapping helper
-function wrapTextSvg(text: string, fontSize: number, maxWidth: number, fontFamily: string, fontWeight: number, color: string, x: number, y: number): string {
-  const charWidth = fontSize * 0.55;
-  const charsPerLine = Math.floor(maxWidth / charWidth);
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let currentLine = '';
-
-  for (const word of words) {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    if (testLine.length > charsPerLine && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = testLine;
-    }
-  }
-  if (currentLine) lines.push(currentLine);
-
-  const lineHeight = fontSize * 1.3;
-  return lines.map((line, i) =>
-    `<text x="${x}" y="${y + i * lineHeight}" font-family="${fontFamily}" font-size="${fontSize}" font-weight="${fontWeight}" fill="${color}">${escapeXml(line)}</text>`
-  ).join('\n');
+function estimateLines(text: string, fontSize: number, maxWidth: number): number {
+  const charW = fontSize * 0.55;
+  const charsPerLine = Math.max(1, Math.floor(maxWidth / charW));
+  return Math.max(1, Math.ceil(text.length / charsPerLine));
 }
 
-/**
- * Apply text overlay onto an image using SVG compositing.
- */
+// Word-wrap into multiple lines based on estimated character width
+function wrapLines(text: string, fontSize: number, maxWidth: number): string[] {
+  const charW = fontSize * 0.55;
+  const charsPerLine = Math.max(1, Math.floor(maxWidth / charW));
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let cur = '';
+  for (const w of words) {
+    const test = cur ? cur + ' ' + w : w;
+    if (test.length > charsPerLine && cur) {
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = test;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+// ---------- Main ----------
 export async function applyTextOverlay(
   imageData: Uint8Array,
   config: TextOverlayConfig
 ): Promise<TextOverlayResult> {
   const { Image } = await import('https://deno.land/x/imagescript@1.3.0/mod.ts');
 
-  const elements = calculateLayout(config);
+  const elements = buildLayout(config);
   if (elements.length === 0) {
     return { processedData: imageData, elementsApplied: 0 };
   }
 
   const fontFamily = config.fontFamily || 'Montserrat';
-  const designStyle = config.textDesignStyle || 'clean';
-  
-  console.log(`[TextOverlay] Processing ${elements.length} element(s), style: ${designStyle}`);
-  console.log(`[TextOverlay] Config: ${elements.length} elements, headline=${elements.find(e => e.type === 'headline')?.fontSize || 0}px, cta=${elements.find(e => e.type === 'cta')?.fontSize || 0}px, pos=${config.textPosition || 'top'}`);
+  const designStyle = (config.textDesignStyle || 'clean').toLowerCase();
 
-  // Download fonts
-  const [boldFont, regularFont] = await Promise.all([
-    downloadGoogleFont(fontFamily, 700),
-    downloadGoogleFont(fontFamily, 400),
-  ]);
+  console.log(`[TextOverlay] ${elements.length} element(s), style="${designStyle}", pos="${config.textPosition || 'top'}", font="${fontFamily}"`);
 
-  // Decode image
-  const img = await Image.decode(imageData);
-  const { width, height } = img;
+  // Load both weights once
+  let boldFont: Uint8Array, regularFont: Uint8Array;
+  try {
+    [boldFont, regularFont] = await Promise.all([
+      downloadGoogleFont(fontFamily, 700),
+      downloadGoogleFont(fontFamily, 400),
+    ]);
+  } catch (e) {
+    console.warn(`[TextOverlay] Falling back to Montserrat (font load failed: ${e instanceof Error ? e.message : e})`);
+    [boldFont, regularFont] = await Promise.all([
+      downloadGoogleFont('Montserrat', 700),
+      downloadGoogleFont('Montserrat', 400),
+    ]);
+  }
 
-  // Build SVG with text elements
-  let svgParts: string[] = [];
+  let img: any;
+  try {
+    img = await Image.decode(imageData);
+  } catch (e) {
+    console.error('[TextOverlay] Failed to decode source image:', e);
+    return { processedData: imageData, elementsApplied: 0 };
+  }
 
-  // Add semi-transparent background for readability based on design style
-  if (designStyle === 'gradient' || designStyle === 'dark') {
-    svgParts.push(`<rect x="0" y="0" width="${width}" height="${height}" fill="rgba(0,0,0,0.4)" />`);
-  } else if (designStyle === 'band') {
-    // Band behind text area
-    const firstEl = elements[0];
-    const lastEl = elements[elements.length - 1];
-    if (firstEl && lastEl) {
-      const bandY = firstEl.y - 20;
-      const bandH = (lastEl.y - firstEl.y) + lastEl.fontSize * 2 + 40;
-      svgParts.push(`<rect x="0" y="${bandY}" width="${width}" height="${bandH}" fill="rgba(0,0,0,0.6)" />`);
+  const W = img.width;
+  const H = img.height;
+
+  // Optional background treatments for readability
+  try {
+    if (designStyle === 'gradient' || designStyle === 'dark') {
+      const overlay = new Image(W, H);
+      overlay.fill(rgbaArr(0, 0, 0, designStyle === 'dark' ? 130 : 90));
+      img.composite(overlay, 0, 0);
+    } else if (designStyle === 'band') {
+      const first = elements.find((e) => e.type !== 'disclaimer');
+      const lastNonDisc = [...elements].reverse().find((e) => e.type !== 'disclaimer');
+      if (first && lastNonDisc) {
+        const top = Math.max(0, first.y - 16);
+        const linesLast = wrapLines(lastNonDisc.text, lastNonDisc.fontSize, lastNonDisc.maxWidth).length;
+        const bottom = Math.min(H, lastNonDisc.y + lastNonDisc.fontSize * 1.3 * linesLast + 16);
+        const band = new Image(W, Math.round(bottom - top));
+        band.fill(rgbaArr(0, 0, 0, 150));
+        img.composite(band, 0, Math.round(top));
+      }
     }
+  } catch (e) {
+    console.warn('[TextOverlay] background treatment failed:', e);
   }
 
-  // Add text shadow for clean style
-  if (designStyle === 'clean') {
-    svgParts.push(`<defs><filter id="shadow"><feDropShadow dx="2" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.7)" /></filter></defs>`);
-  }
-
-  const filterAttr = designStyle === 'clean' ? ' filter="url(#shadow)"' : '';
+  let applied = 0;
 
   for (const el of elements) {
-    if (el.type === 'disclaimer') {
-      if (config.disclaimerStyle?.includes('vertical')) {
-        // Vertical text
-        const rotation = config.disclaimerStyle === 'bottom_right_vertical' ? -90 : 90;
-        const tx = el.x;
-        const ty = el.y;
-        svgParts.push(`<text x="${tx}" y="${ty}" font-family="${fontFamily}" font-size="${el.fontSize}" font-weight="${el.fontWeight}" fill="${el.color}" transform="rotate(${rotation}, ${tx}, ${ty})"${filterAttr}>${escapeXml(el.text)}</text>`);
-      } else if (config.disclaimerStyle === 'bottom_band') {
-        // Disclaimer with dark band
-        const bandH = el.fontSize + 16;
-        svgParts.push(`<rect x="0" y="${height - bandH}" width="${width}" height="${bandH}" fill="rgba(0,0,0,0.7)" />`);
-        svgParts.push(`<text x="${width / 2}" y="${height - 8}" font-family="${fontFamily}" font-size="${el.fontSize}" font-weight="${el.fontWeight}" fill="${el.color}" text-anchor="middle">${escapeXml(el.text)}</text>`);
-      } else {
-        // bottom_horizontal
-        svgParts.push(`<text x="${width / 2}" y="${el.y}" font-family="${fontFamily}" font-size="${el.fontSize}" font-weight="${el.fontWeight}" fill="${el.color}" text-anchor="middle"${filterAttr}>${escapeXml(el.text)}</text>`);
-      }
-    } else {
-      const textSvg = wrapTextSvg(el.text, el.fontSize, el.maxWidth, fontFamily, el.fontWeight, el.color, el.x, el.y);
-      svgParts.push(`<g${filterAttr}>${textSvg}</g>`);
-    }
-    console.log(`[TextOverlay] "${el.type}": "${el.text.substring(0, 50)}" at (${el.x},${el.y}) ${el.fontSize}px`);
-  }
-
-  const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${svgParts.join('\n')}</svg>`;
-
-  // Render SVG to image
-  try {
-    const svgImage = await Image.renderSVG(svgContent, width, { font: boldFont });
-    
-    // Composite SVG onto original image
-    img.composite(svgImage, 0, 0);
-    
-    const outputData = await img.encode(1); // PNG
-    console.log(`[TextOverlay] Complete. Output: ${outputData.length} bytes`);
-    
-    return {
-      processedData: new Uint8Array(outputData),
-      elementsApplied: elements.length,
-    };
-  } catch (svgError) {
-    console.error('[TextOverlay] SVG rendering failed, trying fallback:', svgError);
-    
-    // Fallback: try simpler SVG without filters
-    const simpleSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-      ${elements.map(el => {
-        if (el.type === 'disclaimer') {
-          return `<text x="${width/2}" y="${el.y}" font-family="sans-serif" font-size="${el.fontSize}" fill="${el.color}" text-anchor="middle">${escapeXml(el.text)}</text>`;
-        }
-        return wrapTextSvg(el.text, el.fontSize, el.maxWidth, 'sans-serif', el.fontWeight, el.color, el.x, el.y);
-      }).join('\n')}
-    </svg>`;
-    
     try {
-      const fallbackImg = await Image.renderSVG(simpleSvg, width);
-      img.composite(fallbackImg, 0, 0);
-      const outputData = await img.encode(1);
-      console.log(`[TextOverlay] Fallback complete. Output: ${outputData.length} bytes`);
-      return { processedData: new Uint8Array(outputData), elementsApplied: elements.length };
-    } catch (fallbackError) {
-      console.error('[TextOverlay] All rendering failed, returning original:', fallbackError);
-      return { processedData: imageData, elementsApplied: 0 };
+      const fontBuf = el.weight === 'bold' ? boldFont : regularFont;
+      const lines = wrapLines(el.text, el.fontSize, el.maxWidth);
+      const lineHeight = Math.round(el.fontSize * 1.25);
+
+      if (el.rotate) {
+        // Render whole text on one line for vertical disclaimer
+        const txt = await Image.renderText(fontBuf, el.fontSize, el.text, el.color);
+        const rotated = txt.rotate(el.rotate);
+        const x = Math.round(el.x - rotated.width / 2);
+        const y = Math.round(el.y - rotated.height / 2);
+        img.composite(rotated, Math.max(0, x), Math.max(0, y));
+        applied++;
+        console.log(`[TextOverlay] ${el.type}(rot ${el.rotate}°) @(${x},${y}) ${el.fontSize}px`);
+        continue;
+      }
+
+      let lineY = el.y;
+      for (const line of lines) {
+        if (!line.trim()) { lineY += lineHeight; continue; }
+        const txtImg = await Image.renderText(fontBuf, el.fontSize, line, el.color);
+        let drawX: number;
+        if (el.align === 'center') drawX = Math.round(el.x - txtImg.width / 2);
+        else if (el.align === 'right') drawX = Math.round(el.x - txtImg.width);
+        else drawX = Math.round(el.x);
+
+        // Soft shadow for clean style
+        if (designStyle === 'clean') {
+          try {
+            const shadow = await Image.renderText(fontBuf, el.fontSize, line, rgbaArr(0, 0, 0, 160));
+            img.composite(shadow, Math.max(0, drawX + 2), Math.max(0, lineY + 2));
+          } catch {/* shadow optional */}
+        }
+
+        img.composite(txtImg, Math.max(0, drawX), Math.max(0, lineY));
+        lineY += lineHeight;
+      }
+      applied++;
+      console.log(`[TextOverlay] ${el.type} "${el.text.substring(0, 40)}" @(${el.x},${el.y}) ${el.fontSize}px ${el.align} lines=${lines.length}`);
+    } catch (e) {
+      console.error(`[TextOverlay] failed to render ${el.type}:`, e);
     }
   }
+
+  if (applied === 0) {
+    console.warn('[TextOverlay] No elements applied; returning original image');
+    return { processedData: imageData, elementsApplied: 0 };
+  }
+
+  const out = await img.encode(1); // PNG
+  console.log(`[TextOverlay] Done. ${applied}/${elements.length} elements, ${out.length} bytes`);
+  return { processedData: new Uint8Array(out), elementsApplied: applied };
 }
