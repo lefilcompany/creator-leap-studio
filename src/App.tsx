@@ -135,6 +135,7 @@ const App = () => (
                       <Route path="/onboarding/canceled" element={<SuspenseRoute><OnboardingCanceled /></SuspenseRoute>} />
                       <Route path="/payment-success" element={<SuspenseRoute><PaymentSuccess /></SuspenseRoute>} />
                       <Route path="/contact" element={<SuspenseRoute><Contact /></SuspenseRoute>} />
+                      <Route path="/text-editor" element={<ProtectedRoute><SuspenseRoute><TextEditor /></SuspenseRoute></ProtectedRoute>} />
                       
                       {/* Dashboard routes with sidebar layout */}
                       <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
