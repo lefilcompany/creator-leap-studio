@@ -812,7 +812,18 @@ export default function ContentResult() {
                         size="lg"
                         variant="secondary"
                         className="bg-white/90 hover:bg-white text-foreground shadow-lg gap-2 rounded-xl backdrop-blur-sm"
-                        onClick={() => setIsTextEditorOpen(true)}
+                        onClick={() => {
+                          if (!contentData?.mediaUrl) return;
+                          navigate("/text-editor", {
+                            state: {
+                              imageUrl: contentData.mediaUrl,
+                              actionId: saved.actionId || contentData.actionId,
+                              nextRoute: "/result",
+                              nextStateKey: "contentData",
+                              nextState: { contentData },
+                            },
+                          });
+                        }}
                       >
                         <Type className="h-4 w-4" />
                         Editar texto
