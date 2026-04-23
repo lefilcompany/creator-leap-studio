@@ -473,21 +473,21 @@ export function buildDirectorPrompt(params: BuildDirectorPromptParams): string {
 
   if (hasAnyOverlayText) {
     const designPrompt = TEXT_DESIGN_PROMPTS[params.textDesignStyle] || TEXT_DESIGN_PROMPTS['clean'];
-    const reservedTexts = [params.textContent, params.ctaText, params.disclaimerText]
-      .filter((value): value is string => Boolean(value && value.trim()))
-      .map((value) => `"${value.trim()}"`)
-      .join(', ');
 
-    sections.push(`### 4. RESERVA PARA OVERLAY DE TEXTO
-- NÃO renderize, escreva, desenhe, insira ou gere qualquer tipografia, letras, palavras, números, logotipos tipográficos, CTA ou aviso legal dentro da imagem base.
-- A imagem final DEVE vir sem texto embutido. Todo o texto será aplicado depois, em pós-processamento.
-- Crie composição com espaço negativo limpo e contraste suficiente para receber overlay posterior.
-- Área preferencial do espaço livre: ${params.textPosition || 'center'}.
-- O espaço reservado deve acomodar estes textos sem sobreposição com o sujeito principal: ${reservedTexts || 'texto configurado externamente'}.
+    sections.push(`### 4. RESERVA PARA OVERLAY DE TEXTO (PROIBIÇÃO ABSOLUTA DE TIPOGRAFIA)
+🚨 REGRA CRÍTICA INVIOLÁVEL — VIOLAÇÃO INVALIDA A IMAGEM:
+- ZERO TEXTO. ZERO LETRAS. ZERO NÚMEROS. ZERO SÍMBOLOS TIPOGRÁFICOS. ZERO PALAVRAS.
+- PROIBIDO desenhar, escrever, renderizar, inserir, sugerir, simular, gerar ou alucinar QUALQUER tipografia, letra, palavra, número, caractere, glifo, sigla, slogan, headline, subtítulo, CTA, marca textual, watermark, assinatura, logotipo tipográfico, etiqueta, badge com texto, preço, aviso legal, copyright, hashtag, URL, @ ou qualquer forma de escrita visível na imagem.
+- PROIBIDO inclusive textos pequenos, decorativos, em segundo plano, em embalagens fictícias, em placas, em telas de dispositivos, em camisetas, em cartazes ou em qualquer superfície dentro da cena.
+- A ÚNICA exceção é texto que JÁ EXISTE em imagens de referência reais (ex: logo impresso em embalagem real fotografada) — preserve-o como parte da fotografia, não invente novo texto.
+- TODO texto será aplicado externamente em pós-processamento por software dedicado. Sua tarefa é APENAS produzir o cenário visual limpo.
+- Crie composição com espaço negativo amplo e limpo na região indicada para receber overlay posterior.
+- Área de espaço livre: ${params.textPosition || 'center'}.
 - ${designPrompt}
-- Evite elementos visuais de alto contraste, ruído, detalhes críticos ou objetos importantes na região reservada para o texto.`);
+- Evite ruído, alto contraste pontual ou elementos importantes na região do espaço livre.`);
   } else {
-    sections.push(`### 4. SEM TEXTO\n- SEM TEXTO: CRÍTICO: NÃO inclua NENHUM texto, palavras, letras, números ou símbolos visíveis na imagem. A imagem deve ser puramente visual.`);
+    sections.push(`### 4. SEM TEXTO (PROIBIÇÃO ABSOLUTA)
+🚨 ZERO texto, letras, palavras, números, símbolos, hashtags, URLs, watermarks, assinaturas ou tipografia de qualquer tipo na imagem. Imagem puramente visual. Nem mesmo texto pequeno, decorativo ou em segundo plano. Esta regra é INVIOLÁVEL.`);
   }
 
   // SECTION 5: USO DE REFERÊNCIAS VISUAIS
