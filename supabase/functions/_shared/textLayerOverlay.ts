@@ -212,6 +212,36 @@ export async function renderTextLayers(
       const effectRightPad = Math.max(2, strokePad, shadowBlur + Math.max(0, shadowOffsetX));
       const effectTopPad = Math.max(2, strokePad, shadowBlur + Math.max(0, -shadowOffsetY));
       const effectBottomPad = Math.max(2, strokePad, shadowBlur + Math.max(0, shadowOffsetY));
+
+      // -------- Preview/Server parity validation --------
+      // Mirrors how the editor renders effects (CSS WebkitTextStroke +
+      // textShadow). Any divergence in expected pixel bleed > PARITY_TOL_PX
+      // is logged so we catch silent regressions.
+      const PARITY_TOL_PX = 1;
+      const expectedStrokeBleed = layer.stroke && layer.stroke.width > 0
+        ? layer.stroke.width * scale
+        : 0;
+      const expectedShadowBleedX = layer.shadow
+        ? Math.abs(layer.shadow.offsetX) * scale + layer.shadow.blur * scale
+        : 0;
+      const expectedShadowBleedY = layer.shadow
+        ? Math.abs(layer.shadow.offsetY) * scale + layer.shadow.blur * scale
+        : 0;
+      const actualBleedX = Math.max(effectLeftPad, effectRightPad);
+      const actualBleedY = Math.max(effectTopPad, effectBottomPad);
+      const expectedBleedX = Math.max(expectedStrokeBleed, expectedShadowBleedX);
+      const expectedBleedY = Math.max(expectedStrokeBleed, expectedShadowBleedY);
+      const dxBleed = Math.abs(actualBleedX - expectedBleedX);
+      const dyBleed = Math.abs(actualBleedY - expectedBleedY);
+      // Allow up to 2px slack for the minimum (2) we always reserve for AA.
+      if (dxBleed > Math.max(PARITY_TOL_PX, 2) || dyBleed > Math.max(PARITY_TOL_PX, 2)) {
+        console.warn(
+          `[TextLayer][PARITY] Layer "${layer.id}" effect bleed differs from preview: ` +
+          `actual=(${actualBleedX},${actualBleedY}) expected=(${expectedBleedX.toFixed(2)},${expectedBleedY.toFixed(2)}) ` +
+          `Δ=(${dxBleed.toFixed(2)},${dyBleed.toFixed(2)}) ` +
+          `stroke=${JSON.stringify(layer.stroke)} shadow=${JSON.stringify(layer.shadow)}`,
+        );
+      }
       // The text block starts at (effectLeftPad + padX, effectTopPad + padY)
       // inside the container. Final composite below subtracts the bleed
       // so the block's top-left lands exactly at (layer.x, layer.y).
