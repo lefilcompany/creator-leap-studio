@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import {
   Download, Copy, Sparkles, Check, ImageIcon, Video, RefreshCw, FileText,
   Loader, Coins, Undo2, Redo2, History, AlertTriangle, Maximize2, Pen,
-  Plus, ChevronDown, X, Share2, Building2, Palette, User, Zap, Info, Globe, Users
+  Plus, ChevronDown, X, Share2, Building2, Palette, User, Zap, Info, Globe, Users, Type
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
