@@ -55,56 +55,112 @@ function defaultLayer(canvasW: number, canvasH: number): TextLayer {
   };
 }
 
+/** Compact color swatch that opens a popover with palette + hex input. */
 function ColorField({
   value, onChange, presets = COLOR_PRESETS,
 }: { value: string; onChange: (v: string) => void; presets?: string[] }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <label
-          className="relative h-9 w-9 rounded-md border border-border/60 overflow-hidden cursor-pointer shrink-0"
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="h-7 w-7 rounded-md border border-border/60 shadow-sm hover:scale-105 transition-transform shrink-0"
           style={{ background: value }}
-        >
-          <input
-            type="color"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          />
-        </label>
-        <Input
-          value={value.toUpperCase()}
-          onChange={(e) => {
-            let v = e.target.value.trim();
-            if (!v.startsWith("#")) v = "#" + v;
-            if (/^#[0-9a-fA-F]{0,6}$/.test(v)) onChange(v);
-          }}
-          className="h-9 font-mono text-xs uppercase"
-          maxLength={7}
+          title={value}
         />
-      </div>
-      <div className="grid grid-cols-10 gap-1">
-        {presets.map((c) => (
-          <button
-            key={c}
-            type="button"
-            onClick={() => onChange(c)}
-            className={cn(
-              "h-5 w-full rounded border transition-transform hover:scale-110",
-              value.toLowerCase() === c.toLowerCase()
-                ? "border-primary ring-2 ring-primary/40"
-                : "border-border/40"
-            )}
-            style={{ background: c }}
-            title={c}
-          />
-        ))}
-      </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-3" align="end">
+        <div className="space-y-3">
+          <div className="grid grid-cols-5 gap-1.5">
+            {presets.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => onChange(c)}
+                className={cn(
+                  "h-7 w-full rounded border transition-transform hover:scale-110",
+                  value.toLowerCase() === c.toLowerCase()
+                    ? "border-primary ring-2 ring-primary/40"
+                    : "border-border/40"
+                )}
+                style={{ background: c }}
+                title={c}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <label
+              className="relative h-8 w-8 rounded-md border border-border/60 overflow-hidden cursor-pointer shrink-0"
+              style={{ background: value }}
+            >
+              <input
+                type="color"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+            </label>
+            <Input
+              value={value.toUpperCase()}
+              onChange={(e) => {
+                let v = e.target.value.trim();
+                if (!v.startsWith("#")) v = "#" + v;
+                if (/^#[0-9a-fA-F]{0,6}$/.test(v)) onChange(v);
+              }}
+              className="h-8 font-mono text-xs uppercase"
+              maxLength={7}
+            />
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** Compact numeric stepper. */
+function NumInput({
+  value, onChange, min, max, step = 1, suffix,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  min: number;
+  max: number;
+  step?: number;
+  suffix?: string;
+}) {
+  const clamp = (n: number) => Math.min(max, Math.max(min, n));
+  return (
+    <div className="flex items-center h-7 rounded-md border border-border/60 bg-background overflow-hidden text-xs">
+      <button
+        type="button"
+        onClick={() => onChange(clamp(value - step))}
+        className="px-1.5 h-full text-muted-foreground hover:bg-muted"
+        tabIndex={-1}
+      >−</button>
+      <input
+        type="number"
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(e) => {
+          const n = parseFloat(e.target.value);
+          if (!isNaN(n)) onChange(clamp(n));
+        }}
+        className="w-full min-w-0 text-center bg-transparent outline-none tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      />
+      {suffix && <span className="pr-1.5 text-muted-foreground">{suffix}</span>}
+      <button
+        type="button"
+        onClick={() => onChange(clamp(value + step))}
+        className="px-1.5 h-full text-muted-foreground hover:bg-muted"
+        tabIndex={-1}
+      >+</button>
     </div>
   );
 }
 
-/** Section with a title row — keeps the sidebar visually grouped. */
+/** Section with a title row — compact grouping. */
 function Section({
   title,
   icon,
@@ -117,40 +173,35 @@ function Section({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border/40 bg-background/50 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border/40 bg-muted/30">
-        <div className="flex items-center gap-2 text-xs font-semibold text-foreground/80 uppercase tracking-wide">
+    <div className="rounded-lg border border-border/40 bg-background/50 overflow-hidden">
+      <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-border/40 bg-muted/30">
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground/80 uppercase tracking-wide">
           {icon}
           {title}
         </div>
         {action}
       </div>
-      <div className="p-3 space-y-3">{children}</div>
+      <div className="p-2.5 space-y-2">{children}</div>
     </div>
   );
 }
 
-function FieldRow({
+/** Compact inline row: label on left, control on right. */
+function Row({
   label,
-  value,
   children,
 }: {
   label: string;
-  value?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <Label className="text-xs text-muted-foreground">{label}</Label>
-        {value !== undefined && (
-          <span className="text-xs font-medium tabular-nums">{value}</span>
-        )}
-      </div>
-      {children}
+    <div className="flex items-center justify-between gap-2 min-h-7">
+      <Label className="text-xs text-muted-foreground shrink-0">{label}</Label>
+      <div className="flex-1 max-w-[60%] flex justify-end">{children}</div>
     </div>
   );
 }
+
 
 interface LocationState {
   imageUrl: string;
