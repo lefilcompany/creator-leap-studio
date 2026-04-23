@@ -8,6 +8,8 @@ interface CreationProgressBarProps {
   currentStep: CreationStep;
   /** Show a spinner on the active step (e.g. while applying text overlay). */
   activeLoading?: boolean;
+  /** Compact variant for tight spaces (e.g. page headers). */
+  compact?: boolean;
   className?: string;
 }
 
@@ -20,8 +22,17 @@ const steps: { id: CreationStep; label: string; icon: LucideIcon }[] = [
 
 const stepIndex = { config: 0, generating: 1, edit: 2, result: 3 };
 
-export function CreationProgressBar({ currentStep, activeLoading, className }: CreationProgressBarProps) {
+export function CreationProgressBar({ currentStep, activeLoading, compact, className }: CreationProgressBarProps) {
   const currentIdx = stepIndex[currentStep];
+
+  // Sizing tokens — change here to scale the entire bar.
+  const circle = compact ? "w-6 h-6" : "w-9 h-9";
+  const icon = compact ? "h-3 w-3" : "h-4 w-4";
+  const label = compact ? "text-[10px]" : "text-xs";
+  const minW = compact ? "min-w-[56px]" : "min-w-[72px]";
+  const underline = compact ? "h-[2px] w-8" : "h-[2.5px] w-12";
+  const gap = compact ? "gap-0.5" : "gap-1.5";
+  const connectorOffset = compact ? "-mt-5" : "-mt-8";
 
   return (
     <div className={cn("w-full mx-auto", className)}>
@@ -36,27 +47,29 @@ export function CreationProgressBar({ currentStep, activeLoading, className }: C
           return (
             <div key={step.id} className={cn("flex items-center", !isLast && "flex-1")}>
               {/* Step circle + label */}
-              <div className="flex flex-col items-center gap-1.5 min-w-[72px]">
+              <div className={cn("flex flex-col items-center", gap, minW)}>
                 <div
                   className={cn(
-                    "w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 text-sm font-bold relative z-10",
+                    circle,
+                    "rounded-full flex items-center justify-center transition-all duration-300 font-bold relative z-10",
                     isCompleted && "bg-primary text-primary-foreground shadow-sm",
                     isActive && "bg-primary text-primary-foreground shadow-md shadow-primary/30",
                     isPending && "bg-muted text-muted-foreground/40"
                   )}
                 >
                   {isCompleted ? (
-                    <Check className="h-4 w-4" strokeWidth={3} />
+                    <Check className={icon} strokeWidth={3} />
                   ) : showSpinner ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className={cn(icon, "animate-spin")} />
                   ) : (
-                    <step.icon className="h-4 w-4" />
+                    <step.icon className={icon} />
                   )}
                 </div>
 
                 <span
                   className={cn(
-                    "text-xs font-medium transition-colors duration-300 text-center whitespace-nowrap",
+                    label,
+                    "font-medium transition-colors duration-300 text-center whitespace-nowrap leading-tight",
                     isCompleted && "text-primary",
                     isActive && "text-primary font-semibold",
                     isPending && "text-muted-foreground/40"
@@ -68,7 +81,8 @@ export function CreationProgressBar({ currentStep, activeLoading, className }: C
                 {/* Underline indicator */}
                 <div
                   className={cn(
-                    "h-[2.5px] w-12 rounded-full transition-all duration-300",
+                    underline,
+                    "rounded-full transition-all duration-300",
                     (isCompleted || isActive) ? "bg-primary" : "bg-border/40"
                   )}
                 />
@@ -76,7 +90,7 @@ export function CreationProgressBar({ currentStep, activeLoading, className }: C
 
               {/* Connector line — vertically centered with circle */}
               {!isLast && (
-                <div className="flex-1 h-[2px] -mt-8 mx-[-4px]">
+                <div className={cn("flex-1 h-[2px] mx-[-4px]", connectorOffset)}>
                   <div
                     className={cn(
                       "h-full w-full rounded-full transition-all duration-500",
