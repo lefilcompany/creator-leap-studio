@@ -215,6 +215,8 @@ function Row({
 
 interface LocationState {
   imageUrl: string;
+  sourceImageUrl?: string;
+  layers?: TextLayer[];
   actionId?: string;
   nextRoute: string;
   nextStateKey: string;
@@ -255,9 +257,16 @@ export default function TextEditor() {
   }, []);
 
   useEffect(() => {
-    const init = defaultLayer(naturalSize.w, naturalSize.h);
-    setLayers([init]);
-    setSelectedId(init.id);
+    // If we received existing layers from a previous edit, reuse them so the
+    // user can keep editing the same texts. Otherwise, start with a default.
+    if (Array.isArray(state.layers) && state.layers.length > 0) {
+      setLayers(state.layers);
+      setSelectedId(state.layers[0]?.id || null);
+    } else {
+      const init = defaultLayer(naturalSize.w, naturalSize.h);
+      setLayers([init]);
+      setSelectedId(init.id);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
