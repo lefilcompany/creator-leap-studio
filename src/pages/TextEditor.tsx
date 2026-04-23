@@ -713,6 +713,34 @@ export default function TextEditor() {
           </div>
         </div>
       </div>
+
+      {/* Loading overlay while applying text */}
+      {saving && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center animate-fade-in">
+          <div className="bg-card rounded-2xl shadow-2xl border border-border/40 px-8 py-7 max-w-md w-[90%] flex flex-col items-center gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-full blur-xl opacity-40 animate-pulse" />
+              <div className="relative bg-gradient-to-r from-primary to-accent text-white rounded-full p-4">
+                {applyStage === "done" ? (
+                  <CheckCircle2 className="h-7 w-7" />
+                ) : (
+                  <Sparkles className="h-7 w-7 animate-pulse" />
+                )}
+              </div>
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-lg font-semibold">{applyStage === "done" ? "Tudo pronto!" : "Aplicando seu texto"}</h3>
+              <p className="text-sm text-muted-foreground">{stageLabel[applyStage]}</p>
+            </div>
+            <div className="w-full pt-2">
+              <CreationProgressBar
+                currentStep={applyStage === "done" ? "result" : "edit"}
+                activeLoading={applyStage !== "done"}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
