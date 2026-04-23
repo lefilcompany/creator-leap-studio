@@ -605,7 +605,7 @@ serve(async (req) => {
 
         if (editMode) {
           // Carrega imagens base + máscara opcional
-          const baseImagesRaw: string[] = (formData.editBaseImages as string[]).slice(0, 4);
+          const baseImagesRaw: string[] = editBaseImagesResolved.slice(0, 4);
           const baseImages = await Promise.all(
             baseImagesRaw.map(async (src, i) => {
               const { bytes, mime } = await toBytesWithMime(src);
