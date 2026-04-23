@@ -658,6 +658,13 @@ serve(async (req) => {
 
     if (actionError) console.error('Error creating action:', actionError);
 
+    if (snap.enabled) {
+      console.log(`[Debug] 🔬 Pipeline snapshot summary (runId=${snap.runId}):`);
+      for (const u of snap.urls) {
+        console.log(`  step ${String(u.step).padStart(2, '0')} ${u.stage} → ${u.url}`);
+      }
+    }
+
     return new Response(JSON.stringify({
       imageUrl: finalPublicUrl,
       description: resultDescription,
@@ -671,6 +678,7 @@ serve(async (req) => {
       finalAspectRatio: postProcessResult.finalAspectRatio,
       requestedAspectRatio: postProcessResult.requestedAspectRatio,
       complianceCheck: complianceResult,
+      debugSnapshots: snapshotSummary(snap),
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
