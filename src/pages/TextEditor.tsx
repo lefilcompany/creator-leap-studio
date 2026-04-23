@@ -200,8 +200,11 @@ export default function TextEditor() {
   const recomputeFit = useCallback(() => {
     const stage = stageRef.current;
     if (!stage || !naturalSize.w || !naturalSize.h) return;
-    const aw = stage.clientWidth;
-    const ah = stage.clientHeight;
+    // Safety margin so the image never touches the stage edges and never
+    // forces the parent layout to scroll (avoids subpixel rounding issues).
+    const SAFETY = 0.92;
+    const aw = stage.clientWidth * SAFETY;
+    const ah = stage.clientHeight * SAFETY;
     if (aw <= 0 || ah <= 0) return;
     const ratio = naturalSize.w / naturalSize.h;
     let w = aw;
