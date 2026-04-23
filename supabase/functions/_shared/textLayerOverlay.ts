@@ -36,9 +36,72 @@ export interface RenderRequest {
   layers: TextLayer[];
 }
 
+export interface LayerRenderReport {
+  layerId: string;
+  text: string;
+  // Inputs as received (already in image px coordinate space)
+  input: {
+    x: number;
+    y: number;
+    maxWidth: number;
+    fontSize: number;
+    align: 'left' | 'center' | 'right';
+    rotate: number;
+    fontFamily: string;
+    fontWeight: number;
+    italic: boolean;
+    uppercase: boolean;
+    hasStroke: boolean;
+    strokeWidth?: number;
+    hasShadow: boolean;
+    shadowOffsetX?: number;
+    shadowOffsetY?: number;
+    shadowBlur?: number;
+    hasBackground: boolean;
+  };
+  // Resolved scaling (canvas → final image)
+  scale: { x: number; y: number; avg: number };
+  // Computed pixel-space metrics
+  computed: {
+    fontSizePx: number;
+    maxWidthPx: number;
+    lineHeightPx: number;
+    lineCount: number;
+    blockWidth: number;
+    blockHeight: number;
+    padX: number;
+    padY: number;
+    effectLeftPad: number;
+    effectRightPad: number;
+    effectTopPad: number;
+    effectBottomPad: number;
+    textOffsetX: number;
+    textOffsetY: number;
+    containerW: number;
+    containerH: number;
+    finalW: number;
+    finalH: number;
+    px: number;
+    py: number;
+  };
+  // Parity check vs editor preview (CSS WebkitTextStroke + textShadow)
+  parity: {
+    expectedBleedX: number;
+    expectedBleedY: number;
+    actualBleedX: number;
+    actualBleedY: number;
+    deltaX: number;
+    deltaY: number;
+    warning: boolean;
+  };
+  applied: boolean;
+  error?: string;
+}
+
 export interface RenderResult {
   processedData: Uint8Array;
   layersApplied: number;
+  reports: LayerRenderReport[];
 }
 
 // ---------- Color utils ----------
@@ -137,7 +200,7 @@ export async function renderTextLayers(
   const { Image } = await import('https://deno.land/x/imagescript@1.3.0/mod.ts');
 
   if (!request.layers?.length) {
-    return { processedData: imageData, layersApplied: 0 };
+    return { processedData: imageData, layersApplied: 0, reports: [] };
   }
 
   let img: any;
@@ -145,7 +208,7 @@ export async function renderTextLayers(
     img = await Image.decode(imageData);
   } catch (e) {
     console.error('[TextLayer] Failed to decode source image:', e);
-    return { processedData: imageData, layersApplied: 0 };
+    return { processedData: imageData, layersApplied: 0, reports: [] };
   }
 
   const W: number = img.width;
@@ -158,6 +221,7 @@ export async function renderTextLayers(
   const scale = (scaleX + scaleY) / 2;
 
   let applied = 0;
+  const reports: LayerRenderReport[] = [];
 
   for (const layer of request.layers) {
     if (!layer.text?.trim()) continue;
@@ -190,16 +254,9 @@ export async function renderTextLayers(
         const li = await Image.renderText(fontBuf, fontSize, line, color);
         lineImages.push(li);
       }
-      // The text "block" matches the editor's div: width = maxWidthPx.
-      // Lines are aligned (left/center/right) inside this block — exactly
-      // like CSS text-align in the preview.
       const blockWidth = maxWidthPx;
       const blockHeight = lineHeight * lines.length;
 
-      // Build a container with optional background band + padding.
-      // Reserve bleed space for stroke/shadow so the first/last glyphs
-      // don't get clipped, but DO NOT shift the text block — we'll
-      // compensate by offsetting the final composite position.
       const padX = Math.round((layer.background?.paddingX ?? 0) * scale);
       const padY = Math.round((layer.background?.paddingY ?? 0) * scale);
       const strokePad = layer.stroke && layer.stroke.width > 0
@@ -214,9 +271,6 @@ export async function renderTextLayers(
       const effectBottomPad = Math.max(2, strokePad, shadowBlur + Math.max(0, shadowOffsetY));
 
       // -------- Preview/Server parity validation --------
-      // Mirrors how the editor renders effects (CSS WebkitTextStroke +
-      // textShadow). Any divergence in expected pixel bleed > PARITY_TOL_PX
-      // is logged so we catch silent regressions.
       const PARITY_TOL_PX = 1;
       const expectedStrokeBleed = layer.stroke && layer.stroke.width > 0
         ? layer.stroke.width * scale
@@ -233,8 +287,8 @@ export async function renderTextLayers(
       const expectedBleedY = Math.max(expectedStrokeBleed, expectedShadowBleedY);
       const dxBleed = Math.abs(actualBleedX - expectedBleedX);
       const dyBleed = Math.abs(actualBleedY - expectedBleedY);
-      // Allow up to 2px slack for the minimum (2) we always reserve for AA.
-      if (dxBleed > Math.max(PARITY_TOL_PX, 2) || dyBleed > Math.max(PARITY_TOL_PX, 2)) {
+      const parityWarn = dxBleed > Math.max(PARITY_TOL_PX, 2) || dyBleed > Math.max(PARITY_TOL_PX, 2);
+      if (parityWarn) {
         console.warn(
           `[TextLayer][PARITY] Layer "${layer.id}" effect bleed differs from preview: ` +
           `actual=(${actualBleedX},${actualBleedY}) expected=(${expectedBleedX.toFixed(2)},${expectedBleedY.toFixed(2)}) ` +
@@ -242,9 +296,7 @@ export async function renderTextLayers(
           `stroke=${JSON.stringify(layer.stroke)} shadow=${JSON.stringify(layer.shadow)}`,
         );
       }
-      // The text block starts at (effectLeftPad + padX, effectTopPad + padY)
-      // inside the container. Final composite below subtracts the bleed
-      // so the block's top-left lands exactly at (layer.x, layer.y).
+
       const textOffsetX = effectLeftPad + padX;
       const textOffsetY = effectTopPad + padY;
       const containerW = Math.max(1, blockWidth + padX * 2 + effectLeftPad + effectRightPad);
@@ -255,23 +307,19 @@ export async function renderTextLayers(
         container.fill(hexToRgba(layer.background.color, layer.background.opacity));
       }
 
-      // Draw shadow + stroke + main text
       let lineY = textOffsetY;
       for (let i = 0; i < lines.length; i++) {
         const li = lineImages[i];
         if (!li) { lineY += lineHeight; continue; }
-        // Align inside the block of width = blockWidth (= maxWidthPx).
         let drawX: number;
         if (align === 'center') drawX = textOffsetX + Math.round((blockWidth - li.width) / 2);
         else if (align === 'right') drawX = textOffsetX + (blockWidth - li.width);
         else drawX = textOffsetX;
 
-        // Shadow (rendered as offset blurred copy approximation: just offset)
         if (layer.shadow && layer.shadow.color) {
           const shadowImg = await Image.renderText(fontBuf, fontSize, lines[i], hexToRgba(layer.shadow.color, opacity));
           const sx = drawX + Math.round(layer.shadow.offsetX * scale);
           const sy = lineY + Math.round(layer.shadow.offsetY * scale);
-          // Best-effort blur via repeated offsets
           const blur = Math.max(0, Math.round(layer.shadow.blur * scale));
           for (let bx = -blur; bx <= blur; bx += Math.max(1, blur)) {
             for (let by = -blur; by <= blur; by += Math.max(1, blur)) {
@@ -280,7 +328,6 @@ export async function renderTextLayers(
           }
         }
 
-        // Stroke (render text in stroke color and offset 8 directions)
         if (layer.stroke && layer.stroke.width > 0) {
           const sw = Math.max(1, Math.round(layer.stroke.width * scale));
           const strokeImg = await Image.renderText(fontBuf, fontSize, lines[i], hexToRgba(layer.stroke.color, opacity));
@@ -296,16 +343,9 @@ export async function renderTextLayers(
         lineY += lineHeight;
       }
 
-      // Rotate container if requested. imagescript's rotate() spins around
-      // the container CENTER and expands the canvas. The editor uses CSS
-      // `transform-origin: top left`, so to mirror it we compute where the
-      // text-block's top-left point ends up after rotation and offset the
-      // composite so that point lands exactly at (layer.x, layer.y).
       const rotDeg = layer.rotate || 0;
       const finalImg = rotDeg ? container.rotate(rotDeg) : container;
 
-      // Original (unrotated) top-left of the text block, relative to
-      // container center.
       const cx = containerW / 2;
       const cy = containerH / 2;
       const dxC = textOffsetX - cx;
@@ -314,30 +354,105 @@ export async function renderTextLayers(
       const theta = (rotDeg * Math.PI) / 180;
       const cosT = Math.cos(theta);
       const sinT = Math.sin(theta);
-      // Rotated position relative to the new (expanded) image center.
       const newDx = dxC * cosT - dyC * sinT;
       const newDy = dxC * sinT + dyC * cosT;
       const blockTLx = finalImg.width / 2 + newDx;
       const blockTLy = finalImg.height / 2 + newDy;
 
-      // Anchor the rotated text-block's top-left at (layer.x, layer.y).
       const px = Math.round(layer.x * scaleX - blockTLx);
       const py = Math.round(layer.y * scaleY - blockTLy);
 
       img.composite(finalImg, px, py);
       applied++;
       console.log(`[TextLayer] Applied "${layer.text.substring(0, 40)}" @(${px},${py}) ${fontSize}px ${family}/${weight}`);
+
+      reports.push({
+        layerId: layer.id,
+        text: layer.text.substring(0, 80),
+        input: {
+          x: layer.x, y: layer.y, maxWidth: layer.maxWidth,
+          fontSize: layer.fontSize, align, rotate: rotDeg,
+          fontFamily: family, fontWeight: weight, italic,
+          uppercase: !!layer.uppercase,
+          hasStroke: !!(layer.stroke && layer.stroke.width > 0),
+          strokeWidth: layer.stroke?.width,
+          hasShadow: !!layer.shadow,
+          shadowOffsetX: layer.shadow?.offsetX,
+          shadowOffsetY: layer.shadow?.offsetY,
+          shadowBlur: layer.shadow?.blur,
+          hasBackground: !!(layer.background && layer.background.opacity > 0),
+        },
+        scale: { x: scaleX, y: scaleY, avg: scale },
+        computed: {
+          fontSizePx: fontSize,
+          maxWidthPx,
+          lineHeightPx: lineHeight,
+          lineCount: lines.length,
+          blockWidth, blockHeight,
+          padX, padY,
+          effectLeftPad, effectRightPad, effectTopPad, effectBottomPad,
+          textOffsetX, textOffsetY,
+          containerW, containerH,
+          finalW: finalImg.width, finalH: finalImg.height,
+          px, py,
+        },
+        parity: {
+          expectedBleedX: Number(expectedBleedX.toFixed(2)),
+          expectedBleedY: Number(expectedBleedY.toFixed(2)),
+          actualBleedX, actualBleedY,
+          deltaX: Number(dxBleed.toFixed(2)),
+          deltaY: Number(dyBleed.toFixed(2)),
+          warning: parityWarn,
+        },
+        applied: true,
+      });
     } catch (e) {
       console.error('[TextLayer] failed to render layer', layer.id, e);
+      reports.push({
+        layerId: layer.id,
+        text: (layer.text || '').substring(0, 80),
+        input: {
+          x: layer.x, y: layer.y, maxWidth: layer.maxWidth,
+          fontSize: layer.fontSize, align: layer.align || 'left',
+          rotate: layer.rotate || 0,
+          fontFamily: layer.fontFamily || 'Montserrat',
+          fontWeight: layer.fontWeight || 400,
+          italic: !!layer.fontItalic,
+          uppercase: !!layer.uppercase,
+          hasStroke: !!(layer.stroke && layer.stroke.width > 0),
+          strokeWidth: layer.stroke?.width,
+          hasShadow: !!layer.shadow,
+          shadowOffsetX: layer.shadow?.offsetX,
+          shadowOffsetY: layer.shadow?.offsetY,
+          shadowBlur: layer.shadow?.blur,
+          hasBackground: !!(layer.background && layer.background.opacity > 0),
+        },
+        scale: { x: scaleX, y: scaleY, avg: scale },
+        computed: {
+          fontSizePx: 0, maxWidthPx: 0, lineHeightPx: 0, lineCount: 0,
+          blockWidth: 0, blockHeight: 0, padX: 0, padY: 0,
+          effectLeftPad: 0, effectRightPad: 0, effectTopPad: 0, effectBottomPad: 0,
+          textOffsetX: 0, textOffsetY: 0,
+          containerW: 0, containerH: 0, finalW: 0, finalH: 0, px: 0, py: 0,
+        },
+        parity: {
+          expectedBleedX: 0, expectedBleedY: 0,
+          actualBleedX: 0, actualBleedY: 0,
+          deltaX: 0, deltaY: 0, warning: false,
+        },
+        applied: false,
+        error: e instanceof Error ? e.message : String(e),
+      });
     }
   }
 
   if (applied === 0) {
     console.warn('[TextLayer] No layers applied');
-    return { processedData: imageData, layersApplied: 0 };
+    return { processedData: imageData, layersApplied: 0, reports };
   }
 
   const out = await img.encode(1);
   console.log(`[TextLayer] Done. ${applied}/${request.layers.length} layers, ${out.length} bytes`);
-  return { processedData: new Uint8Array(out), layersApplied: applied };
+  console.log(`[TextLayer][REPORT] ${JSON.stringify(reports)}`);
+  return { processedData: new Uint8Array(out), layersApplied: applied, reports };
 }
