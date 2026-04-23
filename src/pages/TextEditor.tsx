@@ -11,11 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Plus, Trash2, Type, Loader2, Save, RotateCcw, Copy as CopyIcon,
   AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, ArrowRight, SkipForward,
+  Sparkles, CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { CreationProgressBar } from "@/components/CreationProgressBar";
 import type { TextLayer } from "@/components/TextOverlayEditor";
 
 const FONT_OPTIONS = [
