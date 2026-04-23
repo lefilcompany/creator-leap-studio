@@ -326,7 +326,39 @@ export default function ActionList({
   const sortDirection = externalSortDirection ?? internalSortDirection;
 
   const filteredAndSortedActions = useMemo(() => {
-    let result = [...actions];
+    // Deduplicate: garantir que o mesmo post/imagem só apareça uma vez.
+    // Prioriza id; se houver duplicatas com mesma imagem+título, mantém a mais recente.
+    const seenIds = new Set<string>();
+    const seenContent = new Map<string, ActionSummary>();
+    const deduped: ActionSummary[] = [];
+
+    // Ordena por data desc primeiro para manter a versão mais recente em caso de duplicata de conteúdo
+    const sortedByDate = [...actions].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    for (const action of sortedByDate) {
+      if (seenIds.has(action.id)) continue;
+      seenIds.add(action.id);
+
+      const contentKey = [
+        action.imageUrl || action.videoUrl || '',
+        (action.title || '').trim().toLowerCase(),
+        action.type,
+        action.brand?.id || '',
+      ].join('|');
+
+      // Só considera duplicata de conteúdo se houver imagem/vídeo ou título não vazio
+      const hasContent = !!(action.imageUrl || action.videoUrl || (action.title && action.title.trim()));
+      if (hasContent && contentKey !== '|||') {
+        if (seenContent.has(contentKey)) continue;
+        seenContent.set(contentKey, action);
+      }
+
+      deduped.push(action);
+    }
+
+    let result = deduped;
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
