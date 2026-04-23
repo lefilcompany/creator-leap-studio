@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
     // stack overlays on top of a previously rendered version.
     const baseUrl = body.sourceImageUrl || body.imageUrl;
     const sourceBytes = await fetchImageBytes(baseUrl);
-    const { processedData, layersApplied } = await renderTextLayers(sourceBytes, {
+    const { processedData, layersApplied, reports } = await renderTextLayers(sourceBytes, {
       imageWidth: body.imageWidth,
       imageHeight: body.imageHeight,
       layers: body.layers,
@@ -86,6 +86,20 @@ Deno.serve(async (req) => {
 
     // Track the text-free base so the editor can reload and rerender cleanly.
     const textOverlaySourceUrl = body.sourceImageUrl || body.imageUrl;
+
+    // Build full debug report
+    const renderReport = {
+      timestamp: new Date().toISOString(),
+      userId,
+      actionId: body.actionId ?? null,
+      canvas: { width: body.imageWidth, height: body.imageHeight },
+      sourceImageUrl: textOverlaySourceUrl,
+      editedImageUrl: editedUrl,
+      layersApplied,
+      layers: reports,
+      hasParityWarnings: reports.some((r) => r.parity.warning),
+    };
+    console.log(`[render-text-overlay][REPORT] ${JSON.stringify(renderReport)}`);
 
     // Optionally update action result and append to versions
     if (body.actionId) {
@@ -107,7 +121,14 @@ Deno.serve(async (req) => {
         mediaUrl: editedUrl,
         sourceImageUrl: textOverlaySourceUrl,
         layers: body.layers,
+        renderReport,
       };
+
+      // Keep only the last 10 render reports to avoid unbounded growth.
+      const existingReports = Array.isArray(existingDetails.textOverlayRenderReports)
+        ? existingDetails.textOverlayRenderReports
+        : [];
+      const trimmedReports = [...existingReports, renderReport].slice(-10);
 
       await admin
         .from('actions')
@@ -118,8 +139,13 @@ Deno.serve(async (req) => {
             imageUrl: editedUrl,
             textOverlayLayers: body.layers,
             textOverlaySourceUrl,
+            lastTextOverlayRenderReport: renderReport,
           },
-          details: { ...existingDetails, versions: [...versions, newVersion] },
+          details: {
+            ...existingDetails,
+            versions: [...versions, newVersion],
+            textOverlayRenderReports: trimmedReports,
+          },
           updated_at: new Date().toISOString(),
         })
         .eq('id', body.actionId);
@@ -131,6 +157,7 @@ Deno.serve(async (req) => {
         layersApplied,
         sourceImageUrl: textOverlaySourceUrl,
         layers: body.layers,
+        renderReport,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
