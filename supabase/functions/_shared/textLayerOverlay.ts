@@ -176,10 +176,23 @@ export async function renderTextLayers(
       blockWidth = Math.min(blockWidth, maxWidthPx);
 
       // Build a container with optional background band + padding
+      // Also reserve bleed space for stroke/shadow so the first/last glyphs don't get clipped.
       const padX = Math.round((layer.background?.paddingX ?? 0) * scale);
       const padY = Math.round((layer.background?.paddingY ?? 0) * scale);
-      const containerW = Math.max(1, blockWidth + padX * 2);
-      const containerH = Math.max(1, blockHeight + padY * 2);
+      const strokePad = layer.stroke && layer.stroke.width > 0
+        ? Math.max(1, Math.round(layer.stroke.width * scale))
+        : 0;
+      const shadowBlur = layer.shadow ? Math.max(0, Math.round(layer.shadow.blur * scale)) : 0;
+      const shadowOffsetX = layer.shadow ? Math.round(layer.shadow.offsetX * scale) : 0;
+      const shadowOffsetY = layer.shadow ? Math.round(layer.shadow.offsetY * scale) : 0;
+      const effectLeftPad = Math.max(2, strokePad, shadowBlur + Math.max(0, -shadowOffsetX));
+      const effectRightPad = Math.max(2, strokePad, shadowBlur + Math.max(0, shadowOffsetX));
+      const effectTopPad = Math.max(2, strokePad, shadowBlur + Math.max(0, -shadowOffsetY));
+      const effectBottomPad = Math.max(2, strokePad, shadowBlur + Math.max(0, shadowOffsetY));
+      const textOffsetX = effectLeftPad + padX;
+      const textOffsetY = effectTopPad + padY;
+      const containerW = Math.max(1, blockWidth + padX * 2 + effectLeftPad + effectRightPad);
+      const containerH = Math.max(1, blockHeight + padY * 2 + effectTopPad + effectBottomPad);
       const container = new Image(containerW, containerH);
 
       if (layer.background && layer.background.opacity > 0) {
@@ -187,14 +200,14 @@ export async function renderTextLayers(
       }
 
       // Draw shadow + stroke + main text
-      let lineY = padY;
+      let lineY = textOffsetY;
       for (let i = 0; i < lines.length; i++) {
         const li = lineImages[i];
         if (!li) { lineY += lineHeight; continue; }
         let drawX: number;
-        if (align === 'center') drawX = padX + Math.round((blockWidth - li.width) / 2);
-        else if (align === 'right') drawX = padX + (blockWidth - li.width);
-        else drawX = padX;
+        if (align === 'center') drawX = textOffsetX + Math.round((blockWidth - li.width) / 2);
+        else if (align === 'right') drawX = textOffsetX + (blockWidth - li.width);
+        else drawX = textOffsetX;
 
         // Shadow (rendered as offset blurred copy approximation: just offset)
         if (layer.shadow && layer.shadow.color) {
