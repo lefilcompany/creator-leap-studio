@@ -411,6 +411,13 @@ serve(async (req) => {
       binaryData = new Uint8Array(await imgResp.arrayBuffer());
     }
 
+    // 🔬 SNAPSHOT 1: Saída crua do MODELO BASE (Gemini)
+    // Se o texto extra aparecer aqui, o problema é PROMPT/MODELO (não overlay).
+    await snapshot(snap, 'A_model_base_raw', binaryData, {
+      provider: 'gemini',
+      model: usedImageModel,
+    });
+
     const postProcessResult = await postProcessImage(binaryData, aspectRatio, targetDims.width, targetDims.height);
 
     console.log('[Step 6] Post-process result:', {
@@ -425,8 +432,25 @@ serve(async (req) => {
     // =====================================
     let finalImageData = postProcessResult.processedData;
 
+    // 🔬 SNAPSHOT 2: Após pós-processo (resize/crop)
+    await snapshot(snap, 'B_after_postprocess', finalImageData, {
+      finalWidth: postProcessResult.finalWidth,
+      finalHeight: postProcessResult.finalHeight,
+      wasCropped: postProcessResult.wasCropped,
+      wasResized: postProcessResult.wasResized,
+    });
+
     if (includeText && textContent && textContent.trim()) {
       console.log('[Step 6.5] Applying text overlay with typographic engine...');
+      // 🔬 SNAPSHOT 3a: ANTES do overlay
+      await snapshot(snap, 'C_before_overlay', finalImageData, {
+        headline: textContent.trim(),
+        ctaText: cleanInput(formData.ctaText) || '',
+        textPosition: cleanInput(formData.textPosition) || 'center',
+        fontFamily: formData.fontFamily || 'Montserrat',
+        fontSize: formData.fontSize,
+        textDesignStyle: formData.textDesignStyle || 'clean',
+      });
       try {
         const overlayResult = await applyTextOverlay(finalImageData, {
           headline: textContent.trim(),
@@ -448,9 +472,15 @@ serve(async (req) => {
           finalImageData = overlayResult.processedData;
           console.log('[Step 6.5] Text overlay applied successfully');
         }
+        // 🔬 SNAPSHOT 3b: DEPOIS do overlay
+        await snapshot(snap, 'D_after_overlay', finalImageData, {
+          elementsApplied: overlayResult.elementsApplied,
+        });
       } catch (overlayError) {
         console.error('[Step 6.5] Text overlay failed, continuing without text:', overlayError);
       }
+    } else {
+      console.log('[Debug] Overlay desabilitado — pulando snapshots C/D');
     }
 
     // =====================================
