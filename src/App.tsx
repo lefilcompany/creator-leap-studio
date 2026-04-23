@@ -161,6 +161,7 @@ const App = () => (
                         <Route path="plan-result" element={<SuspenseRoute><PlanResult /></SuspenseRoute>} />
                         <Route path="quick-content" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
                         <Route path="quick-content-result" element={<SuspenseRoute><QuickContentResult /></SuspenseRoute>} />
+                        <Route path="text-editor" element={<SuspenseRoute><TextEditor /></SuspenseRoute>} />
                         <Route path="credits" element={<SuspenseRoute><Credits /></SuspenseRoute>} />
                         <Route path="team" element={<SuspenseRoute><Team /></SuspenseRoute>} />
                         <Route path="team-dashboard" element={<SuspenseRoute><TeamDashboard /></SuspenseRoute>} />
