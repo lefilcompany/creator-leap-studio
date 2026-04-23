@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Zap, ArrowRight, CalendarClock } from "lucide-react";
+import { Zap, ArrowUpRight, CalendarClock, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -20,92 +19,109 @@ export const DashboardCreditsCard = ({
   progressPercentage,
   creditsExpireAt,
 }: DashboardCreditsCardProps) => {
-  const isLow = progressPercentage < 20;
-  const isMedium = progressPercentage >= 20 && progressPercentage < 50;
-  
   const isExpired = creditsExpireAt ? new Date(creditsExpireAt) < new Date() : false;
   const effectiveCredits = isExpired ? 0 : remainingCredits;
   const effectiveProgress = isExpired ? 0 : progressPercentage;
-  
-  const expirationLabel = creditsExpireAt 
-    ? format(new Date(creditsExpireAt), "dd 'de' MMMM", { locale: ptBR })
+  const isLow = effectiveProgress < 20;
+  const used = Math.max(0, totalCredits - effectiveCredits);
+
+  const expirationLabel = creditsExpireAt
+    ? format(new Date(creditsExpireAt), "dd 'de' MMM", { locale: ptBR })
     : null;
+
+  const statusLabel = isExpired
+    ? "Expirado"
+    : isLow
+      ? "Saldo baixo"
+      : "Saldo saudável";
+  const statusDot = isExpired || isLow ? "bg-destructive" : "bg-success";
+  const barColor = isExpired || isLow ? "bg-destructive/15" : "bg-primary/10";
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4, delay: 0.1 }}
+      id="dashboard-credits-card"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: 0.05 }}
+      className="rounded-2xl border border-border/50 bg-card p-4 sm:p-5"
     >
-      <Card
-        id="dashboard-credits-card"
-        className="relative overflow-hidden shadow-none border border-muted-foreground/20"
-      >
-        {/* Decorative circles */}
-        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl" />
-        <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-secondary/5 blur-2xl" />
-
-        <CardContent className="relative p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-0 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 sm:p-2.5 rounded-xl bg-primary/15 text-primary">
-                <Zap className="h-4 w-4 sm:h-5 sm:w-5" />
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Créditos Disponíveis</p>
-                <div className="flex items-baseline gap-2">
-                  <motion.span
-                    key={effectiveCredits}
-                    initial={{ scale: 1.2, color: "hsl(var(--primary))" }}
-                    animate={{ scale: 1, color: isExpired ? "hsl(var(--destructive))" : "hsl(var(--foreground))" }}
-                    className="text-2xl sm:text-3xl font-bold tracking-tight"
-                  >
-                    {effectiveCredits.toLocaleString()}
-                  </motion.span>
-                  <span className="text-xs sm:text-sm text-muted-foreground">
-                    / {totalCredits.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="self-end sm:self-auto"
-            >
-              <Link to="/credits">
-                <Button size="sm" className={`rounded-full gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md text-xs sm:text-sm font-semibold px-5 ${(isLow || isExpired) ? 'animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]' : ''}`}>
-                  <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                  Comprar Créditos
-                  <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                </Button>
-              </Link>
-            </motion.div>
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="rounded-lg bg-primary/10 text-primary p-2 shrink-0">
+            <Zap className="h-4 w-4" />
           </div>
-
-          <div className="space-y-2">
-            <Progress
-              value={effectiveProgress}
-              className={`h-2.5 ${(isLow || isExpired) ? 'bg-destructive/20' : isMedium ? 'bg-chart-1/20' : 'bg-primary/15'}`}
-            />
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
-                {isExpired
-                  ? "⚠️ Créditos expirados — adquira um novo pacote"
-                  : isLow
-                    ? "⚠️ Créditos baixos — considere recarregar"
-                    : `${Math.round(effectiveProgress)}% do seu saldo disponível`}
-              </p>
-              {expirationLabel && !isExpired && effectiveCredits > 0 && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <CalendarClock className="h-3 w-3" />
-                  Válidos até {expirationLabel}
-                </p>
-              )}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-medium text-muted-foreground">Créditos</p>
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
+                <span className={`h-1.5 w-1.5 rounded-full ${statusDot}`} />
+                {statusLabel}
+              </span>
+            </div>
+            <div className="flex items-baseline gap-1.5 mt-0.5">
+              <motion.span
+                key={effectiveCredits}
+                initial={{ scale: 1.15 }}
+                animate={{ scale: 1 }}
+                className={`text-2xl font-bold tracking-tight tabular-nums ${isExpired ? "text-destructive" : "text-foreground"}`}
+              >
+                {effectiveCredits.toLocaleString()}
+              </motion.span>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                / {totalCredits.toLocaleString()}
+              </span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        <Link to="/credits" className="shrink-0">
+          <Button
+            size="sm"
+            variant={isLow || isExpired ? "default" : "ghost"}
+            className={`h-8 gap-1 rounded-full text-xs ${
+              isLow || isExpired
+                ? "bg-primary hover:bg-primary/90 px-3"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/60 px-2"
+            }`}
+          >
+            {isLow || isExpired ? (
+              <>
+                Comprar
+                <ArrowUpRight className="h-3 w-3" />
+              </>
+            ) : (
+              <>
+                Gerenciar
+                <ArrowUpRight className="h-3 w-3" />
+              </>
+            )}
+          </Button>
+        </Link>
+      </div>
+
+      <Progress value={effectiveProgress} className={`h-1.5 ${barColor}`} />
+
+      <div className="flex items-center justify-between mt-2.5 text-[11px] text-muted-foreground">
+        <span className="tabular-nums">
+          {isExpired ? (
+            <span className="inline-flex items-center gap-1 text-destructive">
+              <AlertTriangle className="h-3 w-3" />
+              Adquira um novo pacote
+            </span>
+          ) : (
+            <>
+              <span className="font-medium text-foreground">{used.toLocaleString()}</span> usados ·{" "}
+              <span className="font-medium text-foreground">{effectiveCredits.toLocaleString()}</span> restantes
+            </>
+          )}
+        </span>
+        {expirationLabel && !isExpired && effectiveCredits > 0 && (
+          <span className="inline-flex items-center gap-1">
+            <CalendarClock className="h-3 w-3" />
+            até {expirationLabel}
+          </span>
+        )}
+      </div>
     </motion.div>
   );
 };

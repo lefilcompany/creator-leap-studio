@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, Tags, UserCircle, Newspaper } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -11,20 +10,36 @@ interface DashboardStatsProps {
   hasTeam?: boolean;
 }
 
-const statItem = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+const item = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
-export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, themesCount = 0, hasTeam = false }: DashboardStatsProps) => {
+export const DashboardStats = ({
+  actionsCount,
+  brandsCount,
+  personasCount = 0,
+  themesCount = 0,
+  hasTeam = false,
+}: DashboardStatsProps) => {
   const stats = [
     {
-      label: "Marcas Ativas",
+      label: hasTeam ? "Conteúdos da equipe" : "Conteúdos criados",
+      value: actionsCount,
+      icon: Sparkles,
+      color: "text-primary",
+      bg: "bg-primary/10",
+      link: "/history",
+      hint: "Total acumulado",
+    },
+    {
+      label: "Marcas ativas",
       value: brandsCount,
       icon: Tags,
       color: "text-accent",
       bg: "bg-accent/10",
       link: "/brands",
+      hint: "No workspace",
     },
     {
       label: "Personas",
@@ -33,6 +48,7 @@ export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, t
       color: "text-secondary",
       bg: "bg-secondary/10",
       link: "/personas",
+      hint: "Públicos cadastrados",
     },
     {
       label: "Editorias",
@@ -41,14 +57,7 @@ export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, t
       color: "text-success",
       bg: "bg-success/10",
       link: "/themes",
-    },
-    {
-      label: hasTeam ? "Conteúdos da Equipe" : "Conteúdos Criados",
-      value: actionsCount,
-      icon: Sparkles,
-      color: "text-primary",
-      bg: "bg-primary/10",
-      link: "/history",
+      hint: "Linhas estratégicas",
     },
   ];
 
@@ -56,26 +65,32 @@ export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, t
     <motion.div
       initial="hidden"
       animate="show"
-      transition={{ staggerChildren: 0.1 }}
+      transition={{ staggerChildren: 0.06 }}
       className="grid grid-cols-2 lg:grid-cols-4 gap-3"
     >
-      {stats.map((stat) => (
-        <motion.div key={stat.label} variants={statItem}>
-          <Link to={stat.link}>
-            <Card className="group border-0 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${stat.bg} ${stat.color}`}>
-                  <stat.icon className="h-4 w-4" />
+      {stats.map((stat) => {
+        const Icon = stat.icon;
+        return (
+          <motion.div key={stat.label} variants={item}>
+            <Link to={stat.link} className="block h-full group">
+              <div className="h-full rounded-2xl border border-border/50 bg-card p-4 hover:border-border hover:shadow-sm transition-all duration-200">
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`rounded-lg p-1.5 ${stat.bg} ${stat.color}`}>
+                    <Icon className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-wider">
+                    {stat.hint}
+                  </span>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold tracking-tight text-foreground">{stat.value.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        </motion.div>
-      ))}
+                <p className="text-2xl font-bold tracking-tight text-foreground tabular-nums leading-none">
+                  {stat.value.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1.5">{stat.label}</p>
+              </div>
+            </Link>
+          </motion.div>
+        );
+      })}
     </motion.div>
   );
 };

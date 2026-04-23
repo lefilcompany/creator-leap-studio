@@ -14,7 +14,7 @@ import { useThemes } from "@/hooks/useThemes";
 import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 
-import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardCreditsCard } from "@/components/dashboard/DashboardCreditsCard";
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
@@ -128,6 +128,44 @@ const Dashboard = () => {
     staleTime: 1000 * 60 * 5,
   });
 
+  // Operational KPIs: pending review + created this month
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ['dashboard-pending-count', user?.id, user?.teamId],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      let q = supabase
+        .from('actions')
+        .select('id', { count: 'exact', head: true })
+        .eq('approved', false);
+      if (user.teamId) q = q.eq('team_id', user.teamId);
+      else q = q.eq('user_id', user.id);
+      const { count } = await q;
+      return count || 0;
+    },
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: monthCount = 0 } = useQuery({
+    queryKey: ['dashboard-month-count', user?.id, user?.teamId],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      let q = supabase
+        .from('actions')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', startOfMonth.toISOString());
+      if (user.teamId) q = q.eq('team_id', user.teamId);
+      else q = q.eq('user_id', user.id);
+      const { count } = await q;
+      return count || 0;
+    },
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
+  });
+
   const { data: recentActivities = [], isLoading: isLoadingActivities } = useQuery({
     queryKey: ['dashboard-recent-activities', user?.id],
     queryFn: async () => {
@@ -222,32 +260,46 @@ const Dashboard = () => {
       <TrialBanner />
       <IncompleteProfileBanner />
 
-      {/* Banner */}
-      <DashboardBanner userName={user.name} />
+      {/* Header funcional */}
+      <DashboardHeader
+        userName={user.name}
+        hasTeam={!!user.teamId}
+        brandsCount={brandsCount}
+        pendingCount={pendingCount}
+        monthCount={monthCount}
+      />
 
-      {/* Quick Actions */}
+      {/* Quick Actions com hierarquia */}
       <div id="dashboard-quick-actions">
         <DashboardQuickActions />
       </div>
 
-      {/* Credits Card */}
-      <DashboardCreditsCard
-        remainingCredits={remainingCredits}
-        totalCredits={totalCredits}
-        progressPercentage={progressPercentage}
-        creditsExpireAt={user.creditsExpireAt}
-      />
-
-      {/* Stats */}
-      <div id="dashboard-stats">
-        <DashboardStats actionsCount={actionsCount} brandsCount={brandsCount} personasCount={personasCount} themesCount={themesCount} hasTeam={!!user.teamId} />
+      {/* Linha operacional: créditos compactos + KPIs */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="lg:col-span-1">
+          <DashboardCreditsCard
+            remainingCredits={remainingCredits}
+            totalCredits={totalCredits}
+            progressPercentage={progressPercentage}
+            creditsExpireAt={user.creditsExpireAt}
+          />
+        </div>
+        <div className="lg:col-span-2" id="dashboard-stats">
+          <DashboardStats
+            actionsCount={actionsCount}
+            brandsCount={brandsCount}
+            personasCount={personasCount}
+            themesCount={themesCount}
+            hasTeam={!!user.teamId}
+          />
+        </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* Atividade recente em lista */}
       <div id="dashboard-recent-actions">
-        <DashboardRecentActivity 
-          activities={recentActivities as any} 
-          isLoading={isLoadingActivities} 
+        <DashboardRecentActivity
+          activities={recentActivities as any}
+          isLoading={isLoadingActivities}
         />
       </div>
     </div>
