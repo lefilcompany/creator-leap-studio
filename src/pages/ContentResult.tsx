@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import {
   Download, Copy, Sparkles, Check, ImageIcon, Video, RefreshCw, FileText,
   Loader, Coins, Undo2, Redo2, History, AlertTriangle, Maximize2, Pen,
-  Plus, ChevronDown, X, Share2, Building2, Palette, User, Zap, Info, Globe, Users
+  Plus, ChevronDown, X, Share2, Building2, Palette, User, Zap, Info, Globe, Users, Type
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/collapsible";
 import createBanner from "@/assets/create-banner.jpg";
 import { ComplianceAlert, type ComplianceData } from "@/components/ComplianceAlert";
+import { TextOverlayEditor, type TextLayer } from "@/components/TextOverlayEditor";
 
 function PlatformIcon({ platform, className = "h-3.5 w-3.5" }: { platform: string; className?: string }) {
   switch (platform) {
@@ -96,6 +97,8 @@ export default function ContentResult() {
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isTextEditorOpen, setIsTextEditorOpen] = useState(false);
+  const [textOverlayLayers, setTextOverlayLayers] = useState<TextLayer[] | undefined>(undefined);
   const [isConfigOpen, setIsConfigOpen] = useState(true);
   const [isCaptionTruncated, setIsCaptionTruncated] = useState(false);
   const captionRef = useRef<HTMLParagraphElement>(null);
@@ -809,6 +812,15 @@ export default function ContentResult() {
                         size="lg"
                         variant="secondary"
                         className="bg-white/90 hover:bg-white text-foreground shadow-lg gap-2 rounded-xl backdrop-blur-sm"
+                        onClick={() => setIsTextEditorOpen(true)}
+                      >
+                        <Type className="h-4 w-4" />
+                        Editar texto
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="secondary"
+                        className="bg-white/90 hover:bg-white text-foreground shadow-lg gap-2 rounded-xl backdrop-blur-sm"
                         onClick={handleDownload}
                       >
                         <Download className="h-4 w-4" />
@@ -1201,6 +1213,42 @@ export default function ContentResult() {
         actionType="CRIAR_CONTEUDO"
         generatedImageUrl={contentData?.mediaUrl}
       />
+
+      {/* Text Overlay Editor */}
+      {contentData?.mediaUrl && contentData.type !== "video" && (
+        <TextOverlayEditor
+          open={isTextEditorOpen}
+          onOpenChange={setIsTextEditorOpen}
+          imageUrl={contentData.mediaUrl}
+          actionId={contentData.actionId}
+          initialLayers={textOverlayLayers}
+          onSaved={(newUrl, layers) => {
+            setTextOverlayLayers(layers);
+            setContentData(prev => prev ? { ...prev, mediaUrl: newUrl } : prev);
+            const newVersion = {
+              version: versionHistory.length,
+              timestamp: new Date().toISOString(),
+              type: "text_overlay",
+              mediaUrl: newUrl,
+              layers,
+            };
+            setVersionHistory(prev => {
+              const next = [...prev, newVersion];
+              setCurrentVersionIndex(next.length - 1);
+              return next;
+            });
+            try {
+              const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
+              const updated = {
+                ...saved,
+                versions: [...(saved.versions || []), newVersion],
+                currentVersion: (saved.versions?.length || 0),
+              };
+              localStorage.setItem("currentContent", JSON.stringify(updated));
+            } catch (e) { console.error(e); }
+          }}
+        />
+      )}
     </div>
   );
 }
