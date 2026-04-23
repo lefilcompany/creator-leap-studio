@@ -673,14 +673,17 @@ serve(async (req) => {
         let finalImageData = postProcessResult.processedData;
 
         // ===== STEP 6.5: Text Overlay =====
-        if (includeText && (briefingResult.headline || briefingResult.subtexto || formData.ctaText)) {
+        // REGRA: o usuário pediu o texto exato no campo "textContent".
+        // Renderizamos APENAS esse texto, na posição/fonte/tamanho exatos.
+        // Não adicionamos subtítulo, CTA, nem disclaimer automáticos.
+        if (includeText && textContent && textContent.trim()) {
           try {
             const overlayResult = await applyTextOverlay(finalImageData, {
-              headline: briefingResult.headline,
-              subtexto: briefingResult.subtexto,
-              ctaText: cleanInput(formData.ctaText) || '',
-              disclaimerText: cleanInput(formData.disclaimerText) || '',
-              disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
+              headline: textContent.trim(),
+              subtexto: '',
+              ctaText: '',
+              disclaimerText: '',
+              disclaimerStyle: 'bottom_horizontal',
               textPosition: cleanInput(formData.textPosition) || 'top',
               fontFamily: formData.fontFamily || 'Montserrat',
               fontWeight: formData.fontWeight || 'bold',
