@@ -200,8 +200,11 @@ export default function TextEditor() {
   const recomputeFit = useCallback(() => {
     const stage = stageRef.current;
     if (!stage || !naturalSize.w || !naturalSize.h) return;
-    const aw = stage.clientWidth;
-    const ah = stage.clientHeight;
+    // Safety margin so the image never touches the stage edges and never
+    // forces the parent layout to scroll (avoids subpixel rounding issues).
+    const SAFETY = 0.92;
+    const aw = stage.clientWidth * SAFETY;
+    const ah = stage.clientHeight * SAFETY;
     if (aw <= 0 || ah <= 0) return;
     const ratio = naturalSize.w / naturalSize.h;
     let w = aw;
@@ -423,10 +426,10 @@ export default function TextEditor() {
       {/* === Main body === */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px]">
         {/* === Canvas (left) === */}
-        <section className="flex flex-col min-w-0 min-h-0 bg-muted/30">
+        <section className="flex flex-col min-w-0 min-h-0 overflow-hidden bg-muted/30">
           <div
             ref={stageRef}
-            className="flex-1 min-h-0 px-4 sm:px-6 py-8 sm:py-10 flex items-center justify-center overflow-hidden"
+            className="flex-1 min-h-0 min-w-0 p-3 sm:p-4 flex items-center justify-center overflow-hidden"
           >
             {state.imageUrl && displaySize.w > 0 && (
               <div
