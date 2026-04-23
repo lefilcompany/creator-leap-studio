@@ -7,6 +7,7 @@ import { expandBriefing } from '../_shared/expandBriefing.ts';
 import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
 import { checkCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
 import { applyTextOverlay } from '../_shared/textOverlay.ts';
+import { createSnapshotContext, snapshot, snapshotSummary } from '../_shared/debugSnapshot.ts';
 import {
   cleanInput,
   normalizeImageArray,
@@ -57,6 +58,16 @@ serve(async (req) => {
     const formData = await req.json();
     if (!formData.description || typeof formData.description !== 'string') {
       return new Response(JSON.stringify({ error: 'Descrição inválida' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // ===== Debug snapshot context =====
+    const snap = createSnapshotContext({
+      supabase,
+      userId: authenticatedUserId,
+      enabledByClient: formData.debugSnapshots === true,
+    });
+    if (snap.enabled) {
+      console.log(`[Debug] 🔬 Snapshot pipeline ENABLED — runId=${snap.runId}`);
     }
 
     console.log('Generate Image Request:', {
