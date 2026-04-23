@@ -812,12 +812,38 @@ export default function ContentResult() {
                         size="lg"
                         variant="secondary"
                         className="bg-white/90 hover:bg-white text-foreground shadow-lg gap-2 rounded-xl backdrop-blur-sm"
-                        onClick={() => {
+                        onClick={async () => {
                           if (!contentData?.mediaUrl) return;
+                          const actionId = saved.actionId || contentData.actionId;
+                          let layers = (contentData as any).textOverlayLayers as TextLayer[] | undefined;
+                          let sourceImageUrl = (contentData as any).textOverlaySourceUrl as string | undefined;
+
+                          // If we don't have it in memory yet, hydrate from the saved action.
+                          if (actionId && (!layers || !sourceImageUrl)) {
+                            try {
+                              const { data: act } = await supabase
+                                .from("actions")
+                                .select("result")
+                                .eq("id", actionId)
+                                .maybeSingle();
+                              const result = (act?.result as any) || {};
+                              if (!layers && Array.isArray(result.textOverlayLayers)) {
+                                layers = result.textOverlayLayers;
+                              }
+                              if (!sourceImageUrl && typeof result.textOverlaySourceUrl === "string") {
+                                sourceImageUrl = result.textOverlaySourceUrl;
+                              }
+                            } catch (e) {
+                              console.warn("Falha ao carregar camadas de texto da ação:", e);
+                            }
+                          }
+
                           navigate("/text-editor", {
                             state: {
                               imageUrl: contentData.mediaUrl,
-                              actionId: saved.actionId || contentData.actionId,
+                              sourceImageUrl,
+                              layers,
+                              actionId,
                               nextRoute: "/result",
                               nextStateKey: "contentData",
                               nextState: { contentData },
