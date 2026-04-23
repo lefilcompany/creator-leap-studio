@@ -12,6 +12,7 @@ import { expandBriefing } from '../_shared/expandBriefing.ts';
 import { postProcessImage, resolveAspectRatio, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
 import { checkCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
 import { applyTextOverlay } from '../_shared/textOverlay.ts';
+import { createSnapshotContext, snapshot, snapshotSummary } from '../_shared/debugSnapshot.ts';
 import {
   cleanInput,
   normalizeImageArray,
