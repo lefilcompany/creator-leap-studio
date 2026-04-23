@@ -812,6 +812,15 @@ export default function ContentResult() {
                         size="lg"
                         variant="secondary"
                         className="bg-white/90 hover:bg-white text-foreground shadow-lg gap-2 rounded-xl backdrop-blur-sm"
+                        onClick={() => setIsTextEditorOpen(true)}
+                      >
+                        <Type className="h-4 w-4" />
+                        Editar texto
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="secondary"
+                        className="bg-white/90 hover:bg-white text-foreground shadow-lg gap-2 rounded-xl backdrop-blur-sm"
                         onClick={handleDownload}
                       >
                         <Download className="h-4 w-4" />
