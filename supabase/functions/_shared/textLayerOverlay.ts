@@ -178,7 +178,7 @@ export async function renderTextLayers(
       let displayText = layer.text;
       if (layer.uppercase) displayText = displayText.toUpperCase();
 
-      const lines = wrapLines(displayText, fontSize, maxWidthPx);
+      const lines = await wrapLinesMeasured(Image, fontBuf, displayText, fontSize, maxWidthPx);
 
       // Render each line into its own image first to measure widths
       const lineImages: any[] = [];
@@ -193,7 +193,8 @@ export async function renderTextLayers(
         if (li.width > blockWidth) blockWidth = li.width;
       }
       const blockHeight = lineHeight * lines.length;
-      blockWidth = Math.min(blockWidth, maxWidthPx);
+      // Use measured block width directly — do NOT clamp to maxWidthPx,
+      // otherwise right-aligned text gets shifted left by the difference.
 
       // Build a container with optional background band + padding
       // Also reserve bleed space for stroke/shadow so the first/last glyphs don't get clipped.
