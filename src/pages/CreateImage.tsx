@@ -697,6 +697,10 @@ export default function CreateImage() {
         openaiCompression: openaiSettings.compression,
         openaiN: openaiSettings.n,
         openaiPartialImages: openaiSettings.partialImages,
+        // Modo edição (/v1/images/edits) — só ativa se houver imagem base
+        openaiEditMode: openaiSettings.editMode && openaiSettings.editBaseImages.length > 0,
+        editBaseImages: openaiSettings.editMode ? openaiSettings.editBaseImages : [],
+        editMask: openaiSettings.editMode ? (openaiSettings.editMask || null) : null,
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
