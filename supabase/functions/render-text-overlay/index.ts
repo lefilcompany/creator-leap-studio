@@ -7,7 +7,8 @@ const corsHeaders = {
 };
 
 interface RequestBody {
-  imageUrl: string;       // source image URL (http(s) or data:)
+  imageUrl: string;       // current displayed image URL (http(s) or data:)
+  sourceImageUrl?: string;// original (text-free) base used to render overlays
   imageWidth: number;     // editor canvas width used for layer coordinates
   imageHeight: number;    // editor canvas height used for layer coordinates
   layers: TextLayer[];
@@ -60,9 +61,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`[render-text-overlay] user=${userId} layers=${body.layers.length} canvas=${body.imageWidth}x${body.imageHeight}`);
+    console.log(`[render-text-overlay] user=${userId} layers=${body.layers.length} canvas=${body.imageWidth}x${body.imageHeight} hasSource=${!!body.sourceImageUrl}`);
 
-    const sourceBytes = await fetchImageBytes(body.imageUrl);
+    // Prefer the original (text-free) source if provided, so re-edits don't
+    // stack overlays on top of a previously rendered version.
+    const baseUrl = body.sourceImageUrl || body.imageUrl;
+    const sourceBytes = await fetchImageBytes(baseUrl);
     const { processedData, layersApplied } = await renderTextLayers(sourceBytes, {
       imageWidth: body.imageWidth,
       imageHeight: body.imageHeight,
@@ -79,6 +83,9 @@ Deno.serve(async (req) => {
     if (uploadErr) throw uploadErr;
     const { data: pub } = admin.storage.from('content-images').getPublicUrl(path);
     const editedUrl = pub.publicUrl;
+
+    // Track the text-free base so the editor can reload and rerender cleanly.
+    const textOverlaySourceUrl = body.sourceImageUrl || body.imageUrl;
 
     // Optionally update action result and append to versions
     if (body.actionId) {
@@ -98,6 +105,7 @@ Deno.serve(async (req) => {
         timestamp: new Date().toISOString(),
         type: 'text_overlay',
         mediaUrl: editedUrl,
+        sourceImageUrl: textOverlaySourceUrl,
         layers: body.layers,
       };
 
@@ -105,7 +113,12 @@ Deno.serve(async (req) => {
         .from('actions')
         .update({
           revisions: newRevision,
-          result: { ...existingResult, imageUrl: editedUrl, textOverlayLayers: body.layers },
+          result: {
+            ...existingResult,
+            imageUrl: editedUrl,
+            textOverlayLayers: body.layers,
+            textOverlaySourceUrl,
+          },
           details: { ...existingDetails, versions: [...versions, newVersion] },
           updated_at: new Date().toISOString(),
         })
@@ -113,7 +126,12 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ editedImageUrl: editedUrl, layersApplied }),
+      JSON.stringify({
+        editedImageUrl: editedUrl,
+        layersApplied,
+        sourceImageUrl: textOverlaySourceUrl,
+        layers: body.layers,
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (e) {
