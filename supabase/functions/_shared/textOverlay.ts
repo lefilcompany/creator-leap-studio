@@ -327,14 +327,6 @@ export async function applyTextOverlay(
         else if (el.align === 'right') drawX = Math.round(el.x - txtImg.width);
         else drawX = Math.round(el.x);
 
-        // Soft shadow for clean style
-        if (designStyle === 'clean') {
-          try {
-            const shadow = await Image.renderText(fontBuf, el.fontSize, line, rgbaArr(0, 0, 0, 160));
-            img.composite(shadow, Math.max(0, drawX + 2), Math.max(0, lineY + 2));
-          } catch {/* shadow optional */}
-        }
-
         img.composite(txtImg, Math.max(0, drawX), Math.max(0, lineY));
         lineY += lineHeight;
       }
