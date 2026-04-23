@@ -426,7 +426,7 @@ export default function TextEditor() {
         <section className="flex flex-col min-w-0 min-h-0 bg-muted/30">
           <div
             ref={stageRef}
-            className="flex-1 min-h-0 p-4 sm:p-6 flex items-center justify-center overflow-hidden"
+            className="flex-1 min-h-0 px-4 sm:px-6 py-8 sm:py-10 flex items-center justify-center overflow-hidden"
           >
             {state.imageUrl && displaySize.w > 0 && (
               <div
