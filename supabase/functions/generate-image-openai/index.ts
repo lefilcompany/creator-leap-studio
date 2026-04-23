@@ -785,7 +785,15 @@ serve(async (req) => {
           model: 'gpt-image-2',
           quality: openaiQuality,
           creditsUsed: requiredCredits,
+          debugSnapshots: snapshotSummary(snap),
         };
+
+        if (snap.enabled) {
+          console.log(`[Debug] 🔬 Pipeline snapshot summary (runId=${snap.runId}):`);
+          for (const u of snap.urls) {
+            console.log(`  step ${String(u.step).padStart(2, '0')} ${u.stage} → ${u.url}`);
+          }
+        }
 
         // ===== Insert action ANTES do complete para garantir actionId no payload =====
         const { data: actionData } = await supabase.from('actions').insert({
