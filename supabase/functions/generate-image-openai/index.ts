@@ -677,6 +677,21 @@ serve(async (req) => {
           partialImages = result.partialImages;
         }
 
+        // 🔬 SNAPSHOT 1: Saída crua do MODELO BASE (antes de qualquer pós-processamento)
+        // Se o texto extra aparecer aqui, o problema é o MODELO/PROMPT (e não o overlay).
+        await snapshot(snap, 'A_model_base_raw', imageBase64, {
+          editMode,
+          provider: 'openai',
+          quality: openaiQuality,
+          size: openaiSize,
+          partialImagesCount: partialImages.length,
+        });
+        // 🔬 SNAPSHOT 1b: Última prévia parcial (mostra o que o modelo "ia desenhando")
+        if (partialImages.length > 0) {
+          await snapshot(snap, 'A_model_partial_last', partialImages[partialImages.length - 1], {
+            partialIndex: partialImages.length - 1,
+          });
+        }
 
         sseSend('progress', { stage: 'post_processing', message: 'Pós-processando imagem...' });
 
@@ -685,10 +700,27 @@ serve(async (req) => {
         const postProcessResult = await postProcessImage(binaryData, aspectRatio, targetDims.width, targetDims.height);
         let finalImageData = postProcessResult.processedData;
 
+        // 🔬 SNAPSHOT 2: Após PÓS-PROCESSAMENTO (resize/crop). Comparar com SNAPSHOT 1
+        // identifica se o crop introduziu algum artefato textual. Normalmente NÃO deveria.
+        await snapshot(snap, 'B_after_postprocess', finalImageData, {
+          finalWidth: postProcessResult.finalWidth,
+          finalHeight: postProcessResult.finalHeight,
+          aspectRatio: postProcessResult.finalAspectRatio,
+        });
+
         // ===== STEP 6.5: Text Overlay =====
         // Respeita exatamente o que foi configurado no modal de texto:
         // texto principal obrigatório + CTA apenas se preenchido.
         if (includeText && textContent && textContent.trim()) {
+          // 🔬 SNAPSHOT 3a: ANTES do overlay
+          await snapshot(snap, 'C_before_overlay', finalImageData, {
+            headline: textContent.trim(),
+            ctaText: cleanInput(formData.ctaText) || '',
+            textPosition: cleanInput(formData.textPosition) || 'center',
+            fontFamily: formData.fontFamily || 'Montserrat',
+            fontSize: formData.fontSize,
+            textDesignStyle: formData.textDesignStyle || 'clean',
+          });
           try {
             const overlayResult = await applyTextOverlay(finalImageData, {
               headline: textContent.trim(),
@@ -707,9 +739,15 @@ serve(async (req) => {
               imageHeight: postProcessResult.finalHeight,
             });
             if (overlayResult.elementsApplied > 0) finalImageData = overlayResult.processedData;
+            // 🔬 SNAPSHOT 3b: DEPOIS do overlay
+            await snapshot(snap, 'D_after_overlay', finalImageData, {
+              elementsApplied: overlayResult.elementsApplied,
+            });
           } catch (e) {
             console.error('[Step 6.5] overlay error:', e);
           }
+        } else {
+          console.log('[Debug] Overlay desabilitado (includeText=false ou sem textContent) — pulando snapshots C/D');
         }
 
         // ===== STEP 7: Upload =====
