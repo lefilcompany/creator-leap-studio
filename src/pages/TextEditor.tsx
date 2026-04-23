@@ -330,7 +330,11 @@ export default function TextEditor() {
     });
   };
 
-  const onPointerDownLayer = (e: React.PointerEvent, id: string, mode: "move" | "resize") => {
+  const onPointerDownLayer = (
+    e: React.PointerEvent,
+    id: string,
+    mode: "move" | "resize-right" | "resize-left" | "resize-font-top" | "resize-font-bottom",
+  ) => {
     e.stopPropagation();
     e.preventDefault();
     const layer = layers.find((l) => l.id === id);
@@ -342,6 +346,7 @@ export default function TextEditor() {
       startX: e.clientX, startY: e.clientY,
       layerStartX: layer.x, layerStartY: layer.y,
       startMaxW: layer.maxWidth,
+      startFontSize: layer.fontSize,
     });
   };
 
@@ -354,10 +359,28 @@ export default function TextEditor() {
         x: Math.round(drag.layerStartX + dx),
         y: Math.round(drag.layerStartY + dy),
       });
-    } else {
+    } else if (drag.mode === "resize-right") {
       updateLayer(drag.id, {
         maxWidth: Math.max(40, Math.round(drag.startMaxW + dx)),
       });
+    } else if (drag.mode === "resize-left") {
+      // shrink/grow from the left edge: move x and adjust width inversely
+      const newWidth = Math.max(40, Math.round(drag.startMaxW - dx));
+      const widthDelta = newWidth - drag.startMaxW;
+      updateLayer(drag.id, {
+        maxWidth: newWidth,
+        x: Math.round(drag.layerStartX - widthDelta),
+      });
+    } else if (drag.mode === "resize-font-bottom") {
+      // dragging down increases font size
+      const maxFont = Math.max(50, Math.round(naturalSize.h * 0.4));
+      const newSize = Math.min(maxFont, Math.max(10, Math.round(drag.startFontSize + dy)));
+      updateLayer(drag.id, { fontSize: newSize });
+    } else if (drag.mode === "resize-font-top") {
+      // dragging up increases font size
+      const maxFont = Math.max(50, Math.round(naturalSize.h * 0.4));
+      const newSize = Math.min(maxFont, Math.max(10, Math.round(drag.startFontSize - dy)));
+      updateLayer(drag.id, { fontSize: newSize });
     }
   };
 
