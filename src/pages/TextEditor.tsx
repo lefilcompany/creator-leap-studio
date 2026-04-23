@@ -644,11 +644,32 @@ export default function TextEditor() {
                       >
                         {l.text || " "}
                         {isSel && (
-                          <div
-                            onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize")}
-                            className="absolute -right-2 top-1/2 -translate-y-1/2 h-6 w-2 bg-primary rounded-full cursor-ew-resize shadow-md"
-                            title="Arraste para ajustar largura"
-                          />
+                          <>
+                            {/* Width handle - right */}
+                            <div
+                              onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-right")}
+                              className="absolute -right-2 top-1/2 -translate-y-1/2 h-6 w-2 bg-primary rounded-full cursor-ew-resize shadow-md"
+                              title="Arraste para ajustar largura"
+                            />
+                            {/* Width handle - left */}
+                            <div
+                              onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-left")}
+                              className="absolute -left-2 top-1/2 -translate-y-1/2 h-6 w-2 bg-primary rounded-full cursor-ew-resize shadow-md"
+                              title="Arraste para ajustar largura"
+                            />
+                            {/* Font size handle - top */}
+                            <div
+                              onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-top")}
+                              className="absolute left-1/2 -top-2 -translate-x-1/2 h-2 w-6 bg-primary rounded-full cursor-ns-resize shadow-md"
+                              title="Arraste para ajustar tamanho do texto"
+                            />
+                            {/* Font size handle - bottom */}
+                            <div
+                              onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-bottom")}
+                              className="absolute left-1/2 -bottom-2 -translate-x-1/2 h-2 w-6 bg-primary rounded-full cursor-ns-resize shadow-md"
+                              title="Arraste para ajustar tamanho do texto"
+                            />
+                          </>
                         )}
                       </div>
                     );
