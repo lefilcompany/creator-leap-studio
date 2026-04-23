@@ -257,6 +257,9 @@ export function OpenAIImageSettings({ value, onChange }: Props) {
                 onCheckedChange={(c) => update('partialImages', c ? 2 : 0)}
               />
             </div>
+
+            {/* ============== MODO EDIÇÃO (/v1/images/edits) ============== */}
+            <EditModeSection value={value} update={update} />
           </div>
         )}
       </div>
