@@ -582,50 +582,8 @@ export default function TextEditor() {
           </div>
         </section>
 
-        {/* === Tools sidebar (right) === */}
+        {/* === Properties sidebar (right) === */}
         <aside className="border-l border-border/40 bg-card flex flex-col min-h-0">
-          {/* Layers list */}
-          <div className="shrink-0 px-3 pt-3 pb-2 border-b border-border/40">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80 uppercase tracking-wide">
-                <LayersIcon className="h-3.5 w-3.5" />
-                Camadas
-              </div>
-              <Button size="sm" variant="ghost" onClick={addLayer} className="h-7 gap-1 text-xs">
-                <Plus className="h-3.5 w-3.5" /> Nova
-              </Button>
-            </div>
-            <ScrollArea className="max-h-32">
-              <div className="space-y-1 pr-2">
-                {layers.length === 0 && (
-                  <div className="text-xs text-muted-foreground text-center py-4">
-                    Nenhuma camada ainda
-                  </div>
-                )}
-                {layers.map((l, i) => (
-                  <button
-                    key={l.id}
-                    onClick={() => setSelectedId(l.id)}
-                    className={cn(
-                      "w-full text-left px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-2 group",
-                      selectedId === l.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border/40 hover:bg-muted/40"
-                    )}
-                  >
-                    <Type className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <span className="flex-1 truncate text-xs">{l.text || `Camada ${i + 1}`}</span>
-                    <span className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, -1); }} className="p-1 hover:bg-muted rounded"><MoveUp className="h-3 w-3" /></span>
-                      <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, 1); }} className="p-1 hover:bg-muted rounded"><MoveDown className="h-3 w-3" /></span>
-                      <span role="button" onClick={(e) => { e.stopPropagation(); duplicateLayer(l.id); }} className="p-1 hover:bg-muted rounded"><CopyIcon className="h-3 w-3" /></span>
-                      <span role="button" onClick={(e) => { e.stopPropagation(); removeLayer(l.id); }} className="p-1 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-3 w-3" /></span>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
 
           {/* Properties */}
           <ScrollArea className="flex-1 min-h-0">
