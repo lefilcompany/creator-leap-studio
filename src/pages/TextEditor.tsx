@@ -226,10 +226,12 @@ export default function TextEditor() {
   const [saving, setSaving] = useState(false);
   const [applyStage, setApplyStage] = useState<"idle" | "preparing" | "rendering" | "finalizing" | "done">("idle");
   const [drag, setDrag] = useState<{
-    id: string; mode: "move" | "resize";
+    id: string;
+    mode: "move" | "resize-right" | "resize-left" | "resize-font-top" | "resize-font-bottom";
     startX: number; startY: number;
     layerStartX: number; layerStartY: number;
     startMaxW: number;
+    startFontSize: number;
   } | null>(null);
 
   const displayScale = naturalSize.w ? displaySize.w / naturalSize.w : 1;
