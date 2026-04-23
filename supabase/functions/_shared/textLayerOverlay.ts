@@ -182,7 +182,6 @@ export async function renderTextLayers(
 
       // Render each line into its own image first to measure widths
       const lineImages: any[] = [];
-      let blockWidth = 0;
       for (const line of lines) {
         if (!line) {
           lineImages.push(null);
@@ -190,14 +189,17 @@ export async function renderTextLayers(
         }
         const li = await Image.renderText(fontBuf, fontSize, line, color);
         lineImages.push(li);
-        if (li.width > blockWidth) blockWidth = li.width;
       }
+      // The text "block" matches the editor's div: width = maxWidthPx.
+      // Lines are aligned (left/center/right) inside this block — exactly
+      // like CSS text-align in the preview.
+      const blockWidth = maxWidthPx;
       const blockHeight = lineHeight * lines.length;
-      // Use measured block width directly — do NOT clamp to maxWidthPx,
-      // otherwise right-aligned text gets shifted left by the difference.
 
-      // Build a container with optional background band + padding
-      // Also reserve bleed space for stroke/shadow so the first/last glyphs don't get clipped.
+      // Build a container with optional background band + padding.
+      // Reserve bleed space for stroke/shadow so the first/last glyphs
+      // don't get clipped, but DO NOT shift the text block — we'll
+      // compensate by offsetting the final composite position.
       const padX = Math.round((layer.background?.paddingX ?? 0) * scale);
       const padY = Math.round((layer.background?.paddingY ?? 0) * scale);
       const strokePad = layer.stroke && layer.stroke.width > 0
@@ -210,6 +212,9 @@ export async function renderTextLayers(
       const effectRightPad = Math.max(2, strokePad, shadowBlur + Math.max(0, shadowOffsetX));
       const effectTopPad = Math.max(2, strokePad, shadowBlur + Math.max(0, -shadowOffsetY));
       const effectBottomPad = Math.max(2, strokePad, shadowBlur + Math.max(0, shadowOffsetY));
+      // The text block starts at (effectLeftPad + padX, effectTopPad + padY)
+      // inside the container. Final composite below subtracts the bleed
+      // so the block's top-left lands exactly at (layer.x, layer.y).
       const textOffsetX = effectLeftPad + padX;
       const textOffsetY = effectTopPad + padY;
       const containerW = Math.max(1, blockWidth + padX * 2 + effectLeftPad + effectRightPad);
@@ -225,6 +230,7 @@ export async function renderTextLayers(
       for (let i = 0; i < lines.length; i++) {
         const li = lineImages[i];
         if (!li) { lineY += lineHeight; continue; }
+        // Align inside the block of width = blockWidth (= maxWidthPx).
         let drawX: number;
         if (align === 'center') drawX = textOffsetX + Math.round((blockWidth - li.width) / 2);
         else if (align === 'right') drawX = textOffsetX + (blockWidth - li.width);
@@ -263,9 +269,13 @@ export async function renderTextLayers(
       // Rotate container if requested
       const finalImg = layer.rotate ? container.rotate(layer.rotate) : container;
 
-      // Position relative to image coordinates (top-left anchored)
-      const px = Math.round(layer.x * scaleX) - Math.round((finalImg.width - containerW) / 2);
-      const py = Math.round(layer.y * scaleY) - Math.round((finalImg.height - containerH) / 2);
+      // Anchor: top-left of the TEXT BLOCK (not the bleed container) lands
+      // exactly at (layer.x, layer.y), matching the editor div which is
+      // positioned at left=layer.x, width=maxWidth.
+      // 1) Subtract textOffsetX/Y to remove the effect bleed.
+      // 2) Subtract half the rotation expansion so the block stays anchored.
+      const px = Math.round(layer.x * scaleX) - textOffsetX - Math.round((finalImg.width - containerW) / 2);
+      const py = Math.round(layer.y * scaleY) - textOffsetY - Math.round((finalImg.height - containerH) / 2);
 
       img.composite(finalImg, px, py);
       applied++;
