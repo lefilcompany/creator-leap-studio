@@ -1069,7 +1069,6 @@ export default function CreateImage() {
                         onClick={() => {
                           setContentType("ads");
                           if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads"));
-                          setFormData(prev => ({ ...prev, imageIncludeText: true }));
                         }}
                         className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${contentType === "ads" ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/50 text-muted-foreground hover:text-foreground"}`}>
                         Tráfego
