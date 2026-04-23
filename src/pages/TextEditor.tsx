@@ -11,11 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Plus, Trash2, Type, Loader2, Save, RotateCcw, Copy as CopyIcon,
   AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, ArrowRight, SkipForward,
+  Sparkles, CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { CreationProgressBar } from "@/components/CreationProgressBar";
 import type { TextLayer } from "@/components/TextOverlayEditor";
 
 const FONT_OPTIONS = [
@@ -118,6 +120,7 @@ export default function TextEditor() {
   const [layers, setLayers] = useState<TextLayer[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [applyStage, setApplyStage] = useState<"idle" | "preparing" | "rendering" | "finalizing" | "done">("idle");
   const [drag, setDrag] = useState<{ id: string; mode: "move" | "resize"; startX: number; startY: number; layerStartX: number; layerStartY: number; startMaxW: number } | null>(null);
 
   const displayScale = naturalSize.w ? displaySize.w / naturalSize.w : 1;
@@ -273,7 +276,11 @@ export default function TextEditor() {
     }
 
     setSaving(true);
+    setApplyStage("preparing");
     try {
+      // Tiny delay so user sees the stage transition
+      await new Promise((r) => setTimeout(r, 250));
+      setApplyStage("rendering");
       const { data, error } = await supabase.functions.invoke("render-text-overlay", {
         body: {
           imageUrl: state.imageUrl,
@@ -285,13 +292,17 @@ export default function TextEditor() {
       });
       if (error) throw error;
       if (!data?.editedImageUrl) throw new Error("Sem URL da imagem editada");
+      setApplyStage("finalizing");
       const finalUrl = `${data.editedImageUrl}?t=${Date.now()}`;
+      await new Promise((r) => setTimeout(r, 350));
+      setApplyStage("done");
       toast.success("Texto aplicado!");
-      goToResult(finalUrl);
+      // Quick fade before navigating
+      setTimeout(() => goToResult(finalUrl), 300);
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message || "Falha ao aplicar texto");
-    } finally {
+      setApplyStage("idle");
       setSaving(false);
     }
   };
@@ -307,27 +318,41 @@ export default function TextEditor() {
     setSelectedId(init.id);
   };
 
+  const stageLabel: Record<typeof applyStage, string> = {
+    idle: "Pronto",
+    preparing: "Preparando camadas de texto…",
+    rendering: "Renderizando texto na imagem…",
+    finalizing: "Finalizando arquivo…",
+    done: "Pronto! Abrindo resultado…",
+  };
+
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
+    <div className="h-[calc(100vh-4rem)] flex flex-col animate-fade-in">
       {/* Header */}
-      <div className="px-4 sm:px-6 lg:px-8 pt-4 pb-3 shrink-0 flex items-center justify-between gap-3 flex-wrap">
-        <div className="space-y-1">
+      <div className="px-4 sm:px-6 lg:px-8 pt-4 pb-3 shrink-0 flex items-start justify-between gap-3 flex-wrap">
+        <div className="space-y-1 min-w-0">
           <PageBreadcrumb items={[{ label: "Editar texto" }]} />
           <h1 className="text-xl sm:text-2xl font-semibold flex items-center gap-2">
             <Type className="h-5 w-5" /> Editor de texto na imagem
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Adicione, posicione e estilize textos manualmente. Em seguida, continue para o resultado.
+          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+            Imagem gerada com sucesso. Adicione textos manualmente e continue para o resultado.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" onClick={handleSkip} disabled={saving} className="gap-1.5">
-            <SkipForward className="h-4 w-4" /> Pular edição
-          </Button>
-          <Button onClick={handleApply} disabled={saving} className="gap-1.5">
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-            Aplicar e continuar
-          </Button>
+        <div className="flex flex-col items-end gap-2">
+          <div className="hidden md:block bg-card rounded-xl shadow-md border border-border/40 px-3 py-2 min-w-[360px]">
+            <CreationProgressBar currentStep="edit" activeLoading={saving} />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={handleSkip} disabled={saving} className="gap-1.5">
+              <SkipForward className="h-4 w-4" /> Pular edição
+            </Button>
+            <Button onClick={handleApply} disabled={saving} className="gap-1.5">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+              Aplicar e continuar
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -688,6 +713,34 @@ export default function TextEditor() {
           </div>
         </div>
       </div>
+
+      {/* Loading overlay while applying text */}
+      {saving && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center animate-fade-in">
+          <div className="bg-card rounded-2xl shadow-2xl border border-border/40 px-8 py-7 max-w-md w-[90%] flex flex-col items-center gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-full blur-xl opacity-40 animate-pulse" />
+              <div className="relative bg-gradient-to-r from-primary to-accent text-white rounded-full p-4">
+                {applyStage === "done" ? (
+                  <CheckCircle2 className="h-7 w-7" />
+                ) : (
+                  <Sparkles className="h-7 w-7 animate-pulse" />
+                )}
+              </div>
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-lg font-semibold">{applyStage === "done" ? "Tudo pronto!" : "Aplicando seu texto"}</h3>
+              <p className="text-sm text-muted-foreground">{stageLabel[applyStage]}</p>
+            </div>
+            <div className="w-full pt-2">
+              <CreationProgressBar
+                currentStep={applyStage === "done" ? "result" : "edit"}
+                activeLoading={applyStage !== "done"}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
