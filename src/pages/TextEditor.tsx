@@ -394,8 +394,8 @@ export default function TextEditor() {
           </div>
         </div>
 
-        <div className="hidden lg:flex flex-1 max-w-md justify-center">
-          <CreationProgressBar currentStep="edit" activeLoading={saving} />
+        <div className="hidden lg:flex flex-1 max-w-sm justify-center">
+          <CreationProgressBar currentStep="edit" activeLoading={saving} compact />
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
