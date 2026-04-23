@@ -269,9 +269,13 @@ export async function renderTextLayers(
       // Rotate container if requested
       const finalImg = layer.rotate ? container.rotate(layer.rotate) : container;
 
-      // Position relative to image coordinates (top-left anchored)
-      const px = Math.round(layer.x * scaleX) - Math.round((finalImg.width - containerW) / 2);
-      const py = Math.round(layer.y * scaleY) - Math.round((finalImg.height - containerH) / 2);
+      // Anchor: top-left of the TEXT BLOCK (not the bleed container) lands
+      // exactly at (layer.x, layer.y), matching the editor div which is
+      // positioned at left=layer.x, width=maxWidth.
+      // 1) Subtract textOffsetX/Y to remove the effect bleed.
+      // 2) Subtract half the rotation expansion so the block stays anchored.
+      const px = Math.round(layer.x * scaleX) - textOffsetX - Math.round((finalImg.width - containerW) / 2);
+      const py = Math.round(layer.y * scaleY) - textOffsetY - Math.round((finalImg.height - containerH) / 2);
 
       img.composite(finalImg, px, py);
       applied++;
