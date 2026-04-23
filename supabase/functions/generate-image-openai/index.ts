@@ -219,6 +219,8 @@ async function callOpenAIImageEdit(
   onPartial?: (b64: string, index: number) => void,
 ): Promise<{ imageBase64: string; partialImages: string[] }> {
   const useStream = request.stream ?? (request.partial_images && request.partial_images > 0);
+  // OpenAI exige n=1 quando stream=true.
+  const safeN = useStream ? 1 : (request.n ?? 1);
 
   const form = new FormData();
   form.append('model', 'gpt-image-2');
@@ -230,7 +232,7 @@ async function callOpenAIImageEdit(
   if (request.output_compression !== undefined) {
     form.append('output_compression', String(request.output_compression));
   }
-  form.append('n', String(request.n ?? 1));
+  form.append('n', String(safeN));
 
   // image[] — múltiplas imagens base permitidas
   for (const img of request.baseImages) {
