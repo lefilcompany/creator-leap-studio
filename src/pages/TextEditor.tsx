@@ -226,10 +226,12 @@ export default function TextEditor() {
   const [saving, setSaving] = useState(false);
   const [applyStage, setApplyStage] = useState<"idle" | "preparing" | "rendering" | "finalizing" | "done">("idle");
   const [drag, setDrag] = useState<{
-    id: string; mode: "move" | "resize";
+    id: string;
+    mode: "move" | "resize-right" | "resize-left" | "resize-font-top" | "resize-font-bottom";
     startX: number; startY: number;
     layerStartX: number; layerStartY: number;
     startMaxW: number;
+    startFontSize: number;
   } | null>(null);
 
   const displayScale = naturalSize.w ? displaySize.w / naturalSize.w : 1;
@@ -328,7 +330,11 @@ export default function TextEditor() {
     });
   };
 
-  const onPointerDownLayer = (e: React.PointerEvent, id: string, mode: "move" | "resize") => {
+  const onPointerDownLayer = (
+    e: React.PointerEvent,
+    id: string,
+    mode: "move" | "resize-right" | "resize-left" | "resize-font-top" | "resize-font-bottom",
+  ) => {
     e.stopPropagation();
     e.preventDefault();
     const layer = layers.find((l) => l.id === id);
@@ -340,6 +346,7 @@ export default function TextEditor() {
       startX: e.clientX, startY: e.clientY,
       layerStartX: layer.x, layerStartY: layer.y,
       startMaxW: layer.maxWidth,
+      startFontSize: layer.fontSize,
     });
   };
 
@@ -352,10 +359,28 @@ export default function TextEditor() {
         x: Math.round(drag.layerStartX + dx),
         y: Math.round(drag.layerStartY + dy),
       });
-    } else {
+    } else if (drag.mode === "resize-right") {
       updateLayer(drag.id, {
         maxWidth: Math.max(40, Math.round(drag.startMaxW + dx)),
       });
+    } else if (drag.mode === "resize-left") {
+      // shrink/grow from the left edge: move x and adjust width inversely
+      const newWidth = Math.max(40, Math.round(drag.startMaxW - dx));
+      const widthDelta = newWidth - drag.startMaxW;
+      updateLayer(drag.id, {
+        maxWidth: newWidth,
+        x: Math.round(drag.layerStartX - widthDelta),
+      });
+    } else if (drag.mode === "resize-font-bottom") {
+      // dragging down increases font size
+      const maxFont = Math.max(50, Math.round(naturalSize.h * 0.4));
+      const newSize = Math.min(maxFont, Math.max(10, Math.round(drag.startFontSize + dy)));
+      updateLayer(drag.id, { fontSize: newSize });
+    } else if (drag.mode === "resize-font-top") {
+      // dragging up increases font size
+      const maxFont = Math.max(50, Math.round(naturalSize.h * 0.4));
+      const newSize = Math.min(maxFont, Math.max(10, Math.round(drag.startFontSize - dy)));
+      updateLayer(drag.id, { fontSize: newSize });
     }
   };
 
@@ -619,11 +644,32 @@ export default function TextEditor() {
                       >
                         {l.text || " "}
                         {isSel && (
-                          <div
-                            onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize")}
-                            className="absolute -right-2 top-1/2 -translate-y-1/2 h-6 w-2 bg-primary rounded-full cursor-ew-resize shadow-md"
-                            title="Arraste para ajustar largura"
-                          />
+                          <>
+                            {/* Width handle - right */}
+                            <div
+                              onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-right")}
+                              className="absolute -right-2 top-1/2 -translate-y-1/2 h-6 w-2 bg-primary rounded-full cursor-ew-resize shadow-md"
+                              title="Arraste para ajustar largura"
+                            />
+                            {/* Width handle - left */}
+                            <div
+                              onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-left")}
+                              className="absolute -left-2 top-1/2 -translate-y-1/2 h-6 w-2 bg-primary rounded-full cursor-ew-resize shadow-md"
+                              title="Arraste para ajustar largura"
+                            />
+                            {/* Font size handle - top */}
+                            <div
+                              onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-top")}
+                              className="absolute left-1/2 -top-2 -translate-x-1/2 h-2 w-6 bg-primary rounded-full cursor-ns-resize shadow-md"
+                              title="Arraste para ajustar tamanho do texto"
+                            />
+                            {/* Font size handle - bottom */}
+                            <div
+                              onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-bottom")}
+                              className="absolute left-1/2 -bottom-2 -translate-x-1/2 h-2 w-6 bg-primary rounded-full cursor-ns-resize shadow-md"
+                              title="Arraste para ajustar tamanho do texto"
+                            />
+                          </>
                         )}
                       </div>
                     );
