@@ -426,10 +426,10 @@ export default function TextEditor() {
       {/* === Main body === */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px]">
         {/* === Canvas (left) === */}
-        <section className="flex flex-col min-w-0 min-h-0 bg-muted/30">
+        <section className="flex flex-col min-w-0 min-h-0 overflow-hidden bg-muted/30">
           <div
             ref={stageRef}
-            className="flex-1 min-h-0 px-4 sm:px-6 py-8 sm:py-10 flex items-center justify-center overflow-hidden"
+            className="flex-1 min-h-0 min-w-0 p-3 sm:p-4 flex items-center justify-center overflow-hidden"
           >
             {state.imageUrl && displaySize.w > 0 && (
               <div
