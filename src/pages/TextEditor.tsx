@@ -27,8 +27,18 @@ const FONT_OPTIONS = [
 ];
 
 const COLOR_PRESETS = [
-  "#ffffff", "#000000", "#f43f5e", "#f97316", "#eab308",
-  "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899",
+  // Neutros
+  "#ffffff", "#f3f4f6", "#9ca3af", "#4b5563", "#000000",
+  // Vermelhos / rosas
+  "#fecaca", "#f87171", "#ef4444", "#dc2626", "#ec4899",
+  // Laranjas / amarelos
+  "#fed7aa", "#fb923c", "#f97316", "#eab308", "#facc15",
+  // Verdes
+  "#bbf7d0", "#4ade80", "#22c55e", "#16a34a", "#10b981",
+  // Azuis / ciano
+  "#bae6fd", "#38bdf8", "#06b6d4", "#3b82f6", "#1d4ed8",
+  // Roxos
+  "#ddd6fe", "#a78bfa", "#8b5cf6", "#7c3aed", "#6d28d9",
 ];
 
 function uid() {
