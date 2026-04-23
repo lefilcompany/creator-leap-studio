@@ -405,15 +405,26 @@ export default function TextEditor() {
 
   const onPointerUp = () => setDrag(null);
 
-  const goToResult = (finalImageUrl: string) => {
+  const goToResult = (
+    finalImageUrl: string,
+    extras?: { textOverlayLayers?: TextLayer[]; textOverlaySourceUrl?: string },
+  ) => {
     const nextState = { ...(state.nextState || {}) };
     if (state.nextStateKey === "contentData") {
       nextState.contentData = {
         ...(nextState.contentData || {}),
         mediaUrl: finalImageUrl,
+        ...(extras?.textOverlayLayers
+          ? { textOverlayLayers: extras.textOverlayLayers }
+          : {}),
+        ...(extras?.textOverlaySourceUrl
+          ? { textOverlaySourceUrl: extras.textOverlaySourceUrl }
+          : {}),
       };
     } else {
       nextState.imageUrl = finalImageUrl;
+      if (extras?.textOverlayLayers) nextState.textOverlayLayers = extras.textOverlayLayers;
+      if (extras?.textOverlaySourceUrl) nextState.textOverlaySourceUrl = extras.textOverlaySourceUrl;
     }
     navigate(state.nextRoute!, { state: nextState, replace: true });
   };
@@ -433,6 +444,7 @@ export default function TextEditor() {
       const { data, error } = await supabase.functions.invoke("render-text-overlay", {
         body: {
           imageUrl: state.imageUrl,
+          sourceImageUrl: state.sourceImageUrl,
           imageWidth: naturalSize.w,
           imageHeight: naturalSize.h,
           layers,
@@ -446,7 +458,14 @@ export default function TextEditor() {
       await new Promise((r) => setTimeout(r, 350));
       setApplyStage("done");
       toast.success("Texto aplicado!");
-      setTimeout(() => goToResult(finalUrl), 300);
+      setTimeout(
+        () =>
+          goToResult(finalUrl, {
+            textOverlayLayers: data?.layers || layers,
+            textOverlaySourceUrl: data?.sourceImageUrl || state.sourceImageUrl || state.imageUrl,
+          }),
+        300,
+      );
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message || "Falha ao aplicar texto");
