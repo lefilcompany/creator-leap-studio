@@ -13,7 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic, ClipboardPaste, Type, Building2, UserRound, Newspaper } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CREDIT_COSTS } from "@/lib/creditCosts";
+import { CREDIT_COSTS, getOpenAIImageCost } from "@/lib/creditCosts";
+import { OpenAIImageSettings, DEFAULT_OPENAI_SETTINGS, type OpenAIImageSettingsValue } from "@/components/quick-content/OpenAIImageSettings";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import type { BrandSummary } from "@/types/brand";
@@ -303,6 +304,7 @@ export default function CreateImage() {
   const [showStyles, setShowStyles] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [textModalOpen, setTextModalOpen] = useState(false);
+  const [openaiSettings, setOpenaiSettings] = useState<OpenAIImageSettingsValue>(DEFAULT_OPENAI_SETTINGS);
 
   const teamId = user?.teamId;
   const userId = user?.id;
@@ -687,6 +689,14 @@ export default function CreateImage() {
         disclaimerText: formData.disclaimerText?.trim() || "",
         disclaimerStyle: formData.disclaimerStyle || "",
         teamId: user?.teamId,
+        // ===== OpenAI GPT Image 2 settings =====
+        openaiQuality: openaiSettings.quality,
+        openaiSize: openaiSettings.size,
+        openaiOutputFormat: openaiSettings.outputFormat,
+        openaiBackground: openaiSettings.background,
+        openaiCompression: openaiSettings.compression,
+        openaiN: openaiSettings.n,
+        openaiPartialImages: openaiSettings.partialImages,
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -701,14 +711,14 @@ export default function CreateImage() {
         "Criando Imagem",
         "create_image",
         async () => {
-          // Generate image
-          const imageResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`, {
+          // Generate image via OpenAI GPT Image 2 (substitui Gemini)
+          const imageResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image-openai`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${capturedSession?.access_token}` },
             body: JSON.stringify(requestData),
           });
           if (!imageResponse.ok) throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
-          const { imageUrl, attempt, legenda, complianceCheck } = await imageResponse.json();
+          const { imageUrl, legenda, complianceCheck } = await imageResponse.json();
 
           // Handle caption
           let captionData: any = null;
@@ -1018,6 +1028,9 @@ export default function CreateImage() {
                   <p className="text-xs text-destructive font-medium">Adicione ao menos 1 imagem de referência</p>
                 )}
               </div>
+
+              {/* Motor de imagem (OpenAI GPT Image 2) */}
+              <OpenAIImageSettings value={openaiSettings} onChange={setOpenaiSettings} />
 
               {/* 2. Personalizações (sem card, flex lado a lado) */}
               <div className="space-y-2.5">
@@ -1820,7 +1833,7 @@ export default function CreateImage() {
                 <>
                   <Sparkles className="h-4 w-4" />
                   Gerar Imagem
-                  <span className="text-primary-foreground/60 text-xs font-normal">· {CREDIT_COSTS.COMPLETE_IMAGE} créditos</span>
+                  <span className="text-primary-foreground/60 text-xs font-normal">· {getOpenAIImageCost(openaiSettings.quality)} créditos</span>
                 </>
               )}
             </Button>

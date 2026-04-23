@@ -1,17 +1,20 @@
 export const CREDIT_COSTS = {
-  QUICK_IMAGE: 3,           // Imagem rápida (QuickContent)
-  COMPLETE_IMAGE: 8,        // Imagem completa (CreateContent)
-  IMAGE_EDIT: 1,            // Correção/ajuste de imagem
-  IMAGE_REVIEW: 4,          // Revisão de imagem
-  CAPTION_REVIEW: 2,        // Revisão de legenda
-  TEXT_REVIEW: 2,           // Revisão de copy/texto
-  CONTENT_PLAN: 8,          // Calendário de conteúdo
-  VIDEO_GENERATION: 25,     // Geração de vídeo
-  IMAGE_ANIMATION: 15,      // Animação de imagem
-  CREATE_BRAND: 1,          // Criar marca (após 3 gratuitas)
-  CREATE_PERSONA: 1,        // Criar persona (após 3 gratuitas)
-  CREATE_THEME: 1,          // Criar tema (após 3 gratuitos)
-  MARKETPLACE_IMAGE: 5,     // Imagem para marketplace de produtos
+  QUICK_IMAGE: 3,
+  COMPLETE_IMAGE: 8,                // legado / fallback
+  COMPLETE_IMAGE_LOW: 4,            // OpenAI GPT Image 2 — quality: low
+  COMPLETE_IMAGE_MEDIUM: 8,         // OpenAI GPT Image 2 — quality: medium
+  COMPLETE_IMAGE_HIGH: 15,          // OpenAI GPT Image 2 — quality: high
+  IMAGE_EDIT: 1,
+  IMAGE_REVIEW: 4,
+  CAPTION_REVIEW: 2,
+  TEXT_REVIEW: 2,
+  CONTENT_PLAN: 8,
+  VIDEO_GENERATION: 25,
+  IMAGE_ANIMATION: 15,
+  CREATE_BRAND: 1,
+  CREATE_PERSONA: 1,
+  CREATE_THEME: 1,
+  MARKETPLACE_IMAGE: 5,
 } as const;
 
 export const FREE_RESOURCE_LIMITS = {
@@ -20,25 +23,32 @@ export const FREE_RESOURCE_LIMITS = {
   THEMES: 3,
 } as const;
 
+export type OpenAIImageQuality = 'low' | 'medium' | 'high' | 'auto';
+
 /**
- * Valida se um time tem créditos suficientes para uma ação
- * @param currentCredits - Saldo atual de créditos
- * @param actionType - Tipo da ação (chave de CREDIT_COSTS)
- * @returns true se tem créditos suficientes, false caso contrário
+ * Mapeia a qualidade escolhida no GPT Image 2 ao custo em créditos.
+ * 'auto' é tratado como 'medium' para previsibilidade.
  */
+export function getOpenAIImageCost(quality: OpenAIImageQuality | undefined): number {
+  switch (quality) {
+    case 'low':
+      return CREDIT_COSTS.COMPLETE_IMAGE_LOW;
+    case 'high':
+      return CREDIT_COSTS.COMPLETE_IMAGE_HIGH;
+    case 'medium':
+    case 'auto':
+    default:
+      return CREDIT_COSTS.COMPLETE_IMAGE_MEDIUM;
+  }
+}
+
 export function hasEnoughCredits(
-  currentCredits: number, 
+  currentCredits: number,
   actionType: keyof typeof CREDIT_COSTS
 ): boolean {
   return currentCredits >= CREDIT_COSTS[actionType];
 }
 
-/**
- * Retorna mensagem de erro formatada para créditos insuficientes
- * @param currentCredits - Saldo atual de créditos
- * @param actionType - Tipo da ação (chave de CREDIT_COSTS)
- * @returns Objeto de erro formatado
- */
 export function getInsufficientCreditsError(
   currentCredits: number,
   actionType: keyof typeof CREDIT_COSTS
