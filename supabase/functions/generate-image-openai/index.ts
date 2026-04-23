@@ -553,30 +553,93 @@ serve(async (req) => {
       }
     };
 
+    // ===== Detecção de modo EDIÇÃO (/v1/images/edits) =====
+    // Ativado quando há `openaiEditMode: true` E ao menos uma imagem base
+    // (campo `editBaseImages: string[]` com URLs/data-URLs). Máscara opcional via `editMask`.
+    const editMode: boolean = formData.openaiEditMode === true
+      && Array.isArray(formData.editBaseImages)
+      && formData.editBaseImages.length > 0;
+
     // Função principal que executa a geração e (opcionalmente) emite SSE
     const runGeneration = async () => {
       try {
-        sseSend('progress', { stage: 'starting', message: 'Preparando geração com OpenAI GPT Image 2...' });
+        sseSend('progress', {
+          stage: 'starting',
+          message: editMode
+            ? 'Preparando edição com OpenAI GPT Image 2...'
+            : 'Preparando geração com OpenAI GPT Image 2...',
+        });
 
-        // ===== STEP 5: Chamar OpenAI =====
-        sseSend('progress', { stage: 'generating', message: 'Gerando imagem...' });
-        const { imageBase64, partialImages } = await callOpenAIImage(
-          OPENAI_API_KEY,
-          {
-            prompt: finalPrompt,
-            size: openaiSize,
-            quality: openaiQuality,
-            background: openaiBackground,
-            output_format: openaiOutputFormat,
-            output_compression: openaiCompression,
-            n: openaiN,
-            partial_images: openaiPartialImages,
-            stream: wantsSSE && openaiPartialImages > 0,
-          },
-          (b64, idx) => {
-            sseSend('partial_image', { index: idx, b64: `data:image/${openaiOutputFormat};base64,${b64}` });
+        // ===== STEP 5: Chamar OpenAI (gerar OU editar) =====
+        sseSend('progress', {
+          stage: 'generating',
+          message: editMode ? 'Editando imagem com IA...' : 'Gerando imagem...',
+        });
+
+        let imageBase64: string;
+        let partialImages: string[];
+
+        if (editMode) {
+          // Carrega imagens base + máscara opcional
+          const baseImagesRaw: string[] = (formData.editBaseImages as string[]).slice(0, 4);
+          const baseImages = await Promise.all(
+            baseImagesRaw.map(async (src, i) => {
+              const { bytes, mime } = await toBytesWithMime(src);
+              const ext = mime.includes('png') ? 'png' : mime.includes('webp') ? 'webp' : 'jpg';
+              return { bytes, mime, filename: `base_${i}.${ext}` };
+            })
+          );
+
+          let mask: { bytes: Uint8Array; mime: string; filename: string } | undefined;
+          if (typeof formData.editMask === 'string' && formData.editMask.length > 0) {
+            const { bytes } = await toBytesWithMime(formData.editMask, 'image/png');
+            // OpenAI exige máscara em PNG
+            mask = { bytes, mime: 'image/png', filename: 'mask.png' };
           }
-        );
+
+          const result = await callOpenAIImageEdit(
+            OPENAI_API_KEY,
+            {
+              prompt: finalPrompt,
+              size: openaiSize,
+              quality: openaiQuality,
+              background: openaiBackground,
+              output_format: openaiOutputFormat,
+              output_compression: openaiCompression,
+              n: openaiN,
+              partial_images: openaiPartialImages,
+              stream: wantsSSE && openaiPartialImages > 0,
+              baseImages,
+              mask,
+            },
+            (b64, idx) => {
+              sseSend('partial_image', { index: idx, b64: `data:image/${openaiOutputFormat};base64,${b64}` });
+            }
+          );
+          imageBase64 = result.imageBase64;
+          partialImages = result.partialImages;
+        } else {
+          const result = await callOpenAIImage(
+            OPENAI_API_KEY,
+            {
+              prompt: finalPrompt,
+              size: openaiSize,
+              quality: openaiQuality,
+              background: openaiBackground,
+              output_format: openaiOutputFormat,
+              output_compression: openaiCompression,
+              n: openaiN,
+              partial_images: openaiPartialImages,
+              stream: wantsSSE && openaiPartialImages > 0,
+            },
+            (b64, idx) => {
+              sseSend('partial_image', { index: idx, b64: `data:image/${openaiOutputFormat};base64,${b64}` });
+            }
+          );
+          imageBase64 = result.imageBase64;
+          partialImages = result.partialImages;
+        }
+
 
         sseSend('progress', { stage: 'post_processing', message: 'Pós-processando imagem...' });
 
