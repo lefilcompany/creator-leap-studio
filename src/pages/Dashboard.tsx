@@ -14,7 +14,7 @@ import { useThemes } from "@/hooks/useThemes";
 import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 
-import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardCreditsCard } from "@/components/dashboard/DashboardCreditsCard";
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
