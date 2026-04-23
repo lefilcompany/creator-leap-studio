@@ -266,16 +266,33 @@ export async function renderTextLayers(
         lineY += lineHeight;
       }
 
-      // Rotate container if requested
-      const finalImg = layer.rotate ? container.rotate(layer.rotate) : container;
+      // Rotate container if requested. imagescript's rotate() spins around
+      // the container CENTER and expands the canvas. The editor uses CSS
+      // `transform-origin: top left`, so to mirror it we compute where the
+      // text-block's top-left point ends up after rotation and offset the
+      // composite so that point lands exactly at (layer.x, layer.y).
+      const rotDeg = layer.rotate || 0;
+      const finalImg = rotDeg ? container.rotate(rotDeg) : container;
 
-      // Anchor: top-left of the TEXT BLOCK (not the bleed container) lands
-      // exactly at (layer.x, layer.y), matching the editor div which is
-      // positioned at left=layer.x, width=maxWidth.
-      // 1) Subtract textOffsetX/Y to remove the effect bleed.
-      // 2) Subtract half the rotation expansion so the block stays anchored.
-      const px = Math.round(layer.x * scaleX) - textOffsetX - Math.round((finalImg.width - containerW) / 2);
-      const py = Math.round(layer.y * scaleY) - textOffsetY - Math.round((finalImg.height - containerH) / 2);
+      // Original (unrotated) top-left of the text block, relative to
+      // container center.
+      const cx = containerW / 2;
+      const cy = containerH / 2;
+      const dxC = textOffsetX - cx;
+      const dyC = textOffsetY - cy;
+
+      const theta = (rotDeg * Math.PI) / 180;
+      const cosT = Math.cos(theta);
+      const sinT = Math.sin(theta);
+      // Rotated position relative to the new (expanded) image center.
+      const newDx = dxC * cosT - dyC * sinT;
+      const newDy = dxC * sinT + dyC * cosT;
+      const blockTLx = finalImg.width / 2 + newDx;
+      const blockTLy = finalImg.height / 2 + newDy;
+
+      // Anchor the rotated text-block's top-left at (layer.x, layer.y).
+      const px = Math.round(layer.x * scaleX - blockTLx);
+      const py = Math.round(layer.y * scaleY - blockTLy);
 
       img.composite(finalImg, px, py);
       applied++;
