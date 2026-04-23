@@ -1213,6 +1213,42 @@ export default function ContentResult() {
         actionType="CRIAR_CONTEUDO"
         generatedImageUrl={contentData?.mediaUrl}
       />
+
+      {/* Text Overlay Editor */}
+      {contentData?.mediaUrl && contentData.type !== "video" && (
+        <TextOverlayEditor
+          open={isTextEditorOpen}
+          onOpenChange={setIsTextEditorOpen}
+          imageUrl={contentData.mediaUrl}
+          actionId={contentData.actionId}
+          initialLayers={textOverlayLayers}
+          onSaved={(newUrl, layers) => {
+            setTextOverlayLayers(layers);
+            setContentData(prev => prev ? { ...prev, mediaUrl: newUrl } : prev);
+            const newVersion = {
+              version: versionHistory.length,
+              timestamp: new Date().toISOString(),
+              type: "text_overlay",
+              mediaUrl: newUrl,
+              layers,
+            };
+            setVersionHistory(prev => {
+              const next = [...prev, newVersion];
+              setCurrentVersionIndex(next.length - 1);
+              return next;
+            });
+            try {
+              const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
+              const updated = {
+                ...saved,
+                versions: [...(saved.versions || []), newVersion],
+                currentVersion: (saved.versions?.length || 0),
+              };
+              localStorage.setItem("currentContent", JSON.stringify(updated));
+            } catch (e) { console.error(e); }
+          }}
+        />
+      )}
     </div>
   );
 }
