@@ -92,14 +92,26 @@ function buildLayout(config: TextOverlayConfig): LaidOutElement[] {
   const padding = Math.round(W * 0.06);
   const maxTextWidth = W - padding * 2;
 
-  // Base font size: respect user setting (12-72px), else compute from image width
+  // Font size: when user sets fontSize, use it LITERALLY for the main element (headline).
+  // Subtitle/CTA scale relative to headline; disclaimer is always small.
+  // When user does NOT set fontSize, compute proportional sizes from image width.
   const userFs = typeof config.fontSize === 'number' && config.fontSize > 0 ? config.fontSize : null;
-  const baseFs = userFs ?? Math.round(W * 0.045);
-  // Scale ratios
-  const headlineFs = Math.max(18, Math.round(baseFs * 1.4));
-  const subtitleFs = Math.max(14, Math.round(baseFs * 0.85));
-  const ctaFs = Math.max(14, Math.round(baseFs * 0.95));
+  let headlineFs: number;
+  let subtitleFs: number;
+  let ctaFs: number;
+  if (userFs) {
+    // Use exact user value for headline; derive others proportionally but cap at user value
+    headlineFs = userFs;
+    subtitleFs = Math.max(12, Math.round(userFs * 0.7));
+    ctaFs = Math.max(12, Math.round(userFs * 0.75));
+  } else {
+    const baseFs = Math.round(W * 0.045);
+    headlineFs = Math.max(18, Math.round(baseFs * 1.4));
+    subtitleFs = Math.max(14, Math.round(baseFs * 0.85));
+    ctaFs = Math.max(14, Math.round(baseFs * 0.95));
+  }
   const disclaimerFs = Math.max(11, Math.round(W * 0.014));
+  console.log(`[TextOverlay] Font sizes — userFs=${userFs ?? 'auto'} headline=${headlineFs} subtitle=${subtitleFs} cta=${ctaFs} disclaimer=${disclaimerFs}`);
 
   // Position — supports: top, center/middle, bottom, top-left, top-right, bottom-left, bottom-right, center-left, center-right
   const positionRaw = (config.textPosition || 'top').toLowerCase().replace(/_/g, '-');
