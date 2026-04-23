@@ -412,18 +412,18 @@ serve(async (req) => {
     // =====================================
     let finalImageData = postProcessResult.processedData;
 
-    if (includeText && (briefingResult.headline || briefingResult.subtexto || formData.ctaText)) {
+    if (includeText && textContent && textContent.trim()) {
       console.log('[Step 6.5] Applying text overlay with typographic engine...');
       try {
         const overlayResult = await applyTextOverlay(finalImageData, {
-          headline: briefingResult.headline,
-          subtexto: briefingResult.subtexto,
+          headline: textContent.trim(),
+          subtexto: '',
           ctaText: cleanInput(formData.ctaText) || '',
-          disclaimerText: cleanInput(formData.disclaimerText) || '',
-          disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
-          textPosition: cleanInput(formData.textPosition) || 'top',
+          disclaimerText: '',
+          disclaimerStyle: 'bottom_horizontal',
+          textPosition: cleanInput(formData.textPosition) || 'center',
           fontFamily: formData.fontFamily || 'Montserrat',
-          fontWeight: formData.fontWeight || 'bold',
+          fontWeight: formData.fontWeight || '700',
           fontItalic: formData.fontItalic || false,
           fontSize: formData.fontSize,
           textDesignStyle: formData.textDesignStyle || 'clean',

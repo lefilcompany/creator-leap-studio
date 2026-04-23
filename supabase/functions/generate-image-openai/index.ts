@@ -673,20 +673,19 @@ serve(async (req) => {
         let finalImageData = postProcessResult.processedData;
 
         // ===== STEP 6.5: Text Overlay =====
-        // REGRA: o usuário pediu o texto exato no campo "textContent".
-        // Renderizamos APENAS esse texto, na posição/fonte/tamanho exatos.
-        // Não adicionamos subtítulo, CTA, nem disclaimer automáticos.
+        // Respeita exatamente o que foi configurado no modal de texto:
+        // texto principal obrigatório + CTA apenas se preenchido.
         if (includeText && textContent && textContent.trim()) {
           try {
             const overlayResult = await applyTextOverlay(finalImageData, {
               headline: textContent.trim(),
               subtexto: '',
-              ctaText: '',
+              ctaText: cleanInput(formData.ctaText) || '',
               disclaimerText: '',
               disclaimerStyle: 'bottom_horizontal',
-              textPosition: cleanInput(formData.textPosition) || 'top',
+              textPosition: cleanInput(formData.textPosition) || 'center',
               fontFamily: formData.fontFamily || 'Montserrat',
-              fontWeight: formData.fontWeight || 'bold',
+              fontWeight: formData.fontWeight || '700',
               fontItalic: formData.fontItalic || false,
               fontSize: formData.fontSize,
               textDesignStyle: formData.textDesignStyle || 'clean',
