@@ -85,19 +85,38 @@ async function getFontWithFallback(family: string, weight: number, italic: boole
 }
 
 // ---------- Layout ----------
-function wrapLines(text: string, fontSize: number, maxWidth: number): string[] {
-  const charW = fontSize * 0.55;
-  const charsPerLine = Math.max(1, Math.floor(maxWidth / charW));
-  // Honor explicit \n breaks first
+// Measure-based wrapper. Uses imagescript's Image.renderText to measure exact
+// pixel widths, mirroring how the browser canvas computes line breaks.
+async function wrapLinesMeasured(
+  ImageCtor: any,
+  fontBuf: Uint8Array,
+  text: string,
+  fontSize: number,
+  maxWidth: number,
+): Promise<string[]> {
+  const measure = async (s: string): Promise<number> => {
+    if (!s) return 0;
+    try {
+      const im = await ImageCtor.renderText(fontBuf, fontSize, s, 0xffffffff);
+      return im.width;
+    } catch {
+      return s.length * fontSize * 0.55;
+    }
+  };
+
   const paragraphs = text.split(/\n/);
   const out: string[] = [];
+
   for (const p of paragraphs) {
     if (!p) { out.push(''); continue; }
-    const words = p.split(/\s+/);
+    const words = p.split(/\s+/).filter(Boolean);
+    if (words.length === 0) { out.push(''); continue; }
+
     let cur = '';
     for (const w of words) {
       const test = cur ? cur + ' ' + w : w;
-      if (test.length > charsPerLine && cur) {
+      const width = await measure(test);
+      if (width > maxWidth && cur) {
         out.push(cur);
         cur = w;
       } else {
@@ -108,6 +127,7 @@ function wrapLines(text: string, fontSize: number, maxWidth: number): string[] {
   }
   return out.length > 0 ? out : [''];
 }
+
 
 // ---------- Main ----------
 export async function renderTextLayers(
@@ -158,7 +178,7 @@ export async function renderTextLayers(
       let displayText = layer.text;
       if (layer.uppercase) displayText = displayText.toUpperCase();
 
-      const lines = wrapLines(displayText, fontSize, maxWidthPx);
+      const lines = await wrapLinesMeasured(Image, fontBuf, displayText, fontSize, maxWidthPx);
 
       // Render each line into its own image first to measure widths
       const lineImages: any[] = [];
@@ -173,7 +193,8 @@ export async function renderTextLayers(
         if (li.width > blockWidth) blockWidth = li.width;
       }
       const blockHeight = lineHeight * lines.length;
-      blockWidth = Math.min(blockWidth, maxWidthPx);
+      // Use measured block width directly — do NOT clamp to maxWidthPx,
+      // otherwise right-aligned text gets shifted left by the difference.
 
       // Build a container with optional background band + padding
       // Also reserve bleed space for stroke/shadow so the first/last glyphs don't get clipped.
