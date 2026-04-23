@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/collapsible";
 import createBanner from "@/assets/create-banner.jpg";
 import { ComplianceAlert, type ComplianceData } from "@/components/ComplianceAlert";
+import { TextOverlayEditor, type TextLayer } from "@/components/TextOverlayEditor";
 
 function PlatformIcon({ platform, className = "h-3.5 w-3.5" }: { platform: string; className?: string }) {
   switch (platform) {
@@ -96,6 +97,8 @@ export default function ContentResult() {
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isTextEditorOpen, setIsTextEditorOpen] = useState(false);
+  const [textOverlayLayers, setTextOverlayLayers] = useState<TextLayer[] | undefined>(undefined);
   const [isConfigOpen, setIsConfigOpen] = useState(true);
   const [isCaptionTruncated, setIsCaptionTruncated] = useState(false);
   const captionRef = useRef<HTMLParagraphElement>(null);
