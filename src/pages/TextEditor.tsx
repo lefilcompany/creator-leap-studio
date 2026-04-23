@@ -74,21 +74,21 @@ function ColorField({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="h-7 w-7 rounded-md border border-border/60 shadow-sm hover:scale-105 transition-transform shrink-0"
+          className="h-7 w-7 rounded-full border border-border/60 shadow-sm hover:scale-110 transition-transform shrink-0"
           style={{ background: value }}
           title={value}
         />
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-3" align="end">
+      <PopoverContent className="w-64 p-3" align="end">
         <div className="space-y-3">
-          <div className="grid grid-cols-5 gap-1.5">
+          <div className="grid grid-cols-6 gap-2">
             {presets.map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => onChange(c)}
                 className={cn(
-                  "h-7 w-full rounded border transition-transform hover:scale-110",
+                  "h-7 w-7 rounded-full border transition-transform hover:scale-110",
                   value.toLowerCase() === c.toLowerCase()
                     ? "border-primary ring-2 ring-primary/40"
                     : "border-border/40"
@@ -98,9 +98,9 @@ function ColorField({
               />
             ))}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pt-1 border-t border-border/40">
             <label
-              className="relative h-8 w-8 rounded-md border border-border/60 overflow-hidden cursor-pointer shrink-0"
+              className="relative h-8 w-8 rounded-full border border-border/60 overflow-hidden cursor-pointer shrink-0"
               style={{ background: value }}
             >
               <input
