@@ -520,9 +520,11 @@ serve(async (req) => {
     });
 
     const userNegativePrompt = cleanInput(formData.negativePrompt);
-    const negativeComponents = [styleSettings.negativePrompt];
+    const negativeComponents = [
+      styleSettings.negativePrompt,
+      'text, watermark, typography, letters, words, numbers, logo text, signature, caption, subtitle, headline, call-to-action'
+    ];
     if (userNegativePrompt) negativeComponents.push(userNegativePrompt);
-    if (!includeText) negativeComponents.push('text, watermark, typography, letters, signature, words, labels');
     const finalNegativePrompt = negativeComponents.filter(Boolean).join(', ');
 
     const resolved = resolveAspectRatio({
