@@ -233,7 +233,7 @@ export async function renderTextLayers(
       const px = Math.round(layer.x * scaleX) - Math.round((finalImg.width - containerW) / 2);
       const py = Math.round(layer.y * scaleY) - Math.round((finalImg.height - containerH) / 2);
 
-      img.composite(finalImg, Math.max(0, px), Math.max(0, py));
+      img.composite(finalImg, px, py);
       applied++;
       console.log(`[TextLayer] Applied "${layer.text.substring(0, 40)}" @(${px},${py}) ${fontSize}px ${family}/${weight}`);
     } catch (e) {
