@@ -215,6 +215,8 @@ function Row({
 
 interface LocationState {
   imageUrl: string;
+  sourceImageUrl?: string;
+  layers?: TextLayer[];
   actionId?: string;
   nextRoute: string;
   nextStateKey: string;
@@ -245,6 +247,9 @@ export default function TextEditor() {
   } | null>(null);
 
   const displayScale = naturalSize.w ? displaySize.w / naturalSize.w : 1;
+  // Use the original (text-free) image as the canvas base whenever available
+  // so the user sees and edits over the same source we re-render server-side.
+  const baseImageUrl = state.sourceImageUrl || state.imageUrl;
 
   useEffect(() => {
     if (!state.imageUrl || !state.nextRoute) {
@@ -255,9 +260,16 @@ export default function TextEditor() {
   }, []);
 
   useEffect(() => {
-    const init = defaultLayer(naturalSize.w, naturalSize.h);
-    setLayers([init]);
-    setSelectedId(init.id);
+    // If we received existing layers from a previous edit, reuse them so the
+    // user can keep editing the same texts. Otherwise, start with a default.
+    if (Array.isArray(state.layers) && state.layers.length > 0) {
+      setLayers(state.layers);
+      setSelectedId(state.layers[0]?.id || null);
+    } else {
+      const init = defaultLayer(naturalSize.w, naturalSize.h);
+      setLayers([init]);
+      setSelectedId(init.id);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -396,15 +408,26 @@ export default function TextEditor() {
 
   const onPointerUp = () => setDrag(null);
 
-  const goToResult = (finalImageUrl: string) => {
+  const goToResult = (
+    finalImageUrl: string,
+    extras?: { textOverlayLayers?: TextLayer[]; textOverlaySourceUrl?: string },
+  ) => {
     const nextState = { ...(state.nextState || {}) };
     if (state.nextStateKey === "contentData") {
       nextState.contentData = {
         ...(nextState.contentData || {}),
         mediaUrl: finalImageUrl,
+        ...(extras?.textOverlayLayers
+          ? { textOverlayLayers: extras.textOverlayLayers }
+          : {}),
+        ...(extras?.textOverlaySourceUrl
+          ? { textOverlaySourceUrl: extras.textOverlaySourceUrl }
+          : {}),
       };
     } else {
       nextState.imageUrl = finalImageUrl;
+      if (extras?.textOverlayLayers) nextState.textOverlayLayers = extras.textOverlayLayers;
+      if (extras?.textOverlaySourceUrl) nextState.textOverlaySourceUrl = extras.textOverlaySourceUrl;
     }
     navigate(state.nextRoute!, { state: nextState, replace: true });
   };
@@ -424,6 +447,7 @@ export default function TextEditor() {
       const { data, error } = await supabase.functions.invoke("render-text-overlay", {
         body: {
           imageUrl: state.imageUrl,
+          sourceImageUrl: state.sourceImageUrl,
           imageWidth: naturalSize.w,
           imageHeight: naturalSize.h,
           layers,
@@ -437,7 +461,14 @@ export default function TextEditor() {
       await new Promise((r) => setTimeout(r, 350));
       setApplyStage("done");
       toast.success("Texto aplicado!");
-      setTimeout(() => goToResult(finalUrl), 300);
+      setTimeout(
+        () =>
+          goToResult(finalUrl, {
+            textOverlayLayers: data?.layers || layers,
+            textOverlaySourceUrl: data?.sourceImageUrl || state.sourceImageUrl || state.imageUrl,
+          }),
+        300,
+      );
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message || "Falha ao aplicar texto");
@@ -581,7 +612,7 @@ export default function TextEditor() {
             ref={stageRef}
             className="flex-1 min-h-0 min-w-0 p-3 sm:p-4 flex items-center justify-center overflow-hidden"
           >
-            {state.imageUrl && displaySize.w > 0 && (
+            {baseImageUrl && displaySize.w > 0 && (
               <div
                 ref={containerRef}
                 className="relative select-none"
@@ -593,7 +624,7 @@ export default function TextEditor() {
               >
                 <img
                   ref={imgRef}
-                  src={state.imageUrl}
+                  src={baseImageUrl}
                   onLoad={onImgLoad}
                   alt="Imagem base"
                   className="block w-full h-full rounded-lg shadow-2xl pointer-events-none object-contain bg-black/5"
@@ -602,7 +633,7 @@ export default function TextEditor() {
                 />
                 {!naturalSize.w && (
                   <img
-                    src={state.imageUrl}
+                    src={baseImageUrl}
                     onLoad={onImgLoad}
                     alt=""
                     className="hidden"
