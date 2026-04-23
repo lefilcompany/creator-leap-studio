@@ -749,6 +749,9 @@ serve(async (req) => {
             openaiSize,
             openaiOutputFormat,
             openaiBackground,
+            openaiEditMode: editMode,
+            openaiEditBaseImagesCount: editMode ? (formData.editBaseImages?.length || 0) : 0,
+            openaiEditHasMask: editMode && !!formData.editMask,
           },
           result: {
             imageUrl: finalPublicUrl,
