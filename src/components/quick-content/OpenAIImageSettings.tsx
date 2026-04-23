@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { ChevronDown, Sparkles, Coins, Info } from "lucide-react";
+import { useRef, useState } from "react";
+import { ChevronDown, Sparkles, Coins, Info, Pencil, X, Upload, Image as ImageIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { CREDIT_COSTS, type OpenAIImageQuality } from "@/lib/creditCosts";
 
@@ -15,6 +16,12 @@ export interface OpenAIImageSettingsValue {
   compression: number;      // 0-100 (apenas jpeg/webp)
   n: number;                // 1-10
   partialImages: number;    // 0-3 (preview progressivo)
+  /** Quando true, usa o endpoint /v1/images/edits ao invés de /generations. */
+  editMode: boolean;
+  /** Data URLs das imagens base (máx. 4). Obrigatório quando editMode = true. */
+  editBaseImages: string[];
+  /** Data URL PNG opcional com transparência. Pixels transparentes serão regenerados. */
+  editMask?: string | null;
 }
 
 export const DEFAULT_OPENAI_SETTINGS: OpenAIImageSettingsValue = {
@@ -25,6 +32,9 @@ export const DEFAULT_OPENAI_SETTINGS: OpenAIImageSettingsValue = {
   compression: 75,
   n: 1,
   partialImages: 2,
+  editMode: false,
+  editBaseImages: [],
+  editMask: null,
 };
 
 const QUALITY_OPTIONS: { value: OpenAIImageQuality; label: string; cost: number; desc: string }[] = [
