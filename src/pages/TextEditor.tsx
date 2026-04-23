@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Plus, Trash2, Type, Loader2, RotateCcw, Copy as CopyIcon,
   AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, ArrowRight, SkipForward,
@@ -54,56 +55,112 @@ function defaultLayer(canvasW: number, canvasH: number): TextLayer {
   };
 }
 
+/** Compact color swatch that opens a popover with palette + hex input. */
 function ColorField({
   value, onChange, presets = COLOR_PRESETS,
 }: { value: string; onChange: (v: string) => void; presets?: string[] }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <label
-          className="relative h-9 w-9 rounded-md border border-border/60 overflow-hidden cursor-pointer shrink-0"
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="h-7 w-7 rounded-md border border-border/60 shadow-sm hover:scale-105 transition-transform shrink-0"
           style={{ background: value }}
-        >
-          <input
-            type="color"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          />
-        </label>
-        <Input
-          value={value.toUpperCase()}
-          onChange={(e) => {
-            let v = e.target.value.trim();
-            if (!v.startsWith("#")) v = "#" + v;
-            if (/^#[0-9a-fA-F]{0,6}$/.test(v)) onChange(v);
-          }}
-          className="h-9 font-mono text-xs uppercase"
-          maxLength={7}
+          title={value}
         />
-      </div>
-      <div className="grid grid-cols-10 gap-1">
-        {presets.map((c) => (
-          <button
-            key={c}
-            type="button"
-            onClick={() => onChange(c)}
-            className={cn(
-              "h-5 w-full rounded border transition-transform hover:scale-110",
-              value.toLowerCase() === c.toLowerCase()
-                ? "border-primary ring-2 ring-primary/40"
-                : "border-border/40"
-            )}
-            style={{ background: c }}
-            title={c}
-          />
-        ))}
-      </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-3" align="end">
+        <div className="space-y-3">
+          <div className="grid grid-cols-5 gap-1.5">
+            {presets.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => onChange(c)}
+                className={cn(
+                  "h-7 w-full rounded border transition-transform hover:scale-110",
+                  value.toLowerCase() === c.toLowerCase()
+                    ? "border-primary ring-2 ring-primary/40"
+                    : "border-border/40"
+                )}
+                style={{ background: c }}
+                title={c}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <label
+              className="relative h-8 w-8 rounded-md border border-border/60 overflow-hidden cursor-pointer shrink-0"
+              style={{ background: value }}
+            >
+              <input
+                type="color"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+            </label>
+            <Input
+              value={value.toUpperCase()}
+              onChange={(e) => {
+                let v = e.target.value.trim();
+                if (!v.startsWith("#")) v = "#" + v;
+                if (/^#[0-9a-fA-F]{0,6}$/.test(v)) onChange(v);
+              }}
+              className="h-8 font-mono text-xs uppercase"
+              maxLength={7}
+            />
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** Compact numeric stepper. */
+function NumInput({
+  value, onChange, min, max, step = 1, suffix,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  min: number;
+  max: number;
+  step?: number;
+  suffix?: string;
+}) {
+  const clamp = (n: number) => Math.min(max, Math.max(min, n));
+  return (
+    <div className="flex items-center h-7 rounded-md border border-border/60 bg-background overflow-hidden text-xs">
+      <button
+        type="button"
+        onClick={() => onChange(clamp(value - step))}
+        className="px-1.5 h-full text-muted-foreground hover:bg-muted"
+        tabIndex={-1}
+      >−</button>
+      <input
+        type="number"
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(e) => {
+          const n = parseFloat(e.target.value);
+          if (!isNaN(n)) onChange(clamp(n));
+        }}
+        className="w-full min-w-0 text-center bg-transparent outline-none tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      />
+      {suffix && <span className="pr-1.5 text-muted-foreground">{suffix}</span>}
+      <button
+        type="button"
+        onClick={() => onChange(clamp(value + step))}
+        className="px-1.5 h-full text-muted-foreground hover:bg-muted"
+        tabIndex={-1}
+      >+</button>
     </div>
   );
 }
 
-/** Section with a title row — keeps the sidebar visually grouped. */
+/** Section with a title row — compact grouping. */
 function Section({
   title,
   icon,
@@ -116,40 +173,35 @@ function Section({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border/40 bg-background/50 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border/40 bg-muted/30">
-        <div className="flex items-center gap-2 text-xs font-semibold text-foreground/80 uppercase tracking-wide">
+    <div className="rounded-lg border border-border/40 bg-background/50 overflow-hidden">
+      <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-border/40 bg-muted/30">
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground/80 uppercase tracking-wide">
           {icon}
           {title}
         </div>
         {action}
       </div>
-      <div className="p-3 space-y-3">{children}</div>
+      <div className="p-2.5 space-y-2">{children}</div>
     </div>
   );
 }
 
-function FieldRow({
+/** Compact inline row: label on left, control on right. */
+function Row({
   label,
-  value,
   children,
 }: {
   label: string;
-  value?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <Label className="text-xs text-muted-foreground">{label}</Label>
-        {value !== undefined && (
-          <span className="text-xs font-medium tabular-nums">{value}</span>
-        )}
-      </div>
-      {children}
+    <div className="flex items-center justify-between gap-2 min-h-7">
+      <Label className="text-xs text-muted-foreground shrink-0">{label}</Label>
+      <div className="flex-1 max-w-[60%] flex justify-end">{children}</div>
     </div>
   );
 }
+
 
 interface LocationState {
   imageUrl: string;
@@ -607,130 +659,130 @@ export default function TextEditor() {
 
                 {/* Typography */}
                 <Section title="Tipografia">
-                  <FieldRow label="Fonte">
+                  <Row label="Fonte">
                     <Select
                       value={selected.fontFamily}
                       onValueChange={(v) => updateLayer(selected.id, { fontFamily: v })}
                     >
-                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {FONT_OPTIONS.map((f) => (
                           <SelectItem key={f} value={f} style={{ fontFamily: f }}>{f}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </FieldRow>
+                  </Row>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <FieldRow label="Peso">
-                      <Select
-                        value={String(selected.fontWeight)}
-                        onValueChange={(v) => updateLayer(selected.id, { fontWeight: parseInt(v) })}
-                      >
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="400">Regular</SelectItem>
-                          <SelectItem value="700">Bold</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FieldRow>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs text-muted-foreground">Estilo</Label>
-                      <div className="flex items-center gap-2 h-9">
-                        <Switch
-                          checked={selected.fontItalic}
-                          onCheckedChange={(v) => updateLayer(selected.id, { fontItalic: v })}
-                        />
-                        <span className="text-xs italic text-muted-foreground">Itálico</span>
-                      </div>
-                    </div>
-                  </div>
+                  <Row label="Peso">
+                    <Select
+                      value={String(selected.fontWeight)}
+                      onValueChange={(v) => updateLayer(selected.id, { fontWeight: parseInt(v) })}
+                    >
+                      <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="400">Regular</SelectItem>
+                        <SelectItem value="700">Bold</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Row>
 
-                  <FieldRow label="Tamanho" value={`${selected.fontSize}px`}>
-                    <Slider
+                  <Row label="Tamanho">
+                    <NumInput
+                      value={selected.fontSize}
                       min={10}
                       max={Math.max(50, Math.round(naturalSize.h * 0.4))}
-                      step={1}
-                      value={[selected.fontSize]}
-                      onValueChange={(v) => updateLayer(selected.id, { fontSize: v[0] })}
+                      onChange={(v) => updateLayer(selected.id, { fontSize: v })}
+                      suffix="px"
                     />
-                  </FieldRow>
+                  </Row>
 
-                  <FieldRow label="Largura máxima" value={`${selected.maxWidth}px`}>
-                    <Slider
+                  <Row label="Largura">
+                    <NumInput
+                      value={selected.maxWidth}
                       min={40}
                       max={Math.max(200, naturalSize.w)}
-                      step={1}
-                      value={[selected.maxWidth]}
-                      onValueChange={(v) => updateLayer(selected.id, { maxWidth: v[0] })}
+                      onChange={(v) => updateLayer(selected.id, { maxWidth: v })}
+                      suffix="px"
                     />
-                  </FieldRow>
+                  </Row>
 
-                  <FieldRow label="Espaçamento" value={selected.lineHeight.toFixed(2)}>
-                    <Slider
-                      min={0.8} max={2.5} step={0.05}
-                      value={[selected.lineHeight]}
-                      onValueChange={(v) => updateLayer(selected.id, { lineHeight: v[0] })}
+                  <Row label="Espaçamento">
+                    <NumInput
+                      value={Number(selected.lineHeight.toFixed(2))}
+                      min={0.8}
+                      max={2.5}
+                      step={0.05}
+                      onChange={(v) => updateLayer(selected.id, { lineHeight: Number(v.toFixed(2)) })}
                     />
-                  </FieldRow>
+                  </Row>
 
-                  <FieldRow label="Alinhamento">
+                  <Row label="Alinhamento">
                     <div className="grid grid-cols-3 gap-1">
                       {(["left", "center", "right"] as const).map((a) => (
                         <Button
                           key={a}
                           type="button"
                           variant={selected.align === a ? "default" : "outline"}
-                          size="sm"
-                          className="h-9"
+                          size="icon"
+                          className="h-7 w-7"
                           onClick={() => updateLayer(selected.id, { align: a })}
                         >
-                          {a === "left" ? <AlignLeft className="h-4 w-4" /> :
-                           a === "center" ? <AlignCenter className="h-4 w-4" /> :
-                           <AlignRight className="h-4 w-4" />}
+                          {a === "left" ? <AlignLeft className="h-3.5 w-3.5" /> :
+                           a === "center" ? <AlignCenter className="h-3.5 w-3.5" /> :
+                           <AlignRight className="h-3.5 w-3.5" />}
                         </Button>
                       ))}
                     </div>
-                  </FieldRow>
+                  </Row>
 
-                  <div className="flex items-center justify-between pt-1">
-                    <Label className="text-xs text-muted-foreground">MAIÚSCULAS</Label>
+                  <Row label="Itálico">
+                    <Switch
+                      checked={selected.fontItalic}
+                      onCheckedChange={(v) => updateLayer(selected.id, { fontItalic: v })}
+                    />
+                  </Row>
+
+                  <Row label="Maiúsculas">
                     <Switch
                       checked={selected.uppercase}
                       onCheckedChange={(v) => updateLayer(selected.id, { uppercase: v })}
                     />
-                  </div>
+                  </Row>
                 </Section>
 
                 {/* Color & opacity */}
                 <Section title="Cor e aparência">
-                  <FieldRow label="Cor da fonte">
+                  <Row label="Cor da fonte">
                     <ColorField
                       value={selected.color}
                       onChange={(v) => updateLayer(selected.id, { color: v })}
                     />
-                  </FieldRow>
+                  </Row>
 
-                  <FieldRow label="Opacidade" value={`${Math.round(selected.opacity * 100)}%`}>
-                    <Slider
-                      min={0} max={1} step={0.05}
-                      value={[selected.opacity]}
-                      onValueChange={(v) => updateLayer(selected.id, { opacity: v[0] })}
+                  <Row label="Opacidade">
+                    <NumInput
+                      value={Math.round(selected.opacity * 100)}
+                      min={0}
+                      max={100}
+                      onChange={(v) => updateLayer(selected.id, { opacity: v / 100 })}
+                      suffix="%"
                     />
-                  </FieldRow>
+                  </Row>
 
-                  <FieldRow label="Rotação" value={`${selected.rotate}°`}>
-                    <Slider
-                      min={-180} max={180} step={1}
-                      value={[selected.rotate]}
-                      onValueChange={(v) => updateLayer(selected.id, { rotate: v[0] })}
+                  <Row label="Rotação">
+                    <NumInput
+                      value={selected.rotate}
+                      min={-180}
+                      max={180}
+                      onChange={(v) => updateLayer(selected.id, { rotate: v })}
+                      suffix="°"
                     />
-                  </FieldRow>
+                  </Row>
                 </Section>
 
                 {/* Background band */}
                 <Section
-                  title="Fundo atrás do texto"
+                  title="Fundo"
                   action={
                     <Switch
                       checked={!!selected.background}
@@ -744,44 +796,50 @@ export default function TextEditor() {
                 >
                   {selected.background ? (
                     <>
-                      <ColorField
-                        value={selected.background.color}
-                        onChange={(v) => updateLayer(selected.id, {
-                          background: { ...selected.background!, color: v }
-                        })}
-                      />
-                      <FieldRow label="Opacidade" value={`${Math.round(selected.background.opacity * 100)}%`}>
-                        <Slider
-                          min={0} max={1} step={0.05}
-                          value={[selected.background.opacity]}
-                          onValueChange={(v) => updateLayer(selected.id, {
-                            background: { ...selected.background!, opacity: v[0] }
+                      <Row label="Cor">
+                        <ColorField
+                          value={selected.background.color}
+                          onChange={(v) => updateLayer(selected.id, {
+                            background: { ...selected.background!, color: v }
                           })}
                         />
-                      </FieldRow>
-                      <div className="grid grid-cols-2 gap-2">
-                        <FieldRow label="Padding X" value={selected.background.paddingX}>
-                          <Slider
-                            min={0} max={80} step={1}
-                            value={[selected.background.paddingX]}
-                            onValueChange={(v) => updateLayer(selected.id, {
-                              background: { ...selected.background!, paddingX: v[0] }
-                            })}
-                          />
-                        </FieldRow>
-                        <FieldRow label="Padding Y" value={selected.background.paddingY}>
-                          <Slider
-                            min={0} max={80} step={1}
-                            value={[selected.background.paddingY]}
-                            onValueChange={(v) => updateLayer(selected.id, {
-                              background: { ...selected.background!, paddingY: v[0] }
-                            })}
-                          />
-                        </FieldRow>
-                      </div>
+                      </Row>
+                      <Row label="Opacidade">
+                        <NumInput
+                          value={Math.round(selected.background.opacity * 100)}
+                          min={0}
+                          max={100}
+                          onChange={(v) => updateLayer(selected.id, {
+                            background: { ...selected.background!, opacity: v / 100 }
+                          })}
+                          suffix="%"
+                        />
+                      </Row>
+                      <Row label="Padding X">
+                        <NumInput
+                          value={selected.background.paddingX}
+                          min={0}
+                          max={80}
+                          onChange={(v) => updateLayer(selected.id, {
+                            background: { ...selected.background!, paddingX: v }
+                          })}
+                          suffix="px"
+                        />
+                      </Row>
+                      <Row label="Padding Y">
+                        <NumInput
+                          value={selected.background.paddingY}
+                          min={0}
+                          max={80}
+                          onChange={(v) => updateLayer(selected.id, {
+                            background: { ...selected.background!, paddingY: v }
+                          })}
+                          suffix="px"
+                        />
+                      </Row>
                     </>
                   ) : (
-                    <p className="text-xs text-muted-foreground">Adicione uma faixa colorida atrás do texto.</p>
+                    <p className="text-[11px] text-muted-foreground">Faixa colorida atrás do texto.</p>
                   )}
                 </Section>
 
@@ -799,24 +857,28 @@ export default function TextEditor() {
                 >
                   {selected.stroke ? (
                     <>
-                      <ColorField
-                        value={selected.stroke.color}
-                        onChange={(v) => updateLayer(selected.id, {
-                          stroke: { ...selected.stroke!, color: v }
-                        })}
-                      />
-                      <FieldRow label="Espessura" value={`${selected.stroke.width}px`}>
-                        <Slider
-                          min={1} max={12} step={1}
-                          value={[selected.stroke.width]}
-                          onValueChange={(v) => updateLayer(selected.id, {
-                            stroke: { ...selected.stroke!, width: v[0] }
+                      <Row label="Cor">
+                        <ColorField
+                          value={selected.stroke.color}
+                          onChange={(v) => updateLayer(selected.id, {
+                            stroke: { ...selected.stroke!, color: v }
                           })}
                         />
-                      </FieldRow>
+                      </Row>
+                      <Row label="Espessura">
+                        <NumInput
+                          value={selected.stroke.width}
+                          min={1}
+                          max={12}
+                          onChange={(v) => updateLayer(selected.id, {
+                            stroke: { ...selected.stroke!, width: v }
+                          })}
+                          suffix="px"
+                        />
+                      </Row>
                     </>
                   ) : (
-                    <p className="text-xs text-muted-foreground">Adicione um contorno em volta das letras.</p>
+                    <p className="text-[11px] text-muted-foreground">Contorno em volta das letras.</p>
                   )}
                 </Section>
 
@@ -836,46 +898,53 @@ export default function TextEditor() {
                 >
                   {selected.shadow ? (
                     <>
-                      <ColorField
-                        value={selected.shadow.color}
-                        onChange={(v) => updateLayer(selected.id, {
-                          shadow: { ...selected.shadow!, color: v }
-                        })}
-                      />
-                      <FieldRow label="Desfoque" value={selected.shadow.blur}>
-                        <Slider
-                          min={0} max={30} step={1}
-                          value={[selected.shadow.blur]}
-                          onValueChange={(v) => updateLayer(selected.id, {
-                            shadow: { ...selected.shadow!, blur: v[0] }
+                      <Row label="Cor">
+                        <ColorField
+                          value={selected.shadow.color}
+                          onChange={(v) => updateLayer(selected.id, {
+                            shadow: { ...selected.shadow!, color: v }
                           })}
                         />
-                      </FieldRow>
-                      <div className="grid grid-cols-2 gap-2">
-                        <FieldRow label="Offset X" value={selected.shadow.offsetX}>
-                          <Slider
-                            min={-20} max={20} step={1}
-                            value={[selected.shadow.offsetX]}
-                            onValueChange={(v) => updateLayer(selected.id, {
-                              shadow: { ...selected.shadow!, offsetX: v[0] }
-                            })}
-                          />
-                        </FieldRow>
-                        <FieldRow label="Offset Y" value={selected.shadow.offsetY}>
-                          <Slider
-                            min={-20} max={20} step={1}
-                            value={[selected.shadow.offsetY]}
-                            onValueChange={(v) => updateLayer(selected.id, {
-                              shadow: { ...selected.shadow!, offsetY: v[0] }
-                            })}
-                          />
-                        </FieldRow>
-                      </div>
+                      </Row>
+                      <Row label="Desfoque">
+                        <NumInput
+                          value={selected.shadow.blur}
+                          min={0}
+                          max={30}
+                          onChange={(v) => updateLayer(selected.id, {
+                            shadow: { ...selected.shadow!, blur: v }
+                          })}
+                          suffix="px"
+                        />
+                      </Row>
+                      <Row label="Offset X">
+                        <NumInput
+                          value={selected.shadow.offsetX}
+                          min={-20}
+                          max={20}
+                          onChange={(v) => updateLayer(selected.id, {
+                            shadow: { ...selected.shadow!, offsetX: v }
+                          })}
+                          suffix="px"
+                        />
+                      </Row>
+                      <Row label="Offset Y">
+                        <NumInput
+                          value={selected.shadow.offsetY}
+                          min={-20}
+                          max={20}
+                          onChange={(v) => updateLayer(selected.id, {
+                            shadow: { ...selected.shadow!, offsetY: v }
+                          })}
+                          suffix="px"
+                        />
+                      </Row>
                     </>
                   ) : (
-                    <p className="text-xs text-muted-foreground">Adicione uma sombra para destacar o texto.</p>
+                    <p className="text-[11px] text-muted-foreground">Sombra para destacar o texto.</p>
                   )}
                 </Section>
+
 
                 <div className="h-2" />
               </div>
