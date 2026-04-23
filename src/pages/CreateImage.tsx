@@ -697,6 +697,10 @@ export default function CreateImage() {
         openaiCompression: openaiSettings.compression,
         openaiN: openaiSettings.n,
         openaiPartialImages: openaiSettings.partialImages,
+        // Modo edição (/v1/images/edits) — só ativa se houver imagem base
+        openaiEditMode: openaiSettings.editMode && openaiSettings.editBaseImages.length > 0,
+        editBaseImages: openaiSettings.editMode ? openaiSettings.editBaseImages : [],
+        editMask: openaiSettings.editMode ? (openaiSettings.editMask || null) : null,
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -710,15 +714,19 @@ export default function CreateImage() {
       const newTaskId = addTask(
         "Criando Imagem",
         "create_image",
-        async () => {
-          // Generate image via OpenAI GPT Image 2 (substitui Gemini)
-          const imageResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image-openai`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${capturedSession?.access_token}` },
-            body: JSON.stringify(requestData),
-          });
-          if (!imageResponse.ok) throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
-          const { imageUrl, legenda, complianceCheck } = await imageResponse.json();
+        async (helpers) => {
+          // Generate image via OpenAI GPT Image 2 com STREAMING SSE (partial_images)
+          const { consumeImageGenerationSSE } = await import("@/lib/imageGenerationStream");
+          const sseResult = await consumeImageGenerationSSE(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image-openai`,
+            requestData,
+            capturedSession?.access_token,
+            {
+              onProgress: (message) => helpers.setProgress(message),
+              onPartial: (b64, idx) => helpers.pushPartial(b64, idx),
+            },
+          );
+          const { imageUrl, legenda, complianceCheck } = sseResult;
 
           // Handle caption
           let captionData: any = null;

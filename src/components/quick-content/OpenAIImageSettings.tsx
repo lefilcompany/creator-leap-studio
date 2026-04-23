@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { ChevronDown, Sparkles, Coins, Info } from "lucide-react";
+import { useRef, useState } from "react";
+import { ChevronDown, Sparkles, Coins, Info, Pencil, X, Upload, Image as ImageIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { CREDIT_COSTS, type OpenAIImageQuality } from "@/lib/creditCosts";
 
@@ -15,6 +16,12 @@ export interface OpenAIImageSettingsValue {
   compression: number;      // 0-100 (apenas jpeg/webp)
   n: number;                // 1-10
   partialImages: number;    // 0-3 (preview progressivo)
+  /** Quando true, usa o endpoint /v1/images/edits ao invés de /generations. */
+  editMode: boolean;
+  /** Data URLs das imagens base (máx. 4). Obrigatório quando editMode = true. */
+  editBaseImages: string[];
+  /** Data URL PNG opcional com transparência. Pixels transparentes serão regenerados. */
+  editMask?: string | null;
 }
 
 export const DEFAULT_OPENAI_SETTINGS: OpenAIImageSettingsValue = {
@@ -25,6 +32,9 @@ export const DEFAULT_OPENAI_SETTINGS: OpenAIImageSettingsValue = {
   compression: 75,
   n: 1,
   partialImages: 2,
+  editMode: false,
+  editBaseImages: [],
+  editMask: null,
 };
 
 const QUALITY_OPTIONS: { value: OpenAIImageQuality; label: string; cost: number; desc: string }[] = [
@@ -247,9 +257,211 @@ export function OpenAIImageSettings({ value, onChange }: Props) {
                 onCheckedChange={(c) => update('partialImages', c ? 2 : 0)}
               />
             </div>
+
+            {/* ============== MODO EDIÇÃO (/v1/images/edits) ============== */}
+            <EditModeSection value={value} update={update} />
           </div>
         )}
       </div>
     </TooltipProvider>
+  );
+}
+
+// ============================================================
+// Sub-componente: Modo Edição (endpoint /v1/images/edits)
+// ============================================================
+const MAX_BASE_IMAGES = 4;
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+interface EditSectionProps {
+  value: OpenAIImageSettingsValue;
+  update: <K extends keyof OpenAIImageSettingsValue>(key: K, v: OpenAIImageSettingsValue[K]) => void;
+}
+
+function EditModeSection({ value, update }: EditSectionProps) {
+  const baseInputRef = useRef<HTMLInputElement>(null);
+  const maskInputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+
+  const onSelectBase = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setBusy(true);
+    try {
+      const dataUrls = await Promise.all(files.map(fileToDataUrl));
+      const next = [...value.editBaseImages, ...dataUrls].slice(0, MAX_BASE_IMAGES);
+      update('editBaseImages', next);
+    } finally {
+      setBusy(false);
+      if (baseInputRef.current) baseInputRef.current.value = '';
+    }
+  };
+
+  const onSelectMask = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.includes('png')) {
+      alert('A máscara deve ser um arquivo PNG com transparência.');
+      if (maskInputRef.current) maskInputRef.current.value = '';
+      return;
+    }
+    setBusy(true);
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      update('editMask', dataUrl);
+    } finally {
+      setBusy(false);
+      if (maskInputRef.current) maskInputRef.current.value = '';
+    }
+  };
+
+  const removeBase = (idx: number) => {
+    update('editBaseImages', value.editBaseImages.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <div className="rounded-xl border border-border/40 bg-muted/20 p-4 space-y-3">
+      <div className="flex items-start gap-3">
+        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+          <Pencil className="h-4 w-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <Label className="text-xs font-semibold flex items-center gap-1.5">
+            Modo edição (image-to-image)
+            <Badge variant="outline" className="text-[9px] font-medium px-1.5 py-0">/v1/images/edits</Badge>
+          </Label>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Use uma ou mais imagens como base e deixe a IA modificar conforme o seu prompt.
+            Opcional: envie uma <span className="font-semibold text-foreground">máscara PNG</span> para
+            regenerar apenas as áreas transparentes.
+          </p>
+        </div>
+        <Switch
+          checked={value.editMode}
+          onCheckedChange={(c) => {
+            update('editMode', c);
+            if (!c) {
+              update('editBaseImages', []);
+              update('editMask', null);
+            }
+          }}
+        />
+      </div>
+
+      {value.editMode && (
+        <div className="space-y-3 pt-1">
+          {/* Imagens base */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                Imagens base ({value.editBaseImages.length}/{MAX_BASE_IMAGES})
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-[11px] px-2"
+                disabled={busy || value.editBaseImages.length >= MAX_BASE_IMAGES}
+                onClick={() => baseInputRef.current?.click()}
+              >
+                <Upload className="h-3 w-3 mr-1.5" />
+                Adicionar imagem
+              </Button>
+              <input
+                ref={baseInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                multiple
+                onChange={onSelectBase}
+                className="hidden"
+              />
+            </div>
+
+            {value.editBaseImages.length === 0 ? (
+              <div className="flex items-center justify-center h-20 rounded-lg border border-dashed border-border/60 bg-background/40 text-[11px] text-muted-foreground">
+                <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+                Nenhuma imagem base
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-2">
+                {value.editBaseImages.map((src, idx) => (
+                  <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-border/50">
+                    <img src={src} alt={`Base ${idx + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeBase(idx)}
+                      className="absolute top-1 right-1 h-5 w-5 rounded-full bg-background/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                    {idx === 0 && (
+                      <Badge className="absolute bottom-1 left-1 text-[8px] px-1 py-0 h-4">Principal</Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Máscara */}
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center justify-between">
+              <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                Máscara (opcional)
+                <Tooltip>
+                  <TooltipTrigger asChild><Info className="h-3 w-3" /></TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs">
+                    PNG do mesmo tamanho da imagem principal. Pixels transparentes serão regenerados; pixels opacos serão preservados.
+                  </TooltipContent>
+                </Tooltip>
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-[11px] px-2"
+                disabled={busy || value.editBaseImages.length === 0}
+                onClick={() => maskInputRef.current?.click()}
+              >
+                <Upload className="h-3 w-3 mr-1.5" />
+                {value.editMask ? 'Trocar máscara' : 'Enviar máscara'}
+              </Button>
+              <input
+                ref={maskInputRef}
+                type="file"
+                accept="image/png"
+                onChange={onSelectMask}
+                className="hidden"
+              />
+            </div>
+
+            {value.editMask ? (
+              <div className="relative w-24 aspect-square rounded-lg overflow-hidden border border-border/50 bg-[conic-gradient(at_50%_50%,_hsl(var(--muted))_0deg,_hsl(var(--background))_90deg,_hsl(var(--muted))_180deg,_hsl(var(--background))_270deg)] bg-[length:12px_12px]">
+                <img src={value.editMask} alt="Máscara" className="w-full h-full object-contain" />
+                <button
+                  type="button"
+                  onClick={() => update('editMask', null)}
+                  className="absolute top-1 right-1 h-5 w-5 rounded-full bg-background/80 backdrop-blur flex items-center justify-center"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <p className="text-[10px] text-muted-foreground">
+                Sem máscara: a IA regenera a imagem inteira com base no prompt.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

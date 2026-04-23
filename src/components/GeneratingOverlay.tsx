@@ -1,7 +1,7 @@
 import { useBackgroundTasks } from "@/contexts/BackgroundTaskContext";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, AlertCircle, Eye, RotateCcw } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, Eye, RotateCcw, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface GeneratingOverlayProps {
@@ -25,28 +25,64 @@ export function GeneratingOverlay({ taskId, onReset }: GeneratingOverlayProps) {
   const isComplete = task.status === "complete";
   const isError = task.status === "error";
 
+  const partials = task.partialImages || [];
+  const latestPartial = partials.length > 0 ? partials[partials.length - 1] : null;
+
   return (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
       >
         <motion.div
           initial={{ scale: 0.95 }}
           animate={{ scale: 1 }}
-          className="bg-card rounded-2xl shadow-2xl border p-8 max-w-md w-full mx-4 flex flex-col items-center gap-6"
+          className="bg-card rounded-2xl shadow-2xl border p-6 sm:p-8 max-w-lg w-full flex flex-col items-center gap-5 max-h-[92vh] overflow-y-auto"
         >
           {/* Progress Bar */}
           <CreationProgressBar
             currentStep={isComplete ? "result" : isError ? "config" : "generating"}
-            className="mb-2"
+            className="mb-1 w-full"
           />
 
-          {/* Status Icon */}
-          <div className="flex flex-col items-center gap-3">
-            {isRunning && (
+          {/* Live partial preview (only while running and we have partials) */}
+          {isRunning && latestPartial && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="relative w-full rounded-2xl overflow-hidden border border-primary/20 bg-muted/30 shadow-lg"
+            >
+              <div className="aspect-square w-full relative">
+                <img
+                  src={latestPartial}
+                  alt={`Prévia ${partials.length}`}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                {/* Shimmer overlay enquanto refina */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/10 to-transparent animate-pulse pointer-events-none" />
+                <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/80 backdrop-blur-md border border-border/50">
+                  <Sparkles className="h-3 w-3 text-primary animate-pulse" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">
+                    Prévia {partials.length}
+                  </span>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 px-3 py-2 bg-gradient-to-t from-background/95 via-background/70 to-transparent">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-3 w-3 text-primary animate-spin" />
+                    <span className="text-[11px] font-medium text-foreground">
+                      Refinando detalhes...
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Status Icon — só quando ainda não há partial preview */}
+          <div className="flex flex-col items-center gap-3 w-full">
+            {isRunning && !latestPartial && (
               <>
                 <div className="relative">
                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
@@ -56,13 +92,24 @@ export function GeneratingOverlay({ taskId, onReset }: GeneratingOverlayProps) {
                 </div>
                 <h3 className="text-lg font-semibold text-foreground">Gerando seu conteúdo...</h3>
                 <p className="text-sm text-muted-foreground text-center">
-                  Isso pode levar alguns segundos. Você pode sair desta tela — a geração continuará em segundo plano.
+                  {task.progressMessage || "Isso pode levar alguns segundos. Você pode sair desta tela — a geração continuará em segundo plano."}
                 </p>
                 {/* Indeterminate progress */}
                 <div className="w-full h-1.5 rounded-full bg-primary/20 overflow-hidden mt-2">
                   <div className="h-full bg-primary rounded-full animate-progress-indeterminate" />
                 </div>
               </>
+            )}
+
+            {isRunning && latestPartial && (
+              <div className="w-full text-center">
+                <p className="text-sm font-semibold text-foreground">
+                  {task.progressMessage || "Gerando sua imagem..."}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Você pode fechar esta tela — a geração continua em segundo plano.
+                </p>
+              </div>
             )}
 
             {isComplete && (

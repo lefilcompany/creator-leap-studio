@@ -11,6 +11,17 @@ export interface BackgroundTask {
   resultState?: any;
   errorMessage?: string;
   createdAt: number;
+  /** Prévias progressivas em base64/data URL recebidas via streaming (OpenAI partial_images). */
+  partialImages?: string[];
+  /** Mensagem de progresso da etapa atual (ex: "Gerando imagem...", "Pós-processando..."). */
+  progressMessage?: string;
+}
+
+interface AddTaskHelpers {
+  /** Adiciona/substitui uma prévia progressiva por índice. */
+  pushPartial: (b64OrUrl: string, index?: number) => void;
+  /** Atualiza a mensagem de progresso visível no overlay. */
+  setProgress: (message: string) => void;
 }
 
 interface BackgroundTaskContextType {
@@ -18,7 +29,7 @@ interface BackgroundTaskContextType {
   addTask: (
     label: string,
     type: string,
-    asyncFn: () => Promise<{ route: string; state: any }>,
+    asyncFn: (helpers: AddTaskHelpers) => Promise<{ route: string; state: any }>,
     onComplete?: () => void
   ) => string;
   removeTask: (id: string) => void;
@@ -41,7 +52,7 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
   const addTask = useCallback((
     label: string,
     type: string,
-    asyncFn: () => Promise<{ route: string; state: any }>,
+    asyncFn: (helpers: AddTaskHelpers) => Promise<{ route: string; state: any }>,
     onComplete?: () => void
   ) => {
     // Check for existing running task of same type
@@ -62,6 +73,8 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
       status: "running",
       resultRoute: "",
       createdAt: Date.now(),
+      partialImages: [],
+      progressMessage: "Iniciando...",
     };
 
     setTasks(prev => {
@@ -71,13 +84,31 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
 
     toast.info("Geração iniciada!", { description: `${label} — sua imagem está sendo gerada em segundo plano.`, duration: 4000 });
 
+    const helpers: AddTaskHelpers = {
+      pushPartial: (b64OrUrl, index) => {
+        setTasks(prev => prev.map(t => {
+          if (t.id !== id) return t;
+          const next = [...(t.partialImages || [])];
+          if (typeof index === "number" && index >= 0) {
+            next[index] = b64OrUrl;
+          } else {
+            next.push(b64OrUrl);
+          }
+          return { ...t, partialImages: next.filter(Boolean) };
+        }));
+      },
+      setProgress: (message) => {
+        setTasks(prev => prev.map(t => t.id === id ? { ...t, progressMessage: message } : t));
+      },
+    };
+
     // Run async work
-    asyncFn()
+    asyncFn(helpers)
       .then(({ route, state }) => {
         setTasks(prev =>
           prev.map(t =>
             t.id === id
-              ? { ...t, status: "complete" as const, resultRoute: route, resultState: state }
+              ? { ...t, status: "complete" as const, resultRoute: route, resultState: state, progressMessage: "Concluído!" }
               : t
           )
         );
