@@ -51,15 +51,15 @@ async function nonTransparentBBox(pngBytes: Uint8Array): Promise<BBox | null> {
   const decoded: any = await Image.decode(pngBytes);
   const W: number = decoded.width;
   const H: number = decoded.height;
+  // imagescript stores pixels in `bitmap` as a Uint8ClampedArray of RGBA.
+  const bmp: Uint8ClampedArray = decoded.bitmap;
 
   let minX = W, maxX = -1, minY = H, maxY = -1, pixels = 0;
-  // Threshold low enough to catch anti-aliased glyph edges (which can be
-  // alpha ~8-16 on rotated text) but high enough to ignore noise.
   const ALPHA_MIN = 4;
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
-      const rgba = decoded.getPixelAt(x + 1, y + 1); // imagescript is 1-indexed
-      const alpha = rgba & 0xff;
+      const idx = (y * W + x) * 4;
+      const alpha = bmp[idx + 3];
       if (alpha > ALPHA_MIN) {
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
