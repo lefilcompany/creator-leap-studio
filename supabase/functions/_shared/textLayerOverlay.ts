@@ -36,9 +36,72 @@ export interface RenderRequest {
   layers: TextLayer[];
 }
 
+export interface LayerRenderReport {
+  layerId: string;
+  text: string;
+  // Inputs as received (already in image px coordinate space)
+  input: {
+    x: number;
+    y: number;
+    maxWidth: number;
+    fontSize: number;
+    align: 'left' | 'center' | 'right';
+    rotate: number;
+    fontFamily: string;
+    fontWeight: number;
+    italic: boolean;
+    uppercase: boolean;
+    hasStroke: boolean;
+    strokeWidth?: number;
+    hasShadow: boolean;
+    shadowOffsetX?: number;
+    shadowOffsetY?: number;
+    shadowBlur?: number;
+    hasBackground: boolean;
+  };
+  // Resolved scaling (canvas → final image)
+  scale: { x: number; y: number; avg: number };
+  // Computed pixel-space metrics
+  computed: {
+    fontSizePx: number;
+    maxWidthPx: number;
+    lineHeightPx: number;
+    lineCount: number;
+    blockWidth: number;
+    blockHeight: number;
+    padX: number;
+    padY: number;
+    effectLeftPad: number;
+    effectRightPad: number;
+    effectTopPad: number;
+    effectBottomPad: number;
+    textOffsetX: number;
+    textOffsetY: number;
+    containerW: number;
+    containerH: number;
+    finalW: number;
+    finalH: number;
+    px: number;
+    py: number;
+  };
+  // Parity check vs editor preview (CSS WebkitTextStroke + textShadow)
+  parity: {
+    expectedBleedX: number;
+    expectedBleedY: number;
+    actualBleedX: number;
+    actualBleedY: number;
+    deltaX: number;
+    deltaY: number;
+    warning: boolean;
+  };
+  applied: boolean;
+  error?: string;
+}
+
 export interface RenderResult {
   processedData: Uint8Array;
   layersApplied: number;
+  reports: LayerRenderReport[];
 }
 
 // ---------- Color utils ----------
