@@ -19,6 +19,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import type { TextLayer } from "@/components/TextOverlayEditor";
+import Wheel from "@uiw/react-color-wheel";
+import ShadeSlider from "@uiw/react-color-shade-slider";
+import { hsvaToHex, hexToHsva } from "@uiw/color-convert";
 
 const FONT_OPTIONS = [
   "Montserrat", "Inter", "Poppins", "Roboto", "Playfair Display",
