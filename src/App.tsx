@@ -53,6 +53,7 @@ const PlanContent = lazy(() => import("./pages/PlanContent"));
 const PlanResult = lazy(() => import("./pages/PlanResult"));
 const QuickContent = lazy(() => import("./pages/QuickContent"));
 const QuickContentResult = lazy(() => import("./pages/QuickContentResult"));
+const TextEditor = lazy(() => import("./pages/TextEditor"));
 const Credits = lazy(() => import("./pages/Credits"));
 const Team = lazy(() => import("./pages/Team"));
 const TeamDashboard = lazy(() => import("./pages/TeamDashboard"));
@@ -160,6 +161,7 @@ const App = () => (
                         <Route path="plan-result" element={<SuspenseRoute><PlanResult /></SuspenseRoute>} />
                         <Route path="quick-content" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
                         <Route path="quick-content-result" element={<SuspenseRoute><QuickContentResult /></SuspenseRoute>} />
+                        <Route path="text-editor" element={<SuspenseRoute><TextEditor /></SuspenseRoute>} />
                         <Route path="credits" element={<SuspenseRoute><Credits /></SuspenseRoute>} />
                         <Route path="team" element={<SuspenseRoute><Team /></SuspenseRoute>} />
                         <Route path="team-dashboard" element={<SuspenseRoute><TeamDashboard /></SuspenseRoute>} />
