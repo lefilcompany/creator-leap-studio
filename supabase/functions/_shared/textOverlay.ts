@@ -101,14 +101,16 @@ function buildLayout(config: TextOverlayConfig): LaidOutElement[] {
   const ctaFs = Math.max(14, Math.round(baseFs * 0.95));
   const disclaimerFs = Math.max(11, Math.round(W * 0.014));
 
-  // Position
-  const position = (config.textPosition || 'top').toLowerCase();
-  const isBottom = position.includes('bottom');
-  const isMiddle = position === 'middle' || position === 'center' || position.includes('center');
-  const isRight = position.includes('right');
-  const isLeftAligned = position.includes('left') || (!isRight && !position.includes('center'));
+  // Position — supports: top, center/middle, bottom, top-left, top-right, bottom-left, bottom-right, center-left, center-right
+  const positionRaw = (config.textPosition || 'top').toLowerCase().replace(/_/g, '-');
+  const isBottom = positionRaw.startsWith('bottom');
+  const isMiddle = positionRaw === 'center' || positionRaw === 'middle' || positionRaw.startsWith('center');
+  const isTop = !isBottom && !isMiddle;
+  const isRight = positionRaw.endsWith('-right');
+  const isLeft = positionRaw.endsWith('-left');
 
-  const align: 'left' | 'center' | 'right' = isRight ? 'right' : (position.includes('center') && !position.includes('right') && !position.includes('left')) ? 'center' : 'left';
+  // Horizontal alignment: explicit -left / -right wins, otherwise centered
+  const align: 'left' | 'center' | 'right' = isRight ? 'right' : isLeft ? 'left' : 'center';
 
   // Anchor X
   let anchorX: number;
@@ -116,11 +118,11 @@ function buildLayout(config: TextOverlayConfig): LaidOutElement[] {
   else if (align === 'center') anchorX = Math.round(W / 2);
   else anchorX = padding;
 
-  // Starting Y
+  // Starting Y — only one element (headline) so we can position more precisely
   let currentY: number;
-  if (isMiddle) currentY = Math.round(H * 0.32);
-  else if (isBottom) currentY = Math.round(H * 0.55);
-  else currentY = Math.round(H * 0.07);
+  if (isMiddle) currentY = Math.round(H * 0.42);
+  else if (isBottom) currentY = Math.round(H * 0.78);
+  else currentY = Math.round(H * 0.08);
 
   const color = chooseTextColor(config.brandColor);
   const elements: LaidOutElement[] = [];
