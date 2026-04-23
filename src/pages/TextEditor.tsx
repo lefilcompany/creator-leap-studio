@@ -276,7 +276,11 @@ export default function TextEditor() {
     }
 
     setSaving(true);
+    setApplyStage("preparing");
     try {
+      // Tiny delay so user sees the stage transition
+      await new Promise((r) => setTimeout(r, 250));
+      setApplyStage("rendering");
       const { data, error } = await supabase.functions.invoke("render-text-overlay", {
         body: {
           imageUrl: state.imageUrl,
@@ -288,13 +292,17 @@ export default function TextEditor() {
       });
       if (error) throw error;
       if (!data?.editedImageUrl) throw new Error("Sem URL da imagem editada");
+      setApplyStage("finalizing");
       const finalUrl = `${data.editedImageUrl}?t=${Date.now()}`;
+      await new Promise((r) => setTimeout(r, 350));
+      setApplyStage("done");
       toast.success("Texto aplicado!");
-      goToResult(finalUrl);
+      // Quick fade before navigating
+      setTimeout(() => goToResult(finalUrl), 300);
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message || "Falha ao aplicar texto");
-    } finally {
+      setApplyStage("idle");
       setSaving(false);
     }
   };
