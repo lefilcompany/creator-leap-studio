@@ -381,6 +381,16 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Descrição inválida' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // ===== Debug snapshot context =====
+    const snap = createSnapshotContext({
+      supabase,
+      userId: authenticatedUserId,
+      enabledByClient: formData.debugSnapshots === true,
+    });
+    if (snap.enabled) {
+      console.log(`[Debug] 🔬 Snapshot pipeline ENABLED — runId=${snap.runId}`);
+    }
+
     // ===== Parâmetros OpenAI específicos =====
     const openaiQuality: OpenAIImageQuality = (formData.openaiQuality as OpenAIImageQuality) || 'medium';
     const openaiBackground: OpenAIBackground = formData.openaiBackground === 'opaque' ? 'opaque' : 'auto';
