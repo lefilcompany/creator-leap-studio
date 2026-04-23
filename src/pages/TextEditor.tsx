@@ -19,6 +19,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import type { TextLayer } from "@/components/TextOverlayEditor";
+import Wheel from "@uiw/react-color-wheel";
+import ShadeSlider from "@uiw/react-color-shade-slider";
+import { hsvaToHex, hexToHsva } from "@uiw/color-convert";
 
 const FONT_OPTIONS = [
   "Montserrat", "Inter", "Poppins", "Roboto", "Playfair Display",
@@ -65,10 +68,12 @@ function defaultLayer(canvasW: number, canvasH: number): TextLayer {
   };
 }
 
-/** Compact color swatch that opens a popover with palette + hex input. */
+/** Compact color swatch that opens a popover with chromatic wheel + palette + hex. */
 function ColorField({
   value, onChange, presets = COLOR_PRESETS,
 }: { value: string; onChange: (v: string) => void; presets?: string[] }) {
+  const safeHex = /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#ffffff";
+  const hsva = hexToHsva(safeHex);
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -79,16 +84,34 @@ function ColorField({
           title={value}
         />
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-3" align="end">
-        <div className="space-y-3">
-          <div className="grid grid-cols-6 gap-2">
+      <PopoverContent className="w-72 p-4" align="end">
+        <div className="space-y-4">
+          {/* Círculo cromático */}
+          <div className="flex flex-col items-center gap-3">
+            <Wheel
+              color={hsva}
+              onChange={(c) => onChange(hsvaToHex(c.hsva))}
+              width={180}
+              height={180}
+            />
+            <ShadeSlider
+              hsva={hsva}
+              style={{ width: 180 }}
+              onChange={(newShade) =>
+                onChange(hsvaToHex({ ...hsva, ...newShade }))
+              }
+            />
+          </div>
+
+          {/* Paleta rápida */}
+          <div className="grid grid-cols-6 gap-2 pt-1 border-t border-border/40">
             {presets.map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => onChange(c)}
                 className={cn(
-                  "h-7 w-7 rounded-full border transition-transform hover:scale-110",
+                  "h-6 w-6 rounded-full border transition-transform hover:scale-110",
                   value.toLowerCase() === c.toLowerCase()
                     ? "border-primary ring-2 ring-primary/40"
                     : "border-border/40"
@@ -98,18 +121,13 @@ function ColorField({
               />
             ))}
           </div>
+
+          {/* Input HEX */}
           <div className="flex items-center gap-2 pt-1 border-t border-border/40">
-            <label
-              className="relative h-8 w-8 rounded-full border border-border/60 overflow-hidden cursor-pointer shrink-0"
+            <div
+              className="h-8 w-8 rounded-full border border-border/60 shrink-0"
               style={{ background: value }}
-            >
-              <input
-                type="color"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-            </label>
+            />
             <Input
               value={value.toUpperCase()}
               onChange={(e) => {
