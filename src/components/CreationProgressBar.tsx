@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
-import { Check, Loader2, Settings2, Sparkles, ImageIcon } from "lucide-react";
+import { Check, Loader2, Settings2, Sparkles, ImageIcon, Type } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-export type CreationStep = "config" | "generating" | "result";
+export type CreationStep = "config" | "generating" | "edit" | "result";
 
 interface CreationProgressBarProps {
   currentStep: CreationStep;
@@ -12,10 +12,11 @@ interface CreationProgressBarProps {
 const steps: { id: CreationStep; label: string; icon: LucideIcon }[] = [
   { id: "config", label: "Configuração", icon: Settings2 },
   { id: "generating", label: "Gerando", icon: Sparkles },
+  { id: "edit", label: "Editar texto", icon: Type },
   { id: "result", label: "Resultado", icon: ImageIcon },
 ];
 
-const stepIndex = { config: 0, generating: 1, result: 2 };
+const stepIndex = { config: 0, generating: 1, edit: 2, result: 3 };
 
 export function CreationProgressBar({ currentStep, className }: CreationProgressBarProps) {
   const currentIdx = stepIndex[currentStep];
