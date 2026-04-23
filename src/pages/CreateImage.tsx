@@ -701,6 +701,9 @@ export default function CreateImage() {
         openaiEditMode: openaiSettings.editMode && openaiSettings.editBaseImages.length > 0,
         editBaseImages: openaiSettings.editMode ? openaiSettings.editBaseImages : [],
         editMask: openaiSettings.editMode ? (openaiSettings.editMask || null) : null,
+        // 🔬 DEBUG: ativa snapshots por etapa do pipeline (model_base → postprocess → before_overlay → after_overlay).
+        // Habilite no console com: localStorage.setItem('debugSnapshots','1') e recarregue.
+        debugSnapshots: typeof window !== 'undefined' && window.localStorage?.getItem('debugSnapshots') === '1',
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
