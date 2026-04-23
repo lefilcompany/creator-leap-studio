@@ -443,8 +443,10 @@ serve(async (req) => {
 
     // ===== STEP 2: Briefing + Refiner =====
     const briefingDocument = buildBriefingDocument(formData, brandData, themeData, personaData, stylePrefs);
-    const includeText = formData.includeText ?? false;
-    const textContent = includeText ? cleanInput(formData.textContent) : undefined;
+    // 🚫 POLÍTICA: nenhuma tipografia gerada por IA. O texto só é aplicado
+    // pelo editor manual de overlay na página de resultado, nunca pelo modelo.
+    const includeText = false;
+    const textContent: string | undefined = undefined;
     const tones = Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : []);
 
     const briefingResult = await expandBriefing({
