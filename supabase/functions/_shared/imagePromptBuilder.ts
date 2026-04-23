@@ -553,13 +553,11 @@ DESIGN GRÁFICO OBRIGATÓRIO:
     };
     const posDesc = disclaimerPositionMap[params.disclaimerStyle || 'bottom_horizontal'] || disclaimerPositionMap['bottom_horizontal'];
     const sectionNum = params.adProfessionalMode ? '7' : '6';
-    sections.push(`### ${sectionNum}. TEXTO DE SEGURANÇA / AVISO LEGAL
-- OBRIGATÓRIO: Renderize o seguinte aviso EXATAMENTE como fornecido: "${params.disclaimerText.trim()}"
-- Posição: ${posDesc}
-- Fonte: MUITO PEQUENA (6-8px visual), discreta, em caixa alta
-- Cor: branco ou cinza claro com opacidade reduzida (60-80%), garantindo legibilidade mínima
-- NÃO deve competir visualmente com o conteúdo principal
-- Este texto é um requisito legal/regulatório e DEVE estar presente na imagem final`);
+    sections.push(`### ${sectionNum}. RESERVA PARA AVISO LEGAL
+- NÃO renderize o aviso legal na imagem base.
+- Reserve espaço visual limpo para aplicação posterior do aviso legal.
+- Posição reservada: ${posDesc}
+- O aviso será aplicado em pós-processamento, junto com o restante do overlay tipográfico.`);
   }
 
   // ESPECIFICAÇÕES TÉCNICAS
