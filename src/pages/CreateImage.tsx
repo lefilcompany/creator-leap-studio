@@ -770,18 +770,23 @@ export default function CreateImage() {
 
           if (refreshUserCredits) await refreshUserCredits();
 
+          const contentData = {
+            type: "image" as const, mediaUrl: imageUrl, platform: formData.platform,
+            brand: selectedBrand?.name || formData.brand,
+            title: captionData.title, body: captionData.body, hashtags: captionData.hashtags,
+            originalFormData: { ...requestData, brandId: formData.brand },
+            actionId: undefined, isLocalFallback,
+            categoryId: selectedCategoryId || undefined,
+            complianceCheck: complianceCheck || null,
+          };
+
           return {
-            route: "/result",
+            route: "/text-editor",
             state: {
-              contentData: {
-                type: "image", mediaUrl: imageUrl, platform: formData.platform,
-                brand: selectedBrand?.name || formData.brand,
-                title: captionData.title, body: captionData.body, hashtags: captionData.hashtags,
-                originalFormData: { ...requestData, brandId: formData.brand },
-                actionId: undefined, isLocalFallback,
-                categoryId: selectedCategoryId || undefined,
-                complianceCheck: complianceCheck || null,
-              }
+              imageUrl,
+              nextRoute: "/result",
+              nextStateKey: "contentData",
+              nextState: { contentData },
             }
           };
         },

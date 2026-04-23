@@ -1178,23 +1178,28 @@ export default function CreateContent() {
 
           if (reloadUserData) await reloadUserData();
 
+          const contentData = {
+            type: "image" as const,
+            mediaUrl: imageUrl,
+            platform: capturedFormData.platform,
+            brand: selectedBrand?.name || capturedFormData.brand,
+            title: captionData.title,
+            body: captionData.body,
+            hashtags: captionData.hashtags,
+            originalFormData: { ...capturedRequestData, brandId: capturedFormData.brand },
+            actionId: undefined,
+            isLocalFallback,
+            categoryId: capturedCategoryId || undefined,
+            complianceCheck: complianceCheck || null,
+          };
+
           return {
-            route: "/result",
+            route: "/text-editor",
             state: {
-              contentData: {
-                type: "image" as const,
-                mediaUrl: imageUrl,
-                platform: capturedFormData.platform,
-                brand: selectedBrand?.name || capturedFormData.brand,
-                title: captionData.title,
-                body: captionData.body,
-                hashtags: captionData.hashtags,
-                originalFormData: { ...capturedRequestData, brandId: capturedFormData.brand },
-                actionId: undefined,
-                isLocalFallback,
-                categoryId: capturedCategoryId || undefined,
-                complianceCheck: complianceCheck || null,
-              }
+              imageUrl,
+              nextRoute: "/result",
+              nextStateKey: "contentData",
+              nextState: { contentData },
             }
           };
         },
