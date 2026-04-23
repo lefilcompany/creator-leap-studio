@@ -118,8 +118,10 @@ serve(async (req) => {
     const briefingDocument = buildBriefingDocument(formData, brandData, themeData, personaData, stylePrefs);
     console.log('[Step 2] Briefing document:', briefingDocument.length, 'chars');
 
-    const includeText = formData.includeText ?? false;
-    const textContent = includeText ? cleanInput(formData.textContent) : undefined;
+    // 🚫 POLÍTICA: nenhuma tipografia gerada por IA. O texto só é aplicado
+    // pelo editor manual de overlay na página de resultado, nunca pelo modelo.
+    const includeText = false;
+    const textContent: string | undefined = undefined;
     const tones = Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : []);
 
     const briefingResult = await expandBriefing({
@@ -211,13 +213,14 @@ serve(async (req) => {
       textDesignStyle: formData.textDesignStyle || 'clean',
       preserveImagesCount: preserveImages.length,
       styleReferenceImagesCount: styleReferenceImages.length,
-      headline: briefingResult.headline,
-      subtexto: briefingResult.subtexto,
-      ctaText: cleanInput(formData.ctaText) || '',
+      // 🚫 Zero tipografia gerada por IA — todos os campos textuais ficam vazios.
+      headline: '',
+      subtexto: '',
+      ctaText: '',
       adProfessionalMode: formData.adMode === 'professional',
-      priceText: cleanInput(formData.priceText) || '',
+      priceText: '',
       includeBrandLogo: formData.includeBrandLogo || false,
-      disclaimerText: cleanInput(formData.disclaimerText) || '',
+      disclaimerText: '',
       disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
       aspectRatio: formData.aspectRatio || undefined,
       colorPalette: formData.colorPalette || 'auto',
