@@ -27,8 +27,18 @@ const FONT_OPTIONS = [
 ];
 
 const COLOR_PRESETS = [
-  "#ffffff", "#000000", "#f43f5e", "#f97316", "#eab308",
-  "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899",
+  // Neutros
+  "#ffffff", "#f3f4f6", "#9ca3af", "#4b5563", "#000000",
+  // Vermelhos / rosas
+  "#fecaca", "#f87171", "#ef4444", "#dc2626", "#ec4899",
+  // Laranjas / amarelos
+  "#fed7aa", "#fb923c", "#f97316", "#eab308", "#facc15",
+  // Verdes
+  "#bbf7d0", "#4ade80", "#22c55e", "#16a34a", "#10b981",
+  // Azuis / ciano
+  "#bae6fd", "#38bdf8", "#06b6d4", "#3b82f6", "#1d4ed8",
+  // Roxos
+  "#ddd6fe", "#a78bfa", "#8b5cf6", "#7c3aed", "#6d28d9",
 ];
 
 function uid() {
@@ -64,21 +74,21 @@ function ColorField({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="h-7 w-7 rounded-md border border-border/60 shadow-sm hover:scale-105 transition-transform shrink-0"
+          className="h-7 w-7 rounded-full border border-border/60 shadow-sm hover:scale-110 transition-transform shrink-0"
           style={{ background: value }}
           title={value}
         />
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-3" align="end">
+      <PopoverContent className="w-64 p-3" align="end">
         <div className="space-y-3">
-          <div className="grid grid-cols-5 gap-1.5">
+          <div className="grid grid-cols-6 gap-2">
             {presets.map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => onChange(c)}
                 className={cn(
-                  "h-7 w-full rounded border transition-transform hover:scale-110",
+                  "h-7 w-7 rounded-full border transition-transform hover:scale-110",
                   value.toLowerCase() === c.toLowerCase()
                     ? "border-primary ring-2 ring-primary/40"
                     : "border-border/40"
@@ -88,9 +98,9 @@ function ColorField({
               />
             ))}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pt-1 border-t border-border/40">
             <label
-              className="relative h-8 w-8 rounded-md border border-border/60 overflow-hidden cursor-pointer shrink-0"
+              className="relative h-8 w-8 rounded-full border border-border/60 overflow-hidden cursor-pointer shrink-0"
               style={{ background: value }}
             >
               <input
