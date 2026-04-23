@@ -135,6 +135,9 @@ const App = () => (
                       <Route path="/onboarding/canceled" element={<SuspenseRoute><OnboardingCanceled /></SuspenseRoute>} />
                       <Route path="/payment-success" element={<SuspenseRoute><PaymentSuccess /></SuspenseRoute>} />
                       <Route path="/contact" element={<SuspenseRoute><Contact /></SuspenseRoute>} />
+
+                      {/* Full-page text editor (no dashboard chrome) */}
+                      <Route path="/text-editor" element={<ProtectedRoute><SuspenseRoute><TextEditor /></SuspenseRoute></ProtectedRoute>} />
                       
                       {/* Dashboard routes with sidebar layout */}
                       <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
@@ -161,7 +164,6 @@ const App = () => (
                         <Route path="plan-result" element={<SuspenseRoute><PlanResult /></SuspenseRoute>} />
                         <Route path="quick-content" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
                         <Route path="quick-content-result" element={<SuspenseRoute><QuickContentResult /></SuspenseRoute>} />
-                        <Route path="text-editor" element={<SuspenseRoute><TextEditor /></SuspenseRoute>} />
                         <Route path="credits" element={<SuspenseRoute><Credits /></SuspenseRoute>} />
                         <Route path="team" element={<SuspenseRoute><Team /></SuspenseRoute>} />
                         <Route path="team-dashboard" element={<SuspenseRoute><TeamDashboard /></SuspenseRoute>} />
