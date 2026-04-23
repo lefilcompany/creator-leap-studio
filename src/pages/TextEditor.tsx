@@ -247,6 +247,9 @@ export default function TextEditor() {
   } | null>(null);
 
   const displayScale = naturalSize.w ? displaySize.w / naturalSize.w : 1;
+  // Use the original (text-free) image as the canvas base whenever available
+  // so the user sees and edits over the same source we re-render server-side.
+  const baseImageUrl = state.sourceImageUrl || state.imageUrl;
 
   useEffect(() => {
     if (!state.imageUrl || !state.nextRoute) {
@@ -609,7 +612,7 @@ export default function TextEditor() {
             ref={stageRef}
             className="flex-1 min-h-0 min-w-0 p-3 sm:p-4 flex items-center justify-center overflow-hidden"
           >
-            {state.imageUrl && displaySize.w > 0 && (
+            {baseImageUrl && displaySize.w > 0 && (
               <div
                 ref={containerRef}
                 className="relative select-none"
@@ -621,7 +624,7 @@ export default function TextEditor() {
               >
                 <img
                   ref={imgRef}
-                  src={state.imageUrl}
+                  src={baseImageUrl}
                   onLoad={onImgLoad}
                   alt="Imagem base"
                   className="block w-full h-full rounded-lg shadow-2xl pointer-events-none object-contain bg-black/5"
@@ -630,7 +633,7 @@ export default function TextEditor() {
                 />
                 {!naturalSize.w && (
                   <img
-                    src={state.imageUrl}
+                    src={baseImageUrl}
                     onLoad={onImgLoad}
                     alt=""
                     className="hidden"
