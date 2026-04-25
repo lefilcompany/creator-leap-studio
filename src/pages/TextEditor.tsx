@@ -317,6 +317,8 @@ export default function TextEditor() {
     startMaxW: number;
     startFontSize: number;
   } | null>(null);
+  // Active alignment guides (in image-pixel coordinates) shown while dragging.
+  const [guides, setGuides] = useState<{ v: number[]; h: number[] }>({ v: [], h: [] });
 
   const displayScale = naturalSize.w ? displaySize.w / naturalSize.w : 1;
   // Use the original (text-free) image as the canvas base whenever available
@@ -451,15 +453,116 @@ export default function TextEditor() {
     });
   };
 
+  // Approximate the rendered height of a layer in image pixels.
+  // Used only for alignment guides (top/middle/bottom edges), not for layout.
+  const estimateLayerHeight = (l: TextLayer): number => {
+    const lines = Math.max(1, (l.text || " ").split("\n").length);
+    const padY = l.background ? l.background.paddingY * 2 : 0;
+    return Math.round(l.fontSize * l.lineHeight * lines + padY);
+  };
+
+  /**
+   * Given a candidate (x, y, width) for the dragged layer, snap to alignment
+   * targets from other layers + canvas edges/center. Returns the adjusted
+   * position and the list of guide coordinates that matched.
+   */
+  const computeSnap = (
+    layerId: string,
+    candX: number,
+    candY: number,
+    width: number,
+    height: number,
+  ): { x: number; y: number; vGuides: number[]; hGuides: number[] } => {
+    // Snap threshold in IMAGE pixels — convert from a constant CSS pixel
+    // tolerance so it feels the same regardless of zoom level.
+    const SNAP_PX_CSS = 6;
+    const threshold = SNAP_PX_CSS / Math.max(0.001, displayScale);
+
+    // Candidate edges for the dragged layer.
+    const candLeft = candX;
+    const candRight = candX + width;
+    const candCenterX = candX + width / 2;
+    const candTop = candY;
+    const candBottom = candY + height;
+    const candMidY = candY + height / 2;
+
+    // Build target edges from OTHER layers + canvas.
+    const vTargets: number[] = [0, naturalSize.w / 2, naturalSize.w];
+    const hTargets: number[] = [0, naturalSize.h / 2, naturalSize.h];
+    for (const other of layers) {
+      if (other.id === layerId) continue;
+      const oH = estimateLayerHeight(other);
+      vTargets.push(other.x, other.x + other.maxWidth / 2, other.x + other.maxWidth);
+      hTargets.push(other.y, other.y + oH / 2, other.y + oH);
+    }
+
+    let bestDX = 0, bestDXAbs = threshold + 1;
+    let bestDY = 0, bestDYAbs = threshold + 1;
+    const vMatches: number[] = [];
+    const hMatches: number[] = [];
+
+    // Pick the smallest delta on X across {left, center, right} edges.
+    for (const t of vTargets) {
+      for (const edge of [candLeft, candCenterX, candRight]) {
+        const d = t - edge;
+        if (Math.abs(d) <= threshold && Math.abs(d) < bestDXAbs) {
+          bestDX = d;
+          bestDXAbs = Math.abs(d);
+        }
+      }
+    }
+    for (const t of hTargets) {
+      for (const edge of [candTop, candMidY, candBottom]) {
+        const d = t - edge;
+        if (Math.abs(d) <= threshold && Math.abs(d) < bestDYAbs) {
+          bestDY = d;
+          bestDYAbs = Math.abs(d);
+        }
+      }
+    }
+
+    const snappedX = bestDXAbs <= threshold ? candX + bestDX : candX;
+    const snappedY = bestDYAbs <= threshold ? candY + bestDY : candY;
+
+    // After snapping, mark which targets are now coincident (within 0.5 image px)
+    // so we render them as visible guides.
+    const finalLeft = snappedX;
+    const finalRight = snappedX + width;
+    const finalCenterX = snappedX + width / 2;
+    const finalTop = snappedY;
+    const finalBottom = snappedY + height;
+    const finalMidY = snappedY + height / 2;
+    const eps = 0.5;
+    for (const t of vTargets) {
+      if (Math.abs(t - finalLeft) <= eps || Math.abs(t - finalCenterX) <= eps || Math.abs(t - finalRight) <= eps) {
+        vMatches.push(t);
+      }
+    }
+    for (const t of hTargets) {
+      if (Math.abs(t - finalTop) <= eps || Math.abs(t - finalMidY) <= eps || Math.abs(t - finalBottom) <= eps) {
+        hMatches.push(t);
+      }
+    }
+
+    return { x: snappedX, y: snappedY, vGuides: vMatches, hGuides: hMatches };
+  };
+
   const onPointerMove = (e: React.PointerEvent) => {
     if (!drag) return;
     const dx = (e.clientX - drag.startX) / Math.max(0.001, displayScale);
     const dy = (e.clientY - drag.startY) / Math.max(0.001, displayScale);
     if (drag.mode === "move") {
-      updateLayer(drag.id, {
-        x: Math.round(drag.layerStartX + dx),
-        y: Math.round(drag.layerStartY + dy),
-      });
+      const layer = layers.find((l) => l.id === drag.id);
+      const candX = drag.layerStartX + dx;
+      const candY = drag.layerStartY + dy;
+      if (layer) {
+        const h = estimateLayerHeight(layer);
+        const snap = computeSnap(drag.id, candX, candY, layer.maxWidth, h);
+        updateLayer(drag.id, { x: Math.round(snap.x), y: Math.round(snap.y) });
+        setGuides({ v: snap.vGuides, h: snap.hGuides });
+      } else {
+        updateLayer(drag.id, { x: Math.round(candX), y: Math.round(candY) });
+      }
     } else if (drag.mode === "resize-right") {
       updateLayer(drag.id, {
         maxWidth: Math.max(40, Math.round(drag.startMaxW + dx)),
@@ -485,7 +588,10 @@ export default function TextEditor() {
     }
   };
 
-  const onPointerUp = () => setDrag(null);
+  const onPointerUp = () => {
+    setDrag(null);
+    setGuides({ v: [], h: [] });
+  };
 
   const goToResult = (
     finalImageUrl: string,
@@ -795,6 +901,25 @@ export default function TextEditor() {
                     );
                   })}
                 </div>
+                {/* Alignment guides — visible only while dragging snaps. */}
+                {(guides.v.length > 0 || guides.h.length > 0) && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    {guides.v.map((x, i) => (
+                      <div
+                        key={`v-${i}-${x}`}
+                        className="absolute top-0 bottom-0 w-px bg-primary shadow-[0_0_4px_hsl(var(--primary))]"
+                        style={{ left: x * displayScale }}
+                      />
+                    ))}
+                    {guides.h.map((y, i) => (
+                      <div
+                        key={`h-${i}-${y}`}
+                        className="absolute left-0 right-0 h-px bg-primary shadow-[0_0_4px_hsl(var(--primary))]"
+                        style={{ top: y * displayScale }}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
