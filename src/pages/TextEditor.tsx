@@ -729,7 +729,7 @@ export default function TextEditor() {
       {/* === Main body === */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_380px]">
         {/* === Layers sidebar (left) === */}
-        <aside className="hidden lg:flex border-r border-border/40 bg-card flex-col min-h-0">
+        <aside className="hidden lg:flex border-r border-border/40 bg-card flex-col min-h-0 min-w-0 overflow-hidden">
           <div className="shrink-0 px-3 pt-3 pb-2 border-b border-border/40">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80 uppercase tracking-wide">
@@ -741,8 +741,8 @@ export default function TextEditor() {
               </Button>
             </div>
           </div>
-          <ScrollArea className="flex-1 min-h-0">
-            <div className="space-y-1 p-2">
+          <ScrollArea className="flex-1 min-h-0 w-full">
+            <div className="space-y-1 p-2 w-full max-w-full overflow-hidden">
               {layers.length === 0 && (
                 <div className="text-xs text-muted-foreground text-center py-6">
                   Nenhuma camada ainda
