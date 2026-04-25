@@ -1195,6 +1195,44 @@ export default function TextEditor() {
                           suffix="px"
                         />
                       </Row>
+                      <Row label="Arredondar">
+                        <NumInput
+                          value={selected.background.radius ?? 0}
+                          min={0}
+                          max={200}
+                          onChange={(v) => updateLayer(selected.id, {
+                            background: { ...selected.background!, radius: v }
+                          })}
+                          suffix="px"
+                        />
+                      </Row>
+                      <Row label="Apenas borda">
+                        <div className="flex items-center justify-end h-7">
+                          <Switch
+                            checked={!!selected.background.borderOnly}
+                            onCheckedChange={(v) => updateLayer(selected.id, {
+                              background: {
+                                ...selected.background!,
+                                borderOnly: v,
+                                borderWidth: selected.background!.borderWidth ?? 2,
+                              }
+                            })}
+                          />
+                        </div>
+                      </Row>
+                      {selected.background.borderOnly && (
+                        <Row label="Espessura">
+                          <NumInput
+                            value={selected.background.borderWidth ?? 2}
+                            min={1}
+                            max={20}
+                            onChange={(v) => updateLayer(selected.id, {
+                              background: { ...selected.background!, borderWidth: v }
+                            })}
+                            suffix="px"
+                          />
+                        </Row>
+                      )}
                     </>
                   ) : (
                     <p className="text-[11px] text-muted-foreground">Faixa colorida atrás do texto.</p>
