@@ -741,8 +741,8 @@ export default function TextEditor() {
               </Button>
             </div>
           </div>
-          <ScrollArea className="flex-1 min-h-0 w-full">
-            <div className="space-y-1 p-2 w-full max-w-full overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+            <div className="space-y-1 p-2">
               {layers.length === 0 && (
                 <div className="text-xs text-muted-foreground text-center py-6">
                   Nenhuma camada ainda
@@ -753,7 +753,7 @@ export default function TextEditor() {
                   key={l.id}
                   onClick={() => setSelectedId(l.id)}
                   className={cn(
-                    "w-full min-w-0 text-left px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-2 group overflow-hidden",
+                    "w-full min-w-0 text-left px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-2 group",
                     selectedId === l.id
                       ? "border-primary bg-primary/10"
                       : "border-border/40 hover:bg-muted/40"
@@ -761,7 +761,7 @@ export default function TextEditor() {
                 >
                   <Type className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="flex-1 min-w-0 truncate text-xs">{l.text || `Camada ${i + 1}`}</span>
-                  <span className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="hidden group-hover:flex items-center gap-0.5 shrink-0">
                     <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, -1); }} className="p-1 hover:bg-muted rounded"><MoveUp className="h-3 w-3" /></span>
                     <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, 1); }} className="p-1 hover:bg-muted rounded"><MoveDown className="h-3 w-3" /></span>
                     <span role="button" onClick={(e) => { e.stopPropagation(); duplicateLayer(l.id); }} className="p-1 hover:bg-muted rounded"><CopyIcon className="h-3 w-3" /></span>
@@ -770,7 +770,7 @@ export default function TextEditor() {
                 </button>
               ))}
             </div>
-          </ScrollArea>
+          </div>
         </aside>
 
         {/* === Canvas (center) === */}
