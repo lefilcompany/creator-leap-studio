@@ -30,7 +30,7 @@ export interface TextLayer {
   // Decorations
   stroke?: { color: string; width: number };
   shadow?: { color: string; blur: number; offsetX: number; offsetY: number };
-  background?: { color: string; opacity: number; paddingX: number; paddingY: number; radius?: number };
+  background?: { color: string; opacity: number; paddingX: number; paddingY: number; radius?: number; borderOnly?: boolean; borderWidth?: number };
 }
 
 export interface RenderRequest {
