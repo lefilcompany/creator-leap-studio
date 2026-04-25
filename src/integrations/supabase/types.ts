@@ -668,6 +668,48 @@ export type Database = {
           },
         ]
       }
+      custom_fonts: {
+        Row: {
+          created_at: string
+          display_name: string
+          family_name: string
+          file_size: number
+          file_url: string
+          format: string
+          id: string
+          storage_path: string
+          team_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          family_name: string
+          file_size?: number
+          file_url: string
+          format: string
+          id?: string
+          storage_path: string
+          team_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          family_name?: string
+          file_size?: number
+          file_url?: string
+          format?: string
+          id?: string
+          storage_path?: string
+          team_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       generation_reports: {
         Row: {
           action_id: string | null
