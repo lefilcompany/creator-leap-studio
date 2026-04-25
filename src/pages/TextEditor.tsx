@@ -12,13 +12,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   Plus, Trash2, Type, Loader2, RotateCcw, Copy as CopyIcon,
   AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, ArrowRight, SkipForward,
-  Sparkles, CheckCircle2, X, Layers as LayersIcon, Settings2,
+  Sparkles, CheckCircle2, X, Layers as LayersIcon, Settings2, Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import type { TextLayer } from "@/components/TextOverlayEditor";
+import { useCustomFonts, ensureFontLoaded } from "@/hooks/useCustomFonts";
 import Wheel from "@uiw/react-color-wheel";
 import ShadeSlider from "@uiw/react-color-shade-slider";
 
