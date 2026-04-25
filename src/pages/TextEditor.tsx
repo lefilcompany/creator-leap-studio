@@ -867,6 +867,7 @@ export default function TextEditor() {
                           padding: l.background
                             ? `${l.background.paddingY * displayScale}px ${l.background.paddingX * displayScale}px`
                             : 0,
+                          boxSizing: "border-box",
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                         }}
