@@ -256,7 +256,7 @@ export async function renderTextLayers(
       const family = layer.fontFamily || 'Montserrat';
       const weight = layer.fontWeight || 400;
       const italic = !!layer.fontItalic;
-      const fontBuf = await getFontWithFallback(family, weight, italic);
+      const fontBuf = await getFontWithFallback(family, weight, italic, layer.customFontUrl);
 
       const fontSize = Math.max(8, Math.round(layer.fontSize * scale));
       const maxWidthPx = Math.max(20, Math.round(layer.maxWidth * scaleX));
