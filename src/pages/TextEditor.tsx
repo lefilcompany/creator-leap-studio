@@ -337,6 +337,13 @@ export default function TextEditor() {
     if (Array.isArray(state.layers) && state.layers.length > 0) {
       setLayers(state.layers);
       setSelectedId(state.layers[0]?.id || null);
+      // Make sure any custom fonts referenced by existing layers are registered
+      // in the document so the preview matches the saved render.
+      for (const l of state.layers) {
+        if (l.customFontUrl && l.fontFamily) {
+          ensureFontLoaded(l.fontFamily, l.customFontUrl);
+        }
+      }
     } else {
       const init = defaultLayer(naturalSize.w, naturalSize.h);
       setLayers([init]);
