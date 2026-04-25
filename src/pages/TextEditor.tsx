@@ -741,8 +741,8 @@ export default function TextEditor() {
               </Button>
             </div>
           </div>
-          <ScrollArea className="flex-1 min-h-0">
-            <div className="space-y-1 p-2">
+          <ScrollArea className="flex-1 min-h-0 w-full">
+            <div className="space-y-1 p-2 w-full max-w-full overflow-hidden">
               {layers.length === 0 && (
                 <div className="text-xs text-muted-foreground text-center py-6">
                   Nenhuma camada ainda
