@@ -907,14 +907,14 @@ export default function TextEditor() {
                     {guides.v.map((x, i) => (
                       <div
                         key={`v-${i}-${x}`}
-                        className="absolute top-0 bottom-0 w-px bg-fuchsia-500 shadow-[0_0_4px_hsl(var(--primary))]"
+                        className="absolute top-0 bottom-0 w-px bg-primary shadow-[0_0_4px_hsl(var(--primary))]"
                         style={{ left: x * displayScale }}
                       />
                     ))}
                     {guides.h.map((y, i) => (
                       <div
                         key={`h-${i}-${y}`}
-                        className="absolute left-0 right-0 h-px bg-fuchsia-500 shadow-[0_0_4px_hsl(var(--primary))]"
+                        className="absolute left-0 right-0 h-px bg-primary shadow-[0_0_4px_hsl(var(--primary))]"
                         style={{ top: y * displayScale }}
                       />
                     ))}
