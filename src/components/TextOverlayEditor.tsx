@@ -29,6 +29,8 @@ export interface TextLayer {
   color: string;
   opacity: number;
   rotate: number;
+  /** When set, the server will download the font file from this URL instead of Google Fonts. */
+  customFontUrl?: string;
   stroke?: { color: string; width: number };
   shadow?: { color: string; blur: number; offsetX: number; offsetY: number };
   background?: { color: string; opacity: number; paddingX: number; paddingY: number };
