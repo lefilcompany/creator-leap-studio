@@ -901,6 +901,25 @@ export default function TextEditor() {
                     );
                   })}
                 </div>
+                {/* Alignment guides — visible only while dragging snaps. */}
+                {(guides.v.length > 0 || guides.h.length > 0) && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    {guides.v.map((x, i) => (
+                      <div
+                        key={`v-${i}-${x}`}
+                        className="absolute top-0 bottom-0 w-px bg-fuchsia-500 shadow-[0_0_4px_hsl(var(--primary))]"
+                        style={{ left: x * displayScale }}
+                      />
+                    ))}
+                    {guides.h.map((y, i) => (
+                      <div
+                        key={`h-${i}-${y}`}
+                        className="absolute left-0 right-0 h-px bg-fuchsia-500 shadow-[0_0_4px_hsl(var(--primary))]"
+                        style={{ top: y * displayScale }}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
