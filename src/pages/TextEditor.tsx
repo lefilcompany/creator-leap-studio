@@ -12,13 +12,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   Plus, Trash2, Type, Loader2, RotateCcw, Copy as CopyIcon,
   AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, ArrowRight, SkipForward,
-  Sparkles, CheckCircle2, X, Layers as LayersIcon, Settings2,
+  Sparkles, CheckCircle2, X, Layers as LayersIcon, Settings2, Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import type { TextLayer } from "@/components/TextOverlayEditor";
+import { useCustomFonts, ensureFontLoaded } from "@/hooks/useCustomFonts";
 import Wheel from "@uiw/react-color-wheel";
 import ShadeSlider from "@uiw/react-color-shade-slider";
 
@@ -306,6 +307,8 @@ export default function TextEditor() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [applyStage, setApplyStage] = useState<"idle" | "preparing" | "rendering" | "finalizing" | "done">("idle");
+  const { fonts: customFonts, uploading: uploadingFont, uploadFont } = useCustomFonts();
+  const fontInputRef = useRef<HTMLInputElement>(null);
   const [drag, setDrag] = useState<{
     id: string;
     mode: "move" | "resize-right" | "resize-left" | "resize-font-top" | "resize-font-bottom";
@@ -334,6 +337,13 @@ export default function TextEditor() {
     if (Array.isArray(state.layers) && state.layers.length > 0) {
       setLayers(state.layers);
       setSelectedId(state.layers[0]?.id || null);
+      // Make sure any custom fonts referenced by existing layers are registered
+      // in the document so the preview matches the saved render.
+      for (const l of state.layers) {
+        if (l.customFontUrl && l.fontFamily) {
+          ensureFontLoaded(l.fontFamily, l.customFontUrl);
+        }
+      }
     } else {
       const init = defaultLayer(naturalSize.w, naturalSize.h);
       setLayers([init]);
@@ -816,17 +826,80 @@ export default function TextEditor() {
                 {/* Typography */}
                 <Section title="Tipografia">
                   <Row label="Fonte">
-                    <Select
-                      value={selected.fontFamily}
-                      onValueChange={(v) => updateLayer(selected.id, { fontFamily: v })}
-                    >
-                      <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {FONT_OPTIONS.map((f) => (
-                          <SelectItem key={f} value={f} style={{ fontFamily: f }}>{f}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-1 w-full justify-end">
+                      <Select
+                        value={selected.fontFamily}
+                        onValueChange={(v) => {
+                          const custom = customFonts.find((f) => f.family_name === v);
+                          if (custom) {
+                            ensureFontLoaded(custom.family_name, custom.file_url);
+                            updateLayer(selected.id, {
+                              fontFamily: v,
+                              customFontUrl: custom.file_url,
+                            });
+                          } else {
+                            updateLayer(selected.id, {
+                              fontFamily: v,
+                              customFontUrl: undefined,
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-7 text-xs flex-1"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {FONT_OPTIONS.map((f) => (
+                            <SelectItem key={f} value={f} style={{ fontFamily: f }}>{f}</SelectItem>
+                          ))}
+                          {customFonts.length > 0 && (
+                            <div className="px-2 pt-2 pb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                              Minhas fontes
+                            </div>
+                          )}
+                          {customFonts.map((f) => (
+                            <SelectItem
+                              key={f.id}
+                              value={f.family_name}
+                              style={{ fontFamily: f.family_name }}
+                            >
+                              {f.display_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <input
+                        ref={fontInputRef}
+                        type="file"
+                        accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          e.target.value = "";
+                          if (!file) return;
+                          const created = await uploadFont(file);
+                          if (created && selected) {
+                            updateLayer(selected.id, {
+                              fontFamily: created.family_name,
+                              customFontUrl: created.file_url,
+                            });
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 shrink-0"
+                        title="Enviar fonte personalizada (.ttf, .otf, .woff, .woff2 — até 5 MB)"
+                        disabled={uploadingFont}
+                        onClick={() => fontInputRef.current?.click()}
+                      >
+                        {uploadingFont ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                    </div>
                   </Row>
 
                   <Row label="Peso">

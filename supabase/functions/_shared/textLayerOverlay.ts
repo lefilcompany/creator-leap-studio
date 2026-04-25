@@ -24,6 +24,9 @@ export interface TextLayer {
   color?: string;            // hex #RRGGBB
   opacity?: number;          // 0-1
   rotate?: number;           // degrees
+  /** When provided, the server downloads the font file directly from this URL
+   * instead of resolving via Google Fonts. Used for user-uploaded fonts. */
+  customFontUrl?: string;
   // Decorations
   stroke?: { color: string; width: number };
   shadow?: { color: string; blur: number; offsetX: number; offsetY: number };
@@ -138,7 +141,31 @@ async function downloadGoogleFont(family: string, weight: number, italic = false
   return buf;
 }
 
-async function getFontWithFallback(family: string, weight: number, italic: boolean): Promise<Uint8Array> {
+async function downloadCustomFont(family: string, url: string): Promise<Uint8Array> {
+  const key = `custom:${url}`;
+  if (fontCache.has(key)) return fontCache.get(key)!;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`Custom font fetch failed (${resp.status}) for ${url}`);
+  const buf = new Uint8Array(await resp.arrayBuffer());
+  console.log(`[TextLayer] Loaded custom font ${family} from ${url} (${buf.length} bytes)`);
+  fontCache.set(key, buf);
+  return buf;
+}
+
+async function getFontWithFallback(
+  family: string,
+  weight: number,
+  italic: boolean,
+  customUrl?: string,
+): Promise<Uint8Array> {
+  if (customUrl) {
+    try {
+      return await downloadCustomFont(family, customUrl);
+    } catch (err) {
+      console.warn(`[TextLayer] Custom font failed (${family}), falling back to Montserrat`, err);
+      return await downloadGoogleFont('Montserrat', weight, italic);
+    }
+  }
   try {
     return await downloadGoogleFont(family, weight, italic);
   } catch (_e) {
@@ -229,7 +256,7 @@ export async function renderTextLayers(
       const family = layer.fontFamily || 'Montserrat';
       const weight = layer.fontWeight || 400;
       const italic = !!layer.fontItalic;
-      const fontBuf = await getFontWithFallback(family, weight, italic);
+      const fontBuf = await getFontWithFallback(family, weight, italic, layer.customFontUrl);
 
       const fontSize = Math.max(8, Math.round(layer.fontSize * scale));
       const maxWidthPx = Math.max(20, Math.round(layer.maxWidth * scaleX));
