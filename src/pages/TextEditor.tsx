@@ -307,6 +307,8 @@ export default function TextEditor() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [applyStage, setApplyStage] = useState<"idle" | "preparing" | "rendering" | "finalizing" | "done">("idle");
+  const { fonts: customFonts, uploading: uploadingFont, uploadFont } = useCustomFonts();
+  const fontInputRef = useRef<HTMLInputElement>(null);
   const [drag, setDrag] = useState<{
     id: string;
     mode: "move" | "resize-right" | "resize-left" | "resize-font-top" | "resize-font-bottom";
