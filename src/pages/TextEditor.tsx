@@ -753,14 +753,14 @@ export default function TextEditor() {
                   key={l.id}
                   onClick={() => setSelectedId(l.id)}
                   className={cn(
-                    "w-full text-left px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-2 group",
+                    "w-full min-w-0 text-left px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-2 group overflow-hidden",
                     selectedId === l.id
                       ? "border-primary bg-primary/10"
                       : "border-border/40 hover:bg-muted/40"
                   )}
                 >
                   <Type className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="flex-1 truncate text-xs">{l.text || `Camada ${i + 1}`}</span>
+                  <span className="flex-1 min-w-0 truncate text-xs">{l.text || `Camada ${i + 1}`}</span>
                   <span className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, -1); }} className="p-1 hover:bg-muted rounded"><MoveUp className="h-3 w-3" /></span>
                     <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, 1); }} className="p-1 hover:bg-muted rounded"><MoveDown className="h-3 w-3" /></span>
