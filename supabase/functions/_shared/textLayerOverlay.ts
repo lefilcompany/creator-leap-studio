@@ -30,7 +30,7 @@ export interface TextLayer {
   // Decorations
   stroke?: { color: string; width: number };
   shadow?: { color: string; blur: number; offsetX: number; offsetY: number };
-  background?: { color: string; opacity: number; paddingX: number; paddingY: number; radius?: number };
+  background?: { color: string; opacity: number; paddingX: number; paddingY: number; radius?: number; borderOnly?: boolean; borderWidth?: number };
 }
 
 export interface RenderRequest {
@@ -331,7 +331,71 @@ export async function renderTextLayers(
       const container = new Image(containerW, containerH);
 
       if (layer.background && layer.background.opacity > 0) {
-        container.fill(hexToRgba(layer.background.color, layer.background.opacity));
+        const bgColor = hexToRgba(layer.background.color, layer.background.opacity);
+        const radius = Math.max(0, Math.round((layer.background.radius ?? 0) * scale));
+        const borderOnly = !!layer.background.borderOnly;
+        const borderW = borderOnly ? Math.max(1, Math.round((layer.background.borderWidth ?? 2) * scale)) : 0;
+        const w = container.width;
+        const h = container.height;
+        const r = Math.min(radius, Math.floor(Math.min(w, h) / 2));
+
+        const insideRounded = (x: number, y: number): boolean => {
+          if (r <= 0) return x >= 0 && y >= 0 && x < w && y < h;
+          // Corner regions
+          if (x < r && y < r) {
+            const dx = r - x - 0.5, dy = r - y - 0.5;
+            return dx * dx + dy * dy <= r * r;
+          }
+          if (x >= w - r && y < r) {
+            const dx = x - (w - r) + 0.5, dy = r - y - 0.5;
+            return dx * dx + dy * dy <= r * r;
+          }
+          if (x < r && y >= h - r) {
+            const dx = r - x - 0.5, dy = y - (h - r) + 0.5;
+            return dx * dx + dy * dy <= r * r;
+          }
+          if (x >= w - r && y >= h - r) {
+            const dx = x - (w - r) + 0.5, dy = y - (h - r) + 0.5;
+            return dx * dx + dy * dy <= r * r;
+          }
+          return true;
+        };
+
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            if (!insideRounded(x, y)) continue;
+            if (borderOnly) {
+              // Only paint if pixel is within borderW of an outer edge
+              // i.e. not inside the inner rounded rect (shrunk by borderW)
+              const ix = x - borderW;
+              const iy = y - borderW;
+              const iw = w - borderW * 2;
+              const ih = h - borderW * 2;
+              const ir = Math.max(0, r - borderW);
+              if (ix >= 0 && iy >= 0 && ix < iw && iy < ih) {
+                // check inner rounded
+                let insideInner = true;
+                if (ir > 0) {
+                  if (ix < ir && iy < ir) {
+                    const dx = ir - ix - 0.5, dy = ir - iy - 0.5;
+                    insideInner = dx * dx + dy * dy <= ir * ir;
+                  } else if (ix >= iw - ir && iy < ir) {
+                    const dx = ix - (iw - ir) + 0.5, dy = ir - iy - 0.5;
+                    insideInner = dx * dx + dy * dy <= ir * ir;
+                  } else if (ix < ir && iy >= ih - ir) {
+                    const dx = ir - ix - 0.5, dy = iy - (ih - ir) + 0.5;
+                    insideInner = dx * dx + dy * dy <= ir * ir;
+                  } else if (ix >= iw - ir && iy >= ih - ir) {
+                    const dx = ix - (iw - ir) + 0.5, dy = iy - (ih - ir) + 0.5;
+                    insideInner = dx * dx + dy * dy <= ir * ir;
+                  }
+                }
+                if (insideInner) continue;
+              }
+            }
+            container.setPixelAt(x, y, bgColor);
+          }
+        }
       }
 
       let lineY = textOffsetY;

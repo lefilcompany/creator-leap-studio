@@ -857,9 +857,13 @@ export default function TextEditor() {
                           WebkitTextStroke: l.stroke && l.stroke.width > 0
                             ? `${l.stroke.width * displayScale}px ${l.stroke.color}`
                             : undefined,
-                          background: l.background && l.background.opacity > 0
+                          background: l.background && l.background.opacity > 0 && !l.background.borderOnly
                             ? `rgba(${parseInt(l.background.color.slice(1, 3), 16)}, ${parseInt(l.background.color.slice(3, 5), 16)}, ${parseInt(l.background.color.slice(5, 7), 16)}, ${l.background.opacity})`
                             : "transparent",
+                          border: l.background && l.background.borderOnly && l.background.opacity > 0
+                            ? `${(l.background.borderWidth ?? 2) * displayScale}px solid rgba(${parseInt(l.background.color.slice(1, 3), 16)}, ${parseInt(l.background.color.slice(3, 5), 16)}, ${parseInt(l.background.color.slice(5, 7), 16)}, ${l.background.opacity})`
+                            : undefined,
+                          borderRadius: l.background ? (l.background.radius ?? 0) * displayScale : 0,
                           padding: l.background
                             ? `${l.background.paddingY * displayScale}px ${l.background.paddingX * displayScale}px`
                             : 0,
@@ -1191,6 +1195,44 @@ export default function TextEditor() {
                           suffix="px"
                         />
                       </Row>
+                      <Row label="Arredondar">
+                        <NumInput
+                          value={selected.background.radius ?? 0}
+                          min={0}
+                          max={200}
+                          onChange={(v) => updateLayer(selected.id, {
+                            background: { ...selected.background!, radius: v }
+                          })}
+                          suffix="px"
+                        />
+                      </Row>
+                      <Row label="Apenas borda">
+                        <div className="flex items-center justify-end h-7">
+                          <Switch
+                            checked={!!selected.background.borderOnly}
+                            onCheckedChange={(v) => updateLayer(selected.id, {
+                              background: {
+                                ...selected.background!,
+                                borderOnly: v,
+                                borderWidth: selected.background!.borderWidth ?? 2,
+                              }
+                            })}
+                          />
+                        </div>
+                      </Row>
+                      {selected.background.borderOnly && (
+                        <Row label="Espessura">
+                          <NumInput
+                            value={selected.background.borderWidth ?? 2}
+                            min={1}
+                            max={20}
+                            onChange={(v) => updateLayer(selected.id, {
+                              background: { ...selected.background!, borderWidth: v }
+                            })}
+                            suffix="px"
+                          />
+                        </Row>
+                      )}
                     </>
                   ) : (
                     <p className="text-[11px] text-muted-foreground">Faixa colorida atrás do texto.</p>
