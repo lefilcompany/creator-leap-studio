@@ -753,7 +753,7 @@ export default function TextEditor() {
                   key={l.id}
                   onClick={() => setSelectedId(l.id)}
                   className={cn(
-                    "w-full min-w-0 text-left px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-2 group overflow-hidden",
+                    "w-full min-w-0 text-left px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-2 group",
                     selectedId === l.id
                       ? "border-primary bg-primary/10"
                       : "border-border/40 hover:bg-muted/40"
