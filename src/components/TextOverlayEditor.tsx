@@ -33,7 +33,7 @@ export interface TextLayer {
   customFontUrl?: string;
   stroke?: { color: string; width: number };
   shadow?: { color: string; blur: number; offsetX: number; offsetY: number };
-  background?: { color: string; opacity: number; paddingX: number; paddingY: number };
+  background?: { color: string; opacity: number; paddingX: number; paddingY: number; radius?: number; borderOnly?: boolean; borderWidth?: number };
 }
 
 const FONT_OPTIONS = [
