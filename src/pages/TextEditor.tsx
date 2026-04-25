@@ -21,7 +21,58 @@ import { CreationProgressBar } from "@/components/CreationProgressBar";
 import type { TextLayer } from "@/components/TextOverlayEditor";
 import Wheel from "@uiw/react-color-wheel";
 import ShadeSlider from "@uiw/react-color-shade-slider";
-import { hsvaToHex, hexToHsva } from "@uiw/color-convert";
+
+// Local HSVA <-> HEX helpers (replaces @uiw/color-convert which is not installed)
+type Hsva = { h: number; s: number; v: number; a: number };
+
+function hsvaToHex({ h, s, v, a = 1 }: Hsva): string {
+  const sN = s / 100;
+  const vN = v / 100;
+  const c = vN * sN;
+  const hp = (((h % 360) + 360) % 360) / 60;
+  const x = c * (1 - Math.abs((hp % 2) - 1));
+  let r = 0, g = 0, b = 0;
+  if (hp >= 0 && hp < 1) { r = c; g = x; b = 0; }
+  else if (hp < 2) { r = x; g = c; b = 0; }
+  else if (hp < 3) { r = 0; g = c; b = x; }
+  else if (hp < 4) { r = 0; g = x; b = c; }
+  else if (hp < 5) { r = x; g = 0; b = c; }
+  else { r = c; g = 0; b = x; }
+  const m = vN - c;
+  const toHex = (n: number) => {
+    const val = Math.round((n + m) * 255);
+    return Math.max(0, Math.min(255, val)).toString(16).padStart(2, "0");
+  };
+  const hex = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  if (a >= 1) return hex;
+  const aHex = Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
+  return `${hex}${aHex}`;
+}
+
+function hexToHsva(hex: string): Hsva {
+  let clean = (hex || "#000000").replace("#", "").trim();
+  if (clean.length === 3) clean = clean.split("").map((c) => c + c).join("");
+  if (clean.length === 6) clean += "ff";
+  if (clean.length !== 8) clean = "000000ff";
+  const r = parseInt(clean.slice(0, 2), 16) / 255;
+  const g = parseInt(clean.slice(2, 4), 16) / 255;
+  const b = parseInt(clean.slice(4, 6), 16) / 255;
+  const a = parseInt(clean.slice(6, 8), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  const s = max === 0 ? 0 : (d / max) * 100;
+  const v = max * 100;
+  return { h, s, v, a };
+}
 
 const FONT_OPTIONS = [
   "Montserrat", "Inter", "Poppins", "Roboto", "Playfair Display",
