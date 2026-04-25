@@ -24,6 +24,9 @@ export interface TextLayer {
   color?: string;            // hex #RRGGBB
   opacity?: number;          // 0-1
   rotate?: number;           // degrees
+  /** When provided, the server downloads the font file directly from this URL
+   * instead of resolving via Google Fonts. Used for user-uploaded fonts. */
+  customFontUrl?: string;
   // Decorations
   stroke?: { color: string; width: number };
   shadow?: { color: string; blur: number; offsetX: number; offsetY: number };
