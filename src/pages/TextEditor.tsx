@@ -317,6 +317,8 @@ export default function TextEditor() {
     startMaxW: number;
     startFontSize: number;
   } | null>(null);
+  // Active alignment guides (in image-pixel coordinates) shown while dragging.
+  const [guides, setGuides] = useState<{ v: number[]; h: number[] }>({ v: [], h: [] });
 
   const displayScale = naturalSize.w ? displaySize.w / naturalSize.w : 1;
   // Use the original (text-free) image as the canvas base whenever available
