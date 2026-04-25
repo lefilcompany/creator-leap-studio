@@ -770,7 +770,7 @@ export default function TextEditor() {
                 </button>
               ))}
             </div>
-          </ScrollArea>
+          </div>
         </aside>
 
         {/* === Canvas (center) === */}
