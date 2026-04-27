@@ -24,7 +24,17 @@ import {
   type CalendarItem,
   type CalendarStage,
 } from "@/hooks/useCalendars";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
+// Mapeia o formato escolhido na pauta para a melhor proporção da imagem
+const FORMAT_TO_ASPECT: Record<string, string> = {
+  post: "1:1",
+  post_fixo: "1:1",
+  carrossel: "4:5",
+  reels: "9:16",
+  story: "9:16",
+  video_longo: "16:9",
+};
 
 interface Step {
   id: CalendarStage;
