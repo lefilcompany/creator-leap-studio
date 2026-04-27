@@ -36,6 +36,69 @@ const FORMAT_TO_ASPECT: Record<string, string> = {
   video_longo: "16:9",
 };
 
+// Tons de voz aceitos no gerador de imagem
+const TONE_OPTIONS = [
+  "inspirador", "motivacional", "profissional", "casual",
+  "elegante", "moderno", "tradicional", "divertido", "sério",
+];
+
+// Estilos visuais aceitos no gerador
+const VISUAL_STYLE_KEYS = [
+  "realistic", "animated", "cartoon", "anime", "watercolor",
+  "oil_painting", "digital_art", "sketch", "minimalist", "vintage",
+];
+
+// Detecta tons mencionados em um texto livre
+function detectTones(text: string): string[] {
+  if (!text) return [];
+  const lower = text.toLowerCase();
+  const found = TONE_OPTIONS.filter((t) => lower.includes(t));
+  return Array.from(new Set(found)).slice(0, 4);
+}
+
+// Detecta o estilo visual a partir do briefing visual
+function detectVisualStyle(text: string): string | null {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+  const map: Array<[string, string[]]> = [
+    ["realistic", ["fotorealístico", "fotorealistico", "fotográfic", "fotografic", "realista", "fotografia"]],
+    ["animated", ["3d", "pixar", "render 3d", "animado"]],
+    ["cartoon", ["cartoon", "desenho animado"]],
+    ["anime", ["anime", "mangá", "manga"]],
+    ["watercolor", ["aquarela", "watercolor"]],
+    ["oil_painting", ["pintura a óleo", "oleo sobre tela", "óleo"]],
+    ["digital_art", ["arte digital", "digital art", "ilustração digital"]],
+    ["sketch", ["esboço", "sketch", "rascunho", "lápis"]],
+    ["minimalist", ["minimalista", "minimalist", "clean", "limpo"]],
+    ["vintage", ["vintage", "retrô", "retro", "sépia", "sepia"]],
+  ];
+  for (const [key, terms] of map) {
+    if (terms.some((t) => lower.includes(t))) return key;
+  }
+  return null;
+}
+
+// Heurística para ângulo de câmera baseada em formato/briefing
+function detectCameraAngle(format: string | null, brief: string): string {
+  const lower = (brief || "").toLowerCase();
+  if (lower.includes("close") || lower.includes("close-up")) return "close_up";
+  if (lower.includes("aérea") || lower.includes("aerea") || lower.includes("topo") || lower.includes("top down")) return "top_down";
+  if (lower.includes("baixo") || lower.includes("low angle")) return "low_angle";
+  if (format === "reels" || format === "story") return "eye_level";
+  return "eye_level";
+}
+
+// Heurística para mood baseada em tom/editoria/briefing
+function detectMood(brief: string, tones: string[]): string {
+  const lower = (brief || "").toLowerCase();
+  if (lower.includes("vibrante") || tones.includes("divertido")) return "vibrant";
+  if (lower.includes("elegant") || tones.includes("elegante")) return "elegant";
+  if (lower.includes("dramá") || lower.includes("drama")) return "dramatic";
+  if (tones.includes("inspirador") || tones.includes("motivacional")) return "inspiring";
+  if (tones.includes("sério") || tones.includes("profissional")) return "serious";
+  return "auto";
+}
+
 interface Step {
   id: CalendarStage;
   label: string;
@@ -532,16 +595,59 @@ const StageDesign = ({
         .eq("id", item.calendar_id)
         .maybeSingle();
 
+      // Carrega persona e editoria em paralelo (para tom de voz e ponto de vista)
+      const [personaRes, themeRes] = await Promise.all([
+        cal?.persona_id
+          ? supabase
+              .from("personas")
+              .select("name, preferred_tone_of_voice, main_goal, challenges")
+              .eq("id", cal.persona_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null as any }),
+        cal?.theme_id
+          ? supabase
+              .from("strategic_themes")
+              .select("title, tone_of_voice, target_audience, color_palette, content_format")
+              .eq("id", cal.theme_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null as any }),
+      ]);
+
+      const persona = personaRes?.data ?? null;
+      const themeRow = themeRes?.data ?? null;
+
+      // Tom de voz: combina persona + editoria + briefing
+      const toneSource = [
+        persona?.preferred_tone_of_voice ?? "",
+        themeRow?.tone_of_voice ?? "",
+        item.image_briefing ?? "",
+        item.text_briefing ?? "",
+      ].join(" ");
+      const tone = detectTones(toneSource);
+
+      // Estilo visual: detecta a partir do briefing visual; cai pra realistic se não achar
+      const detectedStyle = detectVisualStyle(item.image_briefing ?? "");
+      const visualStyle = detectedStyle && VISUAL_STYLE_KEYS.includes(detectedStyle)
+        ? detectedStyle
+        : "realistic";
+
+      // Composição/ângulo/mood derivados do briefing e da persona
+      const cameraAngle = detectCameraAngle(format, item.image_briefing ?? "");
+      const mood = detectMood(item.image_briefing ?? "", tone);
+
       // Monta o prompt principal a partir do briefing visual + contexto da pauta
       const promptParts = [
         `Pauta: ${item.title}`,
         item.theme ? `Tema/Editoria: ${item.theme}` : "",
+        persona?.name ? `Ponto de vista (persona): ${persona.name}` : "",
         item.image_briefing ? `\nBriefing visual:\n${item.image_briefing}` : "",
       ].filter(Boolean);
       const prompt = promptParts.join("\n");
 
       const additionalParts = [
         item.text_briefing ? `Briefing de legenda:\n${item.text_briefing}` : "",
+        persona?.main_goal ? `Objetivo da persona: ${persona.main_goal}` : "",
+        themeRow?.target_audience ? `Público-alvo: ${themeRow.target_audience}` : "",
         item.notes ? `Observações:\n${item.notes}` : "",
         item.scheduled_date
           ? `Data de publicação: ${new Date(item.scheduled_date).toLocaleDateString("pt-BR")}`
@@ -558,6 +664,12 @@ const StageDesign = ({
         platform: platform ?? undefined,
         aspectRatio,
         contentType: "organic",
+        tone: tone.length > 0 ? tone : undefined,
+        visualStyle,
+        cameraAngle,
+        mood,
+        composition: "auto",
+        lighting: "natural",
       };
 
       navigate("/create/image", { state: { prefillData } });
