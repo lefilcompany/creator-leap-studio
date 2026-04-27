@@ -71,7 +71,18 @@ const CalendarNew = () => {
           hint: userInput,
         },
       });
-      if (error) throw error;
+      if (error) {
+        // supabase.functions.invoke embute o body de erro em error.context (Response)
+        let msg = error.message;
+        const ctx = (error as { context?: Response }).context;
+        if (ctx && typeof ctx.json === "function") {
+          try {
+            const body = await ctx.json();
+            if (body?.error) msg = body.error;
+          } catch { /* ignore */ }
+        }
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
       if (data?.briefing) {
         setUserInput(data.briefing);
