@@ -706,17 +706,24 @@ export default function CreateImage() {
         "Criando Imagem",
         "create_image",
         async (helpers) => {
-          // Generate image via OpenAI GPT Image 2 com STREAMING SSE (partial_images)
-          const { consumeImageGenerationSSE } = await import("@/lib/imageGenerationStream");
-          const sseResult = await consumeImageGenerationSSE(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image-openai`,
-            requestData,
-            capturedSession?.access_token,
+          // Generate image via Gemini (generate-image edge function — JSON síncrono)
+          helpers.setProgress("Gerando imagem com IA...");
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`,
             {
-              onProgress: (message) => helpers.setProgress(message),
-              onPartial: (b64, idx) => helpers.pushPartial(b64, idx),
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${capturedSession?.access_token}`,
+              },
+              body: JSON.stringify(requestData),
             },
           );
+          if (!response.ok) {
+            const errText = await response.text().catch(() => "");
+            throw new Error(`Erro ao gerar imagem (${response.status}): ${errText || "sem resposta"}`);
+          }
+          const sseResult = await response.json();
           const { imageUrl, legenda, complianceCheck } = sseResult;
 
           // Handle caption
