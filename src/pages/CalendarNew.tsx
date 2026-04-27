@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Loader2, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Sparkles, Loader2, ArrowRight, CheckCircle2, Wand2 } from "lucide-react";
 import { useBrands } from "@/hooks/useBrands";
 import { usePersonas } from "@/hooks/usePersonas";
 import { useThemes } from "@/hooks/useThemes";
@@ -40,7 +40,49 @@ const CalendarNew = () => {
   });
 
   const [generating, setGenerating] = useState(false);
+  const [suggestingBriefing, setSuggestingBriefing] = useState(false);
   const [generatedItems, setGeneratedItems] = useState<GeneratedItem[]>([]);
+
+  const handleSuggestBriefing = async () => {
+    setSuggestingBriefing(true);
+    try {
+      const refDate = `${referenceMonth}-01`;
+      const { data, error } = await supabase.functions.invoke("suggest-calendar-briefing", {
+        body: {
+          brand: selectedBrand
+            ? {
+                name: selectedBrand.name,
+                segment: selectedBrand.segment,
+                values: selectedBrand.values,
+                keywords: selectedBrand.keywords,
+              }
+            : null,
+          persona: selectedPersona
+            ? {
+                name: selectedPersona.name,
+                main_goal: (selectedPersona as { main_goal?: string }).main_goal,
+                challenges: selectedPersona.challenges,
+              }
+            : null,
+          theme: selectedTheme
+            ? { title: selectedTheme.title, description: selectedTheme.description }
+            : null,
+          reference_month: refDate,
+          hint: userInput,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.briefing) {
+        setUserInput(data.briefing);
+        toast.success("Sugestão de briefing gerada!");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao gerar sugestão");
+    } finally {
+      setSuggestingBriefing(false);
+    }
+  };
 
   const selectedBrand = brands.find((b) => b.id === brandId);
   const selectedPersona = personas.find((p) => p.id === personaId);
@@ -190,7 +232,24 @@ const CalendarNew = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="brief">Briefing — o que você quer comunicar e por quê *</Label>
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="brief">Briefing — o que você quer comunicar e por quê *</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSuggestBriefing}
+              disabled={suggestingBriefing}
+              className="gap-2 h-8"
+            >
+              {suggestingBriefing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Wand2 className="h-3.5 w-3.5" />
+              )}
+              {suggestingBriefing ? "Gerando..." : "Sugerir com IA"}
+            </Button>
+          </div>
           <Textarea
             id="brief"
             rows={5}
