@@ -43,27 +43,48 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
   const update = useUpdateCalendarItem();
   const currentIndex = stageOrder.indexOf(item.stage);
 
+  const meta = (item.metadata || {}) as Record<string, any>;
+  const platform: string | null = meta.platform ?? null;
+  const format: string | null = meta.format ?? null;
+
   return (
     <Card className="p-5 space-y-5">
       {/* Cabeçalho da pauta */}
       <div>
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
+          <div className="min-w-0 w-full">
             <h2 className="text-lg font-bold">{item.title}</h2>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              {item.theme && (
-                <Badge variant="secondary" className="text-xs">{item.theme}</Badge>
-              )}
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               {item.scheduled_date && (
-                <span className="text-xs text-muted-foreground">
+                <Badge variant="outline" className="gap-1 text-xs">
+                  <CalendarIcon className="h-3 w-3" />
                   {new Date(item.scheduled_date).toLocaleDateString("pt-BR", {
                     weekday: "short",
                     day: "2-digit",
                     month: "long",
                   })}
-                </span>
+                </Badge>
+              )}
+              {platform && (
+                <Badge variant="secondary" className="gap-1 text-xs">
+                  <Share2 className="h-3 w-3" /> {platform}
+                </Badge>
+              )}
+              {format && (
+                <Badge variant="secondary" className="gap-1 text-xs">
+                  <LayoutTemplate className="h-3 w-3" /> {format}
+                </Badge>
+              )}
+              {item.theme && (
+                <Badge variant="outline" className="text-xs">{item.theme}</Badge>
               )}
             </div>
+            {item.notes && (
+              <p className="text-xs text-muted-foreground mt-2 flex items-start gap-1.5">
+                <StickyNote className="h-3 w-3 mt-0.5 shrink-0" />
+                <span className="whitespace-pre-wrap">{item.notes}</span>
+              </p>
+            )}
           </div>
         </div>
       </div>
