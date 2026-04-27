@@ -12,6 +12,9 @@ import {
   Sparkles,
   Calendar as CalendarIcon,
   Loader2,
+  Share2,
+  LayoutTemplate,
+  StickyNote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
