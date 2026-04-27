@@ -303,7 +303,7 @@ export default function CreateImage() {
   const [showStyles, setShowStyles] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [textModalOpen, setTextModalOpen] = useState(false);
-  const [openaiSettings, setOpenaiSettings] = useState<OpenAIImageSettingsValue>(DEFAULT_OPENAI_SETTINGS);
+  
 
   const teamId = user?.teamId;
   const userId = user?.id;
