@@ -263,7 +263,12 @@ const CalendarNew = () => {
               variant="outline"
               size="sm"
               onClick={handleSuggestBriefing}
-              disabled={suggestingBriefing}
+              disabled={suggestingBriefing || !canSuggest}
+              title={
+                canSuggest
+                  ? "Gerar uma sugestão de briefing com base no contexto"
+                  : `Para sugerir com IA, preencha: ${missingForSuggest.join(", ")}`
+              }
               className="gap-2 h-8"
             >
               {suggestingBriefing ? (
