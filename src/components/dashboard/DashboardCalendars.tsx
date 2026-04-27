@@ -64,7 +64,7 @@ export const DashboardCalendars = () => {
   );
 };
 
-const STAGE_ORDER: CalendarStage[] = ["calendar", "briefing", "design", "review", "done"];
+const STAGE_ORDER: CalendarStage[] = ["calendar", "briefing", "design", "done"];
 
 const STAGE_META: Record<CalendarStage, { label: string; icon: typeof FileText }> = {
   calendar: { label: "Pauta definida", icon: ListChecks },
