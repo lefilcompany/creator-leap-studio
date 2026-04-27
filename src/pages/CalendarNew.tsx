@@ -177,9 +177,45 @@ const CalendarNew = () => {
     }
   };
 
+  const updateItem = (index: number, patch: Partial<GeneratedItem>) => {
+    setGeneratedItems((prev) =>
+      prev.map((it, i) => (i === index ? { ...it, ...patch } : it))
+    );
+  };
+
+  const removeItem = (index: number) => {
+    setGeneratedItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addItem = () => {
+    const lastDate = generatedItems[generatedItems.length - 1]?.scheduled_date;
+    const baseDate = lastDate
+      ? new Date(lastDate)
+      : new Date(`${referenceMonth}-15`);
+    const next = new Date(baseDate);
+    next.setDate(next.getDate() + 2);
+    setGeneratedItems((prev) => [
+      ...prev,
+      {
+        title: "Nova pauta",
+        theme: prev[prev.length - 1]?.theme || "Educativo",
+        scheduled_date: next.toISOString().slice(0, 10),
+        platform: prev[prev.length - 1]?.platform || "instagram",
+        format: prev[prev.length - 1]?.format || "post",
+      },
+    ]);
+  };
+
   const handleSave = async () => {
     if (generatedItems.length === 0) {
-      toast.error("Gere as pautas antes de salvar.");
+      toast.error("Gere ou adicione pelo menos uma pauta antes de salvar.");
+      return;
+    }
+    const incomplete = generatedItems.find(
+      (it) => !it.title.trim() || !it.scheduled_date || !it.platform || !it.format
+    );
+    if (incomplete) {
+      toast.error("Preencha título, data, rede social e formato em todas as pautas.");
       return;
     }
     try {
@@ -190,7 +226,13 @@ const CalendarNew = () => {
         theme_id: themeId || null,
         user_input: userInput,
         reference_month: `${referenceMonth}-01`,
-        items: generatedItems,
+        items: generatedItems.map((it) => ({
+          title: it.title,
+          theme: it.theme,
+          scheduled_date: it.scheduled_date,
+          platform: it.platform || null,
+          format: it.format || null,
+        })),
       });
       navigate(`/calendar/${cal.id}`);
     } catch {
