@@ -402,6 +402,89 @@ export type Database = {
           },
         ]
       }
+      calendar_items: {
+        Row: {
+          briefing_approved: boolean
+          briefing_approved_at: string | null
+          briefing_approved_by: string | null
+          calendar_approved: boolean
+          calendar_id: string
+          created_at: string
+          design_action_id: string | null
+          design_approved: boolean
+          final_approved: boolean
+          id: string
+          image_briefing: string | null
+          metadata: Json | null
+          notes: string | null
+          position: number
+          scheduled_date: string | null
+          stage: string
+          team_id: string | null
+          text_briefing: string | null
+          theme: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          briefing_approved?: boolean
+          briefing_approved_at?: string | null
+          briefing_approved_by?: string | null
+          calendar_approved?: boolean
+          calendar_id: string
+          created_at?: string
+          design_action_id?: string | null
+          design_approved?: boolean
+          final_approved?: boolean
+          id?: string
+          image_briefing?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          position?: number
+          scheduled_date?: string | null
+          stage?: string
+          team_id?: string | null
+          text_briefing?: string | null
+          theme?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          briefing_approved?: boolean
+          briefing_approved_at?: string | null
+          briefing_approved_by?: string | null
+          calendar_approved?: boolean
+          calendar_id?: string
+          created_at?: string
+          design_action_id?: string | null
+          design_approved?: boolean
+          final_approved?: boolean
+          id?: string
+          image_briefing?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          position?: number
+          scheduled_date?: string | null
+          stage?: string
+          team_id?: string | null
+          text_briefing?: string | null
+          theme?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_items_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "content_calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_briefings: {
         Row: {
           action_id: string | null
@@ -465,6 +548,57 @@ export type Database = {
           tone?: string[]
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      content_calendars: {
+        Row: {
+          ai_context: Json | null
+          brand_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          persona_id: string | null
+          reference_month: string | null
+          status: string
+          team_id: string | null
+          theme_id: string | null
+          updated_at: string
+          user_id: string
+          user_input: string | null
+        }
+        Insert: {
+          ai_context?: Json | null
+          brand_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          persona_id?: string | null
+          reference_month?: string | null
+          status?: string
+          team_id?: string | null
+          theme_id?: string | null
+          updated_at?: string
+          user_id: string
+          user_input?: string | null
+        }
+        Update: {
+          ai_context?: Json | null
+          brand_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          persona_id?: string | null
+          reference_month?: string | null
+          status?: string
+          team_id?: string | null
+          theme_id?: string | null
+          updated_at?: string
+          user_id?: string
+          user_input?: string | null
         }
         Relationships: []
       }
