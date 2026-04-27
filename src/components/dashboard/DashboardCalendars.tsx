@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Plus, ArrowRight, CheckCircle2, FileText, Image as ImageIcon, Sparkles, ListChecks, Circle, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ArrowRight, CheckCircle2, FileText, Image as ImageIcon, Sparkles, ListChecks, Circle, Clock } from "lucide-react";
 import { useCalendars, useCalendarItems, type ContentCalendar, type CalendarStage } from "@/hooks/useCalendars";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
