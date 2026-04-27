@@ -109,10 +109,10 @@ const STEPS: Step[] = [
   { id: "calendar", label: "Calendário", icon: CalendarIcon },
   { id: "briefing", label: "Briefing", icon: FileText },
   { id: "design", label: "Design", icon: ImageIcon },
-  { id: "review", label: "Revisão", icon: Sparkles },
+  { id: "done", label: "Concluído", icon: CheckCircle2 },
 ];
 
-const stageOrder: CalendarStage[] = ["calendar", "briefing", "design", "review", "done"];
+const stageOrder: CalendarStage[] = ["calendar", "briefing", "design", "done"];
 
 export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
   const update = useUpdateCalendarItem();
