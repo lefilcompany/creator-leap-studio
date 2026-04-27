@@ -84,14 +84,16 @@ const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
     ? new Date(calendar.reference_month).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
     : null;
 
-  // Para cada etapa, conta quantos itens já passaram dela (índice >= stage)
+  // Etapas sequenciais: a primeira incompleta é "aguardando", as próximas ficam pendentes
+  const stagesReached = STAGE_ORDER.map((_, idx) =>
+    total === 0 ? 0 : items.filter((i) => STAGE_ORDER.indexOf(i.stage) >= idx).length
+  );
+  const firstIncompleteIdx = stagesReached.findIndex((r) => r < total);
   const stageStatus = STAGE_ORDER.map((stage, idx) => {
-    const reached = total === 0
-      ? 0
-      : items.filter((i) => STAGE_ORDER.indexOf(i.stage) >= idx).length;
+    const reached = stagesReached[idx];
     const isComplete = total > 0 && reached === total;
-    const isActive = !isComplete && reached > 0;
-    return { stage, reached, isComplete, isActive };
+    const isWaiting = total > 0 && !isComplete && idx === firstIncompleteIdx;
+    return { stage, reached, isComplete, isWaiting };
   });
 
   return (
