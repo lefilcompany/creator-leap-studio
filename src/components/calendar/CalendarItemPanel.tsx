@@ -699,6 +699,8 @@ const StageDesign = ({
     }
   };
 
+  const hasGeneratedImage = !!item.design_action_id;
+
   return (
     <div className="space-y-4">
       <div>
@@ -719,15 +721,27 @@ const StageDesign = ({
         </div>
       </div>
 
+      {!hasGeneratedImage && (
+        <div className="rounded-lg border border-dashed bg-muted/20 p-3 text-xs text-muted-foreground">
+          Gere a imagem para concluir esta pauta. A próxima etapa só fica disponível após a imagem ser criada.
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2 justify-end">
         <Button onClick={handleOpenGenerator} disabled={opening} className="gap-2">
           {opening ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          Gerar imagem
+          {hasGeneratedImage ? "Gerar nova imagem" : "Gerar imagem"}
           <ArrowRight className="h-4 w-4" />
         </Button>
-        <Button variant="outline" onClick={onAdvance} disabled={loading} className="gap-2">
+        <Button
+          variant="outline"
+          onClick={onAdvance}
+          disabled={loading || !hasGeneratedImage}
+          className="gap-2"
+          title={!hasGeneratedImage ? "Gere a imagem antes de concluir a pauta" : undefined}
+        >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          Marcar como pronto e enviar para revisão
+          Marcar como concluída
         </Button>
       </div>
     </div>
