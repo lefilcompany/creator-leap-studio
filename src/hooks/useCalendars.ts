@@ -120,7 +120,13 @@ export const useCreateCalendar = () => {
       theme_id?: string | null;
       user_input: string;
       reference_month?: string;
-      items: Array<{ title: string; theme: string; scheduled_date: string }>;
+      items: Array<{
+        title: string;
+        theme: string;
+        scheduled_date: string;
+        platform?: string | null;
+        format?: string | null;
+      }>;
     }) => {
       if (!user?.id) throw new Error("Não autenticado");
 
@@ -150,6 +156,10 @@ export const useCreateCalendar = () => {
         scheduled_date: item.scheduled_date,
         position: idx,
         stage: "calendar" as CalendarStage,
+        metadata: {
+          platform: item.platform || null,
+          format: item.format || null,
+        },
       }));
 
       if (itemsPayload.length > 0) {
