@@ -330,6 +330,14 @@ export async function renderTextLayers(
       const containerH = Math.max(1, blockHeight + padY * 2 + effectTopPad + effectBottomPad);
       const container = new Image(containerW, containerH);
 
+      // Safe pixel setter — silently clips writes outside the container bounds
+      // so a slightly oversized background or border doesn't kill the entire
+      // layer (which previously discarded text + stroke too).
+      const safeSetPixel = (cx: number, cy: number, color: number) => {
+        if (cx < 0 || cy < 0 || cx >= container.width || cy >= container.height) return;
+        try { container.setPixelAt(cx + 1, cy + 1, color); } catch { /* ignore */ }
+      };
+
       if (layer.background && layer.background.opacity > 0) {
         const bgColor = hexToRgba(layer.background.color, layer.background.opacity);
         const radius = Math.max(0, Math.round((layer.background.radius ?? 0) * scale));
