@@ -13,8 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic, ClipboardPaste, Type, Building2, UserRound, Newspaper } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CREDIT_COSTS, getOpenAIImageCost } from "@/lib/creditCosts";
-import { OpenAIImageSettings, DEFAULT_OPENAI_SETTINGS, type OpenAIImageSettingsValue } from "@/components/quick-content/OpenAIImageSettings";
+import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import type { BrandSummary } from "@/types/brand";
@@ -304,7 +303,7 @@ export default function CreateImage() {
   const [showStyles, setShowStyles] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [textModalOpen, setTextModalOpen] = useState(false);
-  const [openaiSettings, setOpenaiSettings] = useState<OpenAIImageSettingsValue>(DEFAULT_OPENAI_SETTINGS);
+  
 
   const teamId = user?.teamId;
   const userId = user?.id;
@@ -689,18 +688,7 @@ export default function CreateImage() {
         disclaimerText: formData.disclaimerText?.trim() || "",
         disclaimerStyle: formData.disclaimerStyle || "",
         teamId: user?.teamId,
-        // ===== OpenAI GPT Image 2 settings =====
-        openaiQuality: openaiSettings.quality,
-        openaiSize: openaiSettings.size,
-        openaiOutputFormat: openaiSettings.outputFormat,
-        openaiBackground: openaiSettings.background,
-        openaiCompression: openaiSettings.compression,
-        openaiN: openaiSettings.n,
-        openaiPartialImages: openaiSettings.partialImages,
-        // Modo edição (/v1/images/edits) — só ativa se houver imagem base
-        openaiEditMode: openaiSettings.editMode && openaiSettings.editBaseImages.length > 0,
-        editBaseImages: openaiSettings.editMode ? openaiSettings.editBaseImages : [],
-        editMask: openaiSettings.editMode ? (openaiSettings.editMask || null) : null,
+        // 🔬 DEBUG: ativa snapshots por etapa do pipeline.
         // 🔬 DEBUG: ativa snapshots por etapa do pipeline (model_base → postprocess → before_overlay → after_overlay).
         // Habilite no console com: localStorage.setItem('debugSnapshots','1') e recarregue.
         debugSnapshots: typeof window !== 'undefined' && window.localStorage?.getItem('debugSnapshots') === '1',
@@ -718,17 +706,24 @@ export default function CreateImage() {
         "Criando Imagem",
         "create_image",
         async (helpers) => {
-          // Generate image via OpenAI GPT Image 2 com STREAMING SSE (partial_images)
-          const { consumeImageGenerationSSE } = await import("@/lib/imageGenerationStream");
-          const sseResult = await consumeImageGenerationSSE(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image-openai`,
-            requestData,
-            capturedSession?.access_token,
+          // Generate image via Gemini (generate-image edge function — JSON síncrono)
+          helpers.setProgress("Gerando imagem com IA...");
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`,
             {
-              onProgress: (message) => helpers.setProgress(message),
-              onPartial: (b64, idx) => helpers.pushPartial(b64, idx),
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${capturedSession?.access_token}`,
+              },
+              body: JSON.stringify(requestData),
             },
           );
+          if (!response.ok) {
+            const errText = await response.text().catch(() => "");
+            throw new Error(`Erro ao gerar imagem (${response.status}): ${errText || "sem resposta"}`);
+          }
+          const sseResult = await response.json();
           const { imageUrl, legenda, complianceCheck } = sseResult;
 
           // Handle caption
@@ -1045,8 +1040,6 @@ export default function CreateImage() {
                 )}
               </div>
 
-              {/* Motor de imagem (OpenAI GPT Image 2) */}
-              <OpenAIImageSettings value={openaiSettings} onChange={setOpenaiSettings} />
 
               {/* 2. Personalizações (sem card, flex lado a lado) */}
               <div className="space-y-2.5">
@@ -1226,7 +1219,7 @@ export default function CreateImage() {
                 <>
                   <Sparkles className="h-4 w-4" />
                   Gerar Imagem
-                  <span className="text-primary-foreground/60 text-xs font-normal">· {getOpenAIImageCost(openaiSettings.quality)} créditos</span>
+                  <span className="text-primary-foreground/60 text-xs font-normal">· {CREDIT_COSTS.COMPLETE_IMAGE} créditos</span>
                 </>
               )}
             </Button>
