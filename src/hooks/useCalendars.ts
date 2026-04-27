@@ -175,7 +175,8 @@ export const useUpdateCalendarItem = () => {
       updates,
     }: {
       id: string;
-      updates: Partial<CalendarItem>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      updates: Record<string, any>;
     }) => {
       const { data, error } = await supabase
         .from("calendar_items")
