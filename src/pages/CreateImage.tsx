@@ -1219,7 +1219,7 @@ export default function CreateImage() {
                 <>
                   <Sparkles className="h-4 w-4" />
                   Gerar Imagem
-                  <span className="text-primary-foreground/60 text-xs font-normal">· {getOpenAIImageCost(openaiSettings.quality)} créditos</span>
+                  <span className="text-primary-foreground/60 text-xs font-normal">· {CREDIT_COSTS.COMPLETE_IMAGE} créditos</span>
                 </>
               )}
             </Button>
