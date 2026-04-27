@@ -40,7 +40,49 @@ const CalendarNew = () => {
   });
 
   const [generating, setGenerating] = useState(false);
+  const [suggestingBriefing, setSuggestingBriefing] = useState(false);
   const [generatedItems, setGeneratedItems] = useState<GeneratedItem[]>([]);
+
+  const handleSuggestBriefing = async () => {
+    setSuggestingBriefing(true);
+    try {
+      const refDate = `${referenceMonth}-01`;
+      const { data, error } = await supabase.functions.invoke("suggest-calendar-briefing", {
+        body: {
+          brand: selectedBrand
+            ? {
+                name: selectedBrand.name,
+                segment: selectedBrand.segment,
+                values: selectedBrand.values,
+                keywords: selectedBrand.keywords,
+              }
+            : null,
+          persona: selectedPersona
+            ? {
+                name: selectedPersona.name,
+                main_goal: (selectedPersona as { main_goal?: string }).main_goal,
+                challenges: selectedPersona.challenges,
+              }
+            : null,
+          theme: selectedTheme
+            ? { title: selectedTheme.title, description: selectedTheme.description }
+            : null,
+          reference_month: refDate,
+          hint: userInput,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.briefing) {
+        setUserInput(data.briefing);
+        toast.success("Sugestão de briefing gerada!");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao gerar sugestão");
+    } finally {
+      setSuggestingBriefing(false);
+    }
+  };
 
   const selectedBrand = brands.find((b) => b.id === brandId);
   const selectedPersona = personas.find((p) => p.id === personaId);
