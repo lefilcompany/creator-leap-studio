@@ -79,8 +79,10 @@ REGRAS:
 - Distribua as datas dentro do mês ${monthLabel} (use o prefixo ${yearMonth}-DD), evitando finais de semana se possível.
 - A primeira pauta perto do início do mês, a última perto do fim.
 - Datas em formato ISO YYYY-MM-DD.
+- Para cada pauta sugira "platform" (uma de: "instagram", "tiktok", "linkedin", "facebook", "youtube") e "format" (um de: "post", "carrossel", "reels", "story", "video_longo", "post_fixo").
+- Varie plataformas e formatos ao longo do mês de forma estratégica.
 - Responda APENAS com JSON válido no formato:
-{"items":[{"title":"...","theme":"...","scheduled_date":"YYYY-MM-DD"}, ...]}
+{"items":[{"title":"...","theme":"...","scheduled_date":"YYYY-MM-DD","platform":"instagram","format":"reels"}, ...]}
 Sem texto adicional, sem markdown, sem cercas de código.`;
 
     const userPrompt = `${contextLines.join("\n")}
