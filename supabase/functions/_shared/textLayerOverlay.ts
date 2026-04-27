@@ -401,7 +401,7 @@ export async function renderTextLayers(
                 if (insideInner) continue;
               }
             }
-            container.setPixelAt(x, y, bgColor);
+            safeSetPixel(x, y, bgColor);
           }
         }
       }
