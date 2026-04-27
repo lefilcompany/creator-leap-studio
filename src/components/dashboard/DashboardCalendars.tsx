@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, Plus, ArrowRight, CheckCircle2, FileText, Image as ImageIcon, Sparkles } from "lucide-react";
-import { useCalendars, useCalendarItems, type ContentCalendar } from "@/hooks/useCalendars";
+import { Calendar as CalendarIcon, Plus, ArrowRight, CheckCircle2, FileText, Image as ImageIcon, Sparkles, ListChecks, Circle, Loader2 } from "lucide-react";
+import { useCalendars, useCalendarItems, type ContentCalendar, type CalendarStage } from "@/hooks/useCalendars";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 export const DashboardCalendars = () => {
   const { data: calendars = [], isLoading } = useCalendars();
@@ -64,23 +64,41 @@ export const DashboardCalendars = () => {
   );
 };
 
+const STAGE_ORDER: CalendarStage[] = ["calendar", "briefing", "design", "review", "done"];
+
+const STAGE_META: Record<CalendarStage, { label: string; icon: typeof FileText }> = {
+  calendar: { label: "Pauta definida", icon: ListChecks },
+  briefing: { label: "Briefing aprovado", icon: FileText },
+  design: { label: "Design criado", icon: ImageIcon },
+  review: { label: "Ajustes finais", icon: Sparkles },
+  done: { label: "Conteúdo pronto", icon: CheckCircle2 },
+};
+
 const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
   const { data: items = [] } = useCalendarItems(calendar.id);
   const total = items.length;
   const done = items.filter((i) => i.stage === "done").length;
-  const briefing = items.filter((i) => i.stage === "briefing").length;
-  const design = items.filter((i) => i.stage === "design").length;
-  const review = items.filter((i) => i.stage === "review").length;
   const progressPct = total > 0 ? Math.round((done / total) * 100) : 0;
 
   const refMonth = calendar.reference_month
     ? new Date(calendar.reference_month).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
     : null;
 
+  // Para cada etapa, conta quantos itens já passaram dela (índice >= stage)
+  const stageStatus = STAGE_ORDER.map((stage, idx) => {
+    const reached = total === 0
+      ? 0
+      : items.filter((i) => STAGE_ORDER.indexOf(i.stage) >= idx).length;
+    const isComplete = total > 0 && reached === total;
+    const isActive = !isComplete && reached > 0;
+    return { stage, reached, isComplete, isActive };
+  });
+
   return (
-    <Link to={`/calendar/${calendar.id}`} className="block group">
-      <Card className="p-4 hover:shadow-md hover:border-primary/30 transition-all h-full">
-        <div className="flex items-start justify-between gap-3 mb-3">
+    <Link to={`/calendar/${calendar.id}`} className="block group h-full">
+      <Card className="p-5 hover:shadow-md hover:border-primary/30 transition-all h-full flex flex-col">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0 flex-1">
             <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
               {calendar.name}
@@ -93,7 +111,7 @@ const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
         </div>
 
         {/* Barra de progresso */}
-        <div className="space-y-1.5 mb-3">
+        <div className="space-y-1.5 mb-4">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">{done}/{total} concluídos</span>
             <span className="font-medium">{progressPct}%</span>
@@ -106,28 +124,58 @@ const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
           </div>
         </div>
 
-        {/* Mini badges das etapas */}
-        <div className="flex flex-wrap gap-1.5">
-          {briefing > 0 && (
-            <Badge variant="outline" className="text-[10px] gap-1 px-1.5 py-0 h-5">
-              <FileText className="h-2.5 w-2.5" /> {briefing} briefing
-            </Badge>
-          )}
-          {design > 0 && (
-            <Badge variant="outline" className="text-[10px] gap-1 px-1.5 py-0 h-5">
-              <ImageIcon className="h-2.5 w-2.5" /> {design} design
-            </Badge>
-          )}
-          {review > 0 && (
-            <Badge variant="outline" className="text-[10px] gap-1 px-1.5 py-0 h-5">
-              <Sparkles className="h-2.5 w-2.5" /> {review} revisão
-            </Badge>
-          )}
-          {done > 0 && (
-            <Badge variant="outline" className="text-[10px] gap-1 px-1.5 py-0 h-5 text-success border-success/30">
-              <CheckCircle2 className="h-2.5 w-2.5" /> {done} pronto
-            </Badge>
-          )}
+        {/* Checklist vertical das etapas */}
+        <div className="relative flex-1">
+          {/* Linha conectora vertical */}
+          <div className="absolute left-[9px] top-2 bottom-2 w-px bg-border/60" aria-hidden />
+
+          <ul className="space-y-2.5 relative">
+            {stageStatus.map(({ stage, reached, isComplete, isActive }) => {
+              const meta = STAGE_META[stage];
+              return (
+                <li key={stage} className="flex items-center gap-2.5">
+                  <div
+                    className={cn(
+                      "relative z-10 h-[18px] w-[18px] rounded-full flex items-center justify-center shrink-0 border transition-colors bg-card",
+                      isComplete && "bg-success border-success text-success-foreground",
+                      isActive && "border-primary text-primary",
+                      !isComplete && !isActive && "border-border text-muted-foreground/50"
+                    )}
+                  >
+                    {isComplete ? (
+                      <CheckCircle2 className="h-[14px] w-[14px]" strokeWidth={2.5} />
+                    ) : isActive ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Circle className="h-2 w-2 fill-current" />
+                    )}
+                  </div>
+                  <span
+                    className={cn(
+                      "text-xs flex-1 truncate transition-colors",
+                      isComplete && "text-foreground line-through decoration-success/60",
+                      isActive && "text-foreground font-medium",
+                      !isComplete && !isActive && "text-muted-foreground/70"
+                    )}
+                  >
+                    {meta.label}
+                  </span>
+                  {total > 0 && (
+                    <span
+                      className={cn(
+                        "text-[10px] tabular-nums px-1.5 py-0.5 rounded-md font-medium shrink-0",
+                        isComplete && "bg-success/10 text-success",
+                        isActive && "bg-primary/10 text-primary",
+                        !isComplete && !isActive && "bg-muted/60 text-muted-foreground/60"
+                      )}
+                    >
+                      {reached}/{total}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </Card>
     </Link>
