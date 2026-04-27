@@ -162,7 +162,12 @@ const StageCalendar = ({
   item: CalendarItem;
   onAdvance: () => void;
   loading: boolean;
-}) => (
+}) => {
+  const meta = (item.metadata || {}) as Record<string, any>;
+  const platform: string | null = meta.platform ?? null;
+  const format: string | null = meta.format ?? null;
+
+  return (
   <div className="space-y-4">
     <div>
       <h3 className="font-semibold text-sm mb-1">Pauta confirmada</h3>
@@ -170,14 +175,23 @@ const StageCalendar = ({
         Confira a pauta e confirme para avançar para a criação do briefing.
       </p>
     </div>
-    <div className="rounded-lg bg-muted/40 p-4 space-y-2">
-      <p className="text-sm"><strong>Título:</strong> {item.title}</p>
-      {item.theme && <p className="text-sm"><strong>Tema:</strong> {item.theme}</p>}
+    <div className="rounded-lg bg-muted/40 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <Field label="Título" value={item.title} full />
+      {item.theme && <Field label="Tema / Editoria" value={item.theme} />}
       {item.scheduled_date && (
-        <p className="text-sm">
-          <strong>Data:</strong> {new Date(item.scheduled_date).toLocaleDateString("pt-BR")}
-        </p>
+        <Field
+          label="Data"
+          value={new Date(item.scheduled_date).toLocaleDateString("pt-BR", {
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          })}
+        />
       )}
+      <Field label="Rede social" value={platform || "—"} />
+      <Field label="Formato" value={format || "—"} />
+      {item.notes && <Field label="Observações" value={item.notes} full />}
     </div>
     <Button onClick={onAdvance} disabled={loading} className="gap-2 w-full sm:w-auto">
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
