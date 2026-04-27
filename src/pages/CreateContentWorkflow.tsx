@@ -227,43 +227,72 @@ export default function CreateContentWorkflow() {
         (user?.credits ?? 0) < CREDIT_COSTS.CONTENT_BRIEFING_PACKAGE));
 
   return (
-    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-screen">
-      <div className="px-4 sm:px-6 lg:px-8 pt-4">
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
+      {/* Banner */}
+      <div className="relative h-24 md:h-28 overflow-hidden">
         <PageBreadcrumb
           items={[
             { label: "Criar Conteúdo", href: "/create" },
             { label: "Workflow guiado" },
           ]}
+          variant="overlay"
         />
+        <img
+          src={createBanner}
+          alt="Criar conteúdo com briefing"
+          className="w-full h-full object-cover object-center"
+          loading="eager"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8 pt-2 pb-4">
-        {/* Header + Stepper lado a lado (estilo /create/image) */}
-        <div className="flex flex-col md:flex-row md:items-stretch gap-3 mb-4">
+      {/* Header Cards */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-8 z-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-stretch gap-3">
           {/* Title card */}
-          <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5 flex items-center gap-3 flex-1 min-w-0">
-            <div className="bg-primary/10 border border-primary/20 rounded-xl p-2.5 flex-shrink-0">
-              <Wand2 className="h-5 w-5 lg:h-6 lg:w-6 text-primary" />
+          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
+              <Wand2 className="h-5 w-5 lg:h-6 lg:w-6" />
             </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight truncate">
-                Criar conteúdo com briefing
-              </h1>
-              <p className="text-xs lg:text-sm text-muted-foreground truncate">
-                A IA traduz sua ideia em um plano completo de imagem + legenda.
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight">
+                  Criar com briefing
+                </h1>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-foreground transition-colors">
+                      <HelpCircle className="h-3.5 w-3.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="text-sm w-72" side="bottom">
+                    <p className="font-medium mb-1">Workflow guiado</p>
+                    <p className="text-muted-foreground text-xs">
+                      A IA traduz sua ideia em um plano completo de imagem + legenda em 4 passos.
+                    </p>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <p className="text-muted-foreground text-[11px] lg:text-xs">
+                A IA monta o plano completo a partir da sua ideia
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate("/create/image")}
-              className="hidden lg:inline text-xs text-primary hover:underline whitespace-nowrap flex-shrink-0"
-            >
-              Pular briefing →
-            </button>
+            <div className="ml-auto flex items-center gap-2 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl px-3 py-1.5 flex-shrink-0 border border-primary/20">
+              <div className="relative flex-shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40" />
+                <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-1.5">
+                  <Zap className="h-3.5 w-3.5" />
+                </div>
+              </div>
+              <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                {user?.credits || 0}
+              </span>
+              <span className="text-xs text-muted-foreground font-medium">créditos</span>
+            </div>
           </div>
 
           {/* Stepper card */}
-          <div className="bg-card rounded-2xl shadow-md p-3 lg:p-4 flex-shrink-0 flex items-center min-w-[320px]">
+          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex-shrink-0 flex items-center min-w-[320px]">
             <StepIndicator
               steps={WORKFLOW_STEPS}
               currentStep={state.currentStep}
@@ -272,18 +301,22 @@ export default function CreateContentWorkflow() {
             />
           </div>
         </div>
+      </div>
 
-        {/* Mobile-only "skip briefing" link */}
-        <button
-          type="button"
-          onClick={() => navigate("/create/image")}
-          className="lg:hidden mb-4 text-xs text-primary hover:underline"
-        >
-          Já sei o que criar — pular briefing →
-        </button>
+      {/* Main content */}
+      <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
+        <div className="max-w-7xl mx-auto">
+          {/* Mobile-only "skip briefing" link */}
+          <button
+            type="button"
+            onClick={() => navigate("/create/image")}
+            className="lg:hidden mb-4 text-xs text-primary hover:underline"
+          >
+            Já sei o que criar — pular briefing →
+          </button>
 
-        {/* Step content */}
-        <div>
+          {/* Step content */}
+          <div>
           {state.currentStep === 1 && (
             <Step1Briefing
               value={state.briefing}
