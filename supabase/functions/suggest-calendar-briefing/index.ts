@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
       contextLines.push(`PISTA DO USUÁRIO: ${body.hint}`);
     }
 
-    const systemPrompt = `Você é um estrategista de marketing de conteúdo brasileiro. Sua tarefa é escrever um briefing curto (3 a 5 frases, no máximo 600 caracteres) descrevendo o que a marca quer comunicar no mês e por quê.
+    const systemPrompt = `Você é um estrategista de marketing de conteúdo brasileiro. Sua tarefa é escrever um briefing detalhado (entre 8 e 15 frases, até 2500 caracteres) descrevendo o que a marca quer comunicar no mês, para quem, com qual abordagem e por quê.
 
 REGRAS:
 - Linguagem natural, direta, em português do Brasil.
@@ -76,7 +76,7 @@ Escreva o briefing.`;
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
         generationConfig: {
           temperature: 0.8,
-          maxOutputTokens: 500,
+          maxOutputTokens: 2000,
         },
       }),
     });
