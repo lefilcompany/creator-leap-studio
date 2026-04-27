@@ -43,12 +43,30 @@ const CalendarNew = () => {
   const [suggestingBriefing, setSuggestingBriefing] = useState(false);
   const [generatedItems, setGeneratedItems] = useState<GeneratedItem[]>([]);
 
+  const selectedBrand = brands.find((b) => b.id === brandId);
+  const selectedPersona = personas.find((p) => p.id === personaId);
+  const selectedTheme = themes.find((t) => t.id === themeId);
+
+  // Para sugerir o briefing com IA, exigimos contexto completo
+  const missingForSuggest: string[] = [];
+  if (name.trim().length < 3) missingForSuggest.push("nome do calendário");
+  if (!referenceMonth) missingForSuggest.push("mês de referência");
+  if (!selectedBrand) missingForSuggest.push("marca");
+  if (!selectedPersona) missingForSuggest.push("persona");
+  if (!selectedTheme) missingForSuggest.push("editoria");
+  const canSuggest = missingForSuggest.length === 0;
+
   const handleSuggestBriefing = async () => {
+    if (!canSuggest) {
+      toast.error(`Preencha antes: ${missingForSuggest.join(", ")}.`);
+      return;
+    }
     setSuggestingBriefing(true);
     try {
       const refDate = `${referenceMonth}-01`;
       const { data, error } = await supabase.functions.invoke("suggest-calendar-briefing", {
         body: {
+          calendar_name: name,
           brand: selectedBrand
             ? {
                 name: selectedBrand.name,
@@ -72,7 +90,6 @@ const CalendarNew = () => {
         },
       });
       if (error) {
-        // supabase.functions.invoke embute o body de erro em error.context (Response)
         let msg = error.message;
         const ctx = (error as { context?: Response }).context;
         if (ctx && typeof ctx.json === "function") {
@@ -94,10 +111,6 @@ const CalendarNew = () => {
       setSuggestingBriefing(false);
     }
   };
-
-  const selectedBrand = brands.find((b) => b.id === brandId);
-  const selectedPersona = personas.find((p) => p.id === personaId);
-  const selectedTheme = themes.find((t) => t.id === themeId);
 
   const canGenerate = name.trim().length >= 3 && userInput.trim().length >= 10;
 
@@ -250,7 +263,12 @@ const CalendarNew = () => {
               variant="outline"
               size="sm"
               onClick={handleSuggestBriefing}
-              disabled={suggestingBriefing}
+              disabled={suggestingBriefing || !canSuggest}
+              title={
+                canSuggest
+                  ? "Gerar uma sugestão de briefing com base no contexto"
+                  : `Para sugerir com IA, preencha: ${missingForSuggest.join(", ")}`
+              }
               className="gap-2 h-8"
             >
               {suggestingBriefing ? (
