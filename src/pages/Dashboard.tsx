@@ -274,34 +274,6 @@ const Dashboard = () => {
         <DashboardQuickActions />
       </div>
 
-      {/* Linha operacional: créditos compactos + KPIs */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <div className="lg:col-span-1">
-          <DashboardCreditsCard
-            remainingCredits={remainingCredits}
-            totalCredits={totalCredits}
-            progressPercentage={progressPercentage}
-            creditsExpireAt={user.creditsExpireAt}
-          />
-        </div>
-        <div className="lg:col-span-2" id="dashboard-stats">
-          <DashboardStats
-            actionsCount={actionsCount}
-            brandsCount={brandsCount}
-            personasCount={personasCount}
-            themesCount={themesCount}
-            hasTeam={!!user.teamId}
-          />
-        </div>
-      </div>
-
-      {/* Atividade recente em lista */}
-      <div id="dashboard-recent-actions">
-        <DashboardRecentActivity
-          activities={recentActivities as any}
-          isLoading={isLoadingActivities}
-        />
-      </div>
     </div>
   );
 };
