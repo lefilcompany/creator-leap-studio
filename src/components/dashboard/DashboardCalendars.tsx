@@ -132,7 +132,7 @@ const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
           <div className="absolute left-[9px] top-2 bottom-2 w-px bg-border/60" aria-hidden />
 
           <ul className="space-y-2.5 relative">
-            {stageStatus.map(({ stage, reached, isComplete, isActive }) => {
+            {stageStatus.map(({ stage, reached, isComplete, isWaiting }) => {
               const meta = STAGE_META[stage];
               return (
                 <li key={stage} className="flex items-center gap-2.5">
@@ -140,38 +140,37 @@ const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
                     className={cn(
                       "relative z-10 h-[18px] w-[18px] rounded-full flex items-center justify-center shrink-0 border transition-colors bg-card",
                       isComplete && "bg-success border-success text-success-foreground",
-                      isActive && "border-primary text-primary",
-                      !isComplete && !isActive && "border-border text-muted-foreground/50"
+                      isWaiting && "border-primary text-primary bg-primary/5",
+                      !isComplete && !isWaiting && "border-border text-muted-foreground/40"
                     )}
                   >
                     {isComplete ? (
                       <CheckCircle2 className="h-[14px] w-[14px]" strokeWidth={2.5} />
-                    ) : isActive ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : isWaiting ? (
+                      <Clock className="h-[11px] w-[11px]" strokeWidth={2.5} />
                     ) : (
-                      <Circle className="h-2 w-2 fill-current" />
+                      <Circle className="h-1.5 w-1.5 fill-current" />
                     )}
                   </div>
                   <span
                     className={cn(
                       "text-xs flex-1 truncate transition-colors",
-                      isComplete && "text-foreground line-through decoration-success/60",
-                      isActive && "text-foreground font-medium",
-                      !isComplete && !isActive && "text-muted-foreground/70"
+                      isComplete && "text-foreground",
+                      isWaiting && "text-foreground font-medium",
+                      !isComplete && !isWaiting && "text-muted-foreground/50"
                     )}
                   >
                     {meta.label}
                   </span>
-                  {total > 0 && (
+                  {(isComplete || isWaiting) && total > 0 && (
                     <span
                       className={cn(
                         "text-[10px] tabular-nums px-1.5 py-0.5 rounded-md font-medium shrink-0",
                         isComplete && "bg-success/10 text-success",
-                        isActive && "bg-primary/10 text-primary",
-                        !isComplete && !isActive && "bg-muted/60 text-muted-foreground/60"
+                        isWaiting && "bg-primary/10 text-primary"
                       )}
                     >
-                      {reached}/{total}
+                      {isComplete ? "OK" : `${reached}/${total}`}
                     </span>
                   )}
                 </li>
