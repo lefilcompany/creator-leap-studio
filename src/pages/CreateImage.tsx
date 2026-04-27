@@ -688,18 +688,7 @@ export default function CreateImage() {
         disclaimerText: formData.disclaimerText?.trim() || "",
         disclaimerStyle: formData.disclaimerStyle || "",
         teamId: user?.teamId,
-        // ===== OpenAI GPT Image 2 settings =====
-        openaiQuality: openaiSettings.quality,
-        openaiSize: openaiSettings.size,
-        openaiOutputFormat: openaiSettings.outputFormat,
-        openaiBackground: openaiSettings.background,
-        openaiCompression: openaiSettings.compression,
-        openaiN: openaiSettings.n,
-        openaiPartialImages: openaiSettings.partialImages,
-        // Modo edição (/v1/images/edits) — só ativa se houver imagem base
-        openaiEditMode: openaiSettings.editMode && openaiSettings.editBaseImages.length > 0,
-        editBaseImages: openaiSettings.editMode ? openaiSettings.editBaseImages : [],
-        editMask: openaiSettings.editMode ? (openaiSettings.editMask || null) : null,
+        // 🔬 DEBUG: ativa snapshots por etapa do pipeline.
         // 🔬 DEBUG: ativa snapshots por etapa do pipeline (model_base → postprocess → before_overlay → after_overlay).
         // Habilite no console com: localStorage.setItem('debugSnapshots','1') e recarregue.
         debugSnapshots: typeof window !== 'undefined' && window.localStorage?.getItem('debugSnapshots') === '1',
