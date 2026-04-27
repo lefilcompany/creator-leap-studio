@@ -262,14 +262,14 @@ export default function CreateContentWorkflow() {
         </div>
 
         {/* Stepper */}
-        <Card className="p-4 lg:p-5 mb-4 rounded-2xl">
+        <div className="mb-4">
           <StepIndicator
             steps={WORKFLOW_STEPS}
             currentStep={state.currentStep}
             highestVisitedStep={state.highestVisitedStep}
             onStepClick={handleStepClick}
           />
-        </Card>
+        </div>
 
         {/* Step content */}
         <Card className="p-4 sm:p-6 lg:p-8 rounded-2xl">
