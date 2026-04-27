@@ -128,8 +128,6 @@ const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
 
         {/* Checklist vertical das etapas */}
         <div className="relative flex-1">
-          {/* Linha conectora vertical */}
-          <div className="absolute left-[9px] top-2 bottom-2 w-px bg-border/60" aria-hidden />
 
           <ul className="space-y-2.5 relative">
             {stageStatus.map(({ stage, reached, isComplete, isWaiting }) => {
