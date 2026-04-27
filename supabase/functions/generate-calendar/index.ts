@@ -20,6 +20,8 @@ interface Pauta {
   title: string;
   theme: string;
   scheduled_date: string;
+  platform?: string;
+  format?: string;
 }
 
 Deno.serve(async (req) => {
