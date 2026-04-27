@@ -19,7 +19,26 @@ interface GeneratedItem {
   title: string;
   theme: string;
   scheduled_date: string;
+  platform?: string;
+  format?: string;
 }
+
+const PLATFORMS = [
+  { value: "instagram", label: "Instagram" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "facebook", label: "Facebook" },
+  { value: "youtube", label: "YouTube" },
+];
+
+const FORMATS = [
+  { value: "post", label: "Post (feed)" },
+  { value: "carrossel", label: "Carrossel" },
+  { value: "reels", label: "Reels / Vídeo curto" },
+  { value: "story", label: "Story" },
+  { value: "video_longo", label: "Vídeo longo" },
+  { value: "post_fixo", label: "Post fixo" },
+];
 
 const CalendarNew = () => {
   const navigate = useNavigate();
