@@ -209,10 +209,28 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
           <StageBriefing item={item} update={update} />
         )}
         {item.stage === "design" && (
-          <StageDesign item={item} onAdvance={() => update.mutate({ id: item.id, updates: { design_approved: true, stage: "review" } })} loading={update.isPending} />
+          <StageDesign
+            item={item}
+            onAdvance={() =>
+              update.mutate({
+                id: item.id,
+                updates: { design_approved: true, final_approved: true, stage: "done" },
+              })
+            }
+            loading={update.isPending}
+          />
         )}
         {item.stage === "review" && (
-          <StageReview item={item} onAdvance={() => update.mutate({ id: item.id, updates: { final_approved: true, stage: "done" } })} loading={update.isPending} />
+          <StageDesign
+            item={item}
+            onAdvance={() =>
+              update.mutate({
+                id: item.id,
+                updates: { design_approved: true, final_approved: true, stage: "done" },
+              })
+            }
+            loading={update.isPending}
+          />
         )}
         {item.stage === "done" && (
           <div className="text-center py-8">
