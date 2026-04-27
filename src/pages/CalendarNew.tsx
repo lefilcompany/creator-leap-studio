@@ -370,38 +370,111 @@ const CalendarNew = () => {
 
       {generatedItems.length > 0 && (
         <Card className="p-5 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="font-semibold text-lg">Pautas geradas</h2>
+              <h2 className="font-semibold text-lg">Pautas do calendário</h2>
               <p className="text-sm text-muted-foreground">
-                {generatedItems.length} pautas — você poderá ajustar cada uma na próxima etapa.
+                Ajuste cada pauta antes de enviar para a equipe trabalhar o briefing.
+                Defina título, data, rede social e formato.
               </p>
             </div>
+            <Button type="button" variant="outline" size="sm" onClick={addItem} className="gap-2 shrink-0">
+              <Plus className="h-3.5 w-3.5" />
+              Adicionar pauta
+            </Button>
           </div>
-          <div className="space-y-2">
+
+          <div className="space-y-3">
             {generatedItems.map((item, i) => (
-              <div key={i} className="flex items-start gap-3 p-3 rounded-lg border border-border/50 bg-muted/30">
-                <div className="rounded-lg bg-primary/10 text-primary text-xs font-bold w-8 h-8 flex items-center justify-center shrink-0">
-                  {i + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{item.title}</p>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                    <span className="px-1.5 py-0.5 rounded bg-accent/10 text-accent">{item.theme}</span>
-                    <span>{new Date(item.scheduled_date).toLocaleDateString("pt-BR")}</span>
+              <div
+                key={i}
+                className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-primary/10 text-primary text-xs font-bold w-8 h-8 flex items-center justify-center shrink-0">
+                    {i + 1}
                   </div>
+                  <div className="flex-1 min-w-0 space-y-3">
+                    <Input
+                      value={item.title}
+                      onChange={(e) => updateItem(i, { title: e.target.value })}
+                      placeholder="Título da pauta"
+                      className="font-medium"
+                    />
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Data</Label>
+                        <Input
+                          type="date"
+                          value={item.scheduled_date}
+                          onChange={(e) => updateItem(i, { scheduled_date: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Tema</Label>
+                        <Input
+                          value={item.theme}
+                          onChange={(e) => updateItem(i, { theme: e.target.value })}
+                          placeholder="Ex: Educativo"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Rede social</Label>
+                        <Select
+                          value={item.platform || ""}
+                          onValueChange={(v) => updateItem(i, { platform: v })}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                          <SelectContent>
+                            {PLATFORMS.map((p) => (
+                              <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Formato</Label>
+                        <Select
+                          value={item.format || ""}
+                          onValueChange={(v) => updateItem(i, { format: v })}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                          <SelectContent>
+                            {FORMATS.map((f) => (
+                              <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeItem(i)}
+                    className="text-muted-foreground hover:text-destructive shrink-0"
+                    title="Remover pauta"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
-          <div className="flex justify-end">
+
+          <div className="flex items-center justify-between gap-3 pt-2 border-t border-border/40">
+            <p className="text-xs text-muted-foreground">
+              A marca, persona e editoria selecionadas acima serão aplicadas a todas as pautas.
+            </p>
             <Button onClick={handleSave} disabled={createCalendar.isPending} className="gap-2">
               {createCalendar.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <CheckCircle2 className="h-4 w-4" />
               )}
-              Salvar e abrir calendário
+              Salvar e enviar para a equipe
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
