@@ -402,6 +402,72 @@ export type Database = {
           },
         ]
       }
+      content_briefings: {
+        Row: {
+          action_id: string | null
+          additional_notes: string | null
+          brand_id: string
+          content_type: string
+          created_at: string
+          edited_template: Json | null
+          id: string
+          idea: string
+          objective: string | null
+          persona_id: string | null
+          platform: string | null
+          selected_template_id: string | null
+          status: string
+          team_id: string | null
+          templates: Json
+          theme_id: string | null
+          tone: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_id?: string | null
+          additional_notes?: string | null
+          brand_id: string
+          content_type?: string
+          created_at?: string
+          edited_template?: Json | null
+          id?: string
+          idea: string
+          objective?: string | null
+          persona_id?: string | null
+          platform?: string | null
+          selected_template_id?: string | null
+          status?: string
+          team_id?: string | null
+          templates?: Json
+          theme_id?: string | null
+          tone?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_id?: string | null
+          additional_notes?: string | null
+          brand_id?: string
+          content_type?: string
+          created_at?: string
+          edited_template?: Json | null
+          id?: string
+          idea?: string
+          objective?: string | null
+          persona_id?: string | null
+          platform?: string | null
+          selected_template_id?: string | null
+          status?: string
+          team_id?: string | null
+          templates?: Json
+          theme_id?: string | null
+          tone?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           code: string

@@ -16,6 +16,7 @@ export const CREDIT_COSTS = {
   CREATE_THEME: 1,
   MARKETPLACE_IMAGE: 5,
   PPTX_EXPORT_NO_WATERMARK: 2,
+  CONTENT_BRIEFING_PACKAGE: 10,
 } as const;
 
 export type OpenAIImageQuality = 'low' | 'medium' | 'high' | 'auto';
@@ -56,6 +57,7 @@ export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string =>
     CREATE_THEME: "Criar editoria",
     MARKETPLACE_IMAGE: "Imagem para marketplace",
     PPTX_EXPORT_NO_WATERMARK: "Exportação PPT sem marca d'água",
+    CONTENT_BRIEFING_PACKAGE: "Conteúdo guiado (briefing + imagem + legenda)",
   };
   return labels[action];
 };
