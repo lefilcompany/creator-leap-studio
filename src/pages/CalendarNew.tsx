@@ -69,7 +69,7 @@ const CalendarNew = () => {
           persona: selectedPersona
             ? {
                 name: selectedPersona.name,
-                main_goal: selectedPersona.mainGoal,
+                main_goal: (selectedPersona as { main_goal?: string }).main_goal,
                 challenges: selectedPersona.challenges,
               }
             : null,
@@ -115,7 +115,7 @@ const CalendarNew = () => {
 
   return (
     <div className="space-y-5 pb-8 max-w-5xl mx-auto">
-      <PageBreadcrumb items={[{ label: "Calendário", path: "/plan" }, { label: "Novo calendário" }]} />
+      <PageBreadcrumb items={[{ label: "Calendário", href: "/plan" }, { label: "Novo calendário" }]} />
 
       <div className="bg-card rounded-2xl shadow-md p-5">
         <div className="flex items-center gap-3 mb-1">
