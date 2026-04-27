@@ -64,37 +64,52 @@ export const DashboardCalendars = () => {
   );
 };
 
-const STAGE_ORDER: CalendarStage[] = ["calendar", "briefing", "design", "done"];
+// Etapas exibidas no checklist (cada uma representa uma CONCLUSÃO de fase)
+const STAGE_STEPS = [
+  { key: "calendar", label: "Pauta definida", icon: ListChecks },
+  { key: "briefing", label: "Briefing aprovado", icon: FileText },
+  { key: "design", label: "Design criado", icon: ImageIcon },
+  { key: "done", label: "Conteúdo pronto", icon: CheckCircle2 },
+] as const;
 
-const STAGE_META: Record<CalendarStage, { label: string; icon: typeof FileText }> = {
-  calendar: { label: "Pauta definida", icon: ListChecks },
-  briefing: { label: "Briefing aprovado", icon: FileText },
-  design: { label: "Design criado", icon: ImageIcon },
-  review: { label: "Ajustes finais", icon: Sparkles },
-  done: { label: "Conteúdo pronto", icon: CheckCircle2 },
+// Para cada etapa, retorna quantos itens JÁ a concluíram.
+// Um item em stage = "design" significa: pauta + briefing concluídos; design ainda em andamento.
+const stageRank: Record<CalendarStage, number> = {
+  calendar: 0, // ainda definindo a pauta
+  briefing: 1, // pauta concluída, briefing em andamento
+  design: 2,   // briefing concluído, design em andamento
+  review: 3,
+  done: 4,     // tudo concluído
 };
 
 const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
   const { data: items = [] } = useCalendarItems(calendar.id);
   const total = items.length;
-  const done = items.filter((i) => i.stage === "done").length;
-  const progressPct = total > 0 ? Math.round((done / total) * 100) : 0;
 
   const refMonth = calendar.reference_month
     ? new Date(calendar.reference_month).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
     : null;
 
-  // Etapas sequenciais: a primeira incompleta é "aguardando", as próximas ficam pendentes
-  const stagesReached = STAGE_ORDER.map((_, idx) =>
-    total === 0 ? 0 : items.filter((i) => STAGE_ORDER.indexOf(i.stage) >= idx).length
-  );
-  const firstIncompleteIdx = stagesReached.findIndex((r) => r < total);
-  const stageStatus = STAGE_ORDER.map((stage, idx) => {
-    const reached = stagesReached[idx];
-    const isComplete = total > 0 && reached === total;
-    const isWaiting = total > 0 && !isComplete && idx === firstIncompleteIdx;
-    return { stage, reached, isComplete, isWaiting };
+  // Quantos itens completaram cada etapa (rank do item > rank exigido pela etapa)
+  // Etapa "calendar" exige rank > 0 (item saiu de "calendar"); "done" exige rank >= 4.
+  const stageStatus = STAGE_STEPS.map((step, idx) => {
+    const requiredRank = idx + 1; // calendar→1, briefing→2, design→3, done→4
+    const completedCount = items.filter((i) => stageRank[i.stage] >= requiredRank).length;
+    return { ...step, completedCount };
   });
+
+  const firstIncompleteIdx = stageStatus.findIndex((s) => s.completedCount < total);
+  const enrichedStages = stageStatus.map((s, idx) => ({
+    ...s,
+    isComplete: total > 0 && s.completedCount === total,
+    isWaiting: total > 0 && idx === firstIncompleteIdx && s.completedCount < total,
+  }));
+
+  // Progresso ponderado: cada etapa concluída por um item vale 1/4 da pauta
+  const totalSteps = total * STAGE_STEPS.length;
+  const completedSteps = stageStatus.reduce((acc, s) => acc + s.completedCount, 0);
+  const progressPct = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+  const done = items.filter((i) => i.stage === "done").length;
 
   return (
     <Link to={`/calendar/${calendar.id}`} className="block group h-full">
