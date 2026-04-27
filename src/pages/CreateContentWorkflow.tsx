@@ -237,39 +237,49 @@ export default function CreateContentWorkflow() {
       </div>
 
       <div className="px-4 sm:px-6 lg:px-8 pt-2 pb-4">
-        {/* Header */}
-        <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3 min-w-0">
+        {/* Header + Stepper lado a lado (estilo /create/image) */}
+        <div className="flex flex-col md:flex-row md:items-stretch gap-3 mb-4">
+          {/* Title card */}
+          <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5 flex items-center gap-3 flex-1 min-w-0">
             <div className="bg-primary/10 border border-primary/20 rounded-xl p-2.5 flex-shrink-0">
               <Wand2 className="h-5 w-5 lg:h-6 lg:w-6 text-primary" />
             </div>
-            <div className="min-w-0">
-              <h1 className="text-lg lg:text-xl font-bold text-foreground truncate">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight truncate">
                 Criar conteúdo com briefing
               </h1>
               <p className="text-xs lg:text-sm text-muted-foreground truncate">
                 A IA traduz sua ideia em um plano completo de imagem + legenda.
               </p>
             </div>
+            <button
+              type="button"
+              onClick={() => navigate("/create/image")}
+              className="hidden lg:inline text-xs text-primary hover:underline whitespace-nowrap flex-shrink-0"
+            >
+              Pular briefing →
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate("/create/image")}
-            className="text-xs sm:text-sm text-primary hover:underline self-start md:self-auto whitespace-nowrap"
-          >
-            Já sei o que criar — pular briefing →
-          </button>
+
+          {/* Stepper card */}
+          <div className="bg-card rounded-2xl shadow-md p-3 lg:p-4 flex-shrink-0 flex items-center min-w-[320px]">
+            <StepIndicator
+              steps={WORKFLOW_STEPS}
+              currentStep={state.currentStep}
+              highestVisitedStep={state.highestVisitedStep}
+              onStepClick={handleStepClick}
+            />
+          </div>
         </div>
 
-        {/* Stepper */}
-        <div className="mb-4">
-          <StepIndicator
-            steps={WORKFLOW_STEPS}
-            currentStep={state.currentStep}
-            highestVisitedStep={state.highestVisitedStep}
-            onStepClick={handleStepClick}
-          />
-        </div>
+        {/* Mobile-only "skip briefing" link */}
+        <button
+          type="button"
+          onClick={() => navigate("/create/image")}
+          className="lg:hidden mb-4 text-xs text-primary hover:underline"
+        >
+          Já sei o que criar — pular briefing →
+        </button>
 
         {/* Step content */}
         <div>
