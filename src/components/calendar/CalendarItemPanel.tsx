@@ -36,6 +36,69 @@ const FORMAT_TO_ASPECT: Record<string, string> = {
   video_longo: "16:9",
 };
 
+// Tons de voz aceitos no gerador de imagem
+const TONE_OPTIONS = [
+  "inspirador", "motivacional", "profissional", "casual",
+  "elegante", "moderno", "tradicional", "divertido", "sério",
+];
+
+// Estilos visuais aceitos no gerador
+const VISUAL_STYLE_KEYS = [
+  "realistic", "animated", "cartoon", "anime", "watercolor",
+  "oil_painting", "digital_art", "sketch", "minimalist", "vintage",
+];
+
+// Detecta tons mencionados em um texto livre
+function detectTones(text: string): string[] {
+  if (!text) return [];
+  const lower = text.toLowerCase();
+  const found = TONE_OPTIONS.filter((t) => lower.includes(t));
+  return Array.from(new Set(found)).slice(0, 4);
+}
+
+// Detecta o estilo visual a partir do briefing visual
+function detectVisualStyle(text: string): string | null {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+  const map: Array<[string, string[]]> = [
+    ["realistic", ["fotorealístico", "fotorealistico", "fotográfic", "fotografic", "realista", "fotografia"]],
+    ["animated", ["3d", "pixar", "render 3d", "animado"]],
+    ["cartoon", ["cartoon", "desenho animado"]],
+    ["anime", ["anime", "mangá", "manga"]],
+    ["watercolor", ["aquarela", "watercolor"]],
+    ["oil_painting", ["pintura a óleo", "oleo sobre tela", "óleo"]],
+    ["digital_art", ["arte digital", "digital art", "ilustração digital"]],
+    ["sketch", ["esboço", "sketch", "rascunho", "lápis"]],
+    ["minimalist", ["minimalista", "minimalist", "clean", "limpo"]],
+    ["vintage", ["vintage", "retrô", "retro", "sépia", "sepia"]],
+  ];
+  for (const [key, terms] of map) {
+    if (terms.some((t) => lower.includes(t))) return key;
+  }
+  return null;
+}
+
+// Heurística para ângulo de câmera baseada em formato/briefing
+function detectCameraAngle(format: string | null, brief: string): string {
+  const lower = (brief || "").toLowerCase();
+  if (lower.includes("close") || lower.includes("close-up")) return "close_up";
+  if (lower.includes("aérea") || lower.includes("aerea") || lower.includes("topo") || lower.includes("top down")) return "top_down";
+  if (lower.includes("baixo") || lower.includes("low angle")) return "low_angle";
+  if (format === "reels" || format === "story") return "eye_level";
+  return "eye_level";
+}
+
+// Heurística para mood baseada em tom/editoria/briefing
+function detectMood(brief: string, tones: string[]): string {
+  const lower = (brief || "").toLowerCase();
+  if (lower.includes("vibrante") || tones.includes("divertido")) return "vibrant";
+  if (lower.includes("elegant") || tones.includes("elegante")) return "elegant";
+  if (lower.includes("dramá") || lower.includes("drama")) return "dramatic";
+  if (tones.includes("inspirador") || tones.includes("motivacional")) return "inspiring";
+  if (tones.includes("sério") || tones.includes("profissional")) return "serious";
+  return "auto";
+}
+
 interface Step {
   id: CalendarStage;
   label: string;
