@@ -274,13 +274,6 @@ const Dashboard = () => {
         <DashboardQuickActions />
       </div>
 
-      {/* Quick Actions com hierarquia */}
-      <div id="dashboard-quick-actions">
-        <DashboardQuickActions />
-      </div>
-    </div>
-  );
-};
     </div>
   );
 };
