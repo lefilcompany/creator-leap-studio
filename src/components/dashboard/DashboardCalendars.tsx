@@ -145,50 +145,48 @@ const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
         <div className="relative flex-1">
 
           <ul className="space-y-2.5 relative">
-            {stageStatus.map(({ stage, reached, isComplete, isWaiting }) => {
-              const meta = STAGE_META[stage];
-              return (
-                <li key={stage} className="flex items-center gap-2.5">
-                  <div
-                    className={cn(
-                      "relative z-10 h-[18px] w-[18px] rounded-full flex items-center justify-center shrink-0 border transition-colors bg-card",
-                      isComplete && "bg-success border-success text-success-foreground",
-                      isWaiting && "border-primary text-primary bg-primary/5",
-                      !isComplete && !isWaiting && "border-border text-muted-foreground/40"
-                    )}
-                  >
-                    {isComplete ? (
-                      <CheckCircle2 className="h-[14px] w-[14px]" strokeWidth={2.5} />
-                    ) : isWaiting ? (
-                      <Clock className="h-[11px] w-[11px]" strokeWidth={2.5} />
-                    ) : (
-                      <Circle className="h-1.5 w-1.5 fill-current" />
-                    )}
-                  </div>
+            {enrichedStages.map(({ key, label, completedCount, isComplete, isWaiting }) => (
+              <li key={key} className="flex items-center gap-2.5">
+                <div
+                  className={cn(
+                    "relative z-10 h-[18px] w-[18px] rounded-full flex items-center justify-center shrink-0 border transition-colors bg-card",
+                    isComplete && "bg-success border-success text-success-foreground",
+                    isWaiting && "border-primary text-primary bg-primary/5",
+                    !isComplete && !isWaiting && "border-border text-muted-foreground/40"
+                  )}
+                >
+                  {isComplete ? (
+                    <CheckCircle2 className="h-[14px] w-[14px]" strokeWidth={2.5} />
+                  ) : isWaiting ? (
+                    <Clock className="h-[11px] w-[11px]" strokeWidth={2.5} />
+                  ) : (
+                    <Circle className="h-1.5 w-1.5 fill-current" />
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "text-xs flex-1 truncate transition-colors",
+                    isComplete && "text-foreground",
+                    isWaiting && "text-foreground font-medium",
+                    !isComplete && !isWaiting && "text-muted-foreground/50"
+                  )}
+                >
+                  {label}
+                </span>
+                {total > 0 && (
                   <span
                     className={cn(
-                      "text-xs flex-1 truncate transition-colors",
-                      isComplete && "text-foreground",
-                      isWaiting && "text-foreground font-medium",
-                      !isComplete && !isWaiting && "text-muted-foreground/50"
+                      "text-[10px] tabular-nums px-1.5 py-0.5 rounded-md font-medium shrink-0",
+                      isComplete && "bg-success/10 text-success",
+                      isWaiting && "bg-primary/10 text-primary",
+                      !isComplete && !isWaiting && "bg-muted/60 text-muted-foreground/60"
                     )}
                   >
-                    {meta.label}
+                    {isComplete ? "OK" : `${completedCount}/${total}`}
                   </span>
-                  {(isComplete || isWaiting) && total > 0 && (
-                    <span
-                      className={cn(
-                        "text-[10px] tabular-nums px-1.5 py-0.5 rounded-md font-medium shrink-0",
-                        isComplete && "bg-success/10 text-success",
-                        isWaiting && "bg-primary/10 text-primary"
-                      )}
-                    >
-                      {isComplete ? "OK" : `${reached}/${total}`}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
+                )}
+              </li>
+            ))}
           </ul>
         </div>
       </Card>
