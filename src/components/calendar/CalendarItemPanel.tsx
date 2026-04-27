@@ -595,16 +595,59 @@ const StageDesign = ({
         .eq("id", item.calendar_id)
         .maybeSingle();
 
+      // Carrega persona e editoria em paralelo (para tom de voz e ponto de vista)
+      const [personaRes, themeRes] = await Promise.all([
+        cal?.persona_id
+          ? supabase
+              .from("personas")
+              .select("name, preferred_tone_of_voice, main_goal, challenges")
+              .eq("id", cal.persona_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null as any }),
+        cal?.theme_id
+          ? supabase
+              .from("strategic_themes")
+              .select("title, tone_of_voice, target_audience, color_palette, content_format")
+              .eq("id", cal.theme_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null as any }),
+      ]);
+
+      const persona = personaRes?.data ?? null;
+      const themeRow = themeRes?.data ?? null;
+
+      // Tom de voz: combina persona + editoria + briefing
+      const toneSource = [
+        persona?.preferred_tone_of_voice ?? "",
+        themeRow?.tone_of_voice ?? "",
+        item.image_briefing ?? "",
+        item.text_briefing ?? "",
+      ].join(" ");
+      const tone = detectTones(toneSource);
+
+      // Estilo visual: detecta a partir do briefing visual; cai pra realistic se não achar
+      const detectedStyle = detectVisualStyle(item.image_briefing ?? "");
+      const visualStyle = detectedStyle && VISUAL_STYLE_KEYS.includes(detectedStyle)
+        ? detectedStyle
+        : "realistic";
+
+      // Composição/ângulo/mood derivados do briefing e da persona
+      const cameraAngle = detectCameraAngle(format, item.image_briefing ?? "");
+      const mood = detectMood(item.image_briefing ?? "", tone);
+
       // Monta o prompt principal a partir do briefing visual + contexto da pauta
       const promptParts = [
         `Pauta: ${item.title}`,
         item.theme ? `Tema/Editoria: ${item.theme}` : "",
+        persona?.name ? `Ponto de vista (persona): ${persona.name}` : "",
         item.image_briefing ? `\nBriefing visual:\n${item.image_briefing}` : "",
       ].filter(Boolean);
       const prompt = promptParts.join("\n");
 
       const additionalParts = [
         item.text_briefing ? `Briefing de legenda:\n${item.text_briefing}` : "",
+        persona?.main_goal ? `Objetivo da persona: ${persona.main_goal}` : "",
+        themeRow?.target_audience ? `Público-alvo: ${themeRow.target_audience}` : "",
         item.notes ? `Observações:\n${item.notes}` : "",
         item.scheduled_date
           ? `Data de publicação: ${new Date(item.scheduled_date).toLocaleDateString("pt-BR")}`
@@ -621,6 +664,12 @@ const StageDesign = ({
         platform: platform ?? undefined,
         aspectRatio,
         contentType: "organic",
+        tone: tone.length > 0 ? tone : undefined,
+        visualStyle,
+        cameraAngle,
+        mood,
+        composition: "auto",
+        lighting: "natural",
       };
 
       navigate("/create/image", { state: { prefillData } });
