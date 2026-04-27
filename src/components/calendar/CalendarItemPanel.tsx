@@ -513,40 +513,96 @@ const StageDesign = ({
   item: CalendarItem;
   onAdvance: () => void;
   loading: boolean;
-}) => (
-  <div className="space-y-4">
-    <div>
-      <h3 className="font-semibold text-sm mb-1">Criação da imagem</h3>
-      <p className="text-sm text-muted-foreground">
-        Use o briefing aprovado para gerar a imagem na ferramenta de criação.
-      </p>
-    </div>
+}) => {
+  const navigate = useNavigate();
+  const [opening, setOpening] = useState(false);
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="rounded-lg bg-muted/40 p-4">
-        <p className="text-xs font-medium text-muted-foreground mb-1">Briefing de texto</p>
-        <p className="text-sm whitespace-pre-wrap">{item.text_briefing}</p>
-      </div>
-      <div className="rounded-lg bg-muted/40 p-4">
-        <p className="text-xs font-medium text-muted-foreground mb-1">Briefing visual</p>
-        <p className="text-sm whitespace-pre-wrap">{item.image_briefing}</p>
-      </div>
-    </div>
+  const handleOpenGenerator = async () => {
+    try {
+      setOpening(true);
+      const meta = (item.metadata || {}) as Record<string, any>;
+      const platform: string | null = meta.platform ?? null;
+      const format: string | null = meta.format ?? null;
+      const aspectRatio = format ? FORMAT_TO_ASPECT[format] ?? "1:1" : "1:1";
 
-    <div className="flex flex-wrap gap-2 justify-end">
-      <Button variant="outline" asChild>
-        <Link to="/create/image" state={{ prefilledBrief: item.image_briefing }}>
-          <ImageIcon className="h-4 w-4 mr-1.5" /> Abrir gerador de imagem
-        </Link>
-      </Button>
-      <Button onClick={onAdvance} disabled={loading} className="gap-2">
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-        Marcar como pronto e enviar para revisão
-        <ArrowRight className="h-4 w-4" />
-      </Button>
+      // Busca o contexto do calendário (marca, persona, editoria)
+      const { data: cal } = await supabase
+        .from("content_calendars")
+        .select("brand_id, persona_id, theme_id, name, user_input")
+        .eq("id", item.calendar_id)
+        .maybeSingle();
+
+      // Monta o prompt principal a partir do briefing visual + contexto da pauta
+      const promptParts = [
+        `Pauta: ${item.title}`,
+        item.theme ? `Tema/Editoria: ${item.theme}` : "",
+        item.image_briefing ? `\nBriefing visual:\n${item.image_briefing}` : "",
+      ].filter(Boolean);
+      const prompt = promptParts.join("\n");
+
+      const additionalParts = [
+        item.text_briefing ? `Briefing de legenda:\n${item.text_briefing}` : "",
+        item.notes ? `Observações:\n${item.notes}` : "",
+        item.scheduled_date
+          ? `Data de publicação: ${new Date(item.scheduled_date).toLocaleDateString("pt-BR")}`
+          : "",
+      ].filter(Boolean);
+      const additionalInfo = additionalParts.join("\n\n");
+
+      const prefillData: Record<string, any> = {
+        brandId: cal?.brand_id ?? undefined,
+        personaId: cal?.persona_id ?? undefined,
+        themeId: cal?.theme_id ?? undefined,
+        prompt,
+        additionalInfo,
+        platform: platform ?? undefined,
+        aspectRatio,
+        contentType: "organic",
+      };
+
+      navigate("/create/image", { state: { prefillData } });
+    } catch (e: any) {
+      console.error("open generator error", e);
+      toast.error("Não foi possível abrir o gerador com o briefing.");
+    } finally {
+      setOpening(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="font-semibold text-sm mb-1">Criação da imagem</h3>
+        <p className="text-sm text-muted-foreground">
+          Use o briefing aprovado para gerar a imagem na ferramenta de criação. Ao abrir, todos os campos serão preenchidos automaticamente.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="rounded-lg bg-muted/40 p-4">
+          <p className="text-xs font-medium text-muted-foreground mb-1">Briefing de texto</p>
+          <p className="text-sm whitespace-pre-wrap">{item.text_briefing}</p>
+        </div>
+        <div className="rounded-lg bg-muted/40 p-4">
+          <p className="text-xs font-medium text-muted-foreground mb-1">Briefing visual</p>
+          <p className="text-sm whitespace-pre-wrap">{item.image_briefing}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 justify-end">
+        <Button onClick={handleOpenGenerator} disabled={opening} className="gap-2">
+          {opening ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          Gerar imagem
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+        <Button variant="outline" onClick={onAdvance} disabled={loading} className="gap-2">
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+          Marcar como pronto e enviar para revisão
+        </Button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ===== Etapa 4: Revisão =====
 const StageReview = ({
