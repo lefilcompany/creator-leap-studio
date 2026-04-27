@@ -232,7 +232,24 @@ const CalendarNew = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="brief">Briefing — o que você quer comunicar e por quê *</Label>
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="brief">Briefing — o que você quer comunicar e por quê *</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSuggestBriefing}
+              disabled={suggestingBriefing}
+              className="gap-2 h-8"
+            >
+              {suggestingBriefing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Wand2 className="h-3.5 w-3.5" />
+              )}
+              {suggestingBriefing ? "Gerando..." : "Sugerir com IA"}
+            </Button>
+          </div>
           <Textarea
             id="brief"
             rows={5}
