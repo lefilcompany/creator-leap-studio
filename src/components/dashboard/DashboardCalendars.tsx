@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, Plus, ArrowRight, CheckCircle2, FileText, Image as ImageIcon, Sparkles } from "lucide-react";
-import { useCalendars, useCalendarItems, type ContentCalendar } from "@/hooks/useCalendars";
+import { Calendar as CalendarIcon, Plus, ArrowRight, CheckCircle2, FileText, Image as ImageIcon, Sparkles, ListChecks, Circle, Loader2 } from "lucide-react";
+import { useCalendars, useCalendarItems, type ContentCalendar, type CalendarStage } from "@/hooks/useCalendars";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 export const DashboardCalendars = () => {
   const { data: calendars = [], isLoading } = useCalendars();
