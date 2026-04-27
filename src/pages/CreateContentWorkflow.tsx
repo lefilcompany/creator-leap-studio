@@ -426,7 +426,8 @@ export default function CreateContentWorkflow() {
             </Button>
           </div>
         </div>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
