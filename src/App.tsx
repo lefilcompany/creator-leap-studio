@@ -67,6 +67,8 @@ const ActionView = lazy(() => import("./pages/ActionView"));
 const Categories = lazy(() => import("./pages/Categories"));
 const CategoryView = lazy(() => import("./pages/CategoryView"));
 const Trash = lazy(() => import("./pages/Trash"));
+const CalendarNew = lazy(() => import("./pages/CalendarNew"));
+const CalendarView = lazy(() => import("./pages/CalendarView"));
 
 // Lazy loaded pages - System
 const System = lazy(() => import("./pages/System"));
@@ -175,6 +177,8 @@ const App = () => (
                         <Route path="categories" element={<SuspenseRoute><Categories /></SuspenseRoute>} />
                         <Route path="categories/:categoryId" element={<SuspenseRoute><CategoryView /></SuspenseRoute>} />
                         <Route path="trash" element={<SuspenseRoute><Trash /></SuspenseRoute>} />
+                        <Route path="calendar/new" element={<SuspenseRoute><CalendarNew /></SuspenseRoute>} />
+                        <Route path="calendar/:calendarId" element={<SuspenseRoute><CalendarView /></SuspenseRoute>} />
                       </Route>
                       
                       {/* System admin routes with separate layout */}

@@ -17,6 +17,7 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardCreditsCard } from "@/components/dashboard/DashboardCreditsCard";
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
+import { DashboardCalendars } from "@/components/dashboard/DashboardCalendars";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfileBanner";
@@ -273,6 +274,9 @@ const Dashboard = () => {
       <div id="dashboard-quick-actions">
         <DashboardQuickActions />
       </div>
+
+      {/* Calendários de conteúdo */}
+      <DashboardCalendars />
 
     </div>
   );
