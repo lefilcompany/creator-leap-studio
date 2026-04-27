@@ -272,7 +272,7 @@ export default function CreateContentWorkflow() {
         </div>
 
         {/* Step content */}
-        <Card className="p-4 sm:p-6 lg:p-8 rounded-2xl">
+        <div>
           {state.currentStep === 1 && (
             <Step1Briefing
               value={state.briefing}
@@ -325,7 +325,7 @@ export default function CreateContentWorkflow() {
                 </Button>
               </div>
             )}
-        </Card>
+        </div>
 
         {/* Footer nav */}
         <div className="mt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
