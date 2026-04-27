@@ -221,6 +221,7 @@ const StageBriefing = ({
 }) => {
   const [textBrief, setTextBrief] = useState(item.text_briefing || "");
   const [imageBrief, setImageBrief] = useState(item.image_briefing || "");
+  const [aiLoading, setAiLoading] = useState<null | "text" | "image" | "both">(null);
 
   useEffect(() => {
     setTextBrief(item.text_briefing || "");
@@ -247,35 +248,152 @@ const StageBriefing = ({
     });
   };
 
+  const handleGenerateAI = async (kind: "text" | "image" | "both") => {
+    try {
+      setAiLoading(kind);
+      const meta = (item.metadata || {}) as Record<string, any>;
+
+      // Carrega contexto completo do calendário (marca, persona, editoria)
+      const { data: cal } = await supabase
+        .from("content_calendars")
+        .select("name, description, user_input, reference_month, brand_id, persona_id, theme_id")
+        .eq("id", item.calendar_id)
+        .maybeSingle();
+
+      const [brandRes, personaRes, themeRes] = await Promise.all([
+        cal?.brand_id
+          ? supabase.from("brands").select("name, segment, values, keywords, promise, goals, brand_color").eq("id", cal.brand_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+        cal?.persona_id
+          ? supabase.from("personas").select("name, age, main_goal, challenges, preferred_tone_of_voice").eq("id", cal.persona_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+        cal?.theme_id
+          ? supabase.from("strategic_themes").select("title, description, tone_of_voice, target_audience, color_palette, objectives, hashtags").eq("id", cal.theme_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
+
+      const { data, error } = await supabase.functions.invoke("generate-item-briefing", {
+        body: {
+          kind,
+          item: {
+            title: item.title,
+            theme: item.theme,
+            scheduled_date: item.scheduled_date,
+            platform: meta.platform ?? null,
+            format: meta.format ?? null,
+            notes: item.notes,
+          },
+          calendar: cal
+            ? {
+                name: cal.name,
+                description: cal.description,
+                user_input: cal.user_input,
+                reference_month: cal.reference_month,
+              }
+            : null,
+          brand: brandRes?.data ?? null,
+          persona: personaRes?.data ?? null,
+          theme: themeRes?.data ?? null,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      if ((kind === "text" || kind === "both") && data?.text_briefing) {
+        setTextBrief(data.text_briefing);
+      }
+      if ((kind === "image" || kind === "both") && data?.image_briefing) {
+        setImageBrief(data.image_briefing);
+      }
+      toast.success("Briefing gerado pela IA");
+    } catch (e: any) {
+      console.error("AI briefing error", e);
+      toast.error(e?.message || "Não foi possível gerar com IA");
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
   const canApprove = textBrief.trim().length > 10 && imageBrief.trim().length > 10;
 
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="font-semibold text-sm mb-1">Briefing de texto e imagem</h3>
-        <p className="text-sm text-muted-foreground">
-          Ajuste o briefing gerado pela IA. Quando estiver pronto, aprove para liberar a etapa de design.
-        </p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-semibold text-sm mb-1">Briefing de texto e imagem</h3>
+          <p className="text-sm text-muted-foreground">
+            Use a IA para gerar com base em tudo que foi cadastrado no calendário (marca, persona, editoria, formato e rede social) ou ajuste manualmente.
+          </p>
+        </div>
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => handleGenerateAI("both")}
+          disabled={aiLoading !== null}
+          className="gap-2"
+        >
+          {aiLoading === "both" ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4" />
+          )}
+          Gerar ambos com IA
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-1.5">
-            <FileText className="h-3.5 w-3.5" /> Briefing de texto / legenda
-          </label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-sm font-medium flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5" /> Briefing de texto / legenda
+            </label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleGenerateAI("text")}
+              disabled={aiLoading !== null}
+              className="gap-1.5 h-7 text-xs"
+            >
+              {aiLoading === "text" ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Sparkles className="h-3 w-3" />
+              )}
+              Gerar com IA
+            </Button>
+          </div>
           <Textarea
-            rows={8}
+            rows={9}
             value={textBrief}
             onChange={(e) => setTextBrief(e.target.value)}
             placeholder="O que a legenda deve comunicar, tom de voz, CTA..."
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-1.5">
-            <ImageIcon className="h-3.5 w-3.5" /> Briefing visual / imagem
-          </label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-sm font-medium flex items-center gap-1.5">
+              <ImageIcon className="h-3.5 w-3.5" /> Briefing visual / imagem
+            </label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleGenerateAI("image")}
+              disabled={aiLoading !== null}
+              className="gap-1.5 h-7 text-xs"
+            >
+              {aiLoading === "image" ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Sparkles className="h-3 w-3" />
+              )}
+              Gerar com IA
+            </Button>
+          </div>
           <Textarea
-            rows={8}
+            rows={9}
             value={imageBrief}
             onChange={(e) => setImageBrief(e.target.value)}
             placeholder="Cena, elementos visuais, paleta, estilo, formato..."
