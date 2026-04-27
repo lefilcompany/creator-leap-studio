@@ -12,6 +12,9 @@ import {
   Sparkles,
   Calendar as CalendarIcon,
   Loader2,
+  Share2,
+  LayoutTemplate,
+  StickyNote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -40,27 +43,48 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
   const update = useUpdateCalendarItem();
   const currentIndex = stageOrder.indexOf(item.stage);
 
+  const meta = (item.metadata || {}) as Record<string, any>;
+  const platform: string | null = meta.platform ?? null;
+  const format: string | null = meta.format ?? null;
+
   return (
     <Card className="p-5 space-y-5">
       {/* Cabeçalho da pauta */}
       <div>
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
+          <div className="min-w-0 w-full">
             <h2 className="text-lg font-bold">{item.title}</h2>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              {item.theme && (
-                <Badge variant="secondary" className="text-xs">{item.theme}</Badge>
-              )}
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               {item.scheduled_date && (
-                <span className="text-xs text-muted-foreground">
+                <Badge variant="outline" className="gap-1 text-xs">
+                  <CalendarIcon className="h-3 w-3" />
                   {new Date(item.scheduled_date).toLocaleDateString("pt-BR", {
                     weekday: "short",
                     day: "2-digit",
                     month: "long",
                   })}
-                </span>
+                </Badge>
+              )}
+              {platform && (
+                <Badge variant="secondary" className="gap-1 text-xs">
+                  <Share2 className="h-3 w-3" /> {platform}
+                </Badge>
+              )}
+              {format && (
+                <Badge variant="secondary" className="gap-1 text-xs">
+                  <LayoutTemplate className="h-3 w-3" /> {format}
+                </Badge>
+              )}
+              {item.theme && (
+                <Badge variant="outline" className="text-xs">{item.theme}</Badge>
               )}
             </div>
+            {item.notes && (
+              <p className="text-xs text-muted-foreground mt-2 flex items-start gap-1.5">
+                <StickyNote className="h-3 w-3 mt-0.5 shrink-0" />
+                <span className="whitespace-pre-wrap">{item.notes}</span>
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -138,7 +162,12 @@ const StageCalendar = ({
   item: CalendarItem;
   onAdvance: () => void;
   loading: boolean;
-}) => (
+}) => {
+  const meta = (item.metadata || {}) as Record<string, any>;
+  const platform: string | null = meta.platform ?? null;
+  const format: string | null = meta.format ?? null;
+
+  return (
   <div className="space-y-4">
     <div>
       <h3 className="font-semibold text-sm mb-1">Pauta confirmada</h3>
@@ -146,20 +175,37 @@ const StageCalendar = ({
         Confira a pauta e confirme para avançar para a criação do briefing.
       </p>
     </div>
-    <div className="rounded-lg bg-muted/40 p-4 space-y-2">
-      <p className="text-sm"><strong>Título:</strong> {item.title}</p>
-      {item.theme && <p className="text-sm"><strong>Tema:</strong> {item.theme}</p>}
+    <div className="rounded-lg bg-muted/40 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <Field label="Título" value={item.title} full />
+      {item.theme && <Field label="Tema / Editoria" value={item.theme} />}
       {item.scheduled_date && (
-        <p className="text-sm">
-          <strong>Data:</strong> {new Date(item.scheduled_date).toLocaleDateString("pt-BR")}
-        </p>
+        <Field
+          label="Data"
+          value={new Date(item.scheduled_date).toLocaleDateString("pt-BR", {
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          })}
+        />
       )}
+      <Field label="Rede social" value={platform || "—"} />
+      <Field label="Formato" value={format || "—"} />
+      {item.notes && <Field label="Observações" value={item.notes} full />}
     </div>
     <Button onClick={onAdvance} disabled={loading} className="gap-2 w-full sm:w-auto">
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
       Confirmar e ir para o briefing
       <ArrowRight className="h-4 w-4" />
     </Button>
+  </div>
+  );
+};
+
+const Field = ({ label, value, full }: { label: string; value: string; full?: boolean }) => (
+  <div className={cn("min-w-0", full && "sm:col-span-2")}>
+    <p className="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">{label}</p>
+    <p className="text-sm mt-0.5 whitespace-pre-wrap break-words">{value}</p>
   </div>
 );
 
