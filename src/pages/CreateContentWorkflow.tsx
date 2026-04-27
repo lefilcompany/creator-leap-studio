@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Loader2, Sparkles, Wand2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Sparkles, Wand2, Zap, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useContentWorkflow } from "@/hooks/useContentWorkflow";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CREDIT_COSTS, formatCredits } from "@/lib/creditCosts";
+import createBanner from "@/assets/create-banner.jpg";
 import { StepIndicator } from "@/components/create-workflow/StepIndicator";
 import { Step1Briefing } from "@/components/create-workflow/Step1Briefing";
 import { Step2Plan } from "@/components/create-workflow/Step2Plan";
