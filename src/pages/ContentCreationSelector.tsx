@@ -38,7 +38,7 @@ export default function ContentCreationSelector() {
   useEffect(() => {
     if (creationType) {
       const routes: Record<CreationType, string> = {
-        image: "/create/image",
+        image: "/create/workflow",
         video: "/create/video",
         marketplace: "/create/marketplace",
         review: "/review",
