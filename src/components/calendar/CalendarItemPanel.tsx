@@ -222,6 +222,7 @@ const StageBriefing = ({
   const [textBrief, setTextBrief] = useState(item.text_briefing || "");
   const [imageBrief, setImageBrief] = useState(item.image_briefing || "");
   const [aiLoading, setAiLoading] = useState<null | "text" | "image" | "both">(null);
+  const [reviewing, setReviewing] = useState(false);
 
   useEffect(() => {
     setTextBrief(item.text_briefing || "");
