@@ -1040,8 +1040,6 @@ export default function CreateImage() {
                 )}
               </div>
 
-              {/* Motor de imagem (OpenAI GPT Image 2) */}
-              <OpenAIImageSettings value={openaiSettings} onChange={setOpenaiSettings} />
 
               {/* 2. Personalizações (sem card, flex lado a lado) */}
               <div className="space-y-2.5">
