@@ -318,6 +318,73 @@ const StageBriefing = ({
 
   const canApprove = textBrief.trim().length > 10 && imageBrief.trim().length > 10;
 
+  // ===== Tela simplificada de aprovação =====
+  if (reviewing) {
+    const meta = (item.metadata || {}) as Record<string, any>;
+    const platform: string | null = meta.platform ?? null;
+    const format: string | null = meta.format ?? null;
+
+    return (
+      <div className="space-y-5">
+        <div className="text-center space-y-1">
+          <div className="mx-auto h-12 w-12 rounded-full bg-success/15 text-success flex items-center justify-center mb-2">
+            <CheckCircle2 className="h-6 w-6" />
+          </div>
+          <h3 className="font-semibold text-base">Pronto para aprovar?</h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            Confira o resumo abaixo. Após aprovar, a pauta avança para a etapa de design.
+          </p>
+        </div>
+
+        <div className="rounded-xl border bg-muted/30 p-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="text-xs">{item.title}</Badge>
+            {platform && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                <Share2 className="h-3 w-3" /> {platform}
+              </Badge>
+            )}
+            {format && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                <LayoutTemplate className="h-3 w-3" /> {format}
+              </Badge>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="rounded-lg bg-background/60 p-3">
+              <p className="font-medium text-muted-foreground mb-1 flex items-center gap-1.5">
+                <FileText className="h-3 w-3" /> Texto / legenda
+              </p>
+              <p className="line-clamp-4 whitespace-pre-wrap text-foreground/90">{textBrief}</p>
+            </div>
+            <div className="rounded-lg bg-background/60 p-3">
+              <p className="font-medium text-muted-foreground mb-1 flex items-center gap-1.5">
+                <ImageIcon className="h-3 w-3" /> Visual / imagem
+              </p>
+              <p className="line-clamp-4 whitespace-pre-wrap text-foreground/90">{imageBrief}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-between">
+          <Button variant="ghost" onClick={() => setReviewing(false)} disabled={update.isPending}>
+            Voltar e ajustar
+          </Button>
+          <Button
+            size="lg"
+            onClick={handleApprove}
+            disabled={update.isPending}
+            className="gap-2"
+          >
+            {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            Aprovar briefing
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -406,9 +473,20 @@ const StageBriefing = ({
         <Button variant="outline" onClick={handleSave} disabled={update.isPending}>
           Salvar rascunho
         </Button>
-        <Button onClick={handleApprove} disabled={!canApprove || update.isPending} className="gap-2">
-          {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          Aprovar briefing
+        <Button
+          onClick={() => {
+            // salva o rascunho atual antes de abrir a tela de aprovação
+            update.mutate({
+              id: item.id,
+              updates: { text_briefing: textBrief, image_briefing: imageBrief },
+            });
+            setReviewing(true);
+          }}
+          disabled={!canApprove || update.isPending}
+          className="gap-2"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+          Concluir e aprovar
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
