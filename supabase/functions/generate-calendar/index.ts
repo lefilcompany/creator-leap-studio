@@ -1,6 +1,5 @@
 // Edge function: generate-calendar
-// Recebe contexto (marca/persona/editoria + briefing livre) e devolve uma lista de pautas
-// Cada pauta contém: title, theme, scheduled_date (YYYY-MM-DD)
+// Gera lista de pautas (title, theme, scheduled_date) usando Gemini API direto.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,8 +27,14 @@ Deno.serve(async (req) => {
 
   try {
     const body = (await req.json()) as RequestBody;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) {
+      console.error("GEMINI_API_KEY not configured");
+      return new Response(
+        JSON.stringify({ error: "Configuração do servidor: chave do Gemini ausente." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!body.user_input || body.user_input.trim().length < 5) {
       return new Response(
@@ -43,6 +48,7 @@ Deno.serve(async (req) => {
       ? new Date(body.reference_month)
       : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const monthLabel = refMonth.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    const yearMonth = `${refMonth.getFullYear()}-${String(refMonth.getMonth() + 1).padStart(2, "0")}`;
 
     const contextLines: string[] = [];
     if (body.brand?.name) {
@@ -66,11 +72,14 @@ Deno.serve(async (req) => {
 
 REGRAS:
 - Gere exatamente ${count} pautas únicas e variadas.
-- Cada pauta deve ter um título curto e impactante (máx 80 caracteres).
+- Cada pauta tem um título curto e impactante (máx 80 caracteres).
 - O tema (theme) é uma categoria curta (ex: "Bastidores", "Educativo", "Promoção", "Depoimento").
-- Distribua as datas dentro do mês de ${monthLabel}, evitando finais de semana se possível.
-- A primeira data deve ser próxima do início do mês, a última próxima do fim.
-- Datas em formato ISO YYYY-MM-DD.`;
+- Distribua as datas dentro do mês ${monthLabel} (use o prefixo ${yearMonth}-DD), evitando finais de semana se possível.
+- A primeira pauta perto do início do mês, a última perto do fim.
+- Datas em formato ISO YYYY-MM-DD.
+- Responda APENAS com JSON válido no formato:
+{"items":[{"title":"...","theme":"...","scheduled_date":"YYYY-MM-DD"}, ...]}
+Sem texto adicional, sem markdown, sem cercas de código.`;
 
     const userPrompt = `${contextLines.join("\n")}
 
@@ -80,80 +89,57 @@ ${body.user_input}
 Mês de referência: ${monthLabel}
 Quantidade de pautas: ${count}`;
 
-    const tool = {
-      type: "function",
-      function: {
-        name: "generate_calendar_items",
-        description: "Retorna a lista de pautas do calendário editorial.",
-        parameters: {
-          type: "object",
-          properties: {
-            items: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  title: { type: "string" },
-                  theme: { type: "string" },
-                  scheduled_date: { type: "string", description: "Data ISO YYYY-MM-DD" },
-                },
-                required: ["title", "theme", "scheduled_date"],
-                additionalProperties: false,
-              },
-            },
-          },
-          required: ["items"],
-          additionalProperties: false,
-        },
-      },
-    };
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const response = await fetch(url, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [tool],
-        tool_choice: { type: "function", function: { name: "generate_calendar_items" } },
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          temperature: 0.85,
+          maxOutputTokens: 2500,
+          responseMimeType: "application/json",
+        },
       }),
     });
 
     if (!response.ok) {
+      const errText = await response.text();
+      console.error("Gemini API error:", response.status, errText);
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Limite de requisições atingido. Tente novamente em instantes." }),
+          JSON.stringify({ error: "Limite de requisições do Gemini atingido. Tente novamente em instantes." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos de IA esgotados. Adicione créditos no workspace." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "Erro na IA" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: `Erro na IA Gemini: ${response.status}` }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) throw new Error("Resposta da IA sem tool_call");
+    const text: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+      console.error("Gemini sem texto:", JSON.stringify(data).slice(0, 500));
+      throw new Error("IA não retornou conteúdo");
+    }
 
-    const parsed = JSON.parse(toolCall.function.arguments);
-    const items: Pauta[] = parsed.items || [];
+    let parsed: { items?: Pauta[] };
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      // tenta extrair bloco JSON
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("Resposta da IA não é JSON válido");
+      parsed = JSON.parse(match[0]);
+    }
 
-    if (items.length === 0) throw new Error("IA não retornou pautas");
+    const items: Pauta[] = (parsed.items || []).filter(
+      (i) => i && i.title && i.theme && i.scheduled_date
+    );
+    if (items.length === 0) throw new Error("IA não retornou pautas válidas");
 
     return new Response(JSON.stringify({ items }), {
       status: 200,
