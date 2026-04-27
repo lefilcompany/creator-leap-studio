@@ -199,6 +199,14 @@ const StageCalendar = ({
       <ArrowRight className="h-4 w-4" />
     </Button>
   </div>
+  );
+};
+
+const Field = ({ label, value, full }: { label: string; value: string; full?: boolean }) => (
+  <div className={cn("min-w-0", full && "sm:col-span-2")}>
+    <p className="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">{label}</p>
+    <p className="text-sm mt-0.5 whitespace-pre-wrap break-words">{value}</p>
+  </div>
 );
 
 // ===== Etapa 2: Briefing =====
