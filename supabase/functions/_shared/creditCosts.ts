@@ -15,6 +15,7 @@ export const CREDIT_COSTS = {
   CREATE_PERSONA: 1,
   CREATE_THEME: 1,
   MARKETPLACE_IMAGE: 5,
+  CONTENT_BRIEFING_PACKAGE: 10, // briefing + plano + 1 imagem completa + legenda
 } as const;
 
 export const FREE_RESOURCE_LIMITS = {
