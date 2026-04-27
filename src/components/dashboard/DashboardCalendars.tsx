@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Plus, ArrowRight, CheckCircle2, FileText, Image as ImageIcon, Sparkles, ListChecks, Circle, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ArrowRight, CheckCircle2, FileText, Image as ImageIcon, Sparkles, ListChecks, Circle, Clock } from "lucide-react";
 import { useCalendars, useCalendarItems, type ContentCalendar, type CalendarStage } from "@/hooks/useCalendars";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -84,14 +84,16 @@ const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
     ? new Date(calendar.reference_month).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
     : null;
 
-  // Para cada etapa, conta quantos itens já passaram dela (índice >= stage)
+  // Etapas sequenciais: a primeira incompleta é "aguardando", as próximas ficam pendentes
+  const stagesReached = STAGE_ORDER.map((_, idx) =>
+    total === 0 ? 0 : items.filter((i) => STAGE_ORDER.indexOf(i.stage) >= idx).length
+  );
+  const firstIncompleteIdx = stagesReached.findIndex((r) => r < total);
   const stageStatus = STAGE_ORDER.map((stage, idx) => {
-    const reached = total === 0
-      ? 0
-      : items.filter((i) => STAGE_ORDER.indexOf(i.stage) >= idx).length;
+    const reached = stagesReached[idx];
     const isComplete = total > 0 && reached === total;
-    const isActive = !isComplete && reached > 0;
-    return { stage, reached, isComplete, isActive };
+    const isWaiting = total > 0 && !isComplete && idx === firstIncompleteIdx;
+    return { stage, reached, isComplete, isWaiting };
   });
 
   return (
@@ -130,7 +132,7 @@ const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
           <div className="absolute left-[9px] top-2 bottom-2 w-px bg-border/60" aria-hidden />
 
           <ul className="space-y-2.5 relative">
-            {stageStatus.map(({ stage, reached, isComplete, isActive }) => {
+            {stageStatus.map(({ stage, reached, isComplete, isWaiting }) => {
               const meta = STAGE_META[stage];
               return (
                 <li key={stage} className="flex items-center gap-2.5">
@@ -138,38 +140,37 @@ const CalendarCard = ({ calendar }: { calendar: ContentCalendar }) => {
                     className={cn(
                       "relative z-10 h-[18px] w-[18px] rounded-full flex items-center justify-center shrink-0 border transition-colors bg-card",
                       isComplete && "bg-success border-success text-success-foreground",
-                      isActive && "border-primary text-primary",
-                      !isComplete && !isActive && "border-border text-muted-foreground/50"
+                      isWaiting && "border-primary text-primary bg-primary/5",
+                      !isComplete && !isWaiting && "border-border text-muted-foreground/40"
                     )}
                   >
                     {isComplete ? (
                       <CheckCircle2 className="h-[14px] w-[14px]" strokeWidth={2.5} />
-                    ) : isActive ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : isWaiting ? (
+                      <Clock className="h-[11px] w-[11px]" strokeWidth={2.5} />
                     ) : (
-                      <Circle className="h-2 w-2 fill-current" />
+                      <Circle className="h-1.5 w-1.5 fill-current" />
                     )}
                   </div>
                   <span
                     className={cn(
                       "text-xs flex-1 truncate transition-colors",
-                      isComplete && "text-foreground line-through decoration-success/60",
-                      isActive && "text-foreground font-medium",
-                      !isComplete && !isActive && "text-muted-foreground/70"
+                      isComplete && "text-foreground",
+                      isWaiting && "text-foreground font-medium",
+                      !isComplete && !isWaiting && "text-muted-foreground/50"
                     )}
                   >
                     {meta.label}
                   </span>
-                  {total > 0 && (
+                  {(isComplete || isWaiting) && total > 0 && (
                     <span
                       className={cn(
                         "text-[10px] tabular-nums px-1.5 py-0.5 rounded-md font-medium shrink-0",
                         isComplete && "bg-success/10 text-success",
-                        isActive && "bg-primary/10 text-primary",
-                        !isComplete && !isActive && "bg-muted/60 text-muted-foreground/60"
+                        isWaiting && "bg-primary/10 text-primary"
                       )}
                     >
-                      {reached}/{total}
+                      {isComplete ? "OK" : `${reached}/${total}`}
                     </span>
                   )}
                 </li>
