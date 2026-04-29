@@ -194,7 +194,7 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
   const meta = (item.metadata || {}) as Record<string, any>;
   const platform: string | null = meta.platform ?? null;
   const format: string | null = meta.format ?? null;
-  const progressPct = Math.round(((maxIndex) / (STEPS.length - 1)) * 100);
+  const progressPct = Math.round(((visualMaxIndex) / (STEPS.length - 1)) * 100);
 
   return (
     <div className="rounded-2xl bg-card shadow-sm flex flex-col min-h-[60vh]">
