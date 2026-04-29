@@ -967,7 +967,7 @@ export default function CreateImage() {
                       onChange={handleInputChange}
                       maxLength={5000}
                       rows={4}
-                      className="resize-none border-0 bg-transparent p-0 text-base placeholder:text-sm placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[100px]"
+                      className="resize-y border-0 bg-transparent p-0 text-base placeholder:text-sm placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[100px] max-h-[600px]"
                     />
                   </div>
 
