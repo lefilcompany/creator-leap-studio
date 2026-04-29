@@ -1005,21 +1005,10 @@ export default function TextEditor() {
           </div>
         </section>
 
-        {/* === Properties sidebar (right) — desktop aside / mobile sheet === */}
-        {isMobile ? (
-          <Sheet open={propsSheetOpen} onOpenChange={setPropsSheetOpen}>
-            <SheetContent side="bottom" className="p-0 h-[85vh] flex flex-col">
-              <div className="px-4 pt-5 pb-3 border-b border-border/40 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <SlidersHorizontal className="h-4 w-4" /> Propriedades do texto
-                </div>
-              </div>
-              <ScrollArea className="flex-1 min-h-0">
-        ) : (
-          <aside className="hidden lg:flex border-l border-border/40 bg-card flex-col min-h-0">
+        {/* === Properties sidebar (right, desktop) === */}
+        <aside className="hidden lg:flex border-l border-border/40 bg-card flex-col min-h-0">
           {/* Properties */}
           <ScrollArea className="flex-1 min-h-0">
-        )}
             {!selected ? (
               <div className="p-8 text-center text-sm text-muted-foreground">
                 <Settings2 className="h-8 w-8 mx-auto mb-2 opacity-40" />
