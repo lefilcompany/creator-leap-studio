@@ -691,11 +691,11 @@ export default function TextEditor() {
   };
 
   return (
-    <div className="h-full -mx-4 sm:-mx-6 lg:-mx-8 -my-4 sm:-my-6 flex flex-col bg-background overflow-hidden animate-fade-in">
+    <div className="h-full -mx-4 sm:-mx-6 lg:-mx-8 -my-4 sm:-my-6 flex flex-col bg-gradient-to-b from-muted/30 via-background to-background overflow-hidden animate-fade-in">
       {/* === Top bar (fixo no topo do editor) === */}
-      <header className="h-14 shrink-0 border-b border-border/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 flex items-center justify-between px-4 gap-3 shadow-sm z-20">
+      <header className="h-14 shrink-0 border-b border-border/60 bg-card/95 backdrop-blur-xl supports-[backdrop-filter]:bg-card/80 flex items-center justify-between px-4 gap-3 shadow-[0_1px_0_0_hsl(var(--border)/0.4),0_4px_16px_-8px_hsl(var(--foreground)/0.08)] z-20">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-accent text-primary-foreground flex items-center justify-center shadow-sm shrink-0">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/25 ring-1 ring-primary-foreground/10 shrink-0">
             <Type className="h-4 w-4" strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
