@@ -497,7 +497,7 @@ const CalendarNew = () => {
               <div className="inline-flex items-center rounded-xl border border-border bg-background overflow-hidden h-11 self-start">
                 <button
                   type="button"
-                  onClick={() => setCount((c) => Math.max(3, c - 1))}
+                  onClick={() => setCount((c) => Math.max(1, c - 1))}
                   className="h-full w-11 flex items-center justify-center hover:bg-muted transition-colors"
                   aria-label="Diminuir"
                 >
