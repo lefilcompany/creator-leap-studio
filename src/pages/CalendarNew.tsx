@@ -77,6 +77,12 @@ const CalendarNew = () => {
   if (!selectedTheme) missingForSuggest.push("editoria");
   const canSuggest = missingForSuggest.length === 0;
 
+  // Compõe o briefing final enviado à IA, prefixando o título quando preenchido.
+  // O título funciona como "assunto" central que dá contexto a todo o briefing.
+  const composedBriefing = briefingTitle.trim()
+    ? `Título do briefing: ${briefingTitle.trim()}\n\n${userInput}`
+    : userInput;
+
   const handleSuggestBriefing = async () => {
     if (!canSuggest) {
       toast.error(`Preencha antes: ${missingForSuggest.join(", ")}.`);
