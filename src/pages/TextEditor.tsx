@@ -771,11 +771,11 @@ export default function TextEditor() {
             size="sm"
             onClick={handleApply}
             disabled={saving}
-            className="gap-1.5 h-9 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md hover:shadow-lg hover:opacity-95 transition-all text-[13px] font-semibold tracking-tight"
+            className="relative overflow-hidden gap-1.5 h-9 px-4 bg-gradient-to-r from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-px active:translate-y-0 transition-all duration-200 text-[13px] font-semibold tracking-tight before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" strokeWidth={2.5} />}
-            <span className="hidden sm:inline">Aplicar e continuar</span>
-            <span className="sm:hidden">Aplicar</span>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin relative z-10" /> : <ArrowRight className="h-4 w-4 relative z-10 group-hover:translate-x-0.5 transition-transform" strokeWidth={2.5} />}
+            <span className="hidden sm:inline relative z-10">Aplicar e continuar</span>
+            <span className="sm:hidden relative z-10">Aplicar</span>
           </Button>
 
           <DropdownMenu>
@@ -832,10 +832,10 @@ export default function TextEditor() {
                   key={l.id}
                   onClick={() => setSelectedId(l.id)}
                   className={cn(
-                    "w-full min-w-0 text-left px-2.5 py-2 rounded-md border transition-colors flex items-center gap-2 group",
+                    "w-full min-w-0 text-left px-2.5 py-2 rounded-md border transition-all duration-200 flex items-center gap-2 group hover:translate-x-0.5 active:scale-[0.98]",
                     selectedId === l.id
-                      ? "border-primary bg-primary/10"
-                      : "border-border/40 hover:bg-muted/40"
+                      ? "border-primary bg-primary/10 shadow-sm shadow-primary/10"
+                      : "border-border/40 hover:bg-muted/50 hover:border-border"
                   )}
                 >
                   <Type className={cn("h-3.5 w-3.5 shrink-0", selectedId === l.id ? "text-primary" : "text-muted-foreground")} />
@@ -901,7 +901,7 @@ export default function TextEditor() {
                   src={baseImageUrl}
                   onLoad={onImgLoad}
                   alt="Imagem base"
-                  className="block w-full h-full rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.35),0_15px_30px_-15px_rgba(0,0,0,0.2)] ring-1 ring-foreground/5 pointer-events-none object-contain bg-black/5"
+                  className="editor-image-reveal block w-full h-full rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.35),0_15px_30px_-15px_rgba(0,0,0,0.2)] ring-1 ring-foreground/5 pointer-events-none object-contain bg-black/5 transition-shadow duration-500"
                   draggable={false}
                   crossOrigin="anonymous"
                 />
@@ -924,9 +924,10 @@ export default function TextEditor() {
                       <div
                         key={l.id}
                         className={cn(
-                          "absolute cursor-move group/layer transition-[outline-color,box-shadow] duration-150",
-                          isSel && !drag && "outline outline-[1.5px] outline-dashed outline-primary outline-offset-[3px] shadow-[0_0_0_4px_hsl(var(--primary)/0.08)]",
-                          isSel && drag && "outline-none shadow-none"
+                          "absolute cursor-move group/layer transition-[outline-color,box-shadow,transform] duration-200",
+                          isSel && !drag && "editor-layer-selected outline outline-[1.5px] outline-dashed outline-primary outline-offset-[3px] shadow-[0_0_0_4px_hsl(var(--primary)/0.08),0_8px_24px_-8px_hsl(var(--primary)/0.35)]",
+                          isSel && drag && "outline-none shadow-[0_12px_32px_-8px_hsl(var(--primary)/0.45)] scale-[1.005]",
+                          !isSel && "hover:outline hover:outline-1 hover:outline-dashed hover:outline-primary/40 hover:outline-offset-2"
                         )}
                         style={{
                           left, top, width,
@@ -969,30 +970,30 @@ export default function TextEditor() {
                             {/* Edge bars - width */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-right")}
-                              className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-y-110 hover:bg-primary/90 transition-all"
+                              className="editor-handle absolute -right-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize ring-1 ring-background/80 hover:scale-y-125 hover:w-2 active:scale-y-150 transition-all duration-150"
                               title="Arraste para ajustar largura"
                             />
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-left")}
-                              className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-y-110 hover:bg-primary/90 transition-all"
+                              className="editor-handle absolute -left-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize ring-1 ring-background/80 hover:scale-y-125 hover:w-2 active:scale-y-150 transition-all duration-150"
                               title="Arraste para ajustar largura"
                             />
                             {/* Edge bars - font size */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-top")}
-                              className="absolute left-1/2 -top-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-x-110 hover:bg-primary/90 transition-all"
+                              className="editor-handle absolute left-1/2 -top-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize ring-1 ring-background/80 hover:scale-x-125 hover:h-2 active:scale-x-150 transition-all duration-150"
                               title="Arraste para ajustar tamanho do texto"
                             />
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-bottom")}
-                              className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-x-110 hover:bg-primary/90 transition-all"
+                              className="editor-handle absolute left-1/2 -bottom-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize ring-1 ring-background/80 hover:scale-x-125 hover:h-2 active:scale-x-150 transition-all duration-150"
                               title="Arraste para ajustar tamanho do texto"
                             />
                             {/* Corner indicators (visual only) */}
-                            <div className="absolute -top-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
-                            <div className="absolute -top-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
-                            <div className="absolute -bottom-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
-                            <div className="absolute -bottom-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
+                            <div className="editor-corner absolute -top-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
+                            <div className="editor-corner absolute -top-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" style={{ animationDelay: '40ms' }} />
+                            <div className="editor-corner absolute -bottom-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" style={{ animationDelay: '80ms' }} />
+                            <div className="editor-corner absolute -bottom-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" style={{ animationDelay: '120ms' }} />
                           </>
                         )}
                       </div>
@@ -1005,14 +1006,14 @@ export default function TextEditor() {
                     {guides.v.map((x, i) => (
                       <div
                         key={`v-${i}-${x}`}
-                        className="absolute top-0 bottom-0 w-px bg-primary shadow-[0_0_4px_hsl(var(--primary))]"
+                        className="editor-guide-v absolute top-0 bottom-0 w-px bg-gradient-to-b from-primary/40 via-primary to-primary/40 shadow-[0_0_8px_hsl(var(--primary)),0_0_16px_hsl(var(--primary)/0.5)]"
                         style={{ left: x * displayScale }}
                       />
                     ))}
                     {guides.h.map((y, i) => (
                       <div
                         key={`h-${i}-${y}`}
-                        className="absolute left-0 right-0 h-px bg-primary shadow-[0_0_4px_hsl(var(--primary))]"
+                        className="editor-guide-h absolute left-0 right-0 h-px bg-gradient-to-r from-primary/40 via-primary to-primary/40 shadow-[0_0_8px_hsl(var(--primary)),0_0_16px_hsl(var(--primary)/0.5)]"
                         style={{ top: y * displayScale }}
                       />
                     ))}
