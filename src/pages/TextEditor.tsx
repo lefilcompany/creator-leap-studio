@@ -906,8 +906,9 @@ export default function TextEditor() {
                       <div
                         key={l.id}
                         className={cn(
-                          "absolute cursor-move",
-                          isSel && "outline outline-2 outline-primary outline-offset-2"
+                          "absolute cursor-move group/layer transition-[outline-color]",
+                          isSel && !drag && "outline outline-1 outline-dashed outline-primary/70 outline-offset-2",
+                          isSel && drag && "outline-none"
                         )}
                         style={{
                           left, top, width,
