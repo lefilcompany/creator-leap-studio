@@ -840,6 +840,19 @@ export default function TextEditor() {
 
           <Button
             size="sm"
+            variant="outline"
+            onClick={() => navigate("/create/image")}
+            disabled={saving}
+            className="gap-1.5 h-9 px-3 text-[13px] font-medium"
+            title="Criar nova imagem"
+          >
+            <Sparkles className="h-4 w-4" />
+            <span className="hidden sm:inline">Criar nova imagem</span>
+            <span className="sm:hidden">Nova</span>
+          </Button>
+
+          <Button
+            size="sm"
             onClick={handleApply}
             disabled={saving}
             className="relative overflow-hidden gap-1.5 h-9 px-4 bg-gradient-to-r from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-px active:translate-y-0 transition-all duration-200 text-[13px] font-semibold tracking-tight before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700"
@@ -873,9 +886,6 @@ export default function TextEditor() {
                 <SkipForward className="h-3.5 w-3.5" /> Pular edição
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/create/image")} className="gap-2 text-xs">
-                <RotateCcw className="h-3.5 w-3.5" /> Criar nova imagem
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleSkip} className="gap-2 text-xs text-muted-foreground">
                 <X className="h-3.5 w-3.5" /> Fechar editor
               </DropdownMenuItem>
