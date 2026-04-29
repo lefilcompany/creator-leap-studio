@@ -291,7 +291,9 @@ serve(async (req) => {
   }
 
   try {
-    const { formData } = await req.json();
+    const requestBody = await req.json();
+    const { formData } = requestBody;
+    const existingActionId: string | undefined = requestBody?.actionId;
     
     console.log("📝 [CAPTION] Dados recebidos:", {
       brand: formData?.brand,
