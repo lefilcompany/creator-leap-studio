@@ -1041,7 +1041,7 @@ export default function TextEditor() {
         >
           {isMobile && (
             <div className="lg:hidden shrink-0 px-4 h-12 border-b border-border/40 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-semibold">
+              <div className="flex items-center gap-2 text-[13px] font-semibold tracking-tight">
                 <SlidersHorizontal className="h-4 w-4" /> Propriedades
               </div>
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPropsSheetOpen(false)}>
@@ -1052,9 +1052,12 @@ export default function TextEditor() {
           {/* Properties */}
           <ScrollArea className="flex-1 min-h-0">
             {!selected ? (
-              <div className="p-8 text-center text-sm text-muted-foreground">
-                <Settings2 className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                Selecione uma camada para editar suas propriedades
+              <div className="p-8 text-center text-muted-foreground">
+                <Settings2 className="h-8 w-8 mx-auto mb-3 opacity-40" />
+                <p className="text-[13px] font-semibold text-foreground/80 tracking-tight">Nenhuma camada selecionada</p>
+                <p className="text-[12px] mt-1 text-muted-foreground/80 leading-relaxed max-w-[220px] mx-auto">
+                  Selecione uma camada à esquerda para editar suas propriedades
+                </p>
               </div>
             ) : (
               <div className="p-3 space-y-3">
@@ -1064,16 +1067,16 @@ export default function TextEditor() {
                     value={selected.text}
                     onChange={(e) => updateLayer(selected.id, { text: e.target.value })}
                     rows={3}
-                    className="resize-none text-sm"
+                    className="resize-none text-[13px] font-medium leading-relaxed"
                     placeholder="Digite seu texto…"
                   />
                 </Section>
 
                 <Tabs value={propsTab} onValueChange={(v) => setPropsTab(v as any)} className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 h-9 bg-muted/40">
-                    <TabsTrigger value="typography" className="text-xs gap-1.5"><Type className="h-3 w-3" />Tipografia</TabsTrigger>
-                    <TabsTrigger value="appearance" className="text-xs gap-1.5"><Palette className="h-3 w-3" />Aparência</TabsTrigger>
-                    <TabsTrigger value="effects" className="text-xs gap-1.5"><Wand2 className="h-3 w-3" />Efeitos</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-3 h-9 bg-muted/40 p-0.5">
+                    <TabsTrigger value="typography" className="text-[11.5px] font-semibold gap-1.5 tracking-tight data-[state=active]:shadow-sm"><Type className="h-3 w-3" />Tipografia</TabsTrigger>
+                    <TabsTrigger value="appearance" className="text-[11.5px] font-semibold gap-1.5 tracking-tight data-[state=active]:shadow-sm"><Palette className="h-3 w-3" />Aparência</TabsTrigger>
+                    <TabsTrigger value="effects" className="text-[11.5px] font-semibold gap-1.5 tracking-tight data-[state=active]:shadow-sm"><Wand2 className="h-3 w-3" />Efeitos</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="typography" className="space-y-3 mt-3">
