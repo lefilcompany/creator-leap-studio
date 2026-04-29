@@ -887,8 +887,11 @@ const StageBriefing = ({
     }
   };
 
-  const canApprove =
-    textBrief.trim().length > 10 && imageBrief.trim().length > 10;
+  const textReady = textBrief.trim().length >= 10;
+  const imageReady = imageBrief.trim().length >= 10;
+  const canApprove = textReady && imageReady;
+  const completedCount = (textReady ? 1 : 0) + (imageReady ? 1 : 0);
+  const progressPct = Math.round((completedCount / 2) * 100);
 
   // ===== Tela de aprovação =====
   if (reviewing) {
