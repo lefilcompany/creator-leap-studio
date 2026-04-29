@@ -832,10 +832,10 @@ export default function TextEditor() {
                   key={l.id}
                   onClick={() => setSelectedId(l.id)}
                   className={cn(
-                    "w-full min-w-0 text-left px-2.5 py-2 rounded-md border transition-colors flex items-center gap-2 group",
+                    "w-full min-w-0 text-left px-2.5 py-2 rounded-md border transition-all duration-200 flex items-center gap-2 group hover:translate-x-0.5 active:scale-[0.98]",
                     selectedId === l.id
-                      ? "border-primary bg-primary/10"
-                      : "border-border/40 hover:bg-muted/40"
+                      ? "border-primary bg-primary/10 shadow-sm shadow-primary/10"
+                      : "border-border/40 hover:bg-muted/50 hover:border-border"
                   )}
                 >
                   <Type className={cn("h-3.5 w-3.5 shrink-0", selectedId === l.id ? "text-primary" : "text-muted-foreground")} />
