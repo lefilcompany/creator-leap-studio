@@ -215,11 +215,11 @@ function NumInput({
 }) {
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
   return (
-    <div className="flex items-center h-7 rounded-md border border-border/60 bg-background overflow-hidden text-xs">
+    <div className="flex items-center h-7 rounded-md border border-border/60 bg-background overflow-hidden text-[12px] font-medium">
       <button
         type="button"
         onClick={() => onChange(clamp(value - step))}
-        className="px-1.5 h-full text-muted-foreground hover:bg-muted"
+        className="px-2 h-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-sm font-semibold"
         tabIndex={-1}
       >−</button>
       <input
@@ -232,13 +232,13 @@ function NumInput({
           const n = parseFloat(e.target.value);
           if (!isNaN(n)) onChange(clamp(n));
         }}
-        className="w-full min-w-0 text-center bg-transparent outline-none tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        className="w-full min-w-0 text-center bg-transparent outline-none tabular-nums font-semibold text-foreground/90 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
-      {suffix && <span className="pr-1.5 text-muted-foreground">{suffix}</span>}
+      {suffix && <span className="pr-1.5 text-[10.5px] uppercase tracking-wider text-muted-foreground font-medium">{suffix}</span>}
       <button
         type="button"
         onClick={() => onChange(clamp(value + step))}
-        className="px-1.5 h-full text-muted-foreground hover:bg-muted"
+        className="px-2 h-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-sm font-semibold"
         tabIndex={-1}
       >+</button>
     </div>
