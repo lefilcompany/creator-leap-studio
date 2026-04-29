@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -17,6 +15,9 @@ import {
   Share2,
   LayoutTemplate,
   StickyNote,
+  Tag,
+  Save,
+  Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -24,7 +25,7 @@ import {
   type CalendarItem,
   type CalendarStage,
 } from "@/hooks/useCalendars";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // Mapeia o formato escolhido na pauta para a melhor proporção da imagem
 const FORMAT_TO_ASPECT: Record<string, string> = {
@@ -103,13 +104,34 @@ interface Step {
   id: CalendarStage;
   label: string;
   icon: typeof CalendarIcon;
+  hint: string;
 }
 
 const STEPS: Step[] = [
-  { id: "calendar", label: "Calendário", icon: CalendarIcon },
-  { id: "briefing", label: "Briefing", icon: FileText },
-  { id: "design", label: "Design", icon: ImageIcon },
-  { id: "done", label: "Concluído", icon: CheckCircle2 },
+  {
+    id: "calendar",
+    label: "Pauta",
+    icon: CalendarIcon,
+    hint: "Confirme as informações da pauta para iniciar.",
+  },
+  {
+    id: "briefing",
+    label: "Briefing",
+    icon: FileText,
+    hint: "Preencha texto e visual e aprove para liberar o design.",
+  },
+  {
+    id: "design",
+    label: "Design",
+    icon: ImageIcon,
+    hint: "Gere a imagem para concluir esta pauta.",
+  },
+  {
+    id: "done",
+    label: "Concluído",
+    icon: CheckCircle2,
+    hint: "Pauta aprovada e finalizada.",
+  },
 ];
 
 const stageOrder: CalendarStage[] = ["calendar", "briefing", "design", "done"];
@@ -117,136 +139,229 @@ const stageOrder: CalendarStage[] = ["calendar", "briefing", "design", "done"];
 export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
   const update = useUpdateCalendarItem();
   const currentIndex = stageOrder.indexOf(item.stage);
+  const currentStep = STEPS[currentIndex] ?? STEPS[0];
 
   const meta = (item.metadata || {}) as Record<string, any>;
   const platform: string | null = meta.platform ?? null;
   const format: string | null = meta.format ?? null;
+  const progressPct = Math.round(((currentIndex) / (STEPS.length - 1)) * 100);
 
   return (
-    <Card className="p-5 space-y-5">
-      {/* Cabeçalho da pauta */}
-      <div>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 w-full">
-            <h2 className="text-lg font-bold">{item.title}</h2>
-            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+    <div className="rounded-2xl bg-card shadow-sm flex flex-col min-h-[60vh]">
+      {/* ===== Header da pauta (centro da experiência) ===== */}
+      <div className="px-5 pt-5 pb-4">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full",
+                  item.stage === "done"
+                    ? "bg-success/15 text-success"
+                    : "bg-primary/10 text-primary"
+                )}
+              >
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    item.stage === "done" ? "bg-success" : "bg-primary"
+                  )}
+                />
+                {currentStep.label}
+              </span>
               {item.scheduled_date && (
-                <Badge variant="outline" className="gap-1 text-xs">
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                   <CalendarIcon className="h-3 w-3" />
                   {new Date(item.scheduled_date).toLocaleDateString("pt-BR", {
                     weekday: "short",
                     day: "2-digit",
                     month: "long",
                   })}
-                </Badge>
+                </span>
               )}
+            </div>
+
+            <h1 className="text-xl md:text-2xl font-bold leading-tight tracking-tight">
+              {item.title}
+            </h1>
+
+            <div className="flex items-center gap-3 mt-2 flex-wrap text-xs text-muted-foreground">
               {platform && (
-                <Badge variant="secondary" className="gap-1 text-xs">
+                <span className="inline-flex items-center gap-1.5">
                   <Share2 className="h-3 w-3" /> {platform}
-                </Badge>
+                </span>
               )}
               {format && (
-                <Badge variant="secondary" className="gap-1 text-xs">
+                <span className="inline-flex items-center gap-1.5">
                   <LayoutTemplate className="h-3 w-3" /> {format}
-                </Badge>
+                </span>
               )}
               {item.theme && (
-                <Badge variant="outline" className="text-xs">{item.theme}</Badge>
+                <span className="inline-flex items-center gap-1.5">
+                  <Tag className="h-3 w-3" /> {item.theme}
+                </span>
               )}
             </div>
+
             {item.notes && (
-              <p className="text-xs text-muted-foreground mt-2 flex items-start gap-1.5">
-                <StickyNote className="h-3 w-3 mt-0.5 shrink-0" />
+              <div className="mt-3 rounded-lg bg-muted/40 px-3 py-2 text-xs text-muted-foreground flex items-start gap-1.5">
+                <StickyNote className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 <span className="whitespace-pre-wrap">{item.notes}</span>
-              </p>
+              </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Stepper */}
-      <div className="flex items-center gap-1 px-1">
-        {STEPS.map((step, i) => {
-          const Icon = step.icon;
-          const isDone = i < currentIndex || item.stage === "done";
-          const isCurrent = i === currentIndex;
-          return (
-            <div key={step.id} className="flex items-center flex-1">
-              <div
-                className={cn(
-                  "flex flex-col items-center gap-1 flex-1",
-                  (isDone || isCurrent) ? "opacity-100" : "opacity-50"
-                )}
-              >
+          {/* Progresso da pauta (compacto, lado direito) */}
+          <div className="hidden md:flex flex-col items-end gap-1 shrink-0">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+              Progresso
+            </span>
+            <div className="flex items-center gap-2">
+              <div className="w-24 h-1.5 rounded-full bg-muted overflow-hidden">
                 <div
-                  className={cn(
-                    "h-8 w-8 rounded-full flex items-center justify-center transition-colors",
-                    isDone
-                      ? "bg-success/15 text-success"
-                      : isCurrent
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {isDone ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                </div>
-                <span className="text-[10px] font-medium text-center">{step.label}</span>
+                  className="h-full bg-primary transition-all duration-500"
+                  style={{ width: `${progressPct}%` }}
+                />
               </div>
-              {i < STEPS.length - 1 && (
-                <div className={cn("h-0.5 flex-1 -mt-4", isDone ? "bg-success/40" : "bg-border")} />
-              )}
+              <span className="text-xs font-semibold tabular-nums">
+                {progressPct}%
+              </span>
             </div>
-          );
-        })}
+          </div>
+        </div>
+
+        {/* Stepper */}
+        <Stepper currentIndex={currentIndex} stage={item.stage} />
+
+        {/* Microcopy de orientação */}
+        <p className="mt-3 text-xs text-muted-foreground">
+          {currentStep.hint}
+        </p>
       </div>
 
-      {/* Conteúdo da etapa */}
-      <div className="border-t pt-5">
+      <div className="h-px bg-border/60 mx-5" />
+
+      {/* ===== Conteúdo da etapa ===== */}
+      <div className="px-5 py-5 flex-1">
         {item.stage === "calendar" && (
-          <StageCalendar item={item} onAdvance={() => update.mutate({ id: item.id, updates: { calendar_approved: true, stage: "briefing" } })} loading={update.isPending} />
-        )}
-        {item.stage === "briefing" && (
-          <StageBriefing item={item} update={update} />
-        )}
-        {item.stage === "design" && (
-          <StageDesign
+          <StageCalendar
             item={item}
             onAdvance={() =>
               update.mutate({
                 id: item.id,
-                updates: { design_approved: true, final_approved: true, stage: "done" },
+                updates: { calendar_approved: true, stage: "briefing" },
               })
             }
             loading={update.isPending}
           />
         )}
-        {item.stage === "review" && (
+        {item.stage === "briefing" && (
+          <StageBriefing item={item} update={update} />
+        )}
+        {(item.stage === "design" || item.stage === "review") && (
           <StageDesign
             item={item}
             onAdvance={() =>
               update.mutate({
                 id: item.id,
-                updates: { design_approved: true, final_approved: true, stage: "done" },
+                updates: {
+                  design_approved: true,
+                  final_approved: true,
+                  stage: "done",
+                },
               })
             }
             loading={update.isPending}
           />
         )}
         {item.stage === "done" && (
-          <div className="text-center py-8">
-            <CheckCircle2 className="h-12 w-12 text-success mx-auto mb-3" />
-            <h3 className="font-semibold">Pauta concluída!</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Esta pauta passou por todas as etapas do fluxo.
+          <div className="text-center py-12">
+            <div className="mx-auto h-14 w-14 rounded-full bg-success/15 text-success flex items-center justify-center mb-3">
+              <CheckCircle2 className="h-7 w-7" />
+            </div>
+            <h3 className="font-semibold text-base">Pauta concluída</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
+              Esta pauta passou por todas as etapas do fluxo. Você pode acessá-la
+              no histórico a qualquer momento.
             </p>
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 };
 
-// ===== Etapa 1: Calendário =====
+// ===================== Stepper =====================
+const Stepper = ({
+  currentIndex,
+  stage,
+}: {
+  currentIndex: number;
+  stage: CalendarStage;
+}) => {
+  return (
+    <div className="flex items-center w-full">
+      {STEPS.map((step, i) => {
+        const Icon = step.icon;
+        const isDone = i < currentIndex || stage === "done";
+        const isCurrent = i === currentIndex && stage !== "done";
+        const isLast = i === STEPS.length - 1;
+
+        return (
+          <div key={step.id} className="flex items-center flex-1 last:flex-none">
+            <div className="flex flex-col items-center gap-1.5 min-w-[64px]">
+              <div
+                className={cn(
+                  "h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 relative",
+                  isDone &&
+                    "bg-success text-success-foreground shadow-sm shadow-success/20",
+                  isCurrent &&
+                    "bg-primary text-primary-foreground shadow-md shadow-primary/30 ring-4 ring-primary/15",
+                  !isDone && !isCurrent && "bg-muted text-muted-foreground/50"
+                )}
+              >
+                {isDone ? (
+                  <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
+                ) : (
+                  <Icon className="h-4 w-4" />
+                )}
+              </div>
+              <span
+                className={cn(
+                  "text-[10px] font-medium text-center whitespace-nowrap leading-tight",
+                  isDone && "text-success",
+                  isCurrent && "text-primary font-semibold",
+                  !isDone && !isCurrent && "text-muted-foreground/60"
+                )}
+              >
+                {step.label}
+              </span>
+            </div>
+            {!isLast && (
+              <div className="flex-1 h-[2px] mx-1 -mt-5 rounded-full overflow-hidden bg-muted">
+                <div
+                  className={cn(
+                    "h-full transition-all duration-500",
+                    isDone ? "bg-success w-full" : "w-0"
+                  )}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// ===================== Sticky Action Bar =====================
+const StickyActionBar = ({ children }: { children: React.ReactNode }) => (
+  <div className="sticky bottom-0 -mx-5 mt-6 px-5 py-3 bg-card/95 backdrop-blur-sm border-t border-border/60 rounded-b-2xl">
+    <div className="flex flex-wrap gap-2 items-center justify-end">{children}</div>
+  </div>
+);
+
+// ===================== Etapa 1: Calendário =====================
 const StageCalendar = ({
   item,
   onAdvance,
@@ -261,48 +376,67 @@ const StageCalendar = ({
   const format: string | null = meta.format ?? null;
 
   return (
-  <div className="space-y-4">
-    <div>
-      <h3 className="font-semibold text-sm mb-1">Pauta confirmada</h3>
-      <p className="text-sm text-muted-foreground">
-        Confira a pauta e confirme para avançar para a criação do briefing.
-      </p>
+    <div className="space-y-4">
+      <div>
+        <h3 className="font-semibold text-sm">Confira os dados da pauta</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Esta é a base que vai alimentar o briefing e o design. Confirme para
+          avançar.
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-muted/30 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Título" value={item.title} full />
+        {item.theme && <Field label="Tema / Editoria" value={item.theme} />}
+        {item.scheduled_date && (
+          <Field
+            label="Data"
+            value={new Date(item.scheduled_date).toLocaleDateString("pt-BR", {
+              weekday: "long",
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}
+          />
+        )}
+        <Field label="Rede social" value={platform || "—"} />
+        <Field label="Formato" value={format || "—"} />
+        {item.notes && <Field label="Observações" value={item.notes} full />}
+      </div>
+
+      <StickyActionBar>
+        <Button onClick={onAdvance} disabled={loading} className="gap-2">
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <CheckCircle2 className="h-4 w-4" />
+          )}
+          Confirmar e ir para o briefing
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </StickyActionBar>
     </div>
-    <div className="rounded-lg bg-muted/40 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <Field label="Título" value={item.title} full />
-      {item.theme && <Field label="Tema / Editoria" value={item.theme} />}
-      {item.scheduled_date && (
-        <Field
-          label="Data"
-          value={new Date(item.scheduled_date).toLocaleDateString("pt-BR", {
-            weekday: "long",
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-          })}
-        />
-      )}
-      <Field label="Rede social" value={platform || "—"} />
-      <Field label="Formato" value={format || "—"} />
-      {item.notes && <Field label="Observações" value={item.notes} full />}
-    </div>
-    <Button onClick={onAdvance} disabled={loading} className="gap-2 w-full sm:w-auto">
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-      Confirmar e ir para o briefing
-      <ArrowRight className="h-4 w-4" />
-    </Button>
-  </div>
   );
 };
 
-const Field = ({ label, value, full }: { label: string; value: string; full?: boolean }) => (
+const Field = ({
+  label,
+  value,
+  full,
+}: {
+  label: string;
+  value: string;
+  full?: boolean;
+}) => (
   <div className={cn("min-w-0", full && "sm:col-span-2")}>
-    <p className="text-[11px] uppercase tracking-wide font-medium text-muted-foreground">{label}</p>
-    <p className="text-sm mt-0.5 whitespace-pre-wrap break-words">{value}</p>
+    <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+      {label}
+    </p>
+    <p className="text-sm mt-1 whitespace-pre-wrap break-words">{value}</p>
   </div>
 );
 
-// ===== Etapa 2: Briefing =====
+// ===================== Etapa 2: Briefing =====================
 const StageBriefing = ({
   item,
   update,
@@ -312,7 +446,9 @@ const StageBriefing = ({
 }) => {
   const [textBrief, setTextBrief] = useState(item.text_briefing || "");
   const [imageBrief, setImageBrief] = useState(item.image_briefing || "");
-  const [aiLoading, setAiLoading] = useState<null | "text" | "image" | "both">(null);
+  const [aiLoading, setAiLoading] = useState<null | "text" | "image" | "both">(
+    null
+  );
   const [reviewing, setReviewing] = useState(false);
 
   useEffect(() => {
@@ -321,10 +457,15 @@ const StageBriefing = ({
   }, [item.id, item.text_briefing, item.image_briefing]);
 
   const handleSave = () => {
-    update.mutate({
-      id: item.id,
-      updates: { text_briefing: textBrief, image_briefing: imageBrief },
-    });
+    update.mutate(
+      {
+        id: item.id,
+        updates: { text_briefing: textBrief, image_briefing: imageBrief },
+      },
+      {
+        onSuccess: () => toast.success("Rascunho salvo"),
+      }
+    );
   };
 
   const handleApprove = () => {
@@ -345,49 +486,71 @@ const StageBriefing = ({
       setAiLoading(kind);
       const meta = (item.metadata || {}) as Record<string, any>;
 
-      // Carrega contexto completo do calendário (marca, persona, editoria)
       const { data: cal } = await supabase
         .from("content_calendars")
-        .select("name, description, user_input, reference_month, brand_id, persona_id, theme_id")
+        .select(
+          "name, description, user_input, reference_month, brand_id, persona_id, theme_id"
+        )
         .eq("id", item.calendar_id)
         .maybeSingle();
 
       const [brandRes, personaRes, themeRes] = await Promise.all([
         cal?.brand_id
-          ? supabase.from("brands").select("name, segment, values, keywords, promise, goals, brand_color").eq("id", cal.brand_id).maybeSingle()
+          ? supabase
+              .from("brands")
+              .select(
+                "name, segment, values, keywords, promise, goals, brand_color"
+              )
+              .eq("id", cal.brand_id)
+              .maybeSingle()
           : Promise.resolve({ data: null }),
         cal?.persona_id
-          ? supabase.from("personas").select("name, age, main_goal, challenges, preferred_tone_of_voice").eq("id", cal.persona_id).maybeSingle()
+          ? supabase
+              .from("personas")
+              .select(
+                "name, age, main_goal, challenges, preferred_tone_of_voice"
+              )
+              .eq("id", cal.persona_id)
+              .maybeSingle()
           : Promise.resolve({ data: null }),
         cal?.theme_id
-          ? supabase.from("strategic_themes").select("title, description, tone_of_voice, target_audience, color_palette, objectives, hashtags").eq("id", cal.theme_id).maybeSingle()
+          ? supabase
+              .from("strategic_themes")
+              .select(
+                "title, description, tone_of_voice, target_audience, color_palette, objectives, hashtags"
+              )
+              .eq("id", cal.theme_id)
+              .maybeSingle()
           : Promise.resolve({ data: null }),
       ]);
 
-      const { data, error } = await supabase.functions.invoke("generate-item-briefing", {
-        body: {
-          kind,
-          item: {
-            title: item.title,
-            theme: item.theme,
-            scheduled_date: item.scheduled_date,
-            platform: meta.platform ?? null,
-            format: meta.format ?? null,
-            notes: item.notes,
+      const { data, error } = await supabase.functions.invoke(
+        "generate-item-briefing",
+        {
+          body: {
+            kind,
+            item: {
+              title: item.title,
+              theme: item.theme,
+              scheduled_date: item.scheduled_date,
+              platform: meta.platform ?? null,
+              format: meta.format ?? null,
+              notes: item.notes,
+            },
+            calendar: cal
+              ? {
+                  name: cal.name,
+                  description: cal.description,
+                  user_input: cal.user_input,
+                  reference_month: cal.reference_month,
+                }
+              : null,
+            brand: brandRes?.data ?? null,
+            persona: personaRes?.data ?? null,
+            theme: themeRes?.data ?? null,
           },
-          calendar: cal
-            ? {
-                name: cal.name,
-                description: cal.description,
-                user_input: cal.user_input,
-                reference_month: cal.reference_month,
-              }
-            : null,
-          brand: brandRes?.data ?? null,
-          persona: personaRes?.data ?? null,
-          theme: themeRes?.data ?? null,
-        },
-      });
+        }
+      );
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -407,9 +570,10 @@ const StageBriefing = ({
     }
   };
 
-  const canApprove = textBrief.trim().length > 10 && imageBrief.trim().length > 10;
+  const canApprove =
+    textBrief.trim().length > 10 && imageBrief.trim().length > 10;
 
-  // ===== Tela simplificada de aprovação =====
+  // ===== Tela de aprovação =====
   if (reviewing) {
     const meta = (item.metadata || {}) as Record<string, any>;
     const platform: string | null = meta.platform ?? null;
@@ -417,48 +581,57 @@ const StageBriefing = ({
 
     return (
       <div className="space-y-5">
-        <div className="text-center space-y-1">
+        <div className="text-center space-y-1.5">
           <div className="mx-auto h-12 w-12 rounded-full bg-success/15 text-success flex items-center justify-center mb-2">
             <CheckCircle2 className="h-6 w-6" />
           </div>
           <h3 className="font-semibold text-base">Pronto para aprovar?</h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Confira o resumo abaixo. Após aprovar, a pauta avança para a etapa de design.
+            Confira o resumo abaixo. Após aprovar, a pauta avança automaticamente
+            para a etapa de design.
           </p>
         </div>
 
-        <div className="rounded-xl border bg-muted/30 p-4 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="text-xs">{item.title}</Badge>
+        <div className="rounded-xl bg-muted/30 p-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">{item.title}</span>
             {platform && (
-              <Badge variant="secondary" className="gap-1 text-xs">
+              <span className="inline-flex items-center gap-1">
                 <Share2 className="h-3 w-3" /> {platform}
-              </Badge>
+              </span>
             )}
             {format && (
-              <Badge variant="secondary" className="gap-1 text-xs">
+              <span className="inline-flex items-center gap-1">
                 <LayoutTemplate className="h-3 w-3" /> {format}
-              </Badge>
+              </span>
             )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div className="rounded-lg bg-background/60 p-3">
-              <p className="font-medium text-muted-foreground mb-1 flex items-center gap-1.5">
+            <div className="rounded-lg bg-card p-3 shadow-sm">
+              <p className="font-semibold text-muted-foreground mb-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-wider">
                 <FileText className="h-3 w-3" /> Texto / legenda
               </p>
-              <p className="line-clamp-4 whitespace-pre-wrap text-foreground/90">{textBrief}</p>
+              <p className="line-clamp-6 whitespace-pre-wrap text-foreground/90">
+                {textBrief}
+              </p>
             </div>
-            <div className="rounded-lg bg-background/60 p-3">
-              <p className="font-medium text-muted-foreground mb-1 flex items-center gap-1.5">
+            <div className="rounded-lg bg-card p-3 shadow-sm">
+              <p className="font-semibold text-muted-foreground mb-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-wider">
                 <ImageIcon className="h-3 w-3" /> Visual / imagem
               </p>
-              <p className="line-clamp-4 whitespace-pre-wrap text-foreground/90">{imageBrief}</p>
+              <p className="line-clamp-6 whitespace-pre-wrap text-foreground/90">
+                {imageBrief}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-between">
-          <Button variant="ghost" onClick={() => setReviewing(false)} disabled={update.isPending}>
+        <StickyActionBar>
+          <Button
+            variant="ghost"
+            onClick={() => setReviewing(false)}
+            disabled={update.isPending}
+          >
             Voltar e ajustar
           </Button>
           <Button
@@ -467,22 +640,32 @@ const StageBriefing = ({
             disabled={update.isPending}
             className="gap-2"
           >
-            {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            Aprovar briefing
+            {update.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
+            Aprovar e ir para o design
             <ArrowRight className="h-4 w-4" />
           </Button>
-        </div>
+        </StickyActionBar>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h3 className="font-semibold text-sm mb-1">Briefing de texto e imagem</h3>
-          <p className="text-sm text-muted-foreground">
-            Use a IA para gerar com base em tudo que foi cadastrado no calendário (marca, persona, editoria, formato e rede social) ou ajuste manualmente.
+    <div className="space-y-5">
+      {/* Banner contextual com IA */}
+      <div className="flex items-start gap-3 rounded-xl bg-gradient-to-br from-primary/8 to-primary/3 border border-primary/15 px-4 py-3">
+        <div className="rounded-lg bg-primary/15 text-primary p-1.5 shrink-0">
+          <Wand2 className="h-4 w-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold">Briefing assistido por IA</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Geramos os dois briefings de uma vez usando marca, persona, editoria,
+            formato e rede social do calendário. Você pode ajustar tudo manualmente
+            depois.
           </p>
         </div>
         <Button
@@ -490,102 +673,153 @@ const StageBriefing = ({
           size="sm"
           onClick={() => handleGenerateAI("both")}
           disabled={aiLoading !== null}
-          className="gap-2"
+          className="gap-2 shrink-0"
         >
           {aiLoading === "both" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Sparkles className="h-4 w-4" />
           )}
-          Gerar ambos com IA
+          Gerar tudo
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <label className="text-sm font-medium flex items-center gap-1.5">
-              <FileText className="h-3.5 w-3.5" /> Briefing de texto / legenda
-            </label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => handleGenerateAI("text")}
-              disabled={aiLoading !== null}
-              className="gap-1.5 h-7 text-xs"
-            >
-              {aiLoading === "text" ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <Sparkles className="h-3 w-3" />
-              )}
-              Gerar com IA
-            </Button>
-          </div>
-          <Textarea
-            rows={9}
-            value={textBrief}
-            onChange={(e) => setTextBrief(e.target.value)}
-            placeholder="O que a legenda deve comunicar, tom de voz, CTA..."
-          />
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <label className="text-sm font-medium flex items-center gap-1.5">
-              <ImageIcon className="h-3.5 w-3.5" /> Briefing visual / imagem
-            </label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => handleGenerateAI("image")}
-              disabled={aiLoading !== null}
-              className="gap-1.5 h-7 text-xs"
-            >
-              {aiLoading === "image" ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <Sparkles className="h-3 w-3" />
-              )}
-              Gerar com IA
-            </Button>
-          </div>
-          <Textarea
-            rows={9}
-            value={imageBrief}
-            onChange={(e) => setImageBrief(e.target.value)}
-            placeholder="Cena, elementos visuais, paleta, estilo, formato..."
-          />
-        </div>
+        <BriefingField
+          icon={FileText}
+          title="Briefing de texto / legenda"
+          description="O que a legenda deve comunicar, gatilho de abertura, tom de voz, CTA e hashtags."
+          placeholder="Ex: Mensagem principal, ângulo, tom de voz, chamada para ação, hashtags relevantes..."
+          value={textBrief}
+          onChange={setTextBrief}
+          onAI={() => handleGenerateAI("text")}
+          aiLoading={aiLoading === "text"}
+          aiDisabled={aiLoading !== null}
+        />
+        <BriefingField
+          icon={ImageIcon}
+          title="Briefing visual / imagem"
+          description="Cena, elementos, paleta, estilo, enquadramento e o que NÃO deve aparecer."
+          placeholder="Ex: Cenário, personagens, paleta, estilo fotográfico, ângulo, mood, elementos a evitar..."
+          value={imageBrief}
+          onChange={setImageBrief}
+          onAI={() => handleGenerateAI("image")}
+          aiLoading={aiLoading === "image"}
+          aiDisabled={aiLoading !== null}
+        />
       </div>
 
-      <div className="flex flex-wrap gap-2 justify-end">
-        <Button variant="outline" onClick={handleSave} disabled={update.isPending}>
+      <StickyActionBar>
+        <Button
+          variant="ghost"
+          onClick={handleSave}
+          disabled={update.isPending}
+          className="gap-2"
+        >
+          <Save className="h-4 w-4" />
           Salvar rascunho
         </Button>
         <Button
           onClick={() => {
-            // salva o rascunho atual antes de abrir a tela de aprovação
             update.mutate({
               id: item.id,
-              updates: { text_briefing: textBrief, image_briefing: imageBrief },
+              updates: {
+                text_briefing: textBrief,
+                image_briefing: imageBrief,
+              },
             });
             setReviewing(true);
           }}
           disabled={!canApprove || update.isPending}
           className="gap-2"
+          title={
+            !canApprove
+              ? "Preencha texto e visual para concluir o briefing"
+              : undefined
+          }
         >
           <CheckCircle2 className="h-4 w-4" />
           Concluir e aprovar
           <ArrowRight className="h-4 w-4" />
         </Button>
+      </StickyActionBar>
+    </div>
+  );
+};
+
+// Campo de briefing premium reutilizável
+const BriefingField = ({
+  icon: Icon,
+  title,
+  description,
+  placeholder,
+  value,
+  onChange,
+  onAI,
+  aiLoading,
+  aiDisabled,
+}: {
+  icon: typeof CalendarIcon;
+  title: string;
+  description: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  onAI: () => void;
+  aiLoading: boolean;
+  aiDisabled: boolean;
+}) => {
+  const charCount = value.length;
+  return (
+    <div className="rounded-2xl bg-muted/20 p-3 transition-shadow focus-within:shadow-md focus-within:bg-card">
+      <div className="flex items-start justify-between gap-2 px-1 mb-2">
+        <div className="min-w-0">
+          <h4 className="text-sm font-semibold flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 text-primary" />
+            {title}
+          </h4>
+          <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+            {description}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onAI}
+          disabled={aiDisabled}
+          className="shrink-0 inline-flex items-center gap-1 h-7 px-2 rounded-md text-[11px] font-medium text-primary bg-primary/10 hover:bg-primary/15 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {aiLoading ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <Sparkles className="h-3 w-3" />
+          )}
+          Gerar com IA
+        </button>
+      </div>
+      <Textarea
+        rows={9}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="border-0 bg-card/60 focus-visible:ring-1 focus-visible:ring-primary/40 text-sm leading-relaxed resize-none rounded-xl shadow-sm"
+      />
+      <div className="flex items-center justify-between px-1 pt-1.5">
+        <span className="text-[10px] text-muted-foreground">
+          {charCount === 0
+            ? "Nenhum conteúdo ainda"
+            : `${charCount} caracteres`}
+        </span>
+        {charCount > 0 && charCount < 10 && (
+          <span className="text-[10px] text-amber-600 dark:text-amber-400">
+            Adicione mais detalhes para concluir
+          </span>
+        )}
       </div>
     </div>
   );
 };
 
-// ===== Etapa 3: Design =====
+// ===================== Etapa 3: Design =====================
 const StageDesign = ({
   item,
   onAdvance,
@@ -606,14 +840,12 @@ const StageDesign = ({
       const format: string | null = meta.format ?? null;
       const aspectRatio = format ? FORMAT_TO_ASPECT[format] ?? "1:1" : "1:1";
 
-      // Busca o contexto do calendário (marca, persona, editoria)
       const { data: cal } = await supabase
         .from("content_calendars")
         .select("brand_id, persona_id, theme_id, name, user_input")
         .eq("id", item.calendar_id)
         .maybeSingle();
 
-      // Carrega persona e editoria em paralelo (para tom de voz e ponto de vista)
       const [personaRes, themeRes] = await Promise.all([
         cal?.persona_id
           ? supabase
@@ -625,7 +857,9 @@ const StageDesign = ({
         cal?.theme_id
           ? supabase
               .from("strategic_themes")
-              .select("title, tone_of_voice, target_audience, color_palette, content_format")
+              .select(
+                "title, tone_of_voice, target_audience, color_palette, content_format"
+              )
               .eq("id", cal.theme_id)
               .maybeSingle()
           : Promise.resolve({ data: null as any }),
@@ -634,7 +868,6 @@ const StageDesign = ({
       const persona = personaRes?.data ?? null;
       const themeRow = themeRes?.data ?? null;
 
-      // Tom de voz: combina persona + editoria + briefing
       const toneSource = [
         persona?.preferred_tone_of_voice ?? "",
         themeRow?.tone_of_voice ?? "",
@@ -643,17 +876,15 @@ const StageDesign = ({
       ].join(" ");
       const tone = detectTones(toneSource);
 
-      // Estilo visual: detecta a partir do briefing visual; cai pra realistic se não achar
       const detectedStyle = detectVisualStyle(item.image_briefing ?? "");
-      const visualStyle = detectedStyle && VISUAL_STYLE_KEYS.includes(detectedStyle)
-        ? detectedStyle
-        : "realistic";
+      const visualStyle =
+        detectedStyle && VISUAL_STYLE_KEYS.includes(detectedStyle)
+          ? detectedStyle
+          : "realistic";
 
-      // Composição/ângulo/mood derivados do briefing e da persona
       const cameraAngle = detectCameraAngle(format, item.image_briefing ?? "");
       const mood = detectMood(item.image_briefing ?? "", tone);
 
-      // Monta o prompt principal a partir do briefing visual + contexto da pauta
       const promptParts = [
         `Pauta: ${item.title}`,
         item.theme ? `Tema/Editoria: ${item.theme}` : "",
@@ -665,10 +896,14 @@ const StageDesign = ({
       const additionalParts = [
         item.text_briefing ? `Briefing de legenda:\n${item.text_briefing}` : "",
         persona?.main_goal ? `Objetivo da persona: ${persona.main_goal}` : "",
-        themeRow?.target_audience ? `Público-alvo: ${themeRow.target_audience}` : "",
+        themeRow?.target_audience
+          ? `Público-alvo: ${themeRow.target_audience}`
+          : "",
         item.notes ? `Observações:\n${item.notes}` : "",
         item.scheduled_date
-          ? `Data de publicação: ${new Date(item.scheduled_date).toLocaleDateString("pt-BR")}`
+          ? `Data de publicação: ${new Date(
+              item.scheduled_date
+            ).toLocaleDateString("pt-BR")}`
           : "",
       ].filter(Boolean);
       const additionalInfo = additionalParts.join("\n\n");
@@ -702,77 +937,87 @@ const StageDesign = ({
   const hasGeneratedImage = !!item.design_action_id;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
-        <h3 className="font-semibold text-sm mb-1">Criação da imagem</h3>
-        <p className="text-sm text-muted-foreground">
-          Use o briefing aprovado para gerar a imagem na ferramenta de criação. Ao abrir, todos os campos serão preenchidos automaticamente.
+        <h3 className="font-semibold text-sm">Criação da imagem</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Use o briefing aprovado para gerar a imagem na ferramenta de criação.
+          Todos os campos serão preenchidos automaticamente.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="rounded-lg bg-muted/40 p-4">
-          <p className="text-xs font-medium text-muted-foreground mb-1">Briefing de texto</p>
-          <p className="text-sm whitespace-pre-wrap">{item.text_briefing}</p>
+        <div className="rounded-xl bg-muted/30 p-4">
+          <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+            <FileText className="h-3 w-3" /> Briefing de texto
+          </p>
+          <p className="text-sm whitespace-pre-wrap text-foreground/90 leading-relaxed">
+            {item.text_briefing}
+          </p>
         </div>
-        <div className="rounded-lg bg-muted/40 p-4">
-          <p className="text-xs font-medium text-muted-foreground mb-1">Briefing visual</p>
-          <p className="text-sm whitespace-pre-wrap">{item.image_briefing}</p>
+        <div className="rounded-xl bg-muted/30 p-4">
+          <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+            <ImageIcon className="h-3 w-3" /> Briefing visual
+          </p>
+          <p className="text-sm whitespace-pre-wrap text-foreground/90 leading-relaxed">
+            {item.image_briefing}
+          </p>
         </div>
       </div>
 
-      {!hasGeneratedImage && (
-        <div className="rounded-lg border border-dashed bg-muted/20 p-3 text-xs text-muted-foreground">
-          Gere a imagem para concluir esta pauta. A próxima etapa só fica disponível após a imagem ser criada.
-        </div>
-      )}
+      <div
+        className={cn(
+          "rounded-xl border px-4 py-3 text-xs flex items-start gap-2",
+          hasGeneratedImage
+            ? "bg-success/8 border-success/20 text-success"
+            : "bg-amber-500/8 border-amber-500/20 text-amber-700 dark:text-amber-400"
+        )}
+      >
+        {hasGeneratedImage ? (
+          <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+        ) : (
+          <Circle className="h-4 w-4 mt-0.5 shrink-0" />
+        )}
+        <p>
+          {hasGeneratedImage
+            ? "Imagem criada com sucesso. Você pode marcar como concluída ou gerar uma nova versão."
+            : "Gere a imagem para liberar a conclusão. A próxima etapa só fica disponível após a criação."}
+        </p>
+      </div>
 
-      <div className="flex flex-wrap gap-2 justify-end">
-        <Button onClick={handleOpenGenerator} disabled={opening} className="gap-2">
-          {opening ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {hasGeneratedImage ? "Gerar nova imagem" : "Gerar imagem"}
-          <ArrowRight className="h-4 w-4" />
+      <StickyActionBar>
+        <Button
+          variant="ghost"
+          onClick={handleOpenGenerator}
+          disabled={opening}
+          className="gap-2"
+        >
+          {opening ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4" />
+          )}
+          {hasGeneratedImage ? "Gerar nova imagem" : "Abrir gerador"}
         </Button>
         <Button
-          variant="outline"
           onClick={onAdvance}
           disabled={loading || !hasGeneratedImage}
           className="gap-2"
-          title={!hasGeneratedImage ? "Gere a imagem antes de concluir a pauta" : undefined}
+          title={
+            !hasGeneratedImage
+              ? "Gere a imagem antes de concluir a pauta"
+              : undefined
+          }
         >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          Marcar como concluída
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <CheckCircle2 className="h-4 w-4" />
+          )}
+          Concluir pauta
+          <ArrowRight className="h-4 w-4" />
         </Button>
-      </div>
+      </StickyActionBar>
     </div>
   );
 };
-
-// ===== Etapa 4: Revisão =====
-const StageReview = ({
-  item,
-  onAdvance,
-  loading,
-}: {
-  item: CalendarItem;
-  onAdvance: () => void;
-  loading: boolean;
-}) => (
-  <div className="space-y-4">
-    <div>
-      <h3 className="font-semibold text-sm mb-1">Revisão final</h3>
-      <p className="text-sm text-muted-foreground">
-        Confira a peça final e aprove para concluir o fluxo.
-      </p>
-    </div>
-    <div className="rounded-lg bg-muted/40 p-4 text-sm text-muted-foreground">
-      Quando o conteúdo estiver vinculado a uma ação, você poderá visualizá-lo aqui.
-    </div>
-    <div className="flex justify-end">
-      <Button onClick={onAdvance} disabled={loading} className="gap-2">
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-        Concluir pauta
-      </Button>
-    </div>
-  </div>
-);
