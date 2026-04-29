@@ -1607,6 +1607,45 @@ export type Database = {
           },
         ]
       }
+      text_style_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_shared: boolean
+          layers: Json
+          name: string
+          team_id: string | null
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_shared?: boolean
+          layers?: Json
+          name: string
+          team_id?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_shared?: boolean
+          layers?: Json
+          name?: string
+          team_id?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_events: {
         Row: {
           created_at: string
