@@ -1188,7 +1188,7 @@ export default function CreateContent() {
             body: captionData.body,
             hashtags: captionData.hashtags,
             originalFormData: { ...capturedRequestData, brandId: capturedFormData.brand },
-            actionId: undefined,
+            actionId: imageActionId,
             isLocalFallback,
             categoryId: capturedCategoryId || undefined,
             complianceCheck: complianceCheck || null,
