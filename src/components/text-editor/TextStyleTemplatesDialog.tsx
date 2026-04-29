@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import type { TextLayer } from "@/components/TextOverlayEditor";
 import { ensureFontLoaded } from "@/hooks/useCustomFonts";
+import TextStylePreview from "@/components/text-editor/TextStylePreview";
 
 type Template = {
   id: string;
@@ -251,6 +252,13 @@ export default function TextStyleTemplatesDialog({ open, onOpenChange, currentLa
                               <Check className="h-3 w-3" strokeWidth={3} />
                             </div>
                           )}
+                          <div className="mb-2 pr-6">
+                            <TextStylePreview
+                              layers={t.layers}
+                              size="sm"
+                              sample={(t.layers?.[0]?.text || t.name).slice(0, 24)}
+                            />
+                          </div>
                           <div className="flex items-start gap-2 pr-6">
                             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center shrink-0">
                               <LayersIcon className="h-4 w-4 text-primary" />
@@ -293,6 +301,31 @@ export default function TextStyleTemplatesDialog({ open, onOpenChange, currentLa
               </div>
             </ScrollArea>
 
+            {selectedId && (() => {
+              const sel = templates.find((t) => t.id === selectedId);
+              if (!sel) return null;
+              return (
+                <div className="px-6 py-3 border-t border-border/50 bg-muted/10">
+                  <div className="grid grid-cols-2 gap-3">
+                    <TextStylePreview
+                      layers={currentLayers}
+                      label="Atual"
+                      size="sm"
+                      showEffectChips
+                      sample={(currentLayers?.[0]?.text || "Aa").slice(0, 24)}
+                    />
+                    <TextStylePreview
+                      layers={sel.layers}
+                      label="Depois de aplicar"
+                      size="sm"
+                      showEffectChips
+                      sample={(sel.layers?.[0]?.text || sel.name).slice(0, 24)}
+                    />
+                  </div>
+                </div>
+              );
+            })()}
+
             <DialogFooter className="px-6 py-3 border-t border-border/50 bg-muted/20">
               <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
                 Cancelar
@@ -312,11 +345,22 @@ export default function TextStyleTemplatesDialog({ open, onOpenChange, currentLa
           {/* === SAVE === */}
           <TabsContent value="save" className="m-0">
             <div className="px-6 py-5 space-y-4">
-              <div className="rounded-lg border border-border/50 bg-muted/30 p-3 flex items-center gap-2 text-[12px]">
-                <LayersIcon className="h-4 w-4 text-primary" />
-                <span className="text-muted-foreground">
-                  Salvando <strong className="text-foreground">{currentLayers.length}</strong> {currentLayers.length === 1 ? "camada atual" : "camadas atuais"} como template reutilizável.
-                </span>
+              <div className="rounded-lg border border-border/50 bg-muted/30 p-3 space-y-2.5">
+                <div className="flex items-center gap-2 text-[12px]">
+                  <LayersIcon className="h-4 w-4 text-primary" />
+                  <span className="text-muted-foreground">
+                    Salvando <strong className="text-foreground">{currentLayers.length}</strong> {currentLayers.length === 1 ? "camada atual" : "camadas atuais"} como template reutilizável.
+                  </span>
+                </div>
+                {currentLayers.length > 0 && (
+                  <TextStylePreview
+                    layers={currentLayers}
+                    label="Pré-visualização do estilo atual"
+                    size="sm"
+                    showEffectChips
+                    sample={(currentLayers[0]?.text || "Aa").slice(0, 24)}
+                  />
+                )}
               </div>
 
               <div className="space-y-1.5">
