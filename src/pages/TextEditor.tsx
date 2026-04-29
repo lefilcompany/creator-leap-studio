@@ -855,7 +855,9 @@ export default function TextEditor() {
         </aside>
 
         {/* === Canvas (center) === */}
-        <section className="flex flex-col min-w-0 min-h-0 overflow-hidden bg-muted/30">
+        <section className="flex flex-col min-w-0 min-h-0 overflow-hidden bg-[radial-gradient(circle_at_50%_50%,hsl(var(--muted)/0.5),hsl(var(--muted)/0.15))] relative">
+          {/* Subtle grid pattern */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.025] [background-image:linear-gradient(hsl(var(--foreground))_1px,transparent_1px),linear-gradient(90deg,hsl(var(--foreground))_1px,transparent_1px)] [background-size:24px_24px]" />
           {/* Canvas top toolbar */}
           <div className="h-12 shrink-0 border-b border-border/40 bg-card/60 backdrop-blur flex items-center justify-between px-4 gap-2">
             <div className="text-[11.5px] font-medium text-muted-foreground tabular-nums tracking-wide flex items-center gap-3">
