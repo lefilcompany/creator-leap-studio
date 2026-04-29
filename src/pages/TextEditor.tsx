@@ -9,11 +9,16 @@ import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import {
   Plus, Trash2, Type, Loader2, RotateCcw, Copy as CopyIcon,
   AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, ArrowRight, SkipForward,
   Sparkles, CheckCircle2, X, Layers as LayersIcon, Settings2, Upload,
+  MoreHorizontal, Palette, Wand2, SlidersHorizontal,
 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -309,6 +314,10 @@ export default function TextEditor() {
   const [applyStage, setApplyStage] = useState<"idle" | "preparing" | "rendering" | "finalizing" | "done">("idle");
   const { fonts: customFonts, uploading: uploadingFont, uploadFont } = useCustomFonts();
   const fontInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
+  const [propsSheetOpen, setPropsSheetOpen] = useState(false);
+  const [layersSheetOpen, setLayersSheetOpen] = useState(false);
+  const [propsTab, setPropsTab] = useState<"typography" | "appearance" | "effects">("typography");
   const [drag, setDrag] = useState<{
     id: string;
     mode: "move" | "resize-right" | "resize-left" | "resize-font-top" | "resize-font-bottom";
@@ -705,24 +714,89 @@ export default function TextEditor() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="ghost" size="sm" onClick={handleSkip} disabled={saving} className="gap-1.5">
-            <SkipForward className="h-4 w-4" />
-            <span className="hidden sm:inline">Pular edição</span>
-          </Button>
-          <Button size="sm" onClick={handleApply} disabled={saving} className="gap-1.5">
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-            Aplicar e continuar
-          </Button>
+          {/* Mobile: open layers */}
+          <Sheet open={layersSheetOpen} onOpenChange={setLayersSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" className="lg:hidden gap-1.5 h-9">
+                <LayersIcon className="h-4 w-4" />
+                <span className="text-xs">{layers.length}</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-72">
+              <div className="px-4 pt-5 pb-3 border-b border-border/40 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <LayersIcon className="h-4 w-4" /> Camadas
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => { addLayer(); }} className="h-8 gap-1 text-xs">
+                  <Plus className="h-3.5 w-3.5" /> Nova
+                </Button>
+              </div>
+              <ScrollArea className="h-[calc(100vh-64px)]">
+                <div className="space-y-1 p-2">
+                  {layers.map((l, i) => (
+                    <button
+                      key={l.id}
+                      onClick={() => { setSelectedId(l.id); setLayersSheetOpen(false); setPropsSheetOpen(true); }}
+                      className={cn(
+                        "w-full text-left px-2.5 py-2 rounded-md border flex items-center gap-2",
+                        selectedId === l.id ? "border-primary bg-primary/10" : "border-border/40"
+                      )}
+                    >
+                      <Type className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="flex-1 truncate text-xs">{l.text || `Camada ${i + 1}`}</span>
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+
+          {/* Mobile: open properties */}
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleSkip}
-            disabled={saving}
-            className="h-8 w-8"
-            title="Fechar"
+            variant="outline"
+            size="sm"
+            className="lg:hidden gap-1.5 h-9"
+            onClick={() => setPropsSheetOpen(true)}
+            disabled={!selected}
           >
-            <X className="h-4 w-4" />
+            <SlidersHorizontal className="h-4 w-4" />
           </Button>
+
+          <Button variant="ghost" size="sm" onClick={handleSkip} disabled={saving} className="hidden sm:inline-flex gap-1.5 text-muted-foreground hover:text-foreground">
+            <SkipForward className="h-4 w-4" />
+            <span className="hidden md:inline">Pular edição</span>
+          </Button>
+
+          <Button
+            size="sm"
+            onClick={handleApply}
+            disabled={saving}
+            className="gap-1.5 h-9 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md hover:shadow-lg hover:opacity-95 transition-all font-semibold"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+            <span className="hidden sm:inline">Aplicar e continuar</span>
+            <span className="sm:hidden">Aplicar</span>
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9" disabled={saving} title="Mais opções">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={resetLayers} className="gap-2 text-xs">
+                <RotateCcw className="h-3.5 w-3.5" /> Resetar camadas
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSkip} className="gap-2 text-xs sm:hidden">
+                <SkipForward className="h-3.5 w-3.5" /> Pular edição
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSkip} className="gap-2 text-xs text-muted-foreground">
+                <X className="h-3.5 w-3.5" /> Fechar editor
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -785,10 +859,7 @@ export default function TextEditor() {
             </div>
             <div className="flex items-center gap-1.5">
               <Button size="sm" variant="outline" onClick={addLayer} className="gap-1.5 h-8">
-                <Plus className="h-3.5 w-3.5" /> Camada
-              </Button>
-              <Button size="sm" variant="ghost" onClick={resetLayers} className="gap-1.5 h-8">
-                <RotateCcw className="h-3.5 w-3.5" /> Resetar
+                <Plus className="h-3.5 w-3.5" /> Adicionar texto
               </Button>
             </div>
           </div>
@@ -835,8 +906,9 @@ export default function TextEditor() {
                       <div
                         key={l.id}
                         className={cn(
-                          "absolute cursor-move",
-                          isSel && "outline outline-2 outline-primary outline-offset-2"
+                          "absolute cursor-move group/layer transition-[outline-color]",
+                          isSel && !drag && "outline outline-1 outline-dashed outline-primary/70 outline-offset-2",
+                          isSel && drag && "outline-none"
                         )}
                         style={{
                           left, top, width,
@@ -874,32 +946,35 @@ export default function TextEditor() {
                         onPointerDown={(e) => onPointerDownLayer(e, l.id, "move")}
                       >
                         {l.text || " "}
-                        {isSel && (
+                        {isSel && !drag && (
                           <>
-                            {/* Width handle - right */}
+                            {/* Edge bars - width */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-right")}
-                              className="absolute -right-2 top-1/2 -translate-y-1/2 h-6 w-2 bg-primary rounded-full cursor-ew-resize shadow-md"
+                              className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-8 w-1.5 bg-primary/90 rounded-full cursor-ew-resize shadow-md hover:scale-y-110 transition-transform"
                               title="Arraste para ajustar largura"
                             />
-                            {/* Width handle - left */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-left")}
-                              className="absolute -left-2 top-1/2 -translate-y-1/2 h-6 w-2 bg-primary rounded-full cursor-ew-resize shadow-md"
+                              className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-8 w-1.5 bg-primary/90 rounded-full cursor-ew-resize shadow-md hover:scale-y-110 transition-transform"
                               title="Arraste para ajustar largura"
                             />
-                            {/* Font size handle - top */}
+                            {/* Edge bars - font size */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-top")}
-                              className="absolute left-1/2 -top-2 -translate-x-1/2 h-2 w-6 bg-primary rounded-full cursor-ns-resize shadow-md"
+                              className="absolute left-1/2 -top-1.5 -translate-x-1/2 h-1.5 w-8 bg-primary/90 rounded-full cursor-ns-resize shadow-md hover:scale-x-110 transition-transform"
                               title="Arraste para ajustar tamanho do texto"
                             />
-                            {/* Font size handle - bottom */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-bottom")}
-                              className="absolute left-1/2 -bottom-2 -translate-x-1/2 h-2 w-6 bg-primary rounded-full cursor-ns-resize shadow-md"
+                              className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 h-1.5 w-8 bg-primary/90 rounded-full cursor-ns-resize shadow-md hover:scale-x-110 transition-transform"
                               title="Arraste para ajustar tamanho do texto"
                             />
+                            {/* Corner indicators (visual only) */}
+                            <div className="absolute -top-1 -left-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
+                            <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
+                            <div className="absolute -bottom-1 -left-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
+                            <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
                           </>
                         )}
                       </div>
@@ -930,9 +1005,34 @@ export default function TextEditor() {
           </div>
         </section>
 
-        {/* === Properties sidebar (right) === */}
-        <aside className="border-l border-border/40 bg-card flex flex-col min-h-0">
-
+        {/* === Properties sidebar (right) — desktop aside, mobile slide-in overlay === */}
+        {isMobile && propsSheetOpen && (
+          <button
+            type="button"
+            aria-label="Fechar propriedades"
+            onClick={() => setPropsSheetOpen(false)}
+            className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-fade-in"
+          />
+        )}
+        <aside
+          className={cn(
+            "border-l border-border/40 bg-card flex flex-col min-h-0",
+            "max-lg:fixed max-lg:right-0 max-lg:top-0 max-lg:bottom-0 max-lg:z-50 max-lg:w-[88%] max-lg:max-w-sm max-lg:shadow-2xl max-lg:transition-transform max-lg:duration-200",
+            isMobile && !propsSheetOpen && "max-lg:translate-x-full",
+            isMobile && propsSheetOpen && "max-lg:translate-x-0",
+            !isMobile && "lg:flex"
+          )}
+        >
+          {isMobile && (
+            <div className="lg:hidden shrink-0 px-4 h-12 border-b border-border/40 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <SlidersHorizontal className="h-4 w-4" /> Propriedades
+              </div>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPropsSheetOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           {/* Properties */}
           <ScrollArea className="flex-1 min-h-0">
             {!selected ? (
@@ -953,6 +1053,14 @@ export default function TextEditor() {
                   />
                 </Section>
 
+                <Tabs value={propsTab} onValueChange={(v) => setPropsTab(v as any)} className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 h-9 bg-muted/40">
+                    <TabsTrigger value="typography" className="text-xs gap-1.5"><Type className="h-3 w-3" />Tipografia</TabsTrigger>
+                    <TabsTrigger value="appearance" className="text-xs gap-1.5"><Palette className="h-3 w-3" />Aparência</TabsTrigger>
+                    <TabsTrigger value="effects" className="text-xs gap-1.5"><Wand2 className="h-3 w-3" />Efeitos</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="typography" className="space-y-3 mt-3">
                 {/* Typography */}
                 <Section title="Tipografia">
                   <Row label="Fonte">
@@ -1108,7 +1216,9 @@ export default function TextEditor() {
                     />
                   </Row>
                 </Section>
+                  </TabsContent>
 
+                  <TabsContent value="appearance" className="space-y-3 mt-3">
                 {/* Color & opacity */}
                 <Section title="Cor e aparência">
                   <Row label="Cor da fonte">
@@ -1138,7 +1248,9 @@ export default function TextEditor() {
                     />
                   </Row>
                 </Section>
+                  </TabsContent>
 
+                  <TabsContent value="effects" className="space-y-3 mt-3">
                 {/* Background band */}
                 <Section
                   title="Fundo"
@@ -1341,7 +1453,8 @@ export default function TextEditor() {
                     <p className="text-[11px] text-muted-foreground">Sombra para destacar o texto.</p>
                   )}
                 </Section>
-
+                  </TabsContent>
+                </Tabs>
 
                 <div className="h-2" />
               </div>
