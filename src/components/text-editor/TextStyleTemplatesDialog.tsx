@@ -345,11 +345,22 @@ export default function TextStyleTemplatesDialog({ open, onOpenChange, currentLa
           {/* === SAVE === */}
           <TabsContent value="save" className="m-0">
             <div className="px-6 py-5 space-y-4">
-              <div className="rounded-lg border border-border/50 bg-muted/30 p-3 flex items-center gap-2 text-[12px]">
-                <LayersIcon className="h-4 w-4 text-primary" />
-                <span className="text-muted-foreground">
-                  Salvando <strong className="text-foreground">{currentLayers.length}</strong> {currentLayers.length === 1 ? "camada atual" : "camadas atuais"} como template reutilizável.
-                </span>
+              <div className="rounded-lg border border-border/50 bg-muted/30 p-3 space-y-2.5">
+                <div className="flex items-center gap-2 text-[12px]">
+                  <LayersIcon className="h-4 w-4 text-primary" />
+                  <span className="text-muted-foreground">
+                    Salvando <strong className="text-foreground">{currentLayers.length}</strong> {currentLayers.length === 1 ? "camada atual" : "camadas atuais"} como template reutilizável.
+                  </span>
+                </div>
+                {currentLayers.length > 0 && (
+                  <TextStylePreview
+                    layers={currentLayers}
+                    label="Pré-visualização do estilo atual"
+                    size="sm"
+                    showEffectChips
+                    sample={(currentLayers[0]?.text || "Aa").slice(0, 24)}
+                  />
+                )}
               </div>
 
               <div className="space-y-1.5">
