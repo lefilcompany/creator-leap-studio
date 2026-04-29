@@ -986,37 +986,46 @@ const StageDesign = ({
       </div>
 
       <StickyActionBar>
-        <Button
-          variant="ghost"
-          onClick={handleOpenGenerator}
-          disabled={opening}
-          className="gap-2"
-        >
-          {opening ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Sparkles className="h-4 w-4" />
-          )}
-          {hasGeneratedImage ? "Gerar nova imagem" : "Abrir gerador"}
-        </Button>
-        <Button
-          onClick={onAdvance}
-          disabled={loading || !hasGeneratedImage}
-          className="gap-2"
-          title={
-            !hasGeneratedImage
-              ? "Gere a imagem antes de concluir a pauta"
-              : undefined
-          }
-        >
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <CheckCircle2 className="h-4 w-4" />
-          )}
-          Concluir pauta
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+        {hasGeneratedImage ? (
+          <>
+            <Button
+              variant="ghost"
+              onClick={handleOpenGenerator}
+              disabled={opening}
+              className="gap-2"
+            >
+              {opening ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              Gerar nova imagem
+            </Button>
+            <Button onClick={onAdvance} disabled={loading} className="gap-2">
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+              Concluir pauta
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <Button
+            onClick={handleOpenGenerator}
+            disabled={opening}
+            className="gap-2"
+          >
+            {opening ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            Abrir gerador de imagens
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        )}
       </StickyActionBar>
     </div>
   );
