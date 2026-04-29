@@ -120,6 +120,8 @@ interface Step {
   hint: string;
 }
 
+// Visual STEPS (banner). "Texto" é apenas um marco visual entre Briefing e Design,
+// não corresponde a uma stage real do banco — toda a lógica continua usando stageOrder.
 const STEPS: Step[] = [
   {
     id: "calendar",
@@ -132,6 +134,12 @@ const STEPS: Step[] = [
     label: "Briefing",
     icon: FileText,
     hint: "Preencha texto e visual e aprove para liberar o design.",
+  },
+  {
+    id: "text" as CalendarStage,
+    label: "Texto",
+    icon: Pencil,
+    hint: "Geração e ajuste do texto da pauta.",
   },
   {
     id: "design",
@@ -148,6 +156,18 @@ const STEPS: Step[] = [
 ];
 
 const stageOrder: CalendarStage[] = ["calendar", "briefing", "design", "done"];
+
+// Mapeia uma stage real (stageOrder) para o índice visual em STEPS.
+// Como "Texto" é puramente decorativo, "design" pula para o índice 3.
+const stageToVisualIndex = (stage: CalendarStage): number => {
+  switch (stage) {
+    case "calendar": return 0;
+    case "briefing": return 1;
+    case "design": return 3;
+    case "done": return 4;
+    default: return 0;
+  }
+};
 
 export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
   const update = useUpdateCalendarItem();
