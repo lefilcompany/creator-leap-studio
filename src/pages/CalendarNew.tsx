@@ -422,6 +422,22 @@ const CalendarNew = () => {
             o tipo de conteúdo desejado e o tom da comunicação.
           </p>
 
+          <div className="space-y-1.5">
+            <Label htmlFor="briefing-title" className="text-sm font-medium">
+              Título do briefing
+            </Label>
+            <Input
+              id="briefing-title"
+              value={briefingTitle}
+              onChange={(e) => setBriefingTitle(e.target.value)}
+              placeholder="Ex: Lançamento da nova coleção de outono"
+              className="bg-background/60"
+            />
+            <p className="text-xs text-muted-foreground">
+              Resuma em uma frase o assunto central — ele dá contexto a todo o briefing principal e às pautas geradas.
+            </p>
+          </div>
+
           <Textarea
             id="brief"
             rows={7}
