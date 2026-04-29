@@ -844,9 +844,20 @@ export default function TextEditor() {
                   </span>
                 )}
               </div>
-              <Button size="sm" variant="ghost" onClick={addLayer} className="h-7 gap-1 text-[12px] font-semibold">
-                <Plus className="h-3.5 w-3.5" /> Nova
-              </Button>
+              <div className="flex items-center gap-0.5">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setTemplatesOpen(true)}
+                  className="h-7 px-2 gap-1 text-[11.5px] font-semibold text-muted-foreground hover:text-primary"
+                  title="Salvar ou aplicar template de estilo"
+                >
+                  <Sparkles className="h-3.5 w-3.5" /> Templates
+                </Button>
+                <Button size="sm" variant="ghost" onClick={addLayer} className="h-7 gap-1 text-[12px] font-semibold">
+                  <Plus className="h-3.5 w-3.5" /> Nova
+                </Button>
+              </div>
             </div>
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
