@@ -258,15 +258,15 @@ function Section({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-border/40 bg-background/50 overflow-hidden">
-      <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-border/40 bg-muted/30">
-        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground/80 uppercase tracking-wide">
+    <div className="rounded-xl border border-border/50 bg-background/60 overflow-hidden shadow-sm">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/40 bg-gradient-to-b from-muted/40 to-muted/20">
+        <div className="flex items-center gap-2 text-[10.5px] font-bold text-foreground/90 uppercase tracking-[0.08em]">
           {icon}
           {title}
         </div>
         {action}
       </div>
-      <div className="p-2.5 space-y-2">{children}</div>
+      <div className="p-3 space-y-2.5">{children}</div>
     </div>
   );
 }
@@ -280,8 +280,8 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-2 min-h-7">
-      <Label className="text-xs text-muted-foreground shrink-0">{label}</Label>
+    <div className="flex items-center justify-between gap-3 min-h-7">
+      <Label className="text-[12px] font-medium text-foreground/70 shrink-0 tracking-tight">{label}</Label>
       <div className="flex-1 max-w-[60%] flex justify-end">{children}</div>
     </div>
   );
