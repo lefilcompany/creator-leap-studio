@@ -1040,6 +1040,76 @@ const StageBriefing = ({
         </div>
       </div>
 
+      {/* Resumo da Pauta (sanfona) */}
+      {(() => {
+        const m = (item.metadata || {}) as Record<string, any>;
+        const fields: { label: string; value: string | null | undefined }[] = [
+          { label: "Título", value: item.title },
+          { label: "Tema / editoria", value: item.theme },
+          {
+            label: "Data",
+            value: item.scheduled_date
+              ? new Date(item.scheduled_date + "T00:00:00").toLocaleDateString("pt-BR", {
+                  weekday: "long",
+                  day: "2-digit",
+                  month: "long",
+                })
+              : null,
+          },
+          { label: "Rede social", value: m.platform },
+          { label: "Formato", value: m.format },
+          { label: "Observações", value: item.notes },
+        ];
+        const filled = fields.filter((f) => f.value && String(f.value).trim().length > 0);
+        if (filled.length === 0) return null;
+        return (
+          <div className="rounded-2xl border border-border bg-muted/20 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setPautaOpen((v) => !v)}
+              className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-muted/40 transition-colors"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="rounded-lg bg-primary/10 text-primary p-1.5 shrink-0">
+                  <Pencil className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-left min-w-0">
+                  <p className="text-xs font-semibold">Dados da pauta</p>
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {pautaOpen
+                      ? "Tudo o que você preencheu na etapa anterior"
+                      : filled
+                          .slice(0, 3)
+                          .map((f) => `${f.label}: ${f.value}`)
+                          .join(" · ")}
+                  </p>
+                </div>
+              </div>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 text-muted-foreground shrink-0 transition-transform",
+                  pautaOpen && "rotate-180"
+                )}
+              />
+            </button>
+            {pautaOpen && (
+              <div className="px-4 pb-4 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-border/60">
+                {filled.map((f) => (
+                  <div key={f.label} className="text-xs">
+                    <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-0.5">
+                      {f.label}
+                    </p>
+                    <p className="whitespace-pre-wrap text-foreground/90 leading-relaxed">
+                      {f.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Campos lado a lado */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <BriefingField
