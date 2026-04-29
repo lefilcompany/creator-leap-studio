@@ -76,7 +76,7 @@ export default function TextStyleTemplatesDialog({ open, onOpenChange, currentLa
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      setTemplates((data ?? []) as Template[]);
+      setTemplates((data ?? []) as unknown as Template[]);
     } catch (e: any) {
       console.error(e);
       toast.error("Não foi possível carregar os templates");
