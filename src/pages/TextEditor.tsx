@@ -17,7 +17,7 @@ import {
   AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, ArrowRight, SkipForward,
   Sparkles, CheckCircle2, X, Layers as LayersIcon, Settings2, Upload,
   MoreHorizontal, Palette, Wand2, SlidersHorizontal, BookmarkPlus, FolderOpen,
-  Grid3x3, Magnet,
+  Grid3x3, Magnet, Download,
 } from "lucide-react";
 import TextStyleTemplatesDialog from "@/components/text-editor/TextStyleTemplatesDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -704,6 +704,49 @@ export default function TextEditor() {
     goToResult(state.imageUrl);
   };
 
+  const [downloading, setDownloading] = useState(false);
+  const handleDownload = async () => {
+    if (!state.imageUrl) return;
+    setDownloading(true);
+    try {
+      let urlToDownload = state.imageUrl;
+      const hasText = layers.some((l) => (l.text || "").trim().length > 0);
+      if (hasText) {
+        toast.info("Renderizando imagem com texto...");
+        const { data, error } = await supabase.functions.invoke("render-text-overlay", {
+          body: {
+            imageUrl: state.imageUrl,
+            sourceImageUrl: state.sourceImageUrl,
+            imageWidth: naturalSize.w,
+            imageHeight: naturalSize.h,
+            layers,
+            actionId: state.actionId,
+          },
+        });
+        if (error) throw error;
+        if (!data?.editedImageUrl) throw new Error("Sem URL da imagem editada");
+        urlToDownload = `${data.editedImageUrl}?t=${Date.now()}`;
+      }
+      const res = await fetch(urlToDownload, { mode: "cors" });
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      const ext = (blob.type.split("/")[1] || "png").split(";")[0];
+      a.download = `imagem-${Date.now()}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+      toast.success("Download iniciado!");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || "Falha ao baixar imagem");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const resetLayers = () => {
     const init = defaultLayer(naturalSize.w, naturalSize.h);
     setLayers([init]);
@@ -820,6 +863,9 @@ export default function TextEditor() {
                 <BookmarkPlus className="h-3.5 w-3.5" /> Salvar como template
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleDownload} disabled={downloading} className="gap-2 text-xs">
+                {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />} Baixar imagem
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={resetLayers} className="gap-2 text-xs">
                 <RotateCcw className="h-3.5 w-3.5" /> Resetar camadas
               </DropdownMenuItem>
