@@ -1006,14 +1006,14 @@ export default function TextEditor() {
                     {guides.v.map((x, i) => (
                       <div
                         key={`v-${i}-${x}`}
-                        className="absolute top-0 bottom-0 w-px bg-primary shadow-[0_0_4px_hsl(var(--primary))]"
+                        className="editor-guide-v absolute top-0 bottom-0 w-px bg-gradient-to-b from-primary/40 via-primary to-primary/40 shadow-[0_0_8px_hsl(var(--primary)),0_0_16px_hsl(var(--primary)/0.5)]"
                         style={{ left: x * displayScale }}
                       />
                     ))}
                     {guides.h.map((y, i) => (
                       <div
                         key={`h-${i}-${y}`}
-                        className="absolute left-0 right-0 h-px bg-primary shadow-[0_0_4px_hsl(var(--primary))]"
+                        className="editor-guide-h absolute left-0 right-0 h-px bg-gradient-to-r from-primary/40 via-primary to-primary/40 shadow-[0_0_8px_hsl(var(--primary)),0_0_16px_hsl(var(--primary)/0.5)]"
                         style={{ top: y * displayScale }}
                       />
                     ))}
