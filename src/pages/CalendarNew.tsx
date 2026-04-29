@@ -113,7 +113,7 @@ const CalendarNew = () => {
             ? { title: selectedTheme.title, description: selectedTheme.description }
             : null,
           reference_month: refDate,
-          hint: userInput,
+          hint: composedBriefing,
         },
       });
       if (error) {
@@ -169,7 +169,7 @@ const CalendarNew = () => {
           theme: selectedTheme
             ? { title: selectedTheme.title, description: selectedTheme.description }
             : null,
-          user_input: userInput,
+          user_input: composedBriefing,
           reference_month: refDate,
           count,
         },
@@ -232,7 +232,7 @@ const CalendarNew = () => {
         brand_id: brandId || null,
         persona_id: personaId || null,
         theme_id: themeId || null,
-        user_input: userInput,
+        user_input: composedBriefing,
         reference_month: `${referenceMonth}-01`,
         items: generatedItems.map((it) => ({
           title: it.title,
