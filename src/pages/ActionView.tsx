@@ -279,7 +279,7 @@ const parsePlanText = (raw: string): ParsedPlan => {
   }
 
   if (currentBlock) result.contents.push(currentBlock);
-  if (!result.title) result.title = 'Calendário de Conteúdo';
+  if (!result.title) result.title = 'Novo calendário';
   return result;
 };
 
@@ -1118,7 +1118,7 @@ export default function ActionView() {
               {/* Plan result below */}
               {(action.result?.plan || (Array.isArray((action.result as any)?.posts) && (action.result as any).posts.length > 0)) && (
                 <SectionCard
-                  title="Calendário de Conteúdo"
+                  title="Novo calendário"
                   icon={<FileOutput className="h-4 w-4" />}
                   accentColor={accentColor}
                   headerRight={

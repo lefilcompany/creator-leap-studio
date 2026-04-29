@@ -37,7 +37,7 @@ export const translations = {
       history: "Histórico",
       createContent: "Criar Conteúdo",
       reviewContent: "Revisar Conteúdo",
-      planContent: "Calendário de Conteúdo",
+      planContent: "Novo calendário",
       team: "Equipe",
       categories: "Categorias",
       plan: "Plano",
@@ -471,7 +471,7 @@ export const translations = {
     
     // Plan Content
     planContent: {
-      title: "Calendário de Conteúdo",
+      title: "Novo calendário",
       selectBrand: "Selecione uma Marca",
       selectTheme: "Selecione uma Editoria",
       selectPersonas: "Selecione Personas",
