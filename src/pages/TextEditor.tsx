@@ -863,6 +863,9 @@ export default function TextEditor() {
                 <BookmarkPlus className="h-3.5 w-3.5" /> Salvar como template
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleDownload} disabled={downloading} className="gap-2 text-xs">
+                {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />} Baixar imagem
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={resetLayers} className="gap-2 text-xs">
                 <RotateCcw className="h-3.5 w-3.5" /> Resetar camadas
               </DropdownMenuItem>
