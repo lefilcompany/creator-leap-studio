@@ -1034,7 +1034,7 @@ export default function TextEditor() {
         )}
         <aside
           className={cn(
-            "border-l border-border/40 bg-card flex flex-col min-h-0",
+            "border-l border-border/60 bg-gradient-to-b from-card to-card/80 flex flex-col min-h-0 shadow-[inset_1px_0_0_0_hsl(var(--border)/0.3)]",
             "max-lg:fixed max-lg:right-0 max-lg:top-0 max-lg:bottom-0 max-lg:z-50 max-lg:w-[88%] max-lg:max-w-sm max-lg:shadow-2xl max-lg:transition-transform max-lg:duration-200",
             isMobile && !propsSheetOpen && "max-lg:translate-x-full",
             isMobile && propsSheetOpen && "max-lg:translate-x-0",
