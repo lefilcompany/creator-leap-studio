@@ -536,118 +536,291 @@ const CalendarNew = () => {
         </div>
       </section>
 
-      {generatedItems.length > 0 && (
-        <Card className="p-5 space-y-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="font-semibold text-lg">Pautas do calendário</h2>
-              <p className="text-sm text-muted-foreground">
-                Ajuste cada pauta antes de enviar para a equipe trabalhar o briefing.
-                Defina título, data, rede social e formato.
-              </p>
+      {generatedItems.length > 0 && (() => {
+        const getItemStatus = (it: GeneratedItem) => {
+          const fields = [it.title?.trim(), it.scheduled_date, it.platform, it.format, it.theme?.trim()];
+          const filled = fields.filter(Boolean).length;
+          const required = [it.title?.trim(), it.scheduled_date, it.platform, it.format].filter(Boolean).length;
+          if (required === 4) return { status: "complete" as const, filled, total: 5 };
+          if (required >= 2) return { status: "partial" as const, filled, total: 5 };
+          return { status: "pending" as const, filled, total: 5 };
+        };
+        const statuses = generatedItems.map(getItemStatus);
+        const completeCount = statuses.filter((s) => s.status === "complete").length;
+        const partialCount = statuses.filter((s) => s.status === "partial").length;
+        const pendingCount = statuses.filter((s) => s.status === "pending").length;
+        const overallProgress = Math.round((completeCount / generatedItems.length) * 100);
+
+        const statusStyles = {
+          complete: { dot: "bg-emerald-500", ring: "ring-emerald-500/30", text: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10", label: "Completa" },
+          partial: { dot: "bg-amber-500", ring: "ring-amber-500/30", text: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10", label: "Parcial" },
+          pending: { dot: "bg-rose-500", ring: "ring-rose-500/30", text: "text-rose-600 dark:text-rose-400", bg: "bg-rose-500/10", label: "Pendente" },
+        };
+
+        return (
+          <section className="space-y-4">
+            {/* Header da etapa */}
+            <div className="flex items-start gap-3">
+              <div className="rounded-lg bg-primary text-primary-foreground h-8 w-8 flex items-center justify-center shrink-0 text-sm font-bold shadow-md shadow-primary/20">
+                4
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <h2 className="font-semibold text-base">Pautas do calendário</h2>
+                  <span className="text-[10px] uppercase font-bold bg-primary/15 text-primary px-2 py-0.5 rounded-full">
+                    Painel de revisão
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Revise cada pauta gerada pela IA. Ajuste título, data, rede social e formato antes de enviar para a equipe.
+                </p>
+              </div>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={addItem} className="gap-2 shrink-0">
-              <Plus className="h-3.5 w-3.5" />
-              Adicionar pauta
-            </Button>
-          </div>
 
-          <div className="space-y-3">
-            {generatedItems.map((item, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-primary/10 text-primary text-xs font-bold w-8 h-8 flex items-center justify-center shrink-0">
-                    {i + 1}
-                  </div>
-                  <div className="flex-1 min-w-0 space-y-3">
-                    <Input
-                      value={item.title}
-                      onChange={(e) => updateItem(i, { title: e.target.value })}
-                      placeholder="Título da pauta"
-                      className="font-medium"
-                    />
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Data</Label>
-                        <Input
-                          type="date"
-                          value={item.scheduled_date}
-                          onChange={(e) => updateItem(i, { scheduled_date: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Tema</Label>
-                        <Input
-                          value={item.theme}
-                          onChange={(e) => updateItem(i, { theme: e.target.value })}
-                          placeholder="Ex: Educativo"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Rede social</Label>
-                        <Select
-                          value={item.platform || ""}
-                          onValueChange={(v) => updateItem(i, { platform: v })}
-                        >
-                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                          <SelectContent>
-                            {PLATFORMS.map((p) => (
-                              <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Formato</Label>
-                        <Select
-                          value={item.format || ""}
-                          onValueChange={(v) => updateItem(i, { format: v })}
-                        >
-                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                          <SelectContent>
-                            {FORMATS.map((f) => (
-                              <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeItem(i)}
-                    className="text-muted-foreground hover:text-destructive shrink-0"
-                    title="Remover pauta"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+            {/* Painel de progresso */}
+            <div className="bg-gradient-to-br from-card to-primary/[0.03] rounded-2xl shadow-sm ring-1 ring-primary/10 p-5 md:p-6 space-y-5">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="rounded-xl bg-background/60 border border-border/60 p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Total</p>
+                  <p className="text-2xl font-bold mt-0.5">{generatedItems.length}</p>
+                  <p className="text-[11px] text-muted-foreground">pautas no calendário</p>
+                </div>
+                <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/20 p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-emerald-600 dark:text-emerald-400 font-medium">Completas</p>
+                  <p className="text-2xl font-bold mt-0.5 text-emerald-600 dark:text-emerald-400">{completeCount}</p>
+                  <p className="text-[11px] text-muted-foreground">prontas para envio</p>
+                </div>
+                <div className="rounded-xl bg-amber-500/5 border border-amber-500/20 p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-amber-600 dark:text-amber-400 font-medium">Parciais</p>
+                  <p className="text-2xl font-bold mt-0.5 text-amber-600 dark:text-amber-400">{partialCount}</p>
+                  <p className="text-[11px] text-muted-foreground">faltam ajustes</p>
+                </div>
+                <div className="rounded-xl bg-rose-500/5 border border-rose-500/20 p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-rose-600 dark:text-rose-400 font-medium">Pendentes</p>
+                  <p className="text-2xl font-bold mt-0.5 text-rose-600 dark:text-rose-400">{pendingCount}</p>
+                  <p className="text-[11px] text-muted-foreground">precisam atenção</p>
                 </div>
               </div>
-            ))}
-          </div>
 
-          <div className="flex items-center justify-between gap-3 pt-2 border-t border-border/40">
-            <p className="text-xs text-muted-foreground">
-              A marca, persona e editoria selecionadas acima serão aplicadas a todas as pautas.
-            </p>
-            <Button onClick={handleSave} disabled={createCalendar.isPending} className="gap-2">
-              {createCalendar.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCircle2 className="h-4 w-4" />
-              )}
-              Salvar e enviar para a equipe
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </Card>
-      )}
+              {/* Barra de progresso geral */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-medium">Progresso de revisão</span>
+                  <span className="text-muted-foreground">{completeCount} de {generatedItems.length} completas · {overallProgress}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-emerald-500 transition-all duration-500"
+                    style={{ width: `${overallProgress}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Contexto aplicado */}
+              <div className="rounded-xl bg-primary/5 border border-primary/15 p-3 flex items-start gap-2.5">
+                <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                <div className="text-xs text-muted-foreground leading-relaxed">
+                  <span className="font-semibold text-foreground">Contexto aplicado a todas as pautas: </span>
+                  {selectedBrand ? <span className="text-foreground">{selectedBrand.name}</span> : <span className="italic">sem marca</span>}
+                  {" · "}
+                  {selectedPersona ? <span className="text-foreground">{selectedPersona.name}</span> : <span className="italic">sem persona</span>}
+                  {" · "}
+                  {selectedTheme ? <span className="text-foreground">{selectedTheme.title}</span> : <span className="italic">sem editoria</span>}
+                </div>
+              </div>
+            </div>
+
+            {/* Lista de pautas */}
+            <div className="bg-card rounded-2xl shadow-sm p-5 md:p-6 space-y-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h3 className="font-semibold text-sm">Lista de pautas</h3>
+                  <p className="text-xs text-muted-foreground">Edite os campos diretamente. Use as cores para identificar o status.</p>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={addItem} className="gap-2 shrink-0">
+                  <Plus className="h-3.5 w-3.5" />
+                  Adicionar pauta
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                {generatedItems.map((item, i) => {
+                  const s = statuses[i];
+                  const styles = statusStyles[s.status];
+                  const fieldsTotal = 4;
+                  const fieldsFilled = [item.title?.trim(), item.scheduled_date, item.platform, item.format].filter(Boolean).length;
+                  const itemProgress = Math.round((fieldsFilled / fieldsTotal) * 100);
+
+                  return (
+                    <div
+                      key={i}
+                      className={`group relative rounded-xl bg-background border border-border/60 p-4 space-y-3 transition-all hover:shadow-md hover:border-primary/30 ${styles.ring} ring-1`}
+                    >
+                      {/* Faixa de status lateral */}
+                      <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${styles.dot}`} />
+
+                      <div className="flex items-start gap-3 pl-2">
+                        <div className={`rounded-lg ${styles.bg} ${styles.text} text-xs font-bold w-9 h-9 flex items-center justify-center shrink-0`}>
+                          {i + 1}
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-3">
+                          {/* Linha 1: título + status badge */}
+                          <div className="flex items-start gap-2 flex-wrap">
+                            <div className="flex-1 min-w-[200px] space-y-1">
+                              <Label className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+                                Título da pauta
+                              </Label>
+                              <Input
+                                value={item.title}
+                                onChange={(e) => updateItem(i, { title: e.target.value })}
+                                placeholder="Ex: 5 erros comuns ao escolher cerâmica artesanal"
+                                className="font-semibold text-base h-11"
+                              />
+                            </div>
+                            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${styles.bg} ${styles.text} mt-6`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${styles.dot}`} />
+                              {styles.label}
+                            </div>
+                          </div>
+
+                          {/* Mini barra de progresso da pauta */}
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className={`h-full transition-all ${s.status === "complete" ? "bg-emerald-500" : s.status === "partial" ? "bg-amber-500" : "bg-rose-500"}`}
+                                style={{ width: `${itemProgress}%` }}
+                              />
+                            </div>
+                            <span className="text-[10px] text-muted-foreground font-medium tabular-nums">
+                              {fieldsFilled}/{fieldsTotal}
+                            </span>
+                          </div>
+
+                          {/* Campos editáveis */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                            <div className="space-y-1">
+                              <Label className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                Data
+                                {item.scheduled_date ? <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" /> : <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />}
+                              </Label>
+                              <Input
+                                type="date"
+                                value={item.scheduled_date}
+                                onChange={(e) => updateItem(i, { scheduled_date: e.target.value })}
+                                className="h-9 text-sm"
+                              />
+                              <p className="text-[10px] text-muted-foreground">Quando publicar</p>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                Tema
+                                {item.theme?.trim() ? <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" /> : <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
+                              </Label>
+                              <Input
+                                value={item.theme}
+                                onChange={(e) => updateItem(i, { theme: e.target.value })}
+                                placeholder="Ex: Educativo"
+                                className="h-9 text-sm"
+                              />
+                              <p className="text-[10px] text-muted-foreground">Categoria editorial</p>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                Rede social
+                                {item.platform ? <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" /> : <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />}
+                              </Label>
+                              <Select
+                                value={item.platform || ""}
+                                onValueChange={(v) => updateItem(i, { platform: v })}
+                              >
+                                <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                                <SelectContent>
+                                  {PLATFORMS.map((p) => (
+                                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <p className="text-[10px] text-muted-foreground">Onde publicar</p>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                Formato
+                                {item.format ? <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" /> : <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />}
+                              </Label>
+                              <Select
+                                value={item.format || ""}
+                                onValueChange={(v) => updateItem(i, { format: v })}
+                              >
+                                <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                                <SelectContent>
+                                  {FORMATS.map((f) => (
+                                    <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <p className="text-[10px] text-muted-foreground">Tipo de conteúdo</p>
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeItem(i)}
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+                          title="Remover pauta"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Botão adicionar (rodapé visível) */}
+              <button
+                type="button"
+                onClick={addItem}
+                className="w-full rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 hover:text-primary text-muted-foreground py-4 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Adicionar nova pauta
+              </button>
+            </div>
+
+            {/* CTA final */}
+            <div className="bg-gradient-to-br from-primary/10 via-card to-card rounded-2xl shadow-md ring-1 ring-primary/15 p-5 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="space-y-1 max-w-xl">
+                <p className="text-sm font-semibold flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  {pendingCount === 0 && partialCount === 0
+                    ? "Tudo pronto! Você pode enviar para a equipe."
+                    : `${pendingCount + partialCount} ${pendingCount + partialCount === 1 ? "pauta precisa" : "pautas precisam"} de ajuste antes do envio.`}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Ao enviar, cada pauta entra no fluxo da equipe (briefing → design → revisão).
+                </p>
+              </div>
+              <Button
+                onClick={handleSave}
+                disabled={createCalendar.isPending}
+                size="lg"
+                className="gap-2 shadow-lg shadow-primary/20 shrink-0"
+              >
+                {createCalendar.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
+                Salvar e enviar para a equipe
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </section>
+        );
+      })()}
     </div>
   );
 };
