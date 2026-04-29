@@ -517,6 +517,15 @@ export default function TextEditor() {
       vTargets.push(other.x, other.x + other.maxWidth / 2, other.x + other.maxWidth);
       hTargets.push(other.y, other.y + oH / 2, other.y + oH);
     }
+    // When grid is on, every grid line becomes a snap target too.
+    if (gridDivisions > 0) {
+      const stepX = naturalSize.w / gridDivisions;
+      const stepY = naturalSize.h / gridDivisions;
+      for (let i = 1; i < gridDivisions; i++) {
+        vTargets.push(Math.round(stepX * i));
+        hTargets.push(Math.round(stepY * i));
+      }
+    }
 
     let bestDX = 0, bestDXAbs = threshold + 1;
     let bestDY = 0, bestDYAbs = threshold + 1;
