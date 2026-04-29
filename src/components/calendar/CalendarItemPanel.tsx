@@ -283,7 +283,7 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
         {/* Stepper */}
         <Stepper
           currentIndex={currentIndex}
-          maxIndex={maxIndex}
+          maxIndex={visualMaxIndex}
           stage={item.stage}
           onStepClick={(s) => goToStage(s)}
         />
