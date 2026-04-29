@@ -11,21 +11,14 @@ export const DashboardCalendars = () => {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-base font-semibold flex items-center gap-2">
-            <CalendarIcon className="h-4 w-4 text-primary" />
-            Calendários de conteúdo
-          </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Organize suas pautas em fluxos de criação
-          </p>
-        </div>
-        <Button size="sm" asChild>
-          <Link to="/calendar/new">
-            <Plus className="h-3.5 w-3.5 mr-1" /> Novo calendário
-          </Link>
-        </Button>
+      <div>
+        <h2 className="text-base font-semibold flex items-center gap-2">
+          <CalendarIcon className="h-4 w-4 text-primary" />
+          Calendários de conteúdo
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Organize suas pautas em fluxos de criação
+        </p>
       </div>
 
       {isLoading ? (
