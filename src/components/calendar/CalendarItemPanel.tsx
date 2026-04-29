@@ -247,7 +247,12 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
         </div>
 
         {/* Stepper */}
-        <Stepper currentIndex={currentIndex} stage={item.stage} />
+        <Stepper
+          currentIndex={currentIndex}
+          maxIndex={maxIndex}
+          stage={item.stage}
+          onStepClick={(s) => goToStage(s)}
+        />
 
         {/* Microcopy de orientação */}
         <p className="mt-3 text-xs text-muted-foreground">
@@ -259,7 +264,7 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
 
       {/* ===== Conteúdo da etapa ===== */}
       <div className="px-5 py-5 flex-1">
-        {item.stage === "calendar" && (
+        {viewStage === "calendar" && (
           <StageCalendar
             item={item}
             onAdvance={() =>
@@ -271,10 +276,10 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
             loading={update.isPending}
           />
         )}
-        {item.stage === "briefing" && (
+        {viewStage === "briefing" && (
           <StageBriefing item={item} update={update} />
         )}
-        {(item.stage === "design" || item.stage === "review") && (
+        {(viewStage === "design" || viewStage === "review") && (
           <StageDesign
             item={item}
             onAdvance={() =>
@@ -290,7 +295,7 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
             loading={update.isPending}
           />
         )}
-        {item.stage === "done" && (
+        {viewStage === "done" && (
           <div className="text-center py-12">
             <div className="mx-auto h-14 w-14 rounded-full bg-success/15 text-success flex items-center justify-center mb-3">
               <CheckCircle2 className="h-7 w-7" />
@@ -310,18 +315,24 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
 // ===================== Stepper =====================
 const Stepper = ({
   currentIndex,
+  maxIndex,
   stage,
+  onStepClick,
 }: {
   currentIndex: number;
+  maxIndex: number;
   stage: CalendarStage;
+  onStepClick?: (stage: CalendarStage) => void;
 }) => {
   return (
     <div className="flex items-center w-full">
       {STEPS.map((step, i) => {
         const Icon = step.icon;
-        const isDone = i < currentIndex || stage === "done";
-        const isCurrent = i === currentIndex && stage !== "done";
+        const isDone = i < maxIndex || stage === "done";
+        const isCurrent = i === currentIndex;
+        const isReachable = i <= maxIndex;
         const isLast = i === STEPS.length - 1;
+        const clickable = isReachable && i !== currentIndex;
 
         return (
           <div key={step.id} className="flex items-center flex-1 last:flex-none">
