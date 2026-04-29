@@ -17,6 +17,7 @@ import {
   AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, ArrowRight, SkipForward,
   Sparkles, CheckCircle2, X, Layers as LayersIcon, Settings2, Upload,
   MoreHorizontal, Palette, Wand2, SlidersHorizontal, BookmarkPlus, FolderOpen,
+  Grid3x3, Magnet,
 } from "lucide-react";
 import TextStyleTemplatesDialog from "@/components/text-editor/TextStyleTemplatesDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -330,6 +331,17 @@ export default function TextEditor() {
   } | null>(null);
   // Active alignment guides (in image-pixel coordinates) shown while dragging.
   const [guides, setGuides] = useState<{ v: number[]; h: number[] }>({ v: [], h: [] });
+  // Grid + snap toggles, persisted across sessions.
+  const [gridDivisions, setGridDivisions] = useState<number>(() => {
+    const v = Number(localStorage.getItem("text-editor:gridDivisions"));
+    return Number.isFinite(v) && v > 0 ? v : 0; // 0 = off
+  });
+  const [snapEnabled, setSnapEnabled] = useState<boolean>(() => {
+    const v = localStorage.getItem("text-editor:snapEnabled");
+    return v === null ? true : v === "1";
+  });
+  useEffect(() => { localStorage.setItem("text-editor:gridDivisions", String(gridDivisions)); }, [gridDivisions]);
+  useEffect(() => { localStorage.setItem("text-editor:snapEnabled", snapEnabled ? "1" : "0"); }, [snapEnabled]);
 
   const displayScale = naturalSize.w ? displaySize.w / naturalSize.w : 1;
   // Use the original (text-free) image as the canvas base whenever available
@@ -506,6 +518,15 @@ export default function TextEditor() {
       vTargets.push(other.x, other.x + other.maxWidth / 2, other.x + other.maxWidth);
       hTargets.push(other.y, other.y + oH / 2, other.y + oH);
     }
+    // When grid is on, every grid line becomes a snap target too.
+    if (gridDivisions > 0) {
+      const stepX = naturalSize.w / gridDivisions;
+      const stepY = naturalSize.h / gridDivisions;
+      for (let i = 1; i < gridDivisions; i++) {
+        vTargets.push(Math.round(stepX * i));
+        hTargets.push(Math.round(stepY * i));
+      }
+    }
 
     let bestDX = 0, bestDXAbs = threshold + 1;
     let bestDY = 0, bestDYAbs = threshold + 1;
@@ -568,9 +589,14 @@ export default function TextEditor() {
       const candY = drag.layerStartY + dy;
       if (layer) {
         const h = estimateLayerHeight(layer);
-        const snap = computeSnap(drag.id, candX, candY, layer.maxWidth, h);
-        updateLayer(drag.id, { x: Math.round(snap.x), y: Math.round(snap.y) });
-        setGuides({ v: snap.vGuides, h: snap.hGuides });
+        if (snapEnabled) {
+          const snap = computeSnap(drag.id, candX, candY, layer.maxWidth, h);
+          updateLayer(drag.id, { x: Math.round(snap.x), y: Math.round(snap.y) });
+          setGuides({ v: snap.vGuides, h: snap.hGuides });
+        } else {
+          updateLayer(drag.id, { x: Math.round(candX), y: Math.round(candY) });
+          if (guides.v.length || guides.h.length) setGuides({ v: [], h: [] });
+        }
       } else {
         updateLayer(drag.id, { x: Math.round(candX), y: Math.round(candY) });
       }
@@ -921,6 +947,55 @@ export default function TextEditor() {
               )}
             </div>
             <div className="flex items-center gap-1.5">
+              {/* Snap toggle */}
+              <Button
+                size="sm"
+                variant={snapEnabled ? "default" : "outline"}
+                onClick={() => setSnapEnabled((v) => !v)}
+                className={cn(
+                  "gap-1.5 h-8 px-2.5 text-[11.5px] font-semibold",
+                  snapEnabled && "bg-primary/15 text-primary border border-primary/30 hover:bg-primary/20"
+                )}
+                title={snapEnabled ? "Desativar snap de alinhamento" : "Ativar snap de alinhamento"}
+                aria-pressed={snapEnabled}
+              >
+                <Magnet className="h-3.5 w-3.5" /> Snap
+              </Button>
+              {/* Grid divisions dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant={gridDivisions > 0 ? "default" : "outline"}
+                    className={cn(
+                      "gap-1.5 h-8 px-2.5 text-[11.5px] font-semibold tabular-nums",
+                      gridDivisions > 0 && "bg-primary/15 text-primary border border-primary/30 hover:bg-primary/20"
+                    )}
+                    title="Mostrar/ocultar grade"
+                    aria-pressed={gridDivisions > 0}
+                  >
+                    <Grid3x3 className="h-3.5 w-3.5" />
+                    {gridDivisions > 0 ? `Grade ${gridDivisions}` : "Grade"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem onClick={() => setGridDivisions(0)} className="text-[12.5px]">
+                    Sem grade
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {[4, 8, 12, 16, 24].map((n) => (
+                    <DropdownMenuItem
+                      key={n}
+                      onClick={() => setGridDivisions(n)}
+                      className="text-[12.5px] flex items-center justify-between"
+                    >
+                      <span>{n} × {n}</span>
+                      {gridDivisions === n && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div className="h-5 w-px bg-border/60 mx-0.5" />
               <Button size="sm" variant="outline" onClick={addLayer} className="gap-1.5 h-8 text-[12px] font-semibold">
                 <Plus className="h-3.5 w-3.5" /> Adicionar texto
               </Button>
@@ -1045,6 +1120,43 @@ export default function TextEditor() {
                     );
                   })}
                 </div>
+                {/* Optional grid overlay — purely visual + provides snap targets. */}
+                {gridDivisions > 0 && (
+                  <svg
+                    className="absolute inset-0 pointer-events-none rounded-xl overflow-hidden"
+                    width={displaySize.w}
+                    height={displaySize.h}
+                    viewBox={`0 0 ${displaySize.w} ${displaySize.h}`}
+                    aria-hidden
+                  >
+                    <defs>
+                      <pattern
+                        id="te-grid-pattern"
+                        width={displaySize.w / gridDivisions}
+                        height={displaySize.h / gridDivisions}
+                        patternUnits="userSpaceOnUse"
+                      >
+                        <path
+                          d={`M ${displaySize.w / gridDivisions} 0 L 0 0 0 ${displaySize.h / gridDivisions}`}
+                          fill="none"
+                          stroke="hsl(var(--primary))"
+                          strokeOpacity="0.18"
+                          strokeWidth="1"
+                        />
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#te-grid-pattern)" />
+                    {/* Center axes with stronger emphasis */}
+                    <line
+                      x1={displaySize.w / 2} y1={0} x2={displaySize.w / 2} y2={displaySize.h}
+                      stroke="hsl(var(--primary))" strokeOpacity="0.32" strokeDasharray="4 4" strokeWidth="1"
+                    />
+                    <line
+                      x1={0} y1={displaySize.h / 2} x2={displaySize.w} y2={displaySize.h / 2}
+                      stroke="hsl(var(--primary))" strokeOpacity="0.32" strokeDasharray="4 4" strokeWidth="1"
+                    />
+                  </svg>
+                )}
                 {/* Alignment guides — visible only while dragging snaps. */}
                 {(guides.v.length > 0 || guides.h.length > 0) && (
                   <div className="absolute inset-0 pointer-events-none">
