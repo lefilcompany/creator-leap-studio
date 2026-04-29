@@ -241,85 +241,153 @@ const CalendarNew = () => {
     }
   };
 
+  const briefingSuggestions = [
+    "Posicionar a marca como referência no segmento, mesclando bastidores e conteúdo educativo.",
+    "Lançar um produto novo no mês, com foco em geração de desejo e prova social.",
+    "Reforçar autoridade técnica e diferenciais frente à concorrência.",
+    "Aproximar a marca do público com tom leve, conversacional e bastidores reais.",
+  ];
+  const countPresets = [4, 8, 12, 16];
+  const stage = generatedItems.length > 0 ? 2 : 1;
+
   return (
-    <div className="space-y-5 pb-8 max-w-5xl mx-auto">
+    <div className="space-y-6 pb-12 max-w-5xl mx-auto">
       <PageBreadcrumb items={[{ label: "Calendário", href: "/plan" }, { label: "Novo calendário" }]} />
 
-      <div className="bg-card rounded-2xl shadow-md p-5">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="rounded-xl bg-primary/10 text-primary p-2">
-            <Sparkles className="h-5 w-5" />
+      {/* Cabeçalho — assistente de configuração */}
+      <div className="bg-gradient-to-br from-primary/10 via-card to-card rounded-2xl shadow-md p-6 md:p-8 border border-primary/10">
+        <div className="flex items-start gap-4">
+          <div className="rounded-2xl bg-primary text-primary-foreground p-3 shadow-lg shadow-primary/20 shrink-0">
+            <Sparkles className="h-6 w-6" />
           </div>
-          <div>
-            <h1 className="text-xl font-bold">Novo calendário de conteúdo</h1>
-            <p className="text-sm text-muted-foreground">
-              Defina o contexto e a IA gera as pautas para você ajustar.
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <span className="inline-flex items-center justify-center h-5 px-2 rounded-full bg-primary/15 text-primary">
+                Etapa {stage} de 2
+              </span>
+              <span>{stage === 1 ? "Configuração" : "Ajuste das pautas"}</span>
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold leading-tight">
+              Vamos montar seu calendário com IA
+            </h1>
+            <p className="text-sm md:text-base text-muted-foreground max-w-2xl">
+              Defina o contexto da marca, o foco editorial e o briefing.
+              A IA vai gerar pautas que você poderá revisar e ajustar antes de aprovar.
             </p>
           </div>
         </div>
       </div>
 
-      <Card className="p-5 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nome do calendário *</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Janeiro 2026 — Cerâmica Brennand"
-            />
+      {/* Bloco 1 — Contexto do calendário */}
+      <section className="space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="rounded-lg bg-primary/10 text-primary h-8 w-8 flex items-center justify-center shrink-0 text-sm font-bold">
+            1
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="month">Mês de referência</Label>
-            <Input
-              id="month"
-              type="month"
-              value={referenceMonth}
-              onChange={(e) => setReferenceMonth(e.target.value)}
-            />
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <Compass className="h-4 w-4 text-primary" />
+              <h2 className="font-semibold text-base">Contexto do calendário</h2>
+            </div>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Essas escolhas ajudam a IA a definir linguagem, foco temático e calendário ideal.
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label>Marca</Label>
-            <Select value={brandId} onValueChange={setBrandId}>
-              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>
-                {brands.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="bg-card rounded-2xl shadow-sm p-5 md:p-6 space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="name">Nome do calendário *</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex: Janeiro 2026 — Cerâmica Brennand"
+              />
+              <p className="text-xs text-muted-foreground">Sugestão: Mês + Ano + Marca ou tema central.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="month">Mês de referência</Label>
+              <Input
+                id="month"
+                type="month"
+                value={referenceMonth}
+                onChange={(e) => setReferenceMonth(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Define o período em que as pautas serão distribuídas.</p>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label>Persona</Label>
-            <Select value={personaId} onValueChange={setPersonaId}>
-              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>
-                {personas.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <Label>Marca</Label>
+              <Select value={brandId} onValueChange={setBrandId}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {brands.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Tom, valores e identidade.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Persona</Label>
+              <Select value={personaId} onValueChange={setPersonaId}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {personas.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Para quem a comunicação é direcionada.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Editoria</Label>
+              <Select value={themeId} onValueChange={setThemeId}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {themes.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Eixo temático principal do mês.</p>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label>Editoria</Label>
-            <Select value={themeId} onValueChange={setThemeId}>
-              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>
-                {themes.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        </div>
+      </section>
+
+      {/* Bloco 2 — Direção editorial (briefing em destaque) */}
+      <section className="space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="rounded-lg bg-primary/10 text-primary h-8 w-8 flex items-center justify-center shrink-0 text-sm font-bold">
+            2
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Target className="h-4 w-4 text-primary" />
+              <h2 className="font-semibold text-base">Direção editorial</h2>
+              <span className="text-[10px] uppercase font-bold bg-primary/15 text-primary px-2 py-0.5 rounded-full">
+                Mais importante
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              É o briefing que orienta a IA. Quanto mais claro, mais relevantes serão as pautas.
+            </p>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-3">
-            <Label htmlFor="brief">Briefing — o que você quer comunicar e por quê *</Label>
+        <div className="bg-gradient-to-br from-card to-primary/[0.03] rounded-2xl shadow-sm p-5 md:p-6 ring-1 ring-primary/10 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-primary" />
+              <Label htmlFor="brief" className="text-base font-semibold">
+                Briefing principal *
+              </Label>
+            </div>
             <Button
               type="button"
               variant="outline"
@@ -331,7 +399,7 @@ const CalendarNew = () => {
                   ? "Gerar uma sugestão de briefing com base no contexto"
                   : `Para sugerir com IA, preencha: ${missingForSuggest.join(", ")}`
               }
-              className="gap-2 h-8"
+              className="gap-2 h-9 self-start sm:self-auto"
             >
               {suggestingBriefing ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -341,33 +409,132 @@ const CalendarNew = () => {
               {suggestingBriefing ? "Gerando..." : "Sugerir com IA"}
             </Button>
           </div>
+
+          <p className="text-sm text-muted-foreground -mt-1">
+            Descreva o objetivo do mês, o posicionamento da marca, os temas prioritários,
+            o tipo de conteúdo desejado e o tom da comunicação.
+          </p>
+
           <Textarea
             id="brief"
-            rows={5}
+            rows={7}
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
-            placeholder="Ex: Posicionar a marca como referência em decoração assinada, com foco em peças exclusivas. Misturar conteúdo educativo com bastidores do ateliê..."
+            placeholder="Ex: Posicionar a marca como referência em decoração assinada, com foco em peças exclusivas. Misturar conteúdo educativo com bastidores do ateliê, depoimentos de clientes e lançamentos da nova coleção..."
+            className="bg-background/60 resize-y text-sm leading-relaxed"
           />
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Lightbulb className="h-3.5 w-3.5" />
+              Sugestões rápidas — clique para inserir
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {briefingSuggestions.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() =>
+                    setUserInput((prev) => (prev.trim() ? `${prev.trim()}\n• ${s}` : `• ${s}`))
+                  }
+                  className="text-xs text-left px-3 py-1.5 rounded-full bg-muted hover:bg-primary/10 hover:text-primary transition-colors border border-border/60"
+                >
+                  {s.length > 70 ? `${s.slice(0, 70)}…` : s}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bloco 3 — Configuração da geração */}
+      <section className="space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="rounded-lg bg-primary/10 text-primary h-8 w-8 flex items-center justify-center shrink-0 text-sm font-bold">
+            3
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <h2 className="font-semibold text-base">Configuração da geração</h2>
+            </div>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Defina o volume de pautas. Você poderá revisar, editar ou remover qualquer uma depois.
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-end gap-3">
-          <div className="space-y-2 w-32">
-            <Label htmlFor="count">Nº de pautas</Label>
-            <Input
-              id="count"
-              type="number"
-              min={3}
-              max={20}
-              value={count}
-              onChange={(e) => setCount(Math.min(20, Math.max(3, Number(e.target.value) || 8)))}
-            />
+        <div className="bg-card rounded-2xl shadow-sm p-5 md:p-6 space-y-5">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <Label className="text-sm font-medium">Número de pautas</Label>
+              <span className="text-xs text-muted-foreground">Recomendado para um mês: 8 a 12</span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="inline-flex items-center rounded-xl border border-border bg-background overflow-hidden h-11 self-start">
+                <button
+                  type="button"
+                  onClick={() => setCount((c) => Math.max(3, c - 1))}
+                  className="h-full w-11 flex items-center justify-center hover:bg-muted transition-colors"
+                  aria-label="Diminuir"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <div className="px-5 min-w-[60px] text-center font-bold text-lg">{count}</div>
+                <button
+                  type="button"
+                  onClick={() => setCount((c) => Math.min(20, c + 1))}
+                  className="h-full w-11 flex items-center justify-center hover:bg-muted transition-colors"
+                  aria-label="Aumentar"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {countPresets.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setCount(n)}
+                    className={`px-3 h-9 rounded-lg text-sm font-medium transition-colors border ${
+                      count === n
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background hover:bg-muted border-border"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-          <Button onClick={handleGenerate} disabled={!canGenerate || generating} className="gap-2">
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            {generating ? "Gerando..." : "Gerar pautas com IA"}
-          </Button>
+
+          <div className="border-t border-border/60 pt-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="space-y-1 max-w-md">
+              <p className="text-sm font-medium">Pronto para gerar?</p>
+              <p className="text-xs text-muted-foreground">
+                A IA vai criar {count} pautas com título, data, rede social e formato sugeridos.
+                Você poderá revisar e editar tudo antes de enviar para a equipe.
+              </p>
+            </div>
+            <div className="flex flex-col items-stretch md:items-end gap-1.5">
+              <Button
+                onClick={handleGenerate}
+                disabled={!canGenerate || generating}
+                size="lg"
+                className="gap-2 shadow-lg shadow-primary/20"
+              >
+                {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                {generating ? "Gerando pautas..." : "Gerar calendário com IA"}
+              </Button>
+              <p className="text-[11px] text-muted-foreground inline-flex items-center gap-1 md:justify-end">
+                <Coins className="h-3 w-3" />
+                Custo: {CREDIT_COSTS.CONTENT_PLAN} créditos · revisável antes de aprovar
+              </p>
+            </div>
+          </div>
         </div>
-      </Card>
+      </section>
 
       {generatedItems.length > 0 && (
         <Card className="p-5 space-y-4">
