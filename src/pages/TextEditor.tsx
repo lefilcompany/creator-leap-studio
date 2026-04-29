@@ -1006,7 +1006,7 @@ export default function TextEditor() {
         </section>
 
         {/* === Properties sidebar (right) === */}
-        <aside className="border-l border-border/40 bg-card flex flex-col min-h-0">
+        <aside className="hidden lg:flex border-l border-border/40 bg-card flex-col min-h-0">
 
           {/* Properties */}
           <ScrollArea className="flex-1 min-h-0">
