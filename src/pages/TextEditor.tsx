@@ -969,30 +969,30 @@ export default function TextEditor() {
                             {/* Edge bars - width */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-right")}
-                              className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-8 w-1.5 bg-primary/90 rounded-full cursor-ew-resize shadow-md hover:scale-y-110 transition-transform"
+                              className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-y-110 hover:bg-primary/90 transition-all"
                               title="Arraste para ajustar largura"
                             />
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-left")}
-                              className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-8 w-1.5 bg-primary/90 rounded-full cursor-ew-resize shadow-md hover:scale-y-110 transition-transform"
+                              className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-y-110 hover:bg-primary/90 transition-all"
                               title="Arraste para ajustar largura"
                             />
                             {/* Edge bars - font size */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-top")}
-                              className="absolute left-1/2 -top-1.5 -translate-x-1/2 h-1.5 w-8 bg-primary/90 rounded-full cursor-ns-resize shadow-md hover:scale-x-110 transition-transform"
+                              className="absolute left-1/2 -top-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-x-110 hover:bg-primary/90 transition-all"
                               title="Arraste para ajustar tamanho do texto"
                             />
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-bottom")}
-                              className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 h-1.5 w-8 bg-primary/90 rounded-full cursor-ns-resize shadow-md hover:scale-x-110 transition-transform"
+                              className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-x-110 hover:bg-primary/90 transition-all"
                               title="Arraste para ajustar tamanho do texto"
                             />
                             {/* Corner indicators (visual only) */}
-                            <div className="absolute -top-1 -left-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
-                            <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
-                            <div className="absolute -bottom-1 -left-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
-                            <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
+                            <div className="absolute -top-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
+                            <div className="absolute -top-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
+                            <div className="absolute -bottom-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
+                            <div className="absolute -bottom-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
                           </>
                         )}
                       </div>
