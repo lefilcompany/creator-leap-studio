@@ -714,24 +714,89 @@ export default function TextEditor() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="ghost" size="sm" onClick={handleSkip} disabled={saving} className="gap-1.5">
-            <SkipForward className="h-4 w-4" />
-            <span className="hidden sm:inline">Pular edição</span>
-          </Button>
-          <Button size="sm" onClick={handleApply} disabled={saving} className="gap-1.5">
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-            Aplicar e continuar
-          </Button>
+          {/* Mobile: open layers */}
+          <Sheet open={layersSheetOpen} onOpenChange={setLayersSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" className="lg:hidden gap-1.5 h-9">
+                <LayersIcon className="h-4 w-4" />
+                <span className="text-xs">{layers.length}</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-72">
+              <div className="px-4 pt-5 pb-3 border-b border-border/40 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <LayersIcon className="h-4 w-4" /> Camadas
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => { addLayer(); }} className="h-8 gap-1 text-xs">
+                  <Plus className="h-3.5 w-3.5" /> Nova
+                </Button>
+              </div>
+              <ScrollArea className="h-[calc(100vh-64px)]">
+                <div className="space-y-1 p-2">
+                  {layers.map((l, i) => (
+                    <button
+                      key={l.id}
+                      onClick={() => { setSelectedId(l.id); setLayersSheetOpen(false); setPropsSheetOpen(true); }}
+                      className={cn(
+                        "w-full text-left px-2.5 py-2 rounded-md border flex items-center gap-2",
+                        selectedId === l.id ? "border-primary bg-primary/10" : "border-border/40"
+                      )}
+                    >
+                      <Type className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="flex-1 truncate text-xs">{l.text || `Camada ${i + 1}`}</span>
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+
+          {/* Mobile: open properties */}
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleSkip}
-            disabled={saving}
-            className="h-8 w-8"
-            title="Fechar"
+            variant="outline"
+            size="sm"
+            className="lg:hidden gap-1.5 h-9"
+            onClick={() => setPropsSheetOpen(true)}
+            disabled={!selected}
           >
-            <X className="h-4 w-4" />
+            <SlidersHorizontal className="h-4 w-4" />
           </Button>
+
+          <Button variant="ghost" size="sm" onClick={handleSkip} disabled={saving} className="hidden sm:inline-flex gap-1.5 text-muted-foreground hover:text-foreground">
+            <SkipForward className="h-4 w-4" />
+            <span className="hidden md:inline">Pular edição</span>
+          </Button>
+
+          <Button
+            size="sm"
+            onClick={handleApply}
+            disabled={saving}
+            className="gap-1.5 h-9 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md hover:shadow-lg hover:opacity-95 transition-all font-semibold"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+            <span className="hidden sm:inline">Aplicar e continuar</span>
+            <span className="sm:hidden">Aplicar</span>
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9" disabled={saving} title="Mais opções">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={resetLayers} className="gap-2 text-xs">
+                <RotateCcw className="h-3.5 w-3.5" /> Resetar camadas
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSkip} className="gap-2 text-xs sm:hidden">
+                <SkipForward className="h-3.5 w-3.5" /> Pular edição
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSkip} className="gap-2 text-xs text-muted-foreground">
+                <X className="h-3.5 w-3.5" /> Fechar editor
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
