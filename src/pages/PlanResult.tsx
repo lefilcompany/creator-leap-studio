@@ -253,7 +253,7 @@ const PlanResult = () => {
             <Calendar className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Calendário de Conteúdo</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Novo calendário</h1>
             <p className="text-sm text-muted-foreground">
               {posts.length > 0
                 ? `${posts.length} conteúdo(s) sugerido(s) — clique em um card para ver os detalhes`
