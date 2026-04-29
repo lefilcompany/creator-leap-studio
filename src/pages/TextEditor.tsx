@@ -17,7 +17,7 @@ import {
   AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, ArrowRight, SkipForward,
   Sparkles, CheckCircle2, X, Layers as LayersIcon, Settings2, Upload,
   MoreHorizontal, Palette, Wand2, SlidersHorizontal, BookmarkPlus, FolderOpen,
-  Grid3x3, Magnet,
+  Grid3x3, Magnet, Download,
 } from "lucide-react";
 import TextStyleTemplatesDialog from "@/components/text-editor/TextStyleTemplatesDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
