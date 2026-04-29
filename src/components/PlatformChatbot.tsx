@@ -68,6 +68,7 @@ const MessageContent = ({ content, onUsePrompt }: { content: string; onUsePrompt
 
 export const PlatformChatbot = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
