@@ -884,7 +884,7 @@ export default function TextEditor() {
 
           <div
             ref={stageRef}
-            className="flex-1 min-h-0 min-w-0 p-3 sm:p-4 flex items-center justify-center overflow-hidden"
+            className="relative flex-1 min-h-0 min-w-0 p-4 sm:p-6 lg:p-8 flex items-center justify-center overflow-hidden"
           >
             {baseImageUrl && displaySize.w > 0 && (
               <div
