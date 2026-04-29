@@ -344,9 +344,15 @@ export default function TextEditor() {
   useEffect(() => { localStorage.setItem("text-editor:snapEnabled", snapEnabled ? "1" : "0"); }, [snapEnabled]);
 
   const displayScale = naturalSize.w ? displaySize.w / naturalSize.w : 1;
+  // Local override applied when the user edits the base image with AI from
+  // within the editor. Falls back to the original incoming state image.
+  const [aiEditedImageUrl, setAiEditedImageUrl] = useState<string | null>(null);
+  const [aiEditOpen, setAiEditOpen] = useState(false);
+  const [aiEditPrompt, setAiEditPrompt] = useState("");
+  const [aiEditing, setAiEditing] = useState(false);
   // Use the original (text-free) image as the canvas base whenever available
   // so the user sees and edits over the same source we re-render server-side.
-  const baseImageUrl = state.sourceImageUrl || state.imageUrl;
+  const baseImageUrl = aiEditedImageUrl || state.sourceImageUrl || state.imageUrl;
 
   useEffect(() => {
     if (!state.imageUrl || !state.nextRoute) {
@@ -753,6 +759,63 @@ export default function TextEditor() {
     setSelectedId(init.id);
   };
 
+  // === AI image edit (Genial) ===
+  // Sends the current base image + the user's instruction to the existing
+  // `edit-image` edge function. We wrap the user's prompt with strict
+  // anti-hallucination guardrails so the model only changes what was asked.
+  const applyAiImageEdit = async () => {
+    const instruction = aiEditPrompt.trim();
+    if (!instruction) {
+      toast.error("Descreva o que você quer mudar na imagem");
+      return;
+    }
+    if (!baseImageUrl) {
+      toast.error("Sem imagem base para editar");
+      return;
+    }
+    setAiEditing(true);
+    try {
+      const guardedPrompt = [
+        "EDIÇÃO CIRÚRGICA — ALTERE APENAS O QUE FOI PEDIDO.",
+        "",
+        "Pedido do usuário (execute literalmente, nada além disso):",
+        `"${instruction}"`,
+        "",
+        "REGRAS DE FIDELIDADE (obrigatórias):",
+        "- NÃO altere composição, enquadramento, ângulo, lente nem proporção.",
+        "- NÃO altere pessoas, rostos, etnia, roupas, poses, expressões ou objetos que NÃO foram citados no pedido.",
+        "- NÃO altere paleta de cores, iluminação, sombras ou estilo geral, exceto se explicitamente solicitado.",
+        "- NÃO adicione, remova ou reposicione elementos que não foram citados.",
+        "- NÃO adicione textos, marcas d'água, logos ou legendas.",
+        "- Mantenha a mesma resolução e nitidez.",
+        "- Se o pedido for ambíguo, faça a interpretação mais conservadora possível, alterando o mínimo necessário.",
+        "- Tudo que não for explicitamente citado pelo usuário deve permanecer pixel-a-pixel idêntico ao original.",
+      ].join("\n");
+
+      const { data, error } = await supabase.functions.invoke("edit-image", {
+        body: {
+          reviewPrompt: guardedPrompt,
+          imageUrl: baseImageUrl,
+          source: "text-editor",
+        },
+      });
+
+      if (error) throw error;
+      const editedUrl: string | undefined = data?.editedImageUrl;
+      if (!editedUrl) throw new Error("A IA não retornou uma imagem editada");
+
+      setAiEditedImageUrl(editedUrl);
+      setAiEditPrompt("");
+      setAiEditOpen(false);
+      toast.success("Imagem atualizada pela Genial");
+    } catch (e: any) {
+      console.error("[TextEditor] AI edit failed:", e);
+      toast.error(e?.message || "Falha ao editar imagem com IA");
+    } finally {
+      setAiEditing(false);
+    }
+  };
+
   const stageLabel: Record<typeof applyStage, string> = {
     idle: "Pronto",
     preparing: "Preparando camadas de texto…",
@@ -996,6 +1059,58 @@ export default function TextEditor() {
                   <span className="text-[10px] uppercase tracking-wider opacity-70">px</span>
                 </span>
               )}
+              {/* AI image edit (Genial) — surgical edit of the base image */}
+              <Popover open={aiEditOpen} onOpenChange={setAiEditOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 h-7 px-2.5 text-[11.5px] font-semibold border-primary/30 text-primary hover:bg-primary/10"
+                    title="Editar a imagem com a Genial"
+                  >
+                    <Wand2 className="h-3.5 w-3.5" /> Editar imagem
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-[360px] p-3 space-y-2">
+                  <div className="space-y-1">
+                    <p className="text-[12.5px] font-semibold text-foreground">Editar imagem com a Genial</p>
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      Descreva exatamente o que mudar. A Genial vai alterar
+                      <strong> apenas</strong> o que você pedir, mantendo o resto idêntico.
+                    </p>
+                  </div>
+                  <Textarea
+                    value={aiEditPrompt}
+                    onChange={(e) => setAiEditPrompt(e.target.value)}
+                    placeholder="Ex.: troque o fundo por uma parede de tijolos brancos; deixe a camisa azul-marinho; remova o copo da mesa…"
+                    className="min-h-[110px] text-[12.5px] resize-none"
+                    disabled={aiEditing}
+                  />
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setAiEditOpen(false)}
+                      disabled={aiEditing}
+                      className="h-8 text-[12px]"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={applyAiImageEdit}
+                      disabled={aiEditing || !aiEditPrompt.trim()}
+                      className="h-8 text-[12px] gap-1.5"
+                    >
+                      {aiEditing ? (
+                        <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Aplicando…</>
+                      ) : (
+                        <><Sparkles className="h-3.5 w-3.5" /> Aplicar com Genial</>
+                      )}
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
               {layers.length > 0 && (
                 <span className="text-muted-foreground/80">
                   {layers.length} camada{layers.length === 1 ? "" : "s"}
