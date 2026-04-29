@@ -144,7 +144,7 @@ function ActionButton({
       to={href}
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 ease-in-out hover:scale-105",
+        "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 px-[10px] py-[12px]",
         collapsed ? "justify-center" : "",
         isActive ? variantClasses[variant].active : variantClasses[variant].inactive
       )}
