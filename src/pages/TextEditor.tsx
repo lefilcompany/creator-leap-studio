@@ -947,6 +947,55 @@ export default function TextEditor() {
               )}
             </div>
             <div className="flex items-center gap-1.5">
+              {/* Snap toggle */}
+              <Button
+                size="sm"
+                variant={snapEnabled ? "default" : "outline"}
+                onClick={() => setSnapEnabled((v) => !v)}
+                className={cn(
+                  "gap-1.5 h-8 px-2.5 text-[11.5px] font-semibold",
+                  snapEnabled && "bg-primary/15 text-primary border border-primary/30 hover:bg-primary/20"
+                )}
+                title={snapEnabled ? "Desativar snap de alinhamento" : "Ativar snap de alinhamento"}
+                aria-pressed={snapEnabled}
+              >
+                <Magnet className="h-3.5 w-3.5" /> Snap
+              </Button>
+              {/* Grid divisions dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant={gridDivisions > 0 ? "default" : "outline"}
+                    className={cn(
+                      "gap-1.5 h-8 px-2.5 text-[11.5px] font-semibold tabular-nums",
+                      gridDivisions > 0 && "bg-primary/15 text-primary border border-primary/30 hover:bg-primary/20"
+                    )}
+                    title="Mostrar/ocultar grade"
+                    aria-pressed={gridDivisions > 0}
+                  >
+                    <Grid3x3 className="h-3.5 w-3.5" />
+                    {gridDivisions > 0 ? `Grade ${gridDivisions}` : "Grade"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem onClick={() => setGridDivisions(0)} className="text-[12.5px]">
+                    Sem grade
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {[4, 8, 12, 16, 24].map((n) => (
+                    <DropdownMenuItem
+                      key={n}
+                      onClick={() => setGridDivisions(n)}
+                      className="text-[12.5px] flex items-center justify-between"
+                    >
+                      <span>{n} × {n}</span>
+                      {gridDivisions === n && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div className="h-5 w-px bg-border/60 mx-0.5" />
               <Button size="sm" variant="outline" onClick={addLayer} className="gap-1.5 h-8 text-[12px] font-semibold">
                 <Plus className="h-3.5 w-3.5" /> Adicionar texto
               </Button>
