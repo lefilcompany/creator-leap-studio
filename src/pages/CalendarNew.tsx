@@ -180,6 +180,12 @@ const CalendarNew = () => {
       if (data?.error) throw new Error(data.error);
       setGeneratedItems(data.items || []);
       toast.success(`${data.items.length} pautas geradas!`);
+      // Scroll automático até as pautas geradas
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao gerar pautas");
     } finally {
