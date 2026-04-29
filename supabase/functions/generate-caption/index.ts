@@ -486,41 +486,77 @@ serve(async (req) => {
       throw new Error("Invalid response structure from AI");
     }
 
-    // Deduct credits after successful generation (individual)
-    const deductResult = await deductUserCredits(supabase, user.id, CREDIT_COSTS.COMPLETE_IMAGE);
-    
-    if (!deductResult.success) {
-      console.error('Error deducting credits:', deductResult.error);
+    // If an existing actionId was provided (Pipeline v5: image first, caption after),
+    // we MERGE the caption into the existing action — no new row, no extra credit debit.
+    const existingActionId: string | undefined = body?.actionId;
+
+    let actionData: { id: string } | null = null;
+    let actionError: any = null;
+
+    if (existingActionId) {
+      // Merge caption into the existing action's result JSON to avoid duplicates in history.
+      const { data: existing, error: fetchErr } = await supabase
+        .from('actions')
+        .select('id, result, user_id, team_id')
+        .eq('id', existingActionId)
+        .maybeSingle();
+
+      if (fetchErr || !existing) {
+        console.warn('[CAPTION] actionId provided but not found, falling back to insert', { existingActionId, fetchErr });
+      } else if (existing.user_id !== user.id) {
+        console.warn('[CAPTION] actionId belongs to another user, ignoring update', { existingActionId });
+      } else {
+        const mergedResult = {
+          ...(existing.result || {}),
+          title: parsedContent.title,
+          body: parsedContent.body,
+          hashtags: parsedContent.hashtags,
+        };
+        const { data: updated, error: updateErr } = await supabase
+          .from('actions')
+          .update({ result: mergedResult, updated_at: new Date().toISOString() })
+          .eq('id', existingActionId)
+          .select('id')
+          .single();
+        actionData = updated;
+        actionError = updateErr;
+      }
     }
 
-    // Record credit usage
-    await recordUserCreditUsage(supabase, {
-      userId: user.id,
-      teamId: authenticatedTeamId,
-      actionType: 'CAPTION_GENERATION',
-      creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
-      creditsBefore: creditCheck.currentCredits,
-      creditsAfter: deductResult.newCredits,
-      description: 'Geração de legenda',
-      metadata: { platform: formData.platform, brand: formData.brand }
-    });
+    // No existing action (legacy callers) -> insert a new one + charge credits
+    if (!actionData) {
+      const deductResult = await deductUserCredits(supabase, user.id, CREDIT_COSTS.COMPLETE_IMAGE);
+      if (!deductResult.success) {
+        console.error('Error deducting credits:', deductResult.error);
+      }
 
-    // Save action to database
-    const { data: actionData, error: actionError } = await supabase
-      .from('actions')
-      .insert({
-        user_id: user.id,
-        team_id: authenticatedTeamId || null,
-        type: 'CRIAR_CONTEUDO',
-        status: 'completed',
-        details: {
-          formData,
-          type: 'caption'
-        },
-        result: parsedContent
-      })
-      .select()
-      .single();
+      await recordUserCreditUsage(supabase, {
+        userId: user.id,
+        teamId: authenticatedTeamId,
+        actionType: 'CAPTION_GENERATION',
+        creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
+        creditsBefore: creditCheck.currentCredits,
+        creditsAfter: deductResult.newCredits,
+        description: 'Geração de legenda',
+        metadata: { platform: formData.platform, brand: formData.brand }
+      });
+
+      const inserted = await supabase
+        .from('actions')
+        .insert({
+          user_id: user.id,
+          team_id: authenticatedTeamId || null,
+          type: 'CRIAR_CONTEUDO',
+          status: 'completed',
+          details: { formData, type: 'caption' },
+          result: parsedContent
+        })
+        .select()
+        .single();
+
+      actionData = inserted.data;
+      actionError = inserted.error;
+    }
 
     if (actionError) {
       console.error('Error saving action:', actionError);
