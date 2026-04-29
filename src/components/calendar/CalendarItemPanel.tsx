@@ -367,7 +367,8 @@ const Stepper = ({
         const isCurrent = i === currentIndex;
         const isReachable = i <= maxIndex;
         const isLast = i === STEPS.length - 1;
-        const clickable = isReachable && i !== currentIndex;
+        const isDecorative = (step.id as string) === "text";
+        const clickable = isReachable && i !== currentIndex && !isDecorative;
 
         return (
           <div key={step.id} className="flex items-center flex-1 last:flex-none">
