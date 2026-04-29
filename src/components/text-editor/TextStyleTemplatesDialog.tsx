@@ -228,13 +228,19 @@ export default function TextStyleTemplatesDialog({ open, onOpenChange, currentLa
                       const isSel = selectedId === t.id;
                       const layerCount = Array.isArray(t.layers) ? t.layers.length : 0;
                       return (
-                        <button
+                        <div
                           key={t.id}
+                          role="button"
+                          tabIndex={0}
                           onClick={() => setSelectedId(t.id)}
                           onDoubleClick={() => { setSelectedId(t.id); setTimeout(handleApply, 0); }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedId(t.id); }
+                          }}
                           className={cn(
-                            "group relative text-left rounded-xl border p-3 transition-all duration-200",
+                            "group relative text-left rounded-xl border p-3 transition-all duration-200 cursor-pointer outline-none",
                             "hover:border-primary/50 hover:shadow-md hover:-translate-y-px",
+                            "focus-visible:ring-2 focus-visible:ring-primary/40",
                             isSel
                               ? "border-primary bg-primary/5 shadow-md shadow-primary/10 ring-2 ring-primary/30"
                               : "border-border/50 bg-card"
@@ -270,16 +276,16 @@ export default function TextStyleTemplatesDialog({ open, onOpenChange, currentLa
                               </div>
                             </div>
                           </div>
-                          <div
-                            role="button"
-                            tabIndex={0}
+                          <button
+                            type="button"
                             onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}
                             className="absolute bottom-2 right-2 h-6 w-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
                             title="Excluir template"
+                            aria-label="Excluir template"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
-                          </div>
-                        </button>
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
