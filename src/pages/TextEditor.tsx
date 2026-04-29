@@ -762,7 +762,7 @@ export default function TextEditor() {
             <SlidersHorizontal className="h-4 w-4" />
           </Button>
 
-          <Button variant="ghost" size="sm" onClick={handleSkip} disabled={saving} className="hidden sm:inline-flex gap-1.5 text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" size="sm" onClick={handleSkip} disabled={saving} className="hidden sm:inline-flex gap-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground">
             <SkipForward className="h-4 w-4" />
             <span className="hidden md:inline">Pular edição</span>
           </Button>
@@ -771,9 +771,9 @@ export default function TextEditor() {
             size="sm"
             onClick={handleApply}
             disabled={saving}
-            className="gap-1.5 h-9 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md hover:shadow-lg hover:opacity-95 transition-all font-semibold"
+            className="gap-1.5 h-9 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md hover:shadow-lg hover:opacity-95 transition-all text-[13px] font-semibold tracking-tight"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" strokeWidth={2.5} />}
             <span className="hidden sm:inline">Aplicar e continuar</span>
             <span className="sm:hidden">Aplicar</span>
           </Button>
