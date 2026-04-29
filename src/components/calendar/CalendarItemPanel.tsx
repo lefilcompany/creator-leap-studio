@@ -1277,6 +1277,8 @@ const StageDesign = ({
 }) => {
   const navigate = useNavigate();
   const [opening, setOpening] = useState(false);
+  const [textExpanded, setTextExpanded] = useState(false);
+  const [imageExpanded, setImageExpanded] = useState(false);
 
   const handleOpenGenerator = async () => {
     try {
