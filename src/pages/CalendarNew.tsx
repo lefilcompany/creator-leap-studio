@@ -63,6 +63,7 @@ const CalendarNew = () => {
   const [generating, setGenerating] = useState(false);
   const [suggestingBriefing, setSuggestingBriefing] = useState(false);
   const [generatedItems, setGeneratedItems] = useState<GeneratedItem[]>([]);
+  const resultsRef = useRef<HTMLElement | null>(null);
 
   const selectedBrand = brands.find((b) => b.id === brandId);
   const selectedPersona = personas.find((p) => p.id === personaId);
