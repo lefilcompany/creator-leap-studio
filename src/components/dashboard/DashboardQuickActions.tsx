@@ -13,7 +13,7 @@ const primaryAction = {
   description:
     "Inicie um calendário para organizar pautas, briefings, designs e conteúdo final em um único fluxo.",
   icon: CalendarPlus,
-  link: "/calendar/new",
+  link: "/novo-calendario",
   cta: "Iniciar calendário",
 };
 

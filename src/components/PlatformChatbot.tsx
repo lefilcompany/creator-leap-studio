@@ -236,7 +236,7 @@ export const PlatformChatbot = () => {
   const hideChatbot =
     location.pathname.startsWith("/calendar/") ||
     location.pathname.startsWith("/calendars/new") ||
-    location.pathname === "/calendar/new";
+    location.pathname === "/novo-calendario";
 
   if (hideChatbot) return null;
 

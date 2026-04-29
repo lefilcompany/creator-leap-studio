@@ -177,7 +177,7 @@ const App = () => (
                         <Route path="categories" element={<SuspenseRoute><Categories /></SuspenseRoute>} />
                         <Route path="categories/:categoryId" element={<SuspenseRoute><CategoryView /></SuspenseRoute>} />
                         <Route path="trash" element={<SuspenseRoute><Trash /></SuspenseRoute>} />
-                        <Route path="calendar/new" element={<SuspenseRoute><CalendarNew /></SuspenseRoute>} />
+                        <Route path="novo-calendario" element={<SuspenseRoute><CalendarNew /></SuspenseRoute>} />
                         <Route path="calendar/:calendarId" element={<SuspenseRoute><CalendarView /></SuspenseRoute>} />
                       </Route>
                       
