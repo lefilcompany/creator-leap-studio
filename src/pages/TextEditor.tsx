@@ -946,32 +946,35 @@ export default function TextEditor() {
                         onPointerDown={(e) => onPointerDownLayer(e, l.id, "move")}
                       >
                         {l.text || " "}
-                        {isSel && (
+                        {isSel && !drag && (
                           <>
-                            {/* Width handle - right */}
+                            {/* Edge bars - width */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-right")}
-                              className="absolute -right-2 top-1/2 -translate-y-1/2 h-6 w-2 bg-primary rounded-full cursor-ew-resize shadow-md"
+                              className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-8 w-1.5 bg-primary/90 rounded-full cursor-ew-resize shadow-md hover:scale-y-110 transition-transform"
                               title="Arraste para ajustar largura"
                             />
-                            {/* Width handle - left */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-left")}
-                              className="absolute -left-2 top-1/2 -translate-y-1/2 h-6 w-2 bg-primary rounded-full cursor-ew-resize shadow-md"
+                              className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-8 w-1.5 bg-primary/90 rounded-full cursor-ew-resize shadow-md hover:scale-y-110 transition-transform"
                               title="Arraste para ajustar largura"
                             />
-                            {/* Font size handle - top */}
+                            {/* Edge bars - font size */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-top")}
-                              className="absolute left-1/2 -top-2 -translate-x-1/2 h-2 w-6 bg-primary rounded-full cursor-ns-resize shadow-md"
+                              className="absolute left-1/2 -top-1.5 -translate-x-1/2 h-1.5 w-8 bg-primary/90 rounded-full cursor-ns-resize shadow-md hover:scale-x-110 transition-transform"
                               title="Arraste para ajustar tamanho do texto"
                             />
-                            {/* Font size handle - bottom */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-bottom")}
-                              className="absolute left-1/2 -bottom-2 -translate-x-1/2 h-2 w-6 bg-primary rounded-full cursor-ns-resize shadow-md"
+                              className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 h-1.5 w-8 bg-primary/90 rounded-full cursor-ns-resize shadow-md hover:scale-x-110 transition-transform"
                               title="Arraste para ajustar tamanho do texto"
                             />
+                            {/* Corner indicators (visual only) */}
+                            <div className="absolute -top-1 -left-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
+                            <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
+                            <div className="absolute -bottom-1 -left-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
+                            <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
                           </>
                         )}
                       </div>
