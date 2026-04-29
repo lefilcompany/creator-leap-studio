@@ -588,9 +588,14 @@ export default function TextEditor() {
       const candY = drag.layerStartY + dy;
       if (layer) {
         const h = estimateLayerHeight(layer);
-        const snap = computeSnap(drag.id, candX, candY, layer.maxWidth, h);
-        updateLayer(drag.id, { x: Math.round(snap.x), y: Math.round(snap.y) });
-        setGuides({ v: snap.vGuides, h: snap.hGuides });
+        if (snapEnabled) {
+          const snap = computeSnap(drag.id, candX, candY, layer.maxWidth, h);
+          updateLayer(drag.id, { x: Math.round(snap.x), y: Math.round(snap.y) });
+          setGuides({ v: snap.vGuides, h: snap.hGuides });
+        } else {
+          updateLayer(drag.id, { x: Math.round(candX), y: Math.round(candY) });
+          if (guides.v.length || guides.h.length) setGuides({ v: [], h: [] });
+        }
       } else {
         updateLayer(drag.id, { x: Math.round(candX), y: Math.round(candY) });
       }
