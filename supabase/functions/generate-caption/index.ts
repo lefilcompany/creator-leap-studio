@@ -568,8 +568,7 @@ serve(async (req) => {
       JSON.stringify({
         ...parsedContent,
         actionId: actionData?.id,
-        creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
-        creditsRemaining: deductResult.newCredits
+        merged: !!existingActionId && !!actionData,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
