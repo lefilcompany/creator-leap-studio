@@ -859,7 +859,7 @@ export default function TextEditor() {
           {/* Subtle grid pattern */}
           <div className="absolute inset-0 pointer-events-none opacity-[0.025] [background-image:linear-gradient(hsl(var(--foreground))_1px,transparent_1px),linear-gradient(90deg,hsl(var(--foreground))_1px,transparent_1px)] [background-size:24px_24px]" />
           {/* Canvas top toolbar */}
-          <div className="h-12 shrink-0 border-b border-border/40 bg-card/60 backdrop-blur flex items-center justify-between px-4 gap-2">
+          <div className="relative h-12 shrink-0 border-b border-border/60 bg-card/80 backdrop-blur-xl flex items-center justify-between px-4 gap-2 shadow-sm z-10">
             <div className="text-[11.5px] font-medium text-muted-foreground tabular-nums tracking-wide flex items-center gap-3">
               {naturalSize.w > 0 && (
                 <span className="inline-flex items-center gap-1">
