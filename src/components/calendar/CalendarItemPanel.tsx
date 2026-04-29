@@ -763,15 +763,49 @@ const StageBriefing = ({
 }) => {
   const [textBrief, setTextBrief] = useState(item.text_briefing || "");
   const [imageBrief, setImageBrief] = useState(item.image_briefing || "");
-  const [aiLoading, setAiLoading] = useState<null | "text" | "image" | "both">(
-    null
-  );
   const [reviewing, setReviewing] = useState(false);
+
+  // Status de geração persistido em metadata.briefing_generation
+  const meta = (item.metadata || {}) as Record<string, any>;
+  const genState = (meta.briefing_generation || {}) as {
+    status?: "pending" | "done" | "error";
+    kind?: "text" | "image" | "both";
+    error?: string;
+    updated_at?: string;
+  };
+  const isGenerating = genState.status === "pending";
+  const aiLoading: null | "text" | "image" | "both" = isGenerating
+    ? genState.kind || "both"
+    : null;
 
   useEffect(() => {
     setTextBrief(item.text_briefing || "");
     setImageBrief(item.image_briefing || "");
   }, [item.id, item.text_briefing, item.image_briefing]);
+
+  // Polling enquanto a geração está em andamento (sobrevive a sair/voltar da página)
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!isGenerating) return;
+    const interval = setInterval(() => {
+      qc.invalidateQueries({ queryKey: ["calendar-items", item.calendar_id] });
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [isGenerating, qc, item.calendar_id]);
+
+  // Notifica conclusão / erro vindos do background
+  const lastNotifiedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!genState.status || genState.status === "pending") return;
+    const key = `${genState.status}:${genState.updated_at || ""}`;
+    if (lastNotifiedRef.current === key) return;
+    lastNotifiedRef.current = key;
+    if (genState.status === "done") {
+      toast.success("Briefing gerado pela IA");
+    } else if (genState.status === "error") {
+      toast.error(genState.error || "Não foi possível gerar com IA");
+    }
+  }, [genState.status, genState.updated_at, genState.error]);
 
   const handleSave = () => {
     update.mutate(
@@ -800,90 +834,22 @@ const StageBriefing = ({
 
   const handleGenerateAI = async (kind: "text" | "image" | "both") => {
     try {
-      setAiLoading(kind);
-      const meta = (item.metadata || {}) as Record<string, any>;
-
-      const { data: cal } = await supabase
-        .from("content_calendars")
-        .select(
-          "name, description, user_input, reference_month, brand_id, persona_id, theme_id"
-        )
-        .eq("id", item.calendar_id)
-        .maybeSingle();
-
-      const [brandRes, personaRes, themeRes] = await Promise.all([
-        cal?.brand_id
-          ? supabase
-              .from("brands")
-              .select(
-                "name, segment, values, keywords, promise, goals, brand_color"
-              )
-              .eq("id", cal.brand_id)
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
-        cal?.persona_id
-          ? supabase
-              .from("personas")
-              .select(
-                "name, age, main_goal, challenges, preferred_tone_of_voice"
-              )
-              .eq("id", cal.persona_id)
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
-        cal?.theme_id
-          ? supabase
-              .from("strategic_themes")
-              .select(
-                "title, description, tone_of_voice, target_audience, color_palette, objectives, hashtags"
-              )
-              .eq("id", cal.theme_id)
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
-      ]);
-
+      // Modo background: a edge function persiste direto no banco e
+      // continua mesmo se o usuário sair da página.
       const { data, error } = await supabase.functions.invoke(
         "generate-item-briefing",
         {
-          body: {
-            kind,
-            item: {
-              title: item.title,
-              theme: item.theme,
-              scheduled_date: item.scheduled_date,
-              platform: meta.platform ?? null,
-              format: meta.format ?? null,
-              notes: item.notes,
-            },
-            calendar: cal
-              ? {
-                  name: cal.name,
-                  description: cal.description,
-                  user_input: cal.user_input,
-                  reference_month: cal.reference_month,
-                }
-              : null,
-            brand: brandRes?.data ?? null,
-            persona: personaRes?.data ?? null,
-            theme: themeRes?.data ?? null,
-          },
+          body: { item_id: item.id, kind },
         }
       );
-
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-
-      if ((kind === "text" || kind === "both") && data?.text_briefing) {
-        setTextBrief(data.text_briefing);
-      }
-      if ((kind === "image" || kind === "both") && data?.image_briefing) {
-        setImageBrief(data.image_briefing);
-      }
-      toast.success("Briefing gerado pela IA");
+      toast.info("Geração iniciada — você pode continuar navegando.");
+      // Refresca pra capturar o status "pending" persistido
+      qc.invalidateQueries({ queryKey: ["calendar-items", item.calendar_id] });
     } catch (e: any) {
       console.error("AI briefing error", e);
-      toast.error(e?.message || "Não foi possível gerar com IA");
-    } finally {
-      setAiLoading(null);
+      toast.error(e?.message || "Não foi possível iniciar a geração");
     }
   };
 
