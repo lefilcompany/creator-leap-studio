@@ -102,7 +102,7 @@ Quantidade de pautas: ${count}`;
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
         generationConfig: {
           temperature: 0.85,
-          maxOutputTokens: 2500,
+          maxOutputTokens: 65536,
           responseMimeType: "application/json",
         },
       }),
