@@ -1163,9 +1163,12 @@ const StageBriefing = ({
 const BriefingField = ({
   icon: Icon,
   title,
+  stepLabel,
   description,
+  aiHelper,
   placeholder,
   value,
+  ready,
   onChange,
   onAI,
   aiLoading,
@@ -1173,9 +1176,12 @@ const BriefingField = ({
 }: {
   icon: typeof CalendarIcon;
   title: string;
+  stepLabel?: string;
   description: string;
+  aiHelper?: string;
   placeholder: string;
   value: string;
+  ready?: boolean;
   onChange: (v: string) => void;
   onAI: () => void;
   aiLoading: boolean;
@@ -1183,22 +1189,64 @@ const BriefingField = ({
 }) => {
   const charCount = value.length;
   return (
-    <div className="rounded-2xl bg-muted/20 p-3 transition-shadow focus-within:shadow-md focus-within:bg-card">
-      <div className="flex items-start justify-between gap-2 px-1 mb-2">
-        <div className="min-w-0">
-          <h4 className="text-sm font-semibold flex items-center gap-1.5">
-            <Icon className="h-3.5 w-3.5 text-primary" />
-            {title}
-          </h4>
-          <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+    <div
+      className={cn(
+        "rounded-2xl border-2 bg-card p-4 transition-all",
+        "focus-within:border-primary focus-within:shadow-lg focus-within:shadow-primary/10",
+        ready ? "border-success/40" : "border-border"
+      )}
+    >
+      {/* Cabeçalho do campo */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <div
+              className={cn(
+                "rounded-md p-1.5 shrink-0",
+                ready
+                  ? "bg-success/15 text-success"
+                  : "bg-primary/10 text-primary"
+              )}
+            >
+              {ready ? (
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              ) : (
+                <Icon className="h-3.5 w-3.5" />
+              )}
+            </div>
+            {stepLabel && (
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                {stepLabel}
+              </span>
+            )}
+            <span
+              className={cn(
+                "ml-auto text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full",
+                ready
+                  ? "bg-success/15 text-success"
+                  : "bg-muted text-muted-foreground"
+              )}
+            >
+              {ready ? "Pronto" : "Pendente"}
+            </span>
+          </div>
+          <h4 className="text-sm font-semibold leading-tight">{title}</h4>
+          <p className="text-[11px] text-muted-foreground mt-1 leading-snug">
             {description}
           </p>
         </div>
+      </div>
+
+      {/* Ação IA com microcopy */}
+      <div className="flex items-center justify-between gap-2 mb-2 px-0.5">
+        <p className="text-[10px] text-muted-foreground italic flex-1 min-w-0 truncate">
+          {aiHelper}
+        </p>
         <button
           type="button"
           onClick={onAI}
           disabled={aiDisabled}
-          className="shrink-0 inline-flex items-center gap-1 h-7 px-2 rounded-md text-[11px] font-medium text-primary bg-primary/10 hover:bg-primary/15 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-md text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {aiLoading ? (
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -1208,22 +1256,28 @@ const BriefingField = ({
           Gerar com IA
         </button>
       </div>
+
       <Textarea
         rows={9}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="border-0 bg-card/60 focus-visible:ring-1 focus-visible:ring-primary/40 text-sm leading-relaxed resize-none rounded-xl shadow-sm"
+        className="border border-border/60 bg-background focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary text-sm leading-relaxed resize-none rounded-xl"
       />
-      <div className="flex items-center justify-between px-1 pt-1.5">
+      <div className="flex items-center justify-between px-1 pt-2">
         <span className="text-[10px] text-muted-foreground">
           {charCount === 0
-            ? "Nenhum conteúdo ainda"
+            ? "Nenhum conteúdo ainda — gere com IA ou escreva manualmente"
             : `${charCount} caracteres`}
         </span>
         {charCount > 0 && charCount < 10 && (
-          <span className="text-[10px] text-amber-600 dark:text-amber-400">
-            Adicione mais detalhes para concluir
+          <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
+            Adicione mais detalhes
+          </span>
+        )}
+        {ready && (
+          <span className="text-[10px] font-medium text-success inline-flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3" /> Pronto para usar
           </span>
         )}
       </div>
