@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,7 @@ const CalendarNew = () => {
   const [generating, setGenerating] = useState(false);
   const [suggestingBriefing, setSuggestingBriefing] = useState(false);
   const [generatedItems, setGeneratedItems] = useState<GeneratedItem[]>([]);
+  const resultsRef = useRef<HTMLElement | null>(null);
 
   const selectedBrand = brands.find((b) => b.id === brandId);
   const selectedPersona = personas.find((p) => p.id === personaId);
@@ -179,6 +180,12 @@ const CalendarNew = () => {
       if (data?.error) throw new Error(data.error);
       setGeneratedItems(data.items || []);
       toast.success(`${data.items.length} pautas geradas!`);
+      // Scroll automático até as pautas geradas
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao gerar pautas");
     } finally {
@@ -582,7 +589,7 @@ const CalendarNew = () => {
         };
 
         return (
-          <section className="space-y-4">
+          <section ref={resultsRef} className="space-y-4 scroll-mt-24">
             {/* Header da etapa */}
             <div className="flex items-start gap-3">
               <div className="rounded-lg bg-primary text-primary-foreground h-8 w-8 flex items-center justify-center shrink-0 text-sm font-bold shadow-md shadow-primary/20">
