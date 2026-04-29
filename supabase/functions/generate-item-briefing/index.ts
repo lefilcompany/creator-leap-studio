@@ -1,7 +1,9 @@
 // Edge function: generate-item-briefing
 // Gera briefings de TEXTO/LEGENDA e/ou VISUAL/IMAGEM para uma pauta específica
-// Considera todo o contexto cadastrado: marca, persona, editoria, calendário e item.
-// Usa Google Gemini API direta (GEMINI_API_KEY).
+// Roda em background usando EdgeRuntime.waitUntil — mesmo se o cliente sair da página
+// o resultado é PERSISTIDO direto em calendar_items.text_briefing/image_briefing.
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,8 +14,13 @@ const corsHeaders = {
 type Kind = "text" | "image" | "both";
 
 interface RequestBody {
+  // Modo recomendado: passar apenas item_id e kind. A função busca o contexto sozinha
+  // e persiste o resultado direto no banco em background.
+  item_id?: string;
   kind?: Kind;
-  item: {
+
+  // Modo legado/sincrono: o cliente passa o contexto e recebe o briefing no payload.
+  item?: {
     title: string;
     theme?: string | null;
     scheduled_date?: string | null;
@@ -27,40 +34,23 @@ interface RequestBody {
     user_input?: string | null;
     reference_month?: string | null;
   } | null;
-  brand?: {
-    name?: string | null;
-    segment?: string | null;
-    values?: string | null;
-    keywords?: string | null;
-    promise?: string | null;
-    goals?: string | null;
-    brand_color?: string | null;
-  } | null;
-  persona?: {
-    name?: string | null;
-    age?: string | null;
-    main_goal?: string | null;
-    challenges?: string | null;
-    preferred_tone_of_voice?: string | null;
-  } | null;
-  theme?: {
-    title?: string | null;
-    description?: string | null;
-    tone_of_voice?: string | null;
-    target_audience?: string | null;
-    color_palette?: string | null;
-    objectives?: string | null;
-    hashtags?: string | null;
-  } | null;
+  brand?: any;
+  persona?: any;
+  theme?: any;
 }
 
-function buildContext(b: RequestBody): string {
+function buildContext(b: {
+  item: any;
+  calendar?: any;
+  brand?: any;
+  persona?: any;
+  theme?: any;
+}): string {
   const lines: string[] = [];
 
-  // BRIEFING PRINCIPAL — fonte da verdade, vem PRIMEIRO e em destaque
-  if (b.calendar?.user_input && b.calendar.user_input.trim().length > 0) {
+  if (b.calendar?.user_input && String(b.calendar.user_input).trim().length > 0) {
     lines.push("===== BRIEFING PRINCIPAL DO CALENDÁRIO (FONTE DA VERDADE) =====");
-    lines.push(b.calendar.user_input.trim());
+    lines.push(String(b.calendar.user_input).trim());
     lines.push("===== FIM DO BRIEFING PRINCIPAL =====");
     lines.push("");
     lines.push("Use o briefing acima como direção central e não-negociável. Todo o briefing gerado abaixo deve ser uma extensão fiel desta orientação.");
@@ -172,16 +162,144 @@ async function callGemini(systemPrompt: string, userPrompt: string, apiKey: stri
   if (!response.ok) {
     const t = await response.text();
     console.error("Gemini API error:", response.status, t);
-    if (response.status === 429) {
-      throw new Error("RATE_LIMIT");
-    }
+    if (response.status === 429) throw new Error("RATE_LIMIT");
     throw new Error("GEMINI_ERROR");
   }
   const data = await response.json();
   const out =
-    data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || "").join("").trim() || "";
+    data?.candidates?.[0]?.content?.parts
+      ?.map((p: { text?: string }) => p.text || "")
+      .join("")
+      .trim() || "";
   if (!out) throw new Error("EMPTY_RESPONSE");
   return out;
+}
+
+// Cliente admin para persistência (RLS-bypass) — usado apenas para escrever
+// o resultado da IA na própria pauta cujo id foi validado a partir do JWT.
+function adminClient() {
+  return createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    { auth: { persistSession: false } },
+  );
+}
+
+async function loadContextById(itemId: string) {
+  const admin = adminClient();
+  const { data: item, error: itemErr } = await admin
+    .from("calendar_items")
+    .select("*")
+    .eq("id", itemId)
+    .maybeSingle();
+  if (itemErr || !item) throw new Error("Pauta não encontrada");
+
+  const { data: cal } = await admin
+    .from("content_calendars")
+    .select("name, description, user_input, reference_month, brand_id, persona_id, theme_id")
+    .eq("id", item.calendar_id)
+    .maybeSingle();
+
+  const [brandRes, personaRes, themeRes] = await Promise.all([
+    cal?.brand_id
+      ? admin
+          .from("brands")
+          .select("name, segment, values, keywords, promise, goals, brand_color")
+          .eq("id", cal.brand_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    cal?.persona_id
+      ? admin
+          .from("personas")
+          .select("name, age, main_goal, challenges, preferred_tone_of_voice")
+          .eq("id", cal.persona_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    cal?.theme_id
+      ? admin
+          .from("strategic_themes")
+          .select("title, description, tone_of_voice, target_audience, color_palette, objectives, hashtags")
+          .eq("id", cal.theme_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const meta = (item.metadata || {}) as Record<string, any>;
+  return {
+    item: {
+      id: item.id,
+      title: item.title,
+      theme: item.theme,
+      scheduled_date: item.scheduled_date,
+      platform: meta.platform ?? null,
+      format: meta.format ?? null,
+      notes: item.notes,
+    },
+    rawItem: item,
+    calendar: cal
+      ? {
+          name: cal.name,
+          description: cal.description,
+          user_input: cal.user_input,
+          reference_month: cal.reference_month,
+        }
+      : null,
+    brand: brandRes?.data ?? null,
+    persona: personaRes?.data ?? null,
+    theme: themeRes?.data ?? null,
+  };
+}
+
+async function setStatus(
+  itemId: string,
+  status: "pending" | "done" | "error",
+  kind: Kind,
+  extra: Record<string, any> = {},
+) {
+  const admin = adminClient();
+  const { data: cur } = await admin
+    .from("calendar_items")
+    .select("metadata")
+    .eq("id", itemId)
+    .maybeSingle();
+  const meta = ((cur?.metadata as any) || {}) as Record<string, any>;
+  meta.briefing_generation = {
+    ...(meta.briefing_generation || {}),
+    status,
+    kind,
+    updated_at: new Date().toISOString(),
+    ...extra,
+  };
+  await admin.from("calendar_items").update({ metadata: meta }).eq("id", itemId);
+}
+
+async function runGeneration(itemId: string, kind: Kind) {
+  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+  if (!GEMINI_API_KEY) {
+    await setStatus(itemId, "error", kind, { error: "GEMINI_API_KEY ausente" });
+    return;
+  }
+  try {
+    await setStatus(itemId, "pending", kind);
+    const ctx = await loadContextById(itemId);
+    const userPrompt = `Contexto disponível:\n\n${buildContext(ctx)}\n\nEscreva o briefing solicitado.`;
+
+    const updates: Record<string, any> = {};
+    if (kind === "text" || kind === "both") {
+      updates.text_briefing = await callGemini(TEXT_SYSTEM, userPrompt, GEMINI_API_KEY);
+    }
+    if (kind === "image" || kind === "both") {
+      updates.image_briefing = await callGemini(IMAGE_SYSTEM, userPrompt, GEMINI_API_KEY);
+    }
+
+    const admin = adminClient();
+    await admin.from("calendar_items").update(updates).eq("id", itemId);
+    await setStatus(itemId, "done", kind);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Erro desconhecido";
+    console.error("Background briefing error:", msg);
+    await setStatus(itemId, "error", kind, { error: msg });
+  }
 }
 
 Deno.serve(async (req) => {
@@ -189,6 +307,24 @@ Deno.serve(async (req) => {
 
   try {
     const body = (await req.json()) as RequestBody;
+    const kind: Kind = body.kind || "both";
+
+    // ===== Modo background (recomendado): persistente, resiste a sair da página =====
+    if (body.item_id) {
+      // Marca pendente IMEDIATAMENTE para a UI mostrar feedback e dispara em background.
+      await setStatus(body.item_id, "pending", kind);
+
+      // EdgeRuntime.waitUntil mantém a tarefa viva mesmo após responder ao cliente.
+      // @ts-ignore EdgeRuntime é provido pelo runtime do Supabase
+      EdgeRuntime.waitUntil(runGeneration(body.item_id, kind));
+
+      return new Response(
+        JSON.stringify({ accepted: true, mode: "background", kind }),
+        { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // ===== Modo síncrono legado (compat) =====
     if (!body?.item?.title) {
       return new Response(JSON.stringify({ error: "Pauta inválida" }), {
         status: 400,
@@ -198,13 +334,16 @@ Deno.serve(async (req) => {
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
-    const kind: Kind = body.kind || "both";
-    const context = buildContext(body);
-    const userPrompt = `Contexto disponível:\n\n${context}\n\nEscreva o briefing solicitado.`;
+    const userPrompt = `Contexto disponível:\n\n${buildContext({
+      item: body.item,
+      calendar: body.calendar,
+      brand: body.brand,
+      persona: body.persona,
+      theme: body.theme,
+    })}\n\nEscreva o briefing solicitado.`;
 
     let text_briefing: string | undefined;
     let image_briefing: string | undefined;
-
     if (kind === "text" || kind === "both") {
       text_briefing = await callGemini(TEXT_SYSTEM, userPrompt, GEMINI_API_KEY);
     }
