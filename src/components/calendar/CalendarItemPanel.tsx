@@ -267,6 +267,7 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
         {viewStage === "calendar" && (
           <StageCalendar
             item={item}
+            update={update}
             onAdvance={() =>
               update.mutate({
                 id: item.id,
