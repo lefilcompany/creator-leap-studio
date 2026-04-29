@@ -787,6 +787,13 @@ export default function TextEditor() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => setTemplatesOpen(true)} className="gap-2 text-xs">
+                <FolderOpen className="h-3.5 w-3.5" /> Aplicar template
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTemplatesOpen(true)} className="gap-2 text-xs">
+                <BookmarkPlus className="h-3.5 w-3.5" /> Salvar como template
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={resetLayers} className="gap-2 text-xs">
                 <RotateCcw className="h-3.5 w-3.5" /> Resetar camadas
               </DropdownMenuItem>
@@ -801,6 +808,26 @@ export default function TextEditor() {
           </DropdownMenu>
         </div>
       </header>
+
+      <TextStyleTemplatesDialog
+        open={templatesOpen}
+        onOpenChange={setTemplatesOpen}
+        currentLayers={layers}
+        onApply={(tplLayers) => {
+          // Re-anchor positions inside the current canvas so previously-saved
+          // coordinates don't end up off-screen on a different aspect ratio.
+          const reanchored = tplLayers.map((l, idx) => {
+            const w = naturalSize.w || 1080;
+            const h = naturalSize.h || 1080;
+            const maxW = Math.min(l.maxWidth || w * 0.8, w - 40);
+            const x = Math.max(20, Math.min(l.x ?? w * 0.1, w - maxW - 20));
+            const y = Math.max(20, Math.min(l.y ?? h * 0.1 + idx * 80, h - 60));
+            return { ...l, x, y, maxWidth: maxW };
+          });
+          setLayers(reanchored);
+          setSelectedId(reanchored[0]?.id || null);
+        }}
+      />
 
       {/* === Main body === */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_380px]">
