@@ -880,9 +880,6 @@ export default function TextEditor() {
                 >
                   <Sparkles className="h-3.5 w-3.5" /> Templates
                 </Button>
-                <Button size="sm" variant="ghost" onClick={addLayer} className="h-7 gap-1 text-[12px] font-semibold">
-                  <Plus className="h-3.5 w-3.5" /> Nova
-                </Button>
               </div>
             </div>
           </div>
