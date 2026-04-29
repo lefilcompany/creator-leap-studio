@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const count = Math.min(Math.max(body.count ?? 8, 3), 20);
+    const count = Math.min(Math.max(body.count ?? 8, 1), 20);
     const refMonth = body.reference_month
       ? new Date(body.reference_month)
       : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
