@@ -1223,7 +1223,9 @@ export default function TextEditor() {
                     />
                   </Row>
                 </Section>
+                  </TabsContent>
 
+                  <TabsContent value="effects" className="space-y-3 mt-3">
                 {/* Background band */}
                 <Section
                   title="Fundo"
