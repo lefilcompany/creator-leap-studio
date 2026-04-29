@@ -57,6 +57,16 @@ interface RequestBody {
 function buildContext(b: RequestBody): string {
   const lines: string[] = [];
 
+  // BRIEFING PRINCIPAL — fonte da verdade, vem PRIMEIRO e em destaque
+  if (b.calendar?.user_input && b.calendar.user_input.trim().length > 0) {
+    lines.push("===== BRIEFING PRINCIPAL DO CALENDÁRIO (FONTE DA VERDADE) =====");
+    lines.push(b.calendar.user_input.trim());
+    lines.push("===== FIM DO BRIEFING PRINCIPAL =====");
+    lines.push("");
+    lines.push("Use o briefing acima como direção central e não-negociável. Todo o briefing gerado abaixo deve ser uma extensão fiel desta orientação.");
+    lines.push("");
+  }
+
   if (b.brand?.name) {
     lines.push(`MARCA: ${b.brand.name}${b.brand.segment ? ` — ${b.brand.segment}` : ""}`);
     if (b.brand.promise) lines.push(`Promessa: ${b.brand.promise}`);
@@ -86,7 +96,6 @@ function buildContext(b: RequestBody): string {
   if (b.calendar?.name) {
     lines.push(`CALENDÁRIO: ${b.calendar.name}`);
     if (b.calendar.description) lines.push(`Descrição do calendário: ${b.calendar.description}`);
-    if (b.calendar.user_input) lines.push(`Direção estratégica do mês: ${b.calendar.user_input}`);
     if (b.calendar.reference_month) {
       const d = new Date(b.calendar.reference_month);
       const monthLabel = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
