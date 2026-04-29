@@ -252,6 +252,13 @@ export default function TextStyleTemplatesDialog({ open, onOpenChange, currentLa
                               <Check className="h-3 w-3" strokeWidth={3} />
                             </div>
                           )}
+                          <div className="mb-2 pr-6">
+                            <TextStylePreview
+                              layers={t.layers}
+                              size="sm"
+                              sample={(t.layers?.[0]?.text || t.name).slice(0, 24)}
+                            />
+                          </div>
                           <div className="flex items-start gap-2 pr-6">
                             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center shrink-0">
                               <LayersIcon className="h-4 w-4 text-primary" />
