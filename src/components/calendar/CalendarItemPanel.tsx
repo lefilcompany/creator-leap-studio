@@ -420,79 +420,338 @@ const StickyActionBar = ({ children }: { children: React.ReactNode }) => (
 );
 
 // ===================== Etapa 1: Calendário =====================
+const PLATFORM_OPTIONS = [
+  { value: "instagram", label: "Instagram" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "facebook", label: "Facebook" },
+  { value: "youtube", label: "YouTube" },
+];
+
+const FORMAT_OPTIONS = [
+  { value: "post", label: "Post (feed)" },
+  { value: "carrossel", label: "Carrossel" },
+  { value: "reels", label: "Reels / Vídeo curto" },
+  { value: "story", label: "Story" },
+  { value: "video_longo", label: "Vídeo longo" },
+  { value: "post_fixo", label: "Post fixo" },
+];
+
 const StageCalendar = ({
   item,
+  update,
   onAdvance,
   loading,
 }: {
   item: CalendarItem;
+  update: ReturnType<typeof useUpdateCalendarItem>;
   onAdvance: () => void;
   loading: boolean;
 }) => {
   const meta = (item.metadata || {}) as Record<string, any>;
-  const platform: string | null = meta.platform ?? null;
-  const format: string | null = meta.format ?? null;
+
+  const [title, setTitle] = useState(item.title);
+  const [theme, setTheme] = useState(item.theme || "");
+  const [scheduledDate, setScheduledDate] = useState(item.scheduled_date || "");
+  const [platform, setPlatform] = useState<string>(meta.platform || "");
+  const [format, setFormat] = useState<string>(meta.format || "");
+  const [notes, setNotes] = useState(item.notes || "");
+  const [editingNotes, setEditingNotes] = useState(false);
+
+  // Sincroniza quando o item recarrega
+  useEffect(() => {
+    setTitle(item.title);
+    setTheme(item.theme || "");
+    setScheduledDate(item.scheduled_date || "");
+    setPlatform(meta.platform || "");
+    setFormat(meta.format || "");
+    setNotes(item.notes || "");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id]);
+
+  const dirty =
+    title !== item.title ||
+    theme !== (item.theme || "") ||
+    scheduledDate !== (item.scheduled_date || "") ||
+    platform !== (meta.platform || "") ||
+    format !== (meta.format || "") ||
+    notes !== (item.notes || "");
+
+  const persistField = (updates: Record<string, any>) => {
+    update.mutate({ id: item.id, updates });
+  };
+
+  const handleBlurField = (
+    key: "title" | "theme" | "scheduled_date" | "notes",
+    current: string,
+    original: string
+  ) => {
+    if (current === original) return;
+    if (key === "title" && !current.trim()) {
+      setTitle(item.title);
+      toast.error("O título não pode ficar vazio.");
+      return;
+    }
+    persistField({ [key]: current });
+  };
+
+  const handleMetaChange = (key: "platform" | "format", value: string) => {
+    if (key === "platform") setPlatform(value);
+    else setFormat(value);
+    persistField({
+      metadata: { ...(meta || {}), [key]: value || null },
+    });
+  };
+
+  // Status de preenchimento
+  const completed = [title.trim(), scheduledDate, platform, format].filter(Boolean).length;
+  const totalRequired = 4;
+  const allFilled = completed === totalRequired;
+
+  const handleAdvance = () => {
+    if (!allFilled) {
+      toast.error("Preencha título, data, rede social e formato antes de avançar.");
+      return;
+    }
+    onAdvance();
+  };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="font-semibold text-sm">Confira os dados da pauta</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Esta é a base que vai alimentar o briefing e o design. Confirme para
-          avançar.
-        </p>
+    <div className="space-y-5">
+      {/* Header da etapa */}
+      <div className="flex items-start gap-3">
+        <div className="rounded-lg bg-primary/10 text-primary h-9 w-9 flex items-center justify-center shrink-0">
+          <Pencil className="h-4 w-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-base">Ajuste os dados da pauta</h3>
+            <span className="text-[10px] uppercase font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              Edição direta
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Estes dados alimentam diretamente o briefing de texto e a criação visual nas próximas etapas.
+            Edite qualquer campo clicando nele.
+          </p>
+        </div>
+        <div className="hidden sm:flex flex-col items-end shrink-0">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+            Preenchidos
+          </span>
+          <span
+            className={cn(
+              "text-sm font-bold tabular-nums",
+              allFilled ? "text-success" : "text-muted-foreground"
+            )}
+          >
+            {completed}/{totalRequired}
+          </span>
+        </div>
       </div>
 
-      <div className="rounded-xl bg-muted/30 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Título" value={item.title} full />
-        {item.theme && <Field label="Tema / Editoria" value={item.theme} />}
-        {item.scheduled_date && (
-          <Field
-            label="Data"
-            value={new Date(item.scheduled_date).toLocaleDateString("pt-BR", {
-              weekday: "long",
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            })}
+      {/* Bloco principal — Título em destaque */}
+      <div className="rounded-2xl bg-gradient-to-br from-primary/[0.04] to-card ring-1 ring-primary/10 p-4 md:p-5 space-y-4">
+        <div className="space-y-1.5">
+          <Label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold flex items-center gap-1.5">
+            Título da pauta
+            <Pencil className="h-2.5 w-2.5 opacity-60" />
+          </Label>
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onBlur={() => handleBlurField("title", title, item.title)}
+            placeholder="Título da pauta"
+            className="font-bold text-lg md:text-xl h-12 border-0 bg-transparent px-0 focus-visible:ring-0 focus-visible:bg-background focus-visible:px-3 focus-visible:border-2 focus-visible:border-primary/40 rounded-md transition-all"
           />
-        )}
-        <Field label="Rede social" value={platform || "—"} />
-        <Field label="Formato" value={format || "—"} />
-        {item.notes && <Field label="Observações" value={item.notes} full />}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold flex items-center gap-1.5">
+              <CalendarIcon className="h-2.5 w-2.5" />
+              Data de publicação
+              {scheduledDate ? (
+                <Check className="h-2.5 w-2.5 text-success ml-auto" />
+              ) : (
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 ml-auto" />
+              )}
+            </Label>
+            <Input
+              type="date"
+              value={scheduledDate}
+              onChange={(e) => {
+                setScheduledDate(e.target.value);
+                persistField({ scheduled_date: e.target.value || null });
+              }}
+              className="h-10"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold flex items-center gap-1.5">
+              <Tag className="h-2.5 w-2.5" />
+              Tema / Editoria
+            </Label>
+            <Input
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+              onBlur={() => handleBlurField("theme", theme, item.theme || "")}
+              placeholder="Ex: Educativo"
+              className="h-10"
+            />
+          </div>
+        </div>
       </div>
 
-      <StickyActionBar>
-        <Button onClick={onAdvance} disabled={loading} className="gap-2">
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <CheckCircle2 className="h-4 w-4" />
+      {/* Bloco secundário — Distribuição (rede + formato) */}
+      <div className="rounded-2xl bg-card ring-1 ring-border/60 p-4 md:p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
+          <h4 className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">
+            Distribuição
+          </h4>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+              Rede social
+              {platform ? (
+                <Check className="h-2.5 w-2.5 text-success ml-auto" />
+              ) : (
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 ml-auto" />
+              )}
+            </Label>
+            <Select value={platform} onValueChange={(v) => handleMetaChange("platform", v)}>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Selecione a rede" />
+              </SelectTrigger>
+              <SelectContent>
+                {PLATFORM_OPTIONS.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+              Formato
+              {format ? (
+                <Check className="h-2.5 w-2.5 text-success ml-auto" />
+              ) : (
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 ml-auto" />
+              )}
+            </Label>
+            <Select value={format} onValueChange={(v) => handleMetaChange("format", v)}>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Selecione o formato" />
+              </SelectTrigger>
+              <SelectContent>
+                {FORMAT_OPTIONS.map((f) => (
+                  <SelectItem key={f.value} value={f.value}>
+                    {f.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Observações — colapsado por padrão */}
+      <div className="rounded-2xl bg-card ring-1 ring-border/60 p-4 md:p-5 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <StickyNote className="h-3.5 w-3.5 text-muted-foreground" />
+            <h4 className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">
+              Observações para a equipe
+            </h4>
+          </div>
+          {!editingNotes && (
+            <button
+              type="button"
+              onClick={() => setEditingNotes(true)}
+              className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+            >
+              <Pencil className="h-3 w-3" />
+              {notes ? "Editar" : "Adicionar"}
+            </button>
           )}
-          Confirmar e ir para o briefing
-          <ArrowRight className="h-4 w-4" />
-        </Button>
-      </StickyActionBar>
+        </div>
+        {editingNotes ? (
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={() => {
+              handleBlurField("notes", notes, item.notes || "");
+              setEditingNotes(false);
+            }}
+            autoFocus
+            rows={3}
+            placeholder="Anotações úteis para quem for produzir o briefing e o design..."
+            className="text-sm"
+          />
+        ) : notes ? (
+          <p className="text-sm text-foreground/80 whitespace-pre-wrap">{notes}</p>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">
+            Nenhuma observação. Adicione contexto opcional que ajude a equipe.
+          </p>
+        )}
+      </div>
+
+      {/* CTA final com microcopy explicativo */}
+      <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-card to-card ring-1 ring-primary/15 shadow-md p-4 md:p-5">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="rounded-lg bg-primary text-primary-foreground h-10 w-10 flex items-center justify-center shrink-0 shadow-sm shadow-primary/20">
+              <ArrowRight className="h-5 w-5" />
+            </div>
+            <div className="space-y-1 min-w-0">
+              <p className="text-sm font-semibold flex items-center gap-1.5">
+                Pronto para o próximo passo
+                <Info
+                  className="h-3.5 w-3.5 text-muted-foreground"
+                  aria-label="Ao confirmar, você passará para a criação do briefing e design da pauta"
+                />
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Ao confirmar, esta pauta avança para o <strong className="text-foreground">briefing</strong> de texto e imagem.
+                Em seguida vem o <strong className="text-foreground">design</strong> e a aprovação final.
+                {dirty && (
+                  <span className="block mt-1 text-amber-600 dark:text-amber-400">
+                    <Save className="inline h-3 w-3 mr-1" />
+                    Suas edições estão sendo salvas automaticamente.
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleAdvance}
+            disabled={loading || !allFilled}
+            size="lg"
+            className="gap-2 shadow-lg shadow-primary/20 shrink-0 self-stretch md:self-auto"
+            title={
+              !allFilled
+                ? "Preencha título, data, rede social e formato"
+                : "Confirmar e seguir para o briefing"
+            }
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
+            Confirmar e ir para o briefing
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
-
-const Field = ({
-  label,
-  value,
-  full,
-}: {
-  label: string;
-  value: string;
-  full?: boolean;
-}) => (
-  <div className={cn("min-w-0", full && "sm:col-span-2")}>
-    <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-      {label}
-    </p>
-    <p className="text-sm mt-1 whitespace-pre-wrap break-words">{value}</p>
-  </div>
-);
 
 // ===================== Etapa 2: Briefing =====================
 const StageBriefing = ({
