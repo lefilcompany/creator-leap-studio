@@ -1028,6 +1028,14 @@ export default function TextEditor() {
                   />
                 </Section>
 
+                <Tabs value={propsTab} onValueChange={(v) => setPropsTab(v as any)} className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 h-9 bg-muted/40">
+                    <TabsTrigger value="typography" className="text-xs gap-1.5"><Type className="h-3 w-3" />Tipografia</TabsTrigger>
+                    <TabsTrigger value="appearance" className="text-xs gap-1.5"><Palette className="h-3 w-3" />Aparência</TabsTrigger>
+                    <TabsTrigger value="effects" className="text-xs gap-1.5"><Wand2 className="h-3 w-3" />Efeitos</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="typography" className="space-y-3 mt-3">
                 {/* Typography */}
                 <Section title="Tipografia">
                   <Row label="Fonte">
