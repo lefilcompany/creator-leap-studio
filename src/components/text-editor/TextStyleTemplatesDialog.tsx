@@ -301,6 +301,31 @@ export default function TextStyleTemplatesDialog({ open, onOpenChange, currentLa
               </div>
             </ScrollArea>
 
+            {selectedId && (() => {
+              const sel = templates.find((t) => t.id === selectedId);
+              if (!sel) return null;
+              return (
+                <div className="px-6 py-3 border-t border-border/50 bg-muted/10">
+                  <div className="grid grid-cols-2 gap-3">
+                    <TextStylePreview
+                      layers={currentLayers}
+                      label="Atual"
+                      size="sm"
+                      showEffectChips
+                      sample={(currentLayers?.[0]?.text || "Aa").slice(0, 24)}
+                    />
+                    <TextStylePreview
+                      layers={sel.layers}
+                      label="Depois de aplicar"
+                      size="sm"
+                      showEffectChips
+                      sample={(sel.layers?.[0]?.text || sel.name).slice(0, 24)}
+                    />
+                  </div>
+                </div>
+              );
+            })()}
+
             <DialogFooter className="px-6 py-3 border-t border-border/50 bg-muted/20">
               <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
                 Cancelar
