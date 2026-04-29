@@ -53,6 +53,7 @@ const CalendarNew = () => {
   const [personaId, setPersonaId] = useState<string>("");
   const [themeId, setThemeId] = useState<string>("");
   const [userInput, setUserInput] = useState("");
+  const [briefingTitle, setBriefingTitle] = useState("");
   const [count, setCount] = useState(8);
   const [referenceMonth, setReferenceMonth] = useState(() => {
     const d = new Date();
@@ -75,6 +76,12 @@ const CalendarNew = () => {
   if (!selectedPersona) missingForSuggest.push("persona");
   if (!selectedTheme) missingForSuggest.push("editoria");
   const canSuggest = missingForSuggest.length === 0;
+
+  // Compõe o briefing final enviado à IA, prefixando o título quando preenchido.
+  // O título funciona como "assunto" central que dá contexto a todo o briefing.
+  const composedBriefing = briefingTitle.trim()
+    ? `Título do briefing: ${briefingTitle.trim()}\n\n${userInput}`
+    : userInput;
 
   const handleSuggestBriefing = async () => {
     if (!canSuggest) {
@@ -106,7 +113,7 @@ const CalendarNew = () => {
             ? { title: selectedTheme.title, description: selectedTheme.description }
             : null,
           reference_month: refDate,
-          hint: userInput,
+          hint: composedBriefing,
         },
       });
       if (error) {
@@ -162,7 +169,7 @@ const CalendarNew = () => {
           theme: selectedTheme
             ? { title: selectedTheme.title, description: selectedTheme.description }
             : null,
-          user_input: userInput,
+          user_input: composedBriefing,
           reference_month: refDate,
           count,
         },
@@ -225,7 +232,7 @@ const CalendarNew = () => {
         brand_id: brandId || null,
         persona_id: personaId || null,
         theme_id: themeId || null,
-        user_input: userInput,
+        user_input: composedBriefing,
         reference_month: `${referenceMonth}-01`,
         items: generatedItems.map((it) => ({
           title: it.title,
@@ -414,6 +421,22 @@ const CalendarNew = () => {
             Descreva o objetivo do mês, o posicionamento da marca, os temas prioritários,
             o tipo de conteúdo desejado e o tom da comunicação.
           </p>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="briefing-title" className="text-sm font-medium">
+              Título do briefing
+            </Label>
+            <Input
+              id="briefing-title"
+              value={briefingTitle}
+              onChange={(e) => setBriefingTitle(e.target.value)}
+              placeholder="Ex: Lançamento da nova coleção de outono"
+              className="bg-background/60"
+            />
+            <p className="text-xs text-muted-foreground">
+              Resuma em uma frase o assunto central — ele dá contexto a todo o briefing principal e às pautas geradas.
+            </p>
+          </div>
 
           <Textarea
             id="brief"
