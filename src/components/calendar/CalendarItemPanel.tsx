@@ -887,8 +887,11 @@ const StageBriefing = ({
     }
   };
 
-  const canApprove =
-    textBrief.trim().length > 10 && imageBrief.trim().length > 10;
+  const textReady = textBrief.trim().length >= 10;
+  const imageReady = imageBrief.trim().length >= 10;
+  const canApprove = textReady && imageReady;
+  const completedCount = (textReady ? 1 : 0) + (imageReady ? 1 : 0);
+  const progressPct = Math.round((completedCount / 2) * 100);
 
   // ===== Tela de aprovação =====
   if (reviewing) {
@@ -971,43 +974,92 @@ const StageBriefing = ({
   }
 
   return (
-    <div className="space-y-5">
-      {/* Banner contextual com IA */}
-      <div className="flex items-start gap-3 rounded-xl bg-gradient-to-br from-primary/8 to-primary/3 border border-primary/15 px-4 py-3">
-        <div className="rounded-lg bg-primary/15 text-primary p-1.5 shrink-0">
-          <Wand2 className="h-4 w-4" />
+    <div className="space-y-6">
+      {/* Cabeçalho estratégico: contexto + progresso */}
+      <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/8 via-primary/4 to-transparent p-5 shadow-sm">
+        <div className="flex items-start gap-4">
+          <div className="rounded-xl bg-primary text-primary-foreground p-2.5 shrink-0 shadow-md shadow-primary/20">
+            <Wand2 className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0 space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-base font-semibold leading-tight">
+                Briefing assistido por IA
+              </h3>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                Etapa 2 de 4
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">
+              A IA cruza marca, persona, editoria, formato e rede social para
+              gerar os dois briefings de uma vez. Você pode editar livremente
+              antes de aprovar — o que estiver aqui guia o design final.
+            </p>
+          </div>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => handleGenerateAI("both")}
+            disabled={aiLoading !== null}
+            className="gap-2 shrink-0 shadow-md shadow-primary/20"
+          >
+            {aiLoading === "both" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            Gerar tudo com IA
+          </Button>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold">Briefing assistido por IA</p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Geramos os dois briefings de uma vez usando marca, persona, editoria,
-            formato e rede social do calendário. Você pode ajustar tudo manualmente
-            depois.
-          </p>
+
+        {/* Progresso por campo */}
+        <div className="mt-4 pt-4 border-t border-primary/10">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-foreground/80">
+              Progresso do briefing
+            </span>
+            <span className="text-xs font-semibold text-primary">
+              {completedCount}/2 prontos · {progressPct}%
+            </span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-primary/10 overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-500"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+          <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              {textReady ? (
+                <CheckCircle2 className="h-3 w-3 text-success" />
+              ) : (
+                <span className="h-2 w-2 rounded-full bg-muted-foreground/30" />
+              )}
+              Texto / legenda
+            </span>
+            <span className="inline-flex items-center gap-1">
+              {imageReady ? (
+                <CheckCircle2 className="h-3 w-3 text-success" />
+              ) : (
+                <span className="h-2 w-2 rounded-full bg-muted-foreground/30" />
+              )}
+              Visual / imagem
+            </span>
+          </div>
         </div>
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => handleGenerateAI("both")}
-          disabled={aiLoading !== null}
-          className="gap-2 shrink-0"
-        >
-          {aiLoading === "both" ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Sparkles className="h-4 w-4" />
-          )}
-          Gerar tudo
-        </Button>
       </div>
 
+      {/* Campos lado a lado */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <BriefingField
           icon={FileText}
           title="Briefing de texto / legenda"
-          description="O que a legenda deve comunicar, gatilho de abertura, tom de voz, CTA e hashtags."
+          stepLabel="1 · Copy"
+          description="Mensagem central, gatilho de abertura, tom de voz, CTA e hashtags. Vai virar a legenda do post."
+          aiHelper="A IA escreve uma proposta usando marca, persona e tema. Você refina depois."
           placeholder="Ex: Mensagem principal, ângulo, tom de voz, chamada para ação, hashtags relevantes..."
           value={textBrief}
+          ready={textReady}
           onChange={setTextBrief}
           onAI={() => handleGenerateAI("text")}
           aiLoading={aiLoading === "text"}
@@ -1016,14 +1068,56 @@ const StageBriefing = ({
         <BriefingField
           icon={ImageIcon}
           title="Briefing visual / imagem"
-          description="Cena, elementos, paleta, estilo, enquadramento e o que NÃO deve aparecer."
+          stepLabel="2 · Arte"
+          description="Cena, elementos, paleta, estilo, enquadramento e o que NÃO deve aparecer. Guia direto da imagem."
+          aiHelper="A IA propõe uma direção de arte fiel à marca. Ajuste cenário, mood e detalhes."
           placeholder="Ex: Cenário, personagens, paleta, estilo fotográfico, ângulo, mood, elementos a evitar..."
           value={imageBrief}
+          ready={imageReady}
           onChange={setImageBrief}
           onAI={() => handleGenerateAI("image")}
           aiLoading={aiLoading === "image"}
           aiDisabled={aiLoading !== null}
         />
+      </div>
+
+      {/* Painel de conclusão contextual */}
+      <div
+        className={cn(
+          "rounded-2xl border p-4 transition-colors",
+          canApprove
+            ? "border-success/30 bg-success/5"
+            : "border-border bg-muted/30"
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className={cn(
+              "rounded-lg p-2 shrink-0",
+              canApprove
+                ? "bg-success/15 text-success"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {canApprove ? (
+              <CheckCircle2 className="h-4 w-4" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold">
+              {canApprove
+                ? "Briefing pronto para aprovação"
+                : "Complete os dois briefings para avançar"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+              {canApprove
+                ? "Você verá um resumo antes de confirmar. Após aprovar, a pauta avança para o design."
+                : "Os dois campos precisam de pelo menos uma direção clara para a IA gerar o design correto."}
+            </p>
+          </div>
+        </div>
       </div>
 
       <StickyActionBar>
@@ -1037,6 +1131,7 @@ const StageBriefing = ({
           Salvar rascunho
         </Button>
         <Button
+          size="lg"
           onClick={() => {
             update.mutate({
               id: item.id,
@@ -1048,7 +1143,7 @@ const StageBriefing = ({
             setReviewing(true);
           }}
           disabled={!canApprove || update.isPending}
-          className="gap-2"
+          className="gap-2 shadow-md shadow-primary/20"
           title={
             !canApprove
               ? "Preencha texto e visual para concluir o briefing"
@@ -1056,7 +1151,7 @@ const StageBriefing = ({
           }
         >
           <CheckCircle2 className="h-4 w-4" />
-          Concluir e aprovar
+          Revisar e aprovar briefing
           <ArrowRight className="h-4 w-4" />
         </Button>
       </StickyActionBar>
@@ -1068,9 +1163,12 @@ const StageBriefing = ({
 const BriefingField = ({
   icon: Icon,
   title,
+  stepLabel,
   description,
+  aiHelper,
   placeholder,
   value,
+  ready,
   onChange,
   onAI,
   aiLoading,
@@ -1078,9 +1176,12 @@ const BriefingField = ({
 }: {
   icon: typeof CalendarIcon;
   title: string;
+  stepLabel?: string;
   description: string;
+  aiHelper?: string;
   placeholder: string;
   value: string;
+  ready?: boolean;
   onChange: (v: string) => void;
   onAI: () => void;
   aiLoading: boolean;
@@ -1088,22 +1189,64 @@ const BriefingField = ({
 }) => {
   const charCount = value.length;
   return (
-    <div className="rounded-2xl bg-muted/20 p-3 transition-shadow focus-within:shadow-md focus-within:bg-card">
-      <div className="flex items-start justify-between gap-2 px-1 mb-2">
-        <div className="min-w-0">
-          <h4 className="text-sm font-semibold flex items-center gap-1.5">
-            <Icon className="h-3.5 w-3.5 text-primary" />
-            {title}
-          </h4>
-          <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+    <div
+      className={cn(
+        "rounded-2xl border-2 bg-card p-4 transition-all",
+        "focus-within:border-primary focus-within:shadow-lg focus-within:shadow-primary/10",
+        ready ? "border-success/40" : "border-border"
+      )}
+    >
+      {/* Cabeçalho do campo */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <div
+              className={cn(
+                "rounded-md p-1.5 shrink-0",
+                ready
+                  ? "bg-success/15 text-success"
+                  : "bg-primary/10 text-primary"
+              )}
+            >
+              {ready ? (
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              ) : (
+                <Icon className="h-3.5 w-3.5" />
+              )}
+            </div>
+            {stepLabel && (
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                {stepLabel}
+              </span>
+            )}
+            <span
+              className={cn(
+                "ml-auto text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full",
+                ready
+                  ? "bg-success/15 text-success"
+                  : "bg-muted text-muted-foreground"
+              )}
+            >
+              {ready ? "Pronto" : "Pendente"}
+            </span>
+          </div>
+          <h4 className="text-sm font-semibold leading-tight">{title}</h4>
+          <p className="text-[11px] text-muted-foreground mt-1 leading-snug">
             {description}
           </p>
         </div>
+      </div>
+
+      {/* Ação IA com microcopy */}
+      <div className="flex items-center justify-between gap-2 mb-2 px-0.5">
+        <p className="text-[10px] text-muted-foreground italic flex-1 min-w-0 truncate">
+          {aiHelper}
+        </p>
         <button
           type="button"
           onClick={onAI}
           disabled={aiDisabled}
-          className="shrink-0 inline-flex items-center gap-1 h-7 px-2 rounded-md text-[11px] font-medium text-primary bg-primary/10 hover:bg-primary/15 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-md text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {aiLoading ? (
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -1113,22 +1256,28 @@ const BriefingField = ({
           Gerar com IA
         </button>
       </div>
+
       <Textarea
         rows={9}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="border-0 bg-card/60 focus-visible:ring-1 focus-visible:ring-primary/40 text-sm leading-relaxed resize-none rounded-xl shadow-sm"
+        className="border border-border/60 bg-background focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary text-sm leading-relaxed resize-none rounded-xl"
       />
-      <div className="flex items-center justify-between px-1 pt-1.5">
+      <div className="flex items-center justify-between px-1 pt-2">
         <span className="text-[10px] text-muted-foreground">
           {charCount === 0
-            ? "Nenhum conteúdo ainda"
+            ? "Nenhum conteúdo ainda — gere com IA ou escreva manualmente"
             : `${charCount} caracteres`}
         </span>
         {charCount > 0 && charCount < 10 && (
-          <span className="text-[10px] text-amber-600 dark:text-amber-400">
-            Adicione mais detalhes para concluir
+          <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
+            Adicione mais detalhes
+          </span>
+        )}
+        {ready && (
+          <span className="text-[10px] font-medium text-success inline-flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3" /> Pronto para usar
           </span>
         )}
       </div>
