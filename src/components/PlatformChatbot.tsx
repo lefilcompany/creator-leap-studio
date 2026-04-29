@@ -232,6 +232,14 @@ export const PlatformChatbot = () => {
     setReplyingTo(null);
   };
 
+  // Ocultar chatbot no fluxo de criação/visualização de calendário
+  const hideChatbot =
+    location.pathname.startsWith("/calendar/") ||
+    location.pathname.startsWith("/calendars/new") ||
+    location.pathname === "/calendar/new";
+
+  if (hideChatbot) return null;
+
   return (
     <>
       {!isOpen && (
