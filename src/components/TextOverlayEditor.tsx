@@ -435,23 +435,28 @@ export function TextOverlayEditor({ open, onOpenChange, imageUrl, actionId, init
               <ScrollArea className="flex-1 min-h-0">
                 <div className="p-3 space-y-1.5">
                   {layers.map((l, i) => (
-                    <button
+                    <div
                       key={l.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setSelectedId(l.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedId(l.id); }
+                      }}
                       className={cn(
-                        "w-full text-left px-3 py-2 rounded-lg border transition-colors flex items-center gap-2",
+                        "w-full text-left px-3 py-2 rounded-lg border transition-colors flex items-center gap-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
                         selectedId === l.id ? "border-primary bg-primary/10" : "border-border/40 hover:bg-muted/40"
                       )}
                     >
                       <Type className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span className="flex-1 truncate text-sm">{l.text || `Camada ${i + 1}`}</span>
                       <span className="flex items-center gap-0.5 opacity-70">
-                        <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, -1); }} className="p-1 hover:bg-muted rounded"><MoveUp className="h-3 w-3" /></span>
-                        <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, 1); }} className="p-1 hover:bg-muted rounded"><MoveDown className="h-3 w-3" /></span>
-                        <span role="button" onClick={(e) => { e.stopPropagation(); duplicateLayer(l.id); }} className="p-1 hover:bg-muted rounded"><CopyIcon className="h-3 w-3" /></span>
-                        <span role="button" onClick={(e) => { e.stopPropagation(); removeLayer(l.id); }} className="p-1 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-3 w-3" /></span>
+                        <button type="button" aria-label="Mover para cima" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, -1); }} className="p-1 hover:bg-muted rounded"><MoveUp className="h-3 w-3" /></button>
+                        <button type="button" aria-label="Mover para baixo" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, 1); }} className="p-1 hover:bg-muted rounded"><MoveDown className="h-3 w-3" /></button>
+                        <button type="button" aria-label="Duplicar camada" onClick={(e) => { e.stopPropagation(); duplicateLayer(l.id); }} className="p-1 hover:bg-muted rounded"><CopyIcon className="h-3 w-3" /></button>
+                        <button type="button" aria-label="Remover camada" onClick={(e) => { e.stopPropagation(); removeLayer(l.id); }} className="p-1 hover:bg-destructive/10 text-destructive rounded"><Trash2 className="h-3 w-3" /></button>
                       </span>
-                    </button>
+                    </div>
                   ))}
                 </div>
 
