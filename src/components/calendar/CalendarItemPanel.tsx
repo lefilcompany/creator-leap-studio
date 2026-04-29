@@ -138,13 +138,29 @@ const stageOrder: CalendarStage[] = ["calendar", "briefing", "design", "done"];
 
 export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
   const update = useUpdateCalendarItem();
-  const currentIndex = stageOrder.indexOf(item.stage);
+  const maxIndex = stageOrder.indexOf(item.stage);
+  const [viewStage, setViewStage] = useState<CalendarStage>(item.stage);
+
+  // Sempre que a etapa real avança (ex.: usuário aprovou e foi promovido),
+  // sincroniza a visualização para a nova etapa atual.
+  useEffect(() => {
+    setViewStage(item.stage);
+  }, [item.stage]);
+
+  const currentIndex = stageOrder.indexOf(viewStage);
   const currentStep = STEPS[currentIndex] ?? STEPS[0];
+
+  const goToStage = (target: CalendarStage) => {
+    const targetIdx = stageOrder.indexOf(target);
+    // Bloqueia avanço além da etapa real já alcançada.
+    if (targetIdx < 0 || targetIdx > maxIndex) return;
+    setViewStage(target);
+  };
 
   const meta = (item.metadata || {}) as Record<string, any>;
   const platform: string | null = meta.platform ?? null;
   const format: string | null = meta.format ?? null;
-  const progressPct = Math.round(((currentIndex) / (STEPS.length - 1)) * 100);
+  const progressPct = Math.round(((maxIndex) / (STEPS.length - 1)) * 100);
 
   return (
     <div className="rounded-2xl bg-card shadow-sm flex flex-col min-h-[60vh]">
