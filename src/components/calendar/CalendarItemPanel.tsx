@@ -788,6 +788,7 @@ const StageBriefing = ({
   const [textBrief, setTextBrief] = useState(item.text_briefing || "");
   const [imageBrief, setImageBrief] = useState(item.image_briefing || "");
   const [reviewing, setReviewing] = useState(false);
+  const [pautaOpen, setPautaOpen] = useState(false);
 
   // Status de geração persistido em metadata.briefing_generation
   const meta = (item.metadata || {}) as Record<string, any>;
