@@ -1120,6 +1120,43 @@ export default function TextEditor() {
                     );
                   })}
                 </div>
+                {/* Optional grid overlay — purely visual + provides snap targets. */}
+                {gridDivisions > 0 && (
+                  <svg
+                    className="absolute inset-0 pointer-events-none rounded-xl overflow-hidden"
+                    width={displaySize.w}
+                    height={displaySize.h}
+                    viewBox={`0 0 ${displaySize.w} ${displaySize.h}`}
+                    aria-hidden
+                  >
+                    <defs>
+                      <pattern
+                        id="te-grid-pattern"
+                        width={displaySize.w / gridDivisions}
+                        height={displaySize.h / gridDivisions}
+                        patternUnits="userSpaceOnUse"
+                      >
+                        <path
+                          d={`M ${displaySize.w / gridDivisions} 0 L 0 0 0 ${displaySize.h / gridDivisions}`}
+                          fill="none"
+                          stroke="hsl(var(--primary))"
+                          strokeOpacity="0.18"
+                          strokeWidth="1"
+                        />
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#te-grid-pattern)" />
+                    {/* Center axes with stronger emphasis */}
+                    <line
+                      x1={displaySize.w / 2} y1={0} x2={displaySize.w / 2} y2={displaySize.h}
+                      stroke="hsl(var(--primary))" strokeOpacity="0.32" strokeDasharray="4 4" strokeWidth="1"
+                    />
+                    <line
+                      x1={0} y1={displaySize.h / 2} x2={displaySize.w} y2={displaySize.h / 2}
+                      stroke="hsl(var(--primary))" strokeOpacity="0.32" strokeDasharray="4 4" strokeWidth="1"
+                    />
+                  </svg>
+                )}
                 {/* Alignment guides — visible only while dragging snaps. */}
                 {(guides.v.length > 0 || guides.h.length > 0) && (
                   <div className="absolute inset-0 pointer-events-none">
