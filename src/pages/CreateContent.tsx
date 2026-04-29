@@ -1115,9 +1115,9 @@ export default function CreateContent() {
             throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
           }
 
-          const { imageUrl, attempt, complianceCheck } = await imageResponse.json();
+          const { imageUrl, attempt, complianceCheck, actionId: imageActionId } = await imageResponse.json();
 
-          // 2. Generate caption
+          // 2. Generate caption (merging into existing action to avoid duplicates in history)
           const captionResponse = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`,
             {
@@ -1131,7 +1131,8 @@ export default function CreateContent() {
                   ...capturedRequestData,
                   imageDescription: capturedRequestData.description,
                   audience: selectedPersona?.name || "",
-                }
+                },
+                actionId: imageActionId,
               }),
             }
           );
