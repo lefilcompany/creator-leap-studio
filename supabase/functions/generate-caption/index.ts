@@ -490,7 +490,6 @@ serve(async (req) => {
 
     // If an existing actionId was provided (Pipeline v5: image first, caption after),
     // we MERGE the caption into the existing action — no new row, no extra credit debit.
-    const existingActionId: string | undefined = body?.actionId;
 
     let actionData: { id: string } | null = null;
     let actionError: any = null;
