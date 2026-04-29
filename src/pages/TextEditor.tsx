@@ -1059,6 +1059,58 @@ export default function TextEditor() {
                   <span className="text-[10px] uppercase tracking-wider opacity-70">px</span>
                 </span>
               )}
+              {/* AI image edit (Genial) — surgical edit of the base image */}
+              <Popover open={aiEditOpen} onOpenChange={setAiEditOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 h-7 px-2.5 text-[11.5px] font-semibold border-primary/30 text-primary hover:bg-primary/10"
+                    title="Editar a imagem com a Genial"
+                  >
+                    <Wand2 className="h-3.5 w-3.5" /> Editar imagem
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-[360px] p-3 space-y-2">
+                  <div className="space-y-1">
+                    <p className="text-[12.5px] font-semibold text-foreground">Editar imagem com a Genial</p>
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      Descreva exatamente o que mudar. A Genial vai alterar
+                      <strong> apenas</strong> o que você pedir, mantendo o resto idêntico.
+                    </p>
+                  </div>
+                  <Textarea
+                    value={aiEditPrompt}
+                    onChange={(e) => setAiEditPrompt(e.target.value)}
+                    placeholder="Ex.: troque o fundo por uma parede de tijolos brancos; deixe a camisa azul-marinho; remova o copo da mesa…"
+                    className="min-h-[110px] text-[12.5px] resize-none"
+                    disabled={aiEditing}
+                  />
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setAiEditOpen(false)}
+                      disabled={aiEditing}
+                      className="h-8 text-[12px]"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={applyAiImageEdit}
+                      disabled={aiEditing || !aiEditPrompt.trim()}
+                      className="h-8 text-[12px] gap-1.5"
+                    >
+                      {aiEditing ? (
+                        <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Aplicando…</>
+                      ) : (
+                        <><Sparkles className="h-3.5 w-3.5" /> Aplicar com Genial</>
+                      )}
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
               {layers.length > 0 && (
                 <span className="text-muted-foreground/80">
                   {layers.length} camada{layers.length === 1 ? "" : "s"}
