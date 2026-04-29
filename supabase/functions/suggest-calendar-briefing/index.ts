@@ -87,7 +87,7 @@ Escreva o briefing.`;
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
         generationConfig: {
           temperature: 0.8,
-          maxOutputTokens: 2000,
+          maxOutputTokens: 65536,
         },
       }),
     });
