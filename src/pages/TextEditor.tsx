@@ -873,6 +873,9 @@ export default function TextEditor() {
                 <SkipForward className="h-3.5 w-3.5" /> Pular edição
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate("/create/image")} className="gap-2 text-xs">
+                <RotateCcw className="h-3.5 w-3.5" /> Criar nova imagem
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleSkip} className="gap-2 text-xs text-muted-foreground">
                 <X className="h-3.5 w-3.5" /> Fechar editor
               </DropdownMenuItem>
