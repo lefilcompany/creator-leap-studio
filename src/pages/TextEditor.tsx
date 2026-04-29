@@ -1428,7 +1428,8 @@ export default function TextEditor() {
                     <p className="text-[11px] text-muted-foreground">Sombra para destacar o texto.</p>
                   )}
                 </Section>
-
+                  </TabsContent>
+                </Tabs>
 
                 <div className="h-2" />
               </div>
