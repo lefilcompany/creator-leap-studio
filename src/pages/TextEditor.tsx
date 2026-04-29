@@ -691,11 +691,11 @@ export default function TextEditor() {
   };
 
   return (
-    <div className="h-full -mx-4 sm:-mx-6 lg:-mx-8 -my-4 sm:-my-6 flex flex-col bg-background overflow-hidden animate-fade-in">
+    <div className="h-full -mx-4 sm:-mx-6 lg:-mx-8 -my-4 sm:-my-6 flex flex-col bg-gradient-to-b from-muted/30 via-background to-background overflow-hidden animate-fade-in">
       {/* === Top bar (fixo no topo do editor) === */}
-      <header className="h-14 shrink-0 border-b border-border/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 flex items-center justify-between px-4 gap-3 shadow-sm z-20">
+      <header className="h-14 shrink-0 border-b border-border/60 bg-card/95 backdrop-blur-xl supports-[backdrop-filter]:bg-card/80 flex items-center justify-between px-4 gap-3 shadow-[0_1px_0_0_hsl(var(--border)/0.4),0_4px_16px_-8px_hsl(var(--foreground)/0.08)] z-20">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-accent text-primary-foreground flex items-center justify-center shadow-sm shrink-0">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/25 ring-1 ring-primary-foreground/10 shrink-0">
             <Type className="h-4 w-4" strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
@@ -803,7 +803,7 @@ export default function TextEditor() {
       {/* === Main body === */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_380px]">
         {/* === Layers sidebar (left) === */}
-        <aside className="hidden lg:flex border-r border-border/40 bg-card flex-col min-h-0 min-w-0 overflow-hidden">
+        <aside className="hidden lg:flex border-r border-border/60 bg-gradient-to-b from-card to-card/70 flex-col min-h-0 min-w-0 overflow-hidden shadow-[inset_-1px_0_0_0_hsl(var(--border)/0.3)]">
           <div className="shrink-0 px-3 pt-3 pb-2 border-b border-border/40">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-foreground/90 uppercase tracking-[0.08em]">
@@ -855,9 +855,11 @@ export default function TextEditor() {
         </aside>
 
         {/* === Canvas (center) === */}
-        <section className="flex flex-col min-w-0 min-h-0 overflow-hidden bg-muted/30">
+        <section className="flex flex-col min-w-0 min-h-0 overflow-hidden bg-[radial-gradient(circle_at_50%_50%,hsl(var(--muted)/0.5),hsl(var(--muted)/0.15))] relative">
+          {/* Subtle grid pattern */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.025] [background-image:linear-gradient(hsl(var(--foreground))_1px,transparent_1px),linear-gradient(90deg,hsl(var(--foreground))_1px,transparent_1px)] [background-size:24px_24px]" />
           {/* Canvas top toolbar */}
-          <div className="h-12 shrink-0 border-b border-border/40 bg-card/60 backdrop-blur flex items-center justify-between px-4 gap-2">
+          <div className="relative h-12 shrink-0 border-b border-border/60 bg-card/80 backdrop-blur-xl flex items-center justify-between px-4 gap-2 shadow-sm z-10">
             <div className="text-[11.5px] font-medium text-muted-foreground tabular-nums tracking-wide flex items-center gap-3">
               {naturalSize.w > 0 && (
                 <span className="inline-flex items-center gap-1">
@@ -882,7 +884,7 @@ export default function TextEditor() {
 
           <div
             ref={stageRef}
-            className="flex-1 min-h-0 min-w-0 p-3 sm:p-4 flex items-center justify-center overflow-hidden"
+            className="relative flex-1 min-h-0 min-w-0 p-4 sm:p-6 lg:p-8 flex items-center justify-center overflow-hidden"
           >
             {baseImageUrl && displaySize.w > 0 && (
               <div
@@ -899,7 +901,7 @@ export default function TextEditor() {
                   src={baseImageUrl}
                   onLoad={onImgLoad}
                   alt="Imagem base"
-                  className="block w-full h-full rounded-lg shadow-2xl pointer-events-none object-contain bg-black/5"
+                  className="block w-full h-full rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.35),0_15px_30px_-15px_rgba(0,0,0,0.2)] ring-1 ring-foreground/5 pointer-events-none object-contain bg-black/5"
                   draggable={false}
                   crossOrigin="anonymous"
                 />
@@ -922,9 +924,9 @@ export default function TextEditor() {
                       <div
                         key={l.id}
                         className={cn(
-                          "absolute cursor-move group/layer transition-[outline-color]",
-                          isSel && !drag && "outline outline-1 outline-dashed outline-primary/70 outline-offset-2",
-                          isSel && drag && "outline-none"
+                          "absolute cursor-move group/layer transition-[outline-color,box-shadow] duration-150",
+                          isSel && !drag && "outline outline-[1.5px] outline-dashed outline-primary outline-offset-[3px] shadow-[0_0_0_4px_hsl(var(--primary)/0.08)]",
+                          isSel && drag && "outline-none shadow-none"
                         )}
                         style={{
                           left, top, width,
@@ -967,30 +969,30 @@ export default function TextEditor() {
                             {/* Edge bars - width */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-right")}
-                              className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-8 w-1.5 bg-primary/90 rounded-full cursor-ew-resize shadow-md hover:scale-y-110 transition-transform"
+                              className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-y-110 hover:bg-primary/90 transition-all"
                               title="Arraste para ajustar largura"
                             />
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-left")}
-                              className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-8 w-1.5 bg-primary/90 rounded-full cursor-ew-resize shadow-md hover:scale-y-110 transition-transform"
+                              className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-y-110 hover:bg-primary/90 transition-all"
                               title="Arraste para ajustar largura"
                             />
                             {/* Edge bars - font size */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-top")}
-                              className="absolute left-1/2 -top-1.5 -translate-x-1/2 h-1.5 w-8 bg-primary/90 rounded-full cursor-ns-resize shadow-md hover:scale-x-110 transition-transform"
+                              className="absolute left-1/2 -top-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-x-110 hover:bg-primary/90 transition-all"
                               title="Arraste para ajustar tamanho do texto"
                             />
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-bottom")}
-                              className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 h-1.5 w-8 bg-primary/90 rounded-full cursor-ns-resize shadow-md hover:scale-x-110 transition-transform"
+                              className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-x-110 hover:bg-primary/90 transition-all"
                               title="Arraste para ajustar tamanho do texto"
                             />
                             {/* Corner indicators (visual only) */}
-                            <div className="absolute -top-1 -left-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
-                            <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
-                            <div className="absolute -bottom-1 -left-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
-                            <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full bg-primary border border-background shadow-sm pointer-events-none" />
+                            <div className="absolute -top-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
+                            <div className="absolute -top-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
+                            <div className="absolute -bottom-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
+                            <div className="absolute -bottom-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
                           </>
                         )}
                       </div>
@@ -1032,7 +1034,7 @@ export default function TextEditor() {
         )}
         <aside
           className={cn(
-            "border-l border-border/40 bg-card flex flex-col min-h-0",
+            "border-l border-border/60 bg-gradient-to-b from-card to-card/80 flex flex-col min-h-0 shadow-[inset_1px_0_0_0_hsl(var(--border)/0.3)]",
             "max-lg:fixed max-lg:right-0 max-lg:top-0 max-lg:bottom-0 max-lg:z-50 max-lg:w-[88%] max-lg:max-w-sm max-lg:shadow-2xl max-lg:transition-transform max-lg:duration-200",
             isMobile && !propsSheetOpen && "max-lg:translate-x-full",
             isMobile && propsSheetOpen && "max-lg:translate-x-0",
