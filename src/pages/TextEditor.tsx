@@ -314,6 +314,10 @@ export default function TextEditor() {
   const [applyStage, setApplyStage] = useState<"idle" | "preparing" | "rendering" | "finalizing" | "done">("idle");
   const { fonts: customFonts, uploading: uploadingFont, uploadFont } = useCustomFonts();
   const fontInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
+  const [propsSheetOpen, setPropsSheetOpen] = useState(false);
+  const [layersSheetOpen, setLayersSheetOpen] = useState(false);
+  const [propsTab, setPropsTab] = useState<"typography" | "appearance" | "effects">("typography");
   const [drag, setDrag] = useState<{
     id: string;
     mode: "move" | "resize-right" | "resize-left" | "resize-font-top" | "resize-font-bottom";
