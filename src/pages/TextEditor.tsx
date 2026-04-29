@@ -858,14 +858,23 @@ export default function TextEditor() {
         <section className="flex flex-col min-w-0 min-h-0 overflow-hidden bg-muted/30">
           {/* Canvas top toolbar */}
           <div className="h-12 shrink-0 border-b border-border/40 bg-card/60 backdrop-blur flex items-center justify-between px-4 gap-2">
-            <div className="text-xs text-muted-foreground">
-              {naturalSize.w > 0 && `${naturalSize.w} × ${naturalSize.h}px`}
+            <div className="text-[11.5px] font-medium text-muted-foreground tabular-nums tracking-wide flex items-center gap-3">
+              {naturalSize.w > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <span className="text-foreground/70 font-semibold">{naturalSize.w}</span>
+                  <span className="opacity-50">×</span>
+                  <span className="text-foreground/70 font-semibold">{naturalSize.h}</span>
+                  <span className="text-[10px] uppercase tracking-wider opacity-70">px</span>
+                </span>
+              )}
               {layers.length > 0 && (
-                <span className="ml-3">{layers.length} camada{layers.length === 1 ? "" : "s"}</span>
+                <span className="text-muted-foreground/80">
+                  {layers.length} camada{layers.length === 1 ? "" : "s"}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-1.5">
-              <Button size="sm" variant="outline" onClick={addLayer} className="gap-1.5 h-8">
+              <Button size="sm" variant="outline" onClick={addLayer} className="gap-1.5 h-8 text-[12px] font-semibold">
                 <Plus className="h-3.5 w-3.5" /> Adicionar texto
               </Button>
             </div>
