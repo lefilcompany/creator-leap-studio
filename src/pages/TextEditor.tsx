@@ -16,8 +16,9 @@ import {
   Plus, Trash2, Type, Loader2, RotateCcw, Copy as CopyIcon,
   AlignLeft, AlignCenter, AlignRight, MoveUp, MoveDown, ArrowRight, SkipForward,
   Sparkles, CheckCircle2, X, Layers as LayersIcon, Settings2, Upload,
-  MoreHorizontal, Palette, Wand2, SlidersHorizontal,
+  MoreHorizontal, Palette, Wand2, SlidersHorizontal, BookmarkPlus, FolderOpen,
 } from "lucide-react";
+import TextStyleTemplatesDialog from "@/components/text-editor/TextStyleTemplatesDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
