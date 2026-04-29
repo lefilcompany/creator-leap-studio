@@ -759,6 +759,63 @@ export default function TextEditor() {
     setSelectedId(init.id);
   };
 
+  // === AI image edit (Genial) ===
+  // Sends the current base image + the user's instruction to the existing
+  // `edit-image` edge function. We wrap the user's prompt with strict
+  // anti-hallucination guardrails so the model only changes what was asked.
+  const applyAiImageEdit = async () => {
+    const instruction = aiEditPrompt.trim();
+    if (!instruction) {
+      toast.error("Descreva o que você quer mudar na imagem");
+      return;
+    }
+    if (!baseImageUrl) {
+      toast.error("Sem imagem base para editar");
+      return;
+    }
+    setAiEditing(true);
+    try {
+      const guardedPrompt = [
+        "EDIÇÃO CIRÚRGICA — ALTERE APENAS O QUE FOI PEDIDO.",
+        "",
+        "Pedido do usuário (execute literalmente, nada além disso):",
+        `"${instruction}"`,
+        "",
+        "REGRAS DE FIDELIDADE (obrigatórias):",
+        "- NÃO altere composição, enquadramento, ângulo, lente nem proporção.",
+        "- NÃO altere pessoas, rostos, etnia, roupas, poses, expressões ou objetos que NÃO foram citados no pedido.",
+        "- NÃO altere paleta de cores, iluminação, sombras ou estilo geral, exceto se explicitamente solicitado.",
+        "- NÃO adicione, remova ou reposicione elementos que não foram citados.",
+        "- NÃO adicione textos, marcas d'água, logos ou legendas.",
+        "- Mantenha a mesma resolução e nitidez.",
+        "- Se o pedido for ambíguo, faça a interpretação mais conservadora possível, alterando o mínimo necessário.",
+        "- Tudo que não for explicitamente citado pelo usuário deve permanecer pixel-a-pixel idêntico ao original.",
+      ].join("\n");
+
+      const { data, error } = await supabase.functions.invoke("edit-image", {
+        body: {
+          reviewPrompt: guardedPrompt,
+          imageUrl: baseImageUrl,
+          source: "text-editor",
+        },
+      });
+
+      if (error) throw error;
+      const editedUrl: string | undefined = data?.editedImageUrl;
+      if (!editedUrl) throw new Error("A IA não retornou uma imagem editada");
+
+      setAiEditedImageUrl(editedUrl);
+      setAiEditPrompt("");
+      setAiEditOpen(false);
+      toast.success("Imagem atualizada pela Genial");
+    } catch (e: any) {
+      console.error("[TextEditor] AI edit failed:", e);
+      toast.error(e?.message || "Falha ao editar imagem com IA");
+    } finally {
+      setAiEditing(false);
+    }
+  };
+
   const stageLabel: Record<typeof applyStage, string> = {
     idle: "Pronto",
     preparing: "Preparando camadas de texto…",
