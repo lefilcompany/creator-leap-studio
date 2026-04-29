@@ -215,11 +215,11 @@ function NumInput({
 }) {
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
   return (
-    <div className="flex items-center h-7 rounded-md border border-border/60 bg-background overflow-hidden text-xs">
+    <div className="flex items-center h-7 rounded-md border border-border/60 bg-background overflow-hidden text-[12px] font-medium">
       <button
         type="button"
         onClick={() => onChange(clamp(value - step))}
-        className="px-1.5 h-full text-muted-foreground hover:bg-muted"
+        className="px-2 h-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-sm font-semibold"
         tabIndex={-1}
       >−</button>
       <input
@@ -232,13 +232,13 @@ function NumInput({
           const n = parseFloat(e.target.value);
           if (!isNaN(n)) onChange(clamp(n));
         }}
-        className="w-full min-w-0 text-center bg-transparent outline-none tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        className="w-full min-w-0 text-center bg-transparent outline-none tabular-nums font-semibold text-foreground/90 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
-      {suffix && <span className="pr-1.5 text-muted-foreground">{suffix}</span>}
+      {suffix && <span className="pr-1.5 text-[10.5px] uppercase tracking-wider text-muted-foreground font-medium">{suffix}</span>}
       <button
         type="button"
         onClick={() => onChange(clamp(value + step))}
-        className="px-1.5 h-full text-muted-foreground hover:bg-muted"
+        className="px-2 h-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-sm font-semibold"
         tabIndex={-1}
       >+</button>
     </div>
@@ -258,15 +258,15 @@ function Section({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-border/40 bg-background/50 overflow-hidden">
-      <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-border/40 bg-muted/30">
-        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground/80 uppercase tracking-wide">
+    <div className="rounded-xl border border-border/50 bg-background/60 overflow-hidden shadow-sm">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/40 bg-gradient-to-b from-muted/40 to-muted/20">
+        <div className="flex items-center gap-2 text-[10.5px] font-bold text-foreground/90 uppercase tracking-[0.08em]">
           {icon}
           {title}
         </div>
         {action}
       </div>
-      <div className="p-2.5 space-y-2">{children}</div>
+      <div className="p-3 space-y-2.5">{children}</div>
     </div>
   );
 }
@@ -280,8 +280,8 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-2 min-h-7">
-      <Label className="text-xs text-muted-foreground shrink-0">{label}</Label>
+    <div className="flex items-center justify-between gap-3 min-h-7">
+      <Label className="text-[12px] font-medium text-foreground/70 shrink-0 tracking-tight">{label}</Label>
       <div className="flex-1 max-w-[60%] flex justify-end">{children}</div>
     </div>
   );
@@ -696,15 +696,15 @@ export default function TextEditor() {
       <header className="h-14 shrink-0 border-b border-border/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 flex items-center justify-between px-4 gap-3 shadow-sm z-20">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-accent text-primary-foreground flex items-center justify-center shadow-sm shrink-0">
-            <Type className="h-4 w-4" />
+            <Type className="h-4 w-4" strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
-            <h1 className="text-sm font-semibold leading-tight truncate">
-              Editor de texto na imagem
+            <h1 className="text-[15px] font-semibold leading-tight tracking-tight truncate">
+              Editor de texto
             </h1>
-            <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-              <CheckCircle2 className="h-3 w-3 text-primary shrink-0" />
-              Imagem gerada — adicione textos e finalize
+            <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5 truncate mt-0.5">
+              <CheckCircle2 className="h-3 w-3 text-primary shrink-0" strokeWidth={2.5} />
+              <span className="tracking-wide">Imagem pronta — adicione textos e finalize</span>
             </p>
           </div>
         </div>
@@ -762,7 +762,7 @@ export default function TextEditor() {
             <SlidersHorizontal className="h-4 w-4" />
           </Button>
 
-          <Button variant="ghost" size="sm" onClick={handleSkip} disabled={saving} className="hidden sm:inline-flex gap-1.5 text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" size="sm" onClick={handleSkip} disabled={saving} className="hidden sm:inline-flex gap-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground">
             <SkipForward className="h-4 w-4" />
             <span className="hidden md:inline">Pular edição</span>
           </Button>
@@ -771,9 +771,9 @@ export default function TextEditor() {
             size="sm"
             onClick={handleApply}
             disabled={saving}
-            className="gap-1.5 h-9 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md hover:shadow-lg hover:opacity-95 transition-all font-semibold"
+            className="gap-1.5 h-9 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md hover:shadow-lg hover:opacity-95 transition-all text-[13px] font-semibold tracking-tight"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" strokeWidth={2.5} />}
             <span className="hidden sm:inline">Aplicar e continuar</span>
             <span className="sm:hidden">Aplicar</span>
           </Button>
@@ -806,11 +806,16 @@ export default function TextEditor() {
         <aside className="hidden lg:flex border-r border-border/40 bg-card flex-col min-h-0 min-w-0 overflow-hidden">
           <div className="shrink-0 px-3 pt-3 pb-2 border-b border-border/40">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80 uppercase tracking-wide">
+              <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-foreground/90 uppercase tracking-[0.08em]">
                 <LayersIcon className="h-3.5 w-3.5" />
                 Camadas
+                {layers.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-muted text-[9.5px] font-semibold tabular-nums tracking-normal text-muted-foreground">
+                    {layers.length}
+                  </span>
+                )}
               </div>
-              <Button size="sm" variant="ghost" onClick={addLayer} className="h-7 gap-1 text-xs">
+              <Button size="sm" variant="ghost" onClick={addLayer} className="h-7 gap-1 text-[12px] font-semibold">
                 <Plus className="h-3.5 w-3.5" /> Nova
               </Button>
             </div>
@@ -818,7 +823,7 @@ export default function TextEditor() {
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
             <div className="space-y-1 p-2">
               {layers.length === 0 && (
-                <div className="text-xs text-muted-foreground text-center py-6">
+                <div className="text-[12px] font-medium text-muted-foreground text-center py-6">
                   Nenhuma camada ainda
                 </div>
               )}
@@ -827,14 +832,16 @@ export default function TextEditor() {
                   key={l.id}
                   onClick={() => setSelectedId(l.id)}
                   className={cn(
-                    "w-full min-w-0 text-left px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-2 group",
+                    "w-full min-w-0 text-left px-2.5 py-2 rounded-md border transition-colors flex items-center gap-2 group",
                     selectedId === l.id
                       ? "border-primary bg-primary/10"
                       : "border-border/40 hover:bg-muted/40"
                   )}
                 >
-                  <Type className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="flex-1 min-w-0 truncate text-xs">{l.text || `Camada ${i + 1}`}</span>
+                  <Type className={cn("h-3.5 w-3.5 shrink-0", selectedId === l.id ? "text-primary" : "text-muted-foreground")} />
+                  <span className={cn("flex-1 min-w-0 truncate text-[12.5px] leading-tight", selectedId === l.id ? "font-semibold text-foreground" : "font-medium text-foreground/85")}>
+                    {l.text || `Camada ${i + 1}`}
+                  </span>
                   <span className="hidden group-hover:flex items-center gap-0.5 shrink-0">
                     <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, -1); }} className="p-1 hover:bg-muted rounded"><MoveUp className="h-3 w-3" /></span>
                     <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, 1); }} className="p-1 hover:bg-muted rounded"><MoveDown className="h-3 w-3" /></span>
@@ -851,14 +858,23 @@ export default function TextEditor() {
         <section className="flex flex-col min-w-0 min-h-0 overflow-hidden bg-muted/30">
           {/* Canvas top toolbar */}
           <div className="h-12 shrink-0 border-b border-border/40 bg-card/60 backdrop-blur flex items-center justify-between px-4 gap-2">
-            <div className="text-xs text-muted-foreground">
-              {naturalSize.w > 0 && `${naturalSize.w} × ${naturalSize.h}px`}
+            <div className="text-[11.5px] font-medium text-muted-foreground tabular-nums tracking-wide flex items-center gap-3">
+              {naturalSize.w > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <span className="text-foreground/70 font-semibold">{naturalSize.w}</span>
+                  <span className="opacity-50">×</span>
+                  <span className="text-foreground/70 font-semibold">{naturalSize.h}</span>
+                  <span className="text-[10px] uppercase tracking-wider opacity-70">px</span>
+                </span>
+              )}
               {layers.length > 0 && (
-                <span className="ml-3">{layers.length} camada{layers.length === 1 ? "" : "s"}</span>
+                <span className="text-muted-foreground/80">
+                  {layers.length} camada{layers.length === 1 ? "" : "s"}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-1.5">
-              <Button size="sm" variant="outline" onClick={addLayer} className="gap-1.5 h-8">
+              <Button size="sm" variant="outline" onClick={addLayer} className="gap-1.5 h-8 text-[12px] font-semibold">
                 <Plus className="h-3.5 w-3.5" /> Adicionar texto
               </Button>
             </div>
@@ -1025,7 +1041,7 @@ export default function TextEditor() {
         >
           {isMobile && (
             <div className="lg:hidden shrink-0 px-4 h-12 border-b border-border/40 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-semibold">
+              <div className="flex items-center gap-2 text-[13px] font-semibold tracking-tight">
                 <SlidersHorizontal className="h-4 w-4" /> Propriedades
               </div>
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPropsSheetOpen(false)}>
@@ -1036,9 +1052,12 @@ export default function TextEditor() {
           {/* Properties */}
           <ScrollArea className="flex-1 min-h-0">
             {!selected ? (
-              <div className="p-8 text-center text-sm text-muted-foreground">
-                <Settings2 className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                Selecione uma camada para editar suas propriedades
+              <div className="p-8 text-center text-muted-foreground">
+                <Settings2 className="h-8 w-8 mx-auto mb-3 opacity-40" />
+                <p className="text-[13px] font-semibold text-foreground/80 tracking-tight">Nenhuma camada selecionada</p>
+                <p className="text-[12px] mt-1 text-muted-foreground/80 leading-relaxed max-w-[220px] mx-auto">
+                  Selecione uma camada à esquerda para editar suas propriedades
+                </p>
               </div>
             ) : (
               <div className="p-3 space-y-3">
@@ -1048,16 +1067,16 @@ export default function TextEditor() {
                     value={selected.text}
                     onChange={(e) => updateLayer(selected.id, { text: e.target.value })}
                     rows={3}
-                    className="resize-none text-sm"
+                    className="resize-none text-[13px] font-medium leading-relaxed"
                     placeholder="Digite seu texto…"
                   />
                 </Section>
 
                 <Tabs value={propsTab} onValueChange={(v) => setPropsTab(v as any)} className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 h-9 bg-muted/40">
-                    <TabsTrigger value="typography" className="text-xs gap-1.5"><Type className="h-3 w-3" />Tipografia</TabsTrigger>
-                    <TabsTrigger value="appearance" className="text-xs gap-1.5"><Palette className="h-3 w-3" />Aparência</TabsTrigger>
-                    <TabsTrigger value="effects" className="text-xs gap-1.5"><Wand2 className="h-3 w-3" />Efeitos</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-3 h-9 bg-muted/40 p-0.5">
+                    <TabsTrigger value="typography" className="text-[11.5px] font-semibold gap-1.5 tracking-tight data-[state=active]:shadow-sm"><Type className="h-3 w-3" />Tipografia</TabsTrigger>
+                    <TabsTrigger value="appearance" className="text-[11.5px] font-semibold gap-1.5 tracking-tight data-[state=active]:shadow-sm"><Palette className="h-3 w-3" />Aparência</TabsTrigger>
+                    <TabsTrigger value="effects" className="text-[11.5px] font-semibold gap-1.5 tracking-tight data-[state=active]:shadow-sm"><Wand2 className="h-3 w-3" />Efeitos</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="typography" className="space-y-3 mt-3">
