@@ -138,13 +138,29 @@ const stageOrder: CalendarStage[] = ["calendar", "briefing", "design", "done"];
 
 export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
   const update = useUpdateCalendarItem();
-  const currentIndex = stageOrder.indexOf(item.stage);
+  const maxIndex = stageOrder.indexOf(item.stage);
+  const [viewStage, setViewStage] = useState<CalendarStage>(item.stage);
+
+  // Sempre que a etapa real avança (ex.: usuário aprovou e foi promovido),
+  // sincroniza a visualização para a nova etapa atual.
+  useEffect(() => {
+    setViewStage(item.stage);
+  }, [item.stage]);
+
+  const currentIndex = stageOrder.indexOf(viewStage);
   const currentStep = STEPS[currentIndex] ?? STEPS[0];
+
+  const goToStage = (target: CalendarStage) => {
+    const targetIdx = stageOrder.indexOf(target);
+    // Bloqueia avanço além da etapa real já alcançada.
+    if (targetIdx < 0 || targetIdx > maxIndex) return;
+    setViewStage(target);
+  };
 
   const meta = (item.metadata || {}) as Record<string, any>;
   const platform: string | null = meta.platform ?? null;
   const format: string | null = meta.format ?? null;
-  const progressPct = Math.round(((currentIndex) / (STEPS.length - 1)) * 100);
+  const progressPct = Math.round(((maxIndex) / (STEPS.length - 1)) * 100);
 
   return (
     <div className="rounded-2xl bg-card shadow-sm flex flex-col min-h-[60vh]">
@@ -231,7 +247,12 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
         </div>
 
         {/* Stepper */}
-        <Stepper currentIndex={currentIndex} stage={item.stage} />
+        <Stepper
+          currentIndex={currentIndex}
+          maxIndex={maxIndex}
+          stage={item.stage}
+          onStepClick={(s) => goToStage(s)}
+        />
 
         {/* Microcopy de orientação */}
         <p className="mt-3 text-xs text-muted-foreground">
@@ -243,7 +264,7 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
 
       {/* ===== Conteúdo da etapa ===== */}
       <div className="px-5 py-5 flex-1">
-        {item.stage === "calendar" && (
+        {viewStage === "calendar" && (
           <StageCalendar
             item={item}
             onAdvance={() =>
@@ -255,10 +276,10 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
             loading={update.isPending}
           />
         )}
-        {item.stage === "briefing" && (
+        {viewStage === "briefing" && (
           <StageBriefing item={item} update={update} />
         )}
-        {(item.stage === "design" || item.stage === "review") && (
+        {(viewStage === "design" || viewStage === "review") && (
           <StageDesign
             item={item}
             onAdvance={() =>
@@ -274,7 +295,7 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
             loading={update.isPending}
           />
         )}
-        {item.stage === "done" && (
+        {viewStage === "done" && (
           <div className="text-center py-12">
             <div className="mx-auto h-14 w-14 rounded-full bg-success/15 text-success flex items-center justify-center mb-3">
               <CheckCircle2 className="h-7 w-7" />
@@ -294,22 +315,46 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
 // ===================== Stepper =====================
 const Stepper = ({
   currentIndex,
+  maxIndex,
   stage,
+  onStepClick,
 }: {
   currentIndex: number;
+  maxIndex: number;
   stage: CalendarStage;
+  onStepClick?: (stage: CalendarStage) => void;
 }) => {
   return (
     <div className="flex items-center w-full">
       {STEPS.map((step, i) => {
         const Icon = step.icon;
-        const isDone = i < currentIndex || stage === "done";
-        const isCurrent = i === currentIndex && stage !== "done";
+        const isDone = i < maxIndex || stage === "done";
+        const isCurrent = i === currentIndex;
+        const isReachable = i <= maxIndex;
         const isLast = i === STEPS.length - 1;
+        const clickable = isReachable && i !== currentIndex;
 
         return (
           <div key={step.id} className="flex items-center flex-1 last:flex-none">
-            <div className="flex flex-col items-center gap-1.5 min-w-[64px]">
+            <button
+              type="button"
+              onClick={() => clickable && onStepClick?.(step.id)}
+              disabled={!isReachable}
+              aria-current={isCurrent ? "step" : undefined}
+              title={
+                !isReachable
+                  ? "Conclua as etapas anteriores para acessar esta"
+                  : isCurrent
+                  ? `${step.label} (atual)`
+                  : `Voltar para ${step.label}`
+              }
+              className={cn(
+                "flex flex-col items-center gap-1.5 min-w-[64px] rounded-lg p-1 -m-1 transition-all",
+                clickable && "hover:bg-muted/60 cursor-pointer",
+                !isReachable && "cursor-not-allowed opacity-60",
+                isCurrent && "cursor-default"
+              )}
+            >
               <div
                 className={cn(
                   "h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 relative",
@@ -336,7 +381,7 @@ const Stepper = ({
               >
                 {step.label}
               </span>
-            </div>
+            </button>
             {!isLast && (
               <div className="flex-1 h-[2px] mx-1 -mt-5 rounded-full overflow-hidden bg-muted">
                 <div
