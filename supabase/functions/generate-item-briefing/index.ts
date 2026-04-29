@@ -106,7 +106,7 @@ function buildContext(b: {
   return lines.join("\n");
 }
 
-const TEXT_SYSTEM = `Você é um copywriter brasileiro especialista em redes sociais. Escreva um BRIEFING DE TEXTO/LEGENDA (8 a 14 frases, até 1800 caracteres) para a pauta abaixo.
+const TEXT_SYSTEM = `Você é um copywriter brasileiro especialista em redes sociais. Escreva um BRIEFING DE TEXTO/LEGENDA detalhado e completo (pode ter até ~5000 palavras se necessário, sem cortar ideias) para a pauta abaixo.
 
 REGRA DE OURO — FIDELIDADE AO BRIEFING PRINCIPAL:
 - O contexto contém um bloco "BRIEFING PRINCIPAL DO CALENDÁRIO (FONTE DA VERDADE)".
@@ -126,7 +126,7 @@ REGRAS:
 - Não escreva a legenda final — escreva o BRIEFING para quem vai redigir.
 - Não invente dados que não estão no contexto.`;
 
-const IMAGE_SYSTEM = `Você é um diretor de arte brasileiro. Escreva um BRIEFING VISUAL/IMAGEM (8 a 14 frases, até 1800 caracteres) para a pauta abaixo.
+const IMAGE_SYSTEM = `Você é um diretor de arte brasileiro. Escreva um BRIEFING VISUAL/IMAGEM detalhado e completo (pode ter até ~5000 palavras se necessário, sem cortar ideias) para a pauta abaixo.
 
 REGRA DE OURO — FIDELIDADE AO BRIEFING PRINCIPAL:
 - O contexto contém um bloco "BRIEFING PRINCIPAL DO CALENDÁRIO (FONTE DA VERDADE)".
@@ -156,7 +156,7 @@ async function callGemini(systemPrompt: string, userPrompt: string, apiKey: stri
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: systemPrompt }] },
       contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: { temperature: 0.85, maxOutputTokens: 1800 },
+      generationConfig: { temperature: 0.85, maxOutputTokens: 16384 },
     }),
   });
   if (!response.ok) {
