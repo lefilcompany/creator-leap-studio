@@ -336,7 +336,25 @@ const Stepper = ({
 
         return (
           <div key={step.id} className="flex items-center flex-1 last:flex-none">
-            <div className="flex flex-col items-center gap-1.5 min-w-[64px]">
+            <button
+              type="button"
+              onClick={() => clickable && onStepClick?.(step.id)}
+              disabled={!isReachable}
+              aria-current={isCurrent ? "step" : undefined}
+              title={
+                !isReachable
+                  ? "Conclua as etapas anteriores para acessar esta"
+                  : isCurrent
+                  ? `${step.label} (atual)`
+                  : `Voltar para ${step.label}`
+              }
+              className={cn(
+                "flex flex-col items-center gap-1.5 min-w-[64px] rounded-lg p-1 -m-1 transition-all",
+                clickable && "hover:bg-muted/60 cursor-pointer",
+                !isReachable && "cursor-not-allowed opacity-60",
+                isCurrent && "cursor-default"
+              )}
+            >
               <div
                 className={cn(
                   "h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 relative",
@@ -363,7 +381,7 @@ const Stepper = ({
               >
                 {step.label}
               </span>
-            </div>
+            </button>
             {!isLast && (
               <div className="flex-1 h-[2px] mx-1 -mt-5 rounded-full overflow-hidden bg-muted">
                 <div
