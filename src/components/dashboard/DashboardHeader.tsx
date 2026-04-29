@@ -44,7 +44,7 @@ export const DashboardHeader = ({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="relative overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card via-card to-muted/30 p-5 sm:p-6 lg:p-7 shadow-sm"
+      className="relative overflow-hidden rounded-2xl border-border/40 bg-gradient-to-br from-card via-card to-muted/30 p-5 sm:p-6 lg:p-7 border-0 text-inherit bg-transparent shadow-none"
     >
       {/* Subtle decorative accent — mantém identidade sem dominar */}
       <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
