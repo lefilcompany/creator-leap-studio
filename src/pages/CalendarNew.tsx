@@ -589,7 +589,7 @@ const CalendarNew = () => {
         };
 
         return (
-          <section className="space-y-4">
+          <section ref={resultsRef} className="space-y-4 scroll-mt-24">
             {/* Header da etapa */}
             <div className="flex items-start gap-3">
               <div className="rounded-lg bg-primary text-primary-foreground h-8 w-8 flex items-center justify-center shrink-0 text-sm font-bold shadow-md shadow-primary/20">
