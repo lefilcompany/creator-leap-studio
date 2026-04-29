@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import type { TextLayer } from "@/components/TextOverlayEditor";
 import { ensureFontLoaded } from "@/hooks/useCustomFonts";
+import TextStylePreview from "@/components/text-editor/TextStylePreview";
 
 type Template = {
   id: string;
