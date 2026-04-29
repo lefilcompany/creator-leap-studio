@@ -859,10 +859,7 @@ export default function TextEditor() {
             </div>
             <div className="flex items-center gap-1.5">
               <Button size="sm" variant="outline" onClick={addLayer} className="gap-1.5 h-8">
-                <Plus className="h-3.5 w-3.5" /> Camada
-              </Button>
-              <Button size="sm" variant="ghost" onClick={resetLayers} className="gap-1.5 h-8">
-                <RotateCcw className="h-3.5 w-3.5" /> Resetar
+                <Plus className="h-3.5 w-3.5" /> Adicionar texto
               </Button>
             </div>
           </div>
