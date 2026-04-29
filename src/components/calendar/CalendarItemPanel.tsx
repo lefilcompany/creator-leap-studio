@@ -180,7 +180,8 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
     setViewStage(item.stage);
   }, [item.stage]);
 
-  const currentIndex = stageOrder.indexOf(viewStage);
+  const currentIndex = stageToVisualIndex(viewStage);
+  const visualMaxIndex = stageToVisualIndex(item.stage);
   const currentStep = STEPS[currentIndex] ?? STEPS[0];
 
   const goToStage = (target: CalendarStage) => {
