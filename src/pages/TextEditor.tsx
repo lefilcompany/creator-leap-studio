@@ -1005,8 +1005,34 @@ export default function TextEditor() {
           </div>
         </section>
 
-        {/* === Properties sidebar (right, desktop) === */}
-        <aside className="hidden lg:flex border-l border-border/40 bg-card flex-col min-h-0">
+        {/* === Properties sidebar (right) — desktop aside, mobile slide-in overlay === */}
+        {isMobile && propsSheetOpen && (
+          <button
+            type="button"
+            aria-label="Fechar propriedades"
+            onClick={() => setPropsSheetOpen(false)}
+            className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-fade-in"
+          />
+        )}
+        <aside
+          className={cn(
+            "border-l border-border/40 bg-card flex flex-col min-h-0",
+            "max-lg:fixed max-lg:right-0 max-lg:top-0 max-lg:bottom-0 max-lg:z-50 max-lg:w-[88%] max-lg:max-w-sm max-lg:shadow-2xl max-lg:transition-transform max-lg:duration-200",
+            isMobile && !propsSheetOpen && "max-lg:translate-x-full",
+            isMobile && propsSheetOpen && "max-lg:translate-x-0",
+            !isMobile && "lg:flex"
+          )}
+        >
+          {isMobile && (
+            <div className="lg:hidden shrink-0 px-4 h-12 border-b border-border/40 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <SlidersHorizontal className="h-4 w-4" /> Propriedades
+              </div>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPropsSheetOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           {/* Properties */}
           <ScrollArea className="flex-1 min-h-0">
             {!selected ? (
