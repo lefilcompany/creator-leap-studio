@@ -803,7 +803,7 @@ export default function TextEditor() {
       {/* === Main body === */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_380px]">
         {/* === Layers sidebar (left) === */}
-        <aside className="hidden lg:flex border-r border-border/40 bg-card flex-col min-h-0 min-w-0 overflow-hidden">
+        <aside className="hidden lg:flex border-r border-border/60 bg-gradient-to-b from-card to-card/70 flex-col min-h-0 min-w-0 overflow-hidden shadow-[inset_-1px_0_0_0_hsl(var(--border)/0.3)]">
           <div className="shrink-0 px-3 pt-3 pb-2 border-b border-border/40">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-foreground/90 uppercase tracking-[0.08em]">
