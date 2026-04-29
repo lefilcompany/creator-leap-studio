@@ -806,11 +806,16 @@ export default function TextEditor() {
         <aside className="hidden lg:flex border-r border-border/40 bg-card flex-col min-h-0 min-w-0 overflow-hidden">
           <div className="shrink-0 px-3 pt-3 pb-2 border-b border-border/40">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80 uppercase tracking-wide">
+              <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-foreground/90 uppercase tracking-[0.08em]">
                 <LayersIcon className="h-3.5 w-3.5" />
                 Camadas
+                {layers.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-muted text-[9.5px] font-semibold tabular-nums tracking-normal text-muted-foreground">
+                    {layers.length}
+                  </span>
+                )}
               </div>
-              <Button size="sm" variant="ghost" onClick={addLayer} className="h-7 gap-1 text-xs">
+              <Button size="sm" variant="ghost" onClick={addLayer} className="h-7 gap-1 text-[12px] font-semibold">
                 <Plus className="h-3.5 w-3.5" /> Nova
               </Button>
             </div>
@@ -818,7 +823,7 @@ export default function TextEditor() {
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
             <div className="space-y-1 p-2">
               {layers.length === 0 && (
-                <div className="text-xs text-muted-foreground text-center py-6">
+                <div className="text-[12px] font-medium text-muted-foreground text-center py-6">
                   Nenhuma camada ainda
                 </div>
               )}
@@ -827,14 +832,16 @@ export default function TextEditor() {
                   key={l.id}
                   onClick={() => setSelectedId(l.id)}
                   className={cn(
-                    "w-full min-w-0 text-left px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-2 group",
+                    "w-full min-w-0 text-left px-2.5 py-2 rounded-md border transition-colors flex items-center gap-2 group",
                     selectedId === l.id
                       ? "border-primary bg-primary/10"
                       : "border-border/40 hover:bg-muted/40"
                   )}
                 >
-                  <Type className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="flex-1 min-w-0 truncate text-xs">{l.text || `Camada ${i + 1}`}</span>
+                  <Type className={cn("h-3.5 w-3.5 shrink-0", selectedId === l.id ? "text-primary" : "text-muted-foreground")} />
+                  <span className={cn("flex-1 min-w-0 truncate text-[12.5px] leading-tight", selectedId === l.id ? "font-semibold text-foreground" : "font-medium text-foreground/85")}>
+                    {l.text || `Camada ${i + 1}`}
+                  </span>
                   <span className="hidden group-hover:flex items-center gap-0.5 shrink-0">
                     <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, -1); }} className="p-1 hover:bg-muted rounded"><MoveUp className="h-3 w-3" /></span>
                     <span role="button" onClick={(e) => { e.stopPropagation(); moveLayer(l.id, 1); }} className="p-1 hover:bg-muted rounded"><MoveDown className="h-3 w-3" /></span>
