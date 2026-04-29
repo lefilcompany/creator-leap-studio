@@ -1089,15 +1089,6 @@ const StageBriefing = ({
 
       <StickyActionBar>
         <Button
-          variant="ghost"
-          onClick={handleSave}
-          disabled={update.isPending}
-          className="gap-2"
-        >
-          <Save className="h-4 w-4" />
-          Salvar rascunho
-        </Button>
-        <Button
           size="lg"
           onClick={() => {
             update.mutate({
