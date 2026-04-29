@@ -53,6 +53,7 @@ const CalendarNew = () => {
   const [personaId, setPersonaId] = useState<string>("");
   const [themeId, setThemeId] = useState<string>("");
   const [userInput, setUserInput] = useState("");
+  const [briefingTitle, setBriefingTitle] = useState("");
   const [count, setCount] = useState(8);
   const [referenceMonth, setReferenceMonth] = useState(() => {
     const d = new Date();
