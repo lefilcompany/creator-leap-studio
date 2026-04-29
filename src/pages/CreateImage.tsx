@@ -724,7 +724,7 @@ export default function CreateImage() {
             throw new Error(`Erro ao gerar imagem (${response.status}): ${errText || "sem resposta"}`);
           }
           const sseResult = await response.json();
-          const { imageUrl, legenda, complianceCheck } = sseResult;
+          const { imageUrl, legenda, complianceCheck, actionId: imageActionId } = sseResult;
 
           // Handle caption
           let captionData: any = null;
@@ -741,7 +741,10 @@ export default function CreateImage() {
             const captionResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`, {
               method: "POST",
               headers: { "Content-Type": "application/json", Authorization: `Bearer ${capturedSession?.access_token}` },
-              body: JSON.stringify({ formData: { ...requestData, imageDescription: requestData.description, audience: selectedPersona?.name || "" } }),
+              body: JSON.stringify({
+                formData: { ...requestData, imageDescription: requestData.description, audience: selectedPersona?.name || "" },
+                actionId: imageActionId, // merge caption into existing action -> no duplicate in history
+              }),
             });
             if (captionResponse.ok) {
               const responseData = await captionResponse.json();
@@ -770,7 +773,7 @@ export default function CreateImage() {
             brand: selectedBrand?.name || formData.brand,
             title: captionData.title, body: captionData.body, hashtags: captionData.hashtags,
             originalFormData: { ...requestData, brandId: formData.brand },
-            actionId: undefined, isLocalFallback,
+            actionId: imageActionId, isLocalFallback,
             categoryId: selectedCategoryId || undefined,
             complianceCheck: complianceCheck || null,
           };
