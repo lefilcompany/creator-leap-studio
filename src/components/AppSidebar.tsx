@@ -312,7 +312,7 @@ export function AppSidebar() {
   ];
 
   const actionButtons = [
-    { id: "nav-plan-content", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
+    { id: "nav-plan-content", href: "/calendar/new", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
   ];
 
   const handleMobileNavigate = () => {
