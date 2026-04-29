@@ -696,15 +696,15 @@ export default function TextEditor() {
       <header className="h-14 shrink-0 border-b border-border/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 flex items-center justify-between px-4 gap-3 shadow-sm z-20">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-accent text-primary-foreground flex items-center justify-center shadow-sm shrink-0">
-            <Type className="h-4 w-4" />
+            <Type className="h-4 w-4" strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
-            <h1 className="text-sm font-semibold leading-tight truncate">
-              Editor de texto na imagem
+            <h1 className="text-[15px] font-semibold leading-tight tracking-tight truncate">
+              Editor de texto
             </h1>
-            <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-              <CheckCircle2 className="h-3 w-3 text-primary shrink-0" />
-              Imagem gerada — adicione textos e finalize
+            <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5 truncate mt-0.5">
+              <CheckCircle2 className="h-3 w-3 text-primary shrink-0" strokeWidth={2.5} />
+              <span className="tracking-wide">Imagem pronta — adicione textos e finalize</span>
             </p>
           </div>
         </div>
