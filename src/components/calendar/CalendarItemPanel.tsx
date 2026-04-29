@@ -1277,6 +1277,8 @@ const StageDesign = ({
 }) => {
   const navigate = useNavigate();
   const [opening, setOpening] = useState(false);
+  const [textExpanded, setTextExpanded] = useState(false);
+  const [imageExpanded, setImageExpanded] = useState(false);
 
   const handleOpenGenerator = async () => {
     try {
@@ -1397,17 +1399,45 @@ const StageDesign = ({
           <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
             <FileText className="h-3 w-3" /> Briefing de texto
           </p>
-          <p className="text-sm whitespace-pre-wrap text-foreground/90 leading-relaxed">
+          <p
+            className={cn(
+              "text-sm whitespace-pre-wrap text-foreground/90 leading-relaxed",
+              !textExpanded && "max-h-48 overflow-hidden [mask-image:linear-gradient(to_bottom,black_70%,transparent)]"
+            )}
+          >
             {item.text_briefing}
           </p>
+          {(item.text_briefing?.length ?? 0) > 280 && (
+            <button
+              type="button"
+              onClick={() => setTextExpanded((v) => !v)}
+              className="mt-2 text-xs font-semibold text-primary hover:underline"
+            >
+              {textExpanded ? "Recolher" : "Sofona — exibir tudo"}
+            </button>
+          )}
         </div>
         <div className="rounded-xl bg-muted/30 p-4">
           <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
             <ImageIcon className="h-3 w-3" /> Briefing visual
           </p>
-          <p className="text-sm whitespace-pre-wrap text-foreground/90 leading-relaxed">
+          <p
+            className={cn(
+              "text-sm whitespace-pre-wrap text-foreground/90 leading-relaxed",
+              !imageExpanded && "max-h-48 overflow-hidden [mask-image:linear-gradient(to_bottom,black_70%,transparent)]"
+            )}
+          >
             {item.image_briefing}
           </p>
+          {(item.image_briefing?.length ?? 0) > 280 && (
+            <button
+              type="button"
+              onClick={() => setImageExpanded((v) => !v)}
+              className="mt-2 text-xs font-semibold text-primary hover:underline"
+            >
+              {imageExpanded ? "Recolher" : "Sofona — exibir tudo"}
+            </button>
+          )}
         </div>
       </div>
 
