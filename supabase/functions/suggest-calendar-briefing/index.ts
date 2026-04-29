@@ -14,6 +14,8 @@ interface RequestBody {
   theme?: { title?: string; description?: string } | null;
   reference_month?: string;
   hint?: string;
+  briefing_title?: string;
+  calendar_name?: string;
 }
 
 Deno.serve(async (req) => {
@@ -46,6 +48,10 @@ Deno.serve(async (req) => {
       contextLines.push(`EDITORIA: ${body.theme.title}`);
       if (body.theme.description) contextLines.push(`Descrição: ${body.theme.description}`);
     }
+    const briefingTitle = (body.briefing_title || "").trim();
+    if (body.calendar_name) {
+      contextLines.push(`CALENDÁRIO: ${body.calendar_name}`);
+    }
     if (body.hint && body.hint.trim().length > 0) {
       contextLines.push(`PISTA DO USUÁRIO: ${body.hint}`);
     }
@@ -55,11 +61,16 @@ Deno.serve(async (req) => {
 REGRAS:
 - Linguagem natural, direta, em português do Brasil.
 - Mencione objetivo de comunicação, abordagem (educativo/bastidores/promoção/etc) e tom.
-- Se houver pista do usuário (ex: data comemorativa, campanha), incorpore.
+- Se houver TÍTULO DO BRIEFING (ex: "Dia das Crianças", "Lançamento da coleção"), trate-o como o ASSUNTO CENTRAL e construa todo o briefing em torno dele, alinhado ao contexto do calendário (marca, persona, editoria, mês).
+- Se houver pista do usuário, incorpore.
 - Não use bullet points. Apenas texto corrido.
 - Não inclua títulos de pautas, apenas a direção estratégica.`;
 
-    const userPrompt = `${contextLines.join("\n") || "(sem contexto fornecido — gere algo genérico mas útil)"}
+    const titleBlock = briefingTitle
+      ? `===== TÍTULO DO BRIEFING (ASSUNTO CENTRAL) =====\n${briefingTitle}\n===== FIM DO TÍTULO =====\n\nUse este título como tema central e não-negociável. Todo o briefing deve girar em torno dele.\n\n`
+      : "";
+
+    const userPrompt = `${titleBlock}${contextLines.join("\n") || "(sem contexto fornecido — gere algo genérico mas útil)"}
 
 Mês de referência: ${monthLabel}
 
