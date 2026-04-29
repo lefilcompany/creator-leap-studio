@@ -1191,7 +1191,9 @@ export default function TextEditor() {
                     />
                   </Row>
                 </Section>
+                  </TabsContent>
 
+                  <TabsContent value="appearance" className="space-y-3 mt-3">
                 {/* Color & opacity */}
                 <Section title="Cor e aparência">
                   <Row label="Cor da fonte">
