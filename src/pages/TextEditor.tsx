@@ -970,30 +970,30 @@ export default function TextEditor() {
                             {/* Edge bars - width */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-right")}
-                              className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-y-110 hover:bg-primary/90 transition-all"
+                              className="editor-handle absolute -right-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize ring-1 ring-background/80 hover:scale-y-125 hover:w-2 active:scale-y-150 transition-all duration-150"
                               title="Arraste para ajustar largura"
                             />
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-left")}
-                              className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-y-110 hover:bg-primary/90 transition-all"
+                              className="editor-handle absolute -left-1.5 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-full cursor-ew-resize ring-1 ring-background/80 hover:scale-y-125 hover:w-2 active:scale-y-150 transition-all duration-150"
                               title="Arraste para ajustar largura"
                             />
                             {/* Edge bars - font size */}
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-top")}
-                              className="absolute left-1/2 -top-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-x-110 hover:bg-primary/90 transition-all"
+                              className="editor-handle absolute left-1/2 -top-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize ring-1 ring-background/80 hover:scale-x-125 hover:h-2 active:scale-x-150 transition-all duration-150"
                               title="Arraste para ajustar tamanho do texto"
                             />
                             <div
                               onPointerDown={(e) => onPointerDownLayer(e, l.id, "resize-font-bottom")}
-                              className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize shadow-[0_2px_8px_hsl(var(--primary)/0.5)] ring-1 ring-background/80 hover:scale-x-110 hover:bg-primary/90 transition-all"
+                              className="editor-handle absolute left-1/2 -bottom-1.5 -translate-x-1/2 h-1.5 w-10 bg-primary rounded-full cursor-ns-resize ring-1 ring-background/80 hover:scale-x-125 hover:h-2 active:scale-x-150 transition-all duration-150"
                               title="Arraste para ajustar tamanho do texto"
                             />
                             {/* Corner indicators (visual only) */}
-                            <div className="absolute -top-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
-                            <div className="absolute -top-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
-                            <div className="absolute -bottom-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
-                            <div className="absolute -bottom-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
+                            <div className="editor-corner absolute -top-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" />
+                            <div className="editor-corner absolute -top-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" style={{ animationDelay: '40ms' }} />
+                            <div className="editor-corner absolute -bottom-1.5 -left-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" style={{ animationDelay: '80ms' }} />
+                            <div className="editor-corner absolute -bottom-1.5 -right-1.5 h-2.5 w-2.5 rounded-sm bg-background border-[1.5px] border-primary shadow-md pointer-events-none" style={{ animationDelay: '120ms' }} />
                           </>
                         )}
                       </div>
