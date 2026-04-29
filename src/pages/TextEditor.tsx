@@ -924,9 +924,10 @@ export default function TextEditor() {
                       <div
                         key={l.id}
                         className={cn(
-                          "absolute cursor-move group/layer transition-[outline-color,box-shadow] duration-150",
-                          isSel && !drag && "outline outline-[1.5px] outline-dashed outline-primary outline-offset-[3px] shadow-[0_0_0_4px_hsl(var(--primary)/0.08)]",
-                          isSel && drag && "outline-none shadow-none"
+                          "absolute cursor-move group/layer transition-[outline-color,box-shadow,transform] duration-200",
+                          isSel && !drag && "editor-layer-selected outline outline-[1.5px] outline-dashed outline-primary outline-offset-[3px] shadow-[0_0_0_4px_hsl(var(--primary)/0.08),0_8px_24px_-8px_hsl(var(--primary)/0.35)]",
+                          isSel && drag && "outline-none shadow-[0_12px_32px_-8px_hsl(var(--primary)/0.45)] scale-[1.005]",
+                          !isSel && "hover:outline hover:outline-1 hover:outline-dashed hover:outline-primary/40 hover:outline-offset-2"
                         )}
                         style={{
                           left, top, width,
