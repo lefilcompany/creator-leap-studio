@@ -771,11 +771,11 @@ export default function TextEditor() {
             size="sm"
             onClick={handleApply}
             disabled={saving}
-            className="gap-1.5 h-9 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md hover:shadow-lg hover:opacity-95 transition-all text-[13px] font-semibold tracking-tight"
+            className="relative overflow-hidden gap-1.5 h-9 px-4 bg-gradient-to-r from-primary via-primary to-accent text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-px active:translate-y-0 transition-all duration-200 text-[13px] font-semibold tracking-tight before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" strokeWidth={2.5} />}
-            <span className="hidden sm:inline">Aplicar e continuar</span>
-            <span className="sm:hidden">Aplicar</span>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin relative z-10" /> : <ArrowRight className="h-4 w-4 relative z-10 group-hover:translate-x-0.5 transition-transform" strokeWidth={2.5} />}
+            <span className="hidden sm:inline relative z-10">Aplicar e continuar</span>
+            <span className="sm:hidden relative z-10">Aplicar</span>
           </Button>
 
           <DropdownMenu>
