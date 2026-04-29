@@ -901,7 +901,7 @@ export default function TextEditor() {
                   src={baseImageUrl}
                   onLoad={onImgLoad}
                   alt="Imagem base"
-                  className="block w-full h-full rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.35),0_15px_30px_-15px_rgba(0,0,0,0.2)] ring-1 ring-foreground/5 pointer-events-none object-contain bg-black/5"
+                  className="editor-image-reveal block w-full h-full rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.35),0_15px_30px_-15px_rgba(0,0,0,0.2)] ring-1 ring-foreground/5 pointer-events-none object-contain bg-black/5 transition-shadow duration-500"
                   draggable={false}
                   crossOrigin="anonymous"
                 />
