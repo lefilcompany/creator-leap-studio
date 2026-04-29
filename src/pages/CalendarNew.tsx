@@ -113,7 +113,8 @@ const CalendarNew = () => {
             ? { title: selectedTheme.title, description: selectedTheme.description }
             : null,
           reference_month: refDate,
-          hint: composedBriefing,
+          briefing_title: briefingTitle,
+          hint: userInput,
         },
       });
       if (error) {
