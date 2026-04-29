@@ -68,7 +68,7 @@ export const DashboardCalendars = () => {
             <Link to="/plan">Ver todos</Link>
           </Button>
           <Button size="sm" className="h-8" asChild>
-            <Link to="/calendar/new">
+            <Link to="/novo-calendario">
               <Plus className="mr-1 h-3.5 w-3.5" /> Novo calendário
             </Link>
           </Button>
@@ -125,7 +125,7 @@ const EmptyState = () => (
       Crie seu primeiro calendário para organizar pautas, briefings, designs e conteúdo final em um só lugar.
     </p>
     <Button size="sm" className="mt-4" asChild>
-      <Link to="/calendar/new">
+      <Link to="/novo-calendario">
         <Plus className="mr-1 h-3.5 w-3.5" /> Criar calendário
       </Link>
     </Button>
