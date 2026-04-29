@@ -319,6 +319,7 @@ export default function TextEditor() {
   const [propsSheetOpen, setPropsSheetOpen] = useState(false);
   const [layersSheetOpen, setLayersSheetOpen] = useState(false);
   const [propsTab, setPropsTab] = useState<"typography" | "appearance" | "effects">("typography");
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [drag, setDrag] = useState<{
     id: string;
     mode: "move" | "resize-right" | "resize-left" | "resize-font-top" | "resize-font-bottom";
