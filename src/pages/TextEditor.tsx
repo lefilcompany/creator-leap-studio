@@ -344,9 +344,15 @@ export default function TextEditor() {
   useEffect(() => { localStorage.setItem("text-editor:snapEnabled", snapEnabled ? "1" : "0"); }, [snapEnabled]);
 
   const displayScale = naturalSize.w ? displaySize.w / naturalSize.w : 1;
+  // Local override applied when the user edits the base image with AI from
+  // within the editor. Falls back to the original incoming state image.
+  const [aiEditedImageUrl, setAiEditedImageUrl] = useState<string | null>(null);
+  const [aiEditOpen, setAiEditOpen] = useState(false);
+  const [aiEditPrompt, setAiEditPrompt] = useState("");
+  const [aiEditing, setAiEditing] = useState(false);
   // Use the original (text-free) image as the canvas base whenever available
   // so the user sees and edits over the same source we re-render server-side.
-  const baseImageUrl = state.sourceImageUrl || state.imageUrl;
+  const baseImageUrl = aiEditedImageUrl || state.sourceImageUrl || state.imageUrl;
 
   useEffect(() => {
     if (!state.imageUrl || !state.nextRoute) {
