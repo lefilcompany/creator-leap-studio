@@ -57,6 +57,16 @@ interface RequestBody {
 function buildContext(b: RequestBody): string {
   const lines: string[] = [];
 
+  // BRIEFING PRINCIPAL — fonte da verdade, vem PRIMEIRO e em destaque
+  if (b.calendar?.user_input && b.calendar.user_input.trim().length > 0) {
+    lines.push("===== BRIEFING PRINCIPAL DO CALENDÁRIO (FONTE DA VERDADE) =====");
+    lines.push(b.calendar.user_input.trim());
+    lines.push("===== FIM DO BRIEFING PRINCIPAL =====");
+    lines.push("");
+    lines.push("Use o briefing acima como direção central e não-negociável. Todo o briefing gerado abaixo deve ser uma extensão fiel desta orientação.");
+    lines.push("");
+  }
+
   if (b.brand?.name) {
     lines.push(`MARCA: ${b.brand.name}${b.brand.segment ? ` — ${b.brand.segment}` : ""}`);
     if (b.brand.promise) lines.push(`Promessa: ${b.brand.promise}`);
@@ -86,7 +96,6 @@ function buildContext(b: RequestBody): string {
   if (b.calendar?.name) {
     lines.push(`CALENDÁRIO: ${b.calendar.name}`);
     if (b.calendar.description) lines.push(`Descrição do calendário: ${b.calendar.description}`);
-    if (b.calendar.user_input) lines.push(`Direção estratégica do mês: ${b.calendar.user_input}`);
     if (b.calendar.reference_month) {
       const d = new Date(b.calendar.reference_month);
       const monthLabel = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
@@ -109,9 +118,15 @@ function buildContext(b: RequestBody): string {
 
 const TEXT_SYSTEM = `Você é um copywriter brasileiro especialista em redes sociais. Escreva um BRIEFING DE TEXTO/LEGENDA (8 a 14 frases, até 1800 caracteres) para a pauta abaixo.
 
+REGRA DE OURO — FIDELIDADE AO BRIEFING PRINCIPAL:
+- O contexto contém um bloco "BRIEFING PRINCIPAL DO CALENDÁRIO (FONTE DA VERDADE)".
+- Trate-o como direção INEGOCIÁVEL: tom, posicionamento, objetivos, temas, restrições e linguagem ali definidos DEVEM ser preservados.
+- Não suavize, não reescreva, não substitua e não ignore nenhuma instrução desse bloco.
+- Se o briefing principal disser algo específico (ex: foco em determinado produto, abordagem, palavra-chave, ângulo), reflita isso explicitamente no briefing gerado.
+
 Inclua:
-- Mensagem principal e ângulo da legenda.
-- Tom de voz e estilo (alinhados à marca/persona/editoria).
+- Mensagem principal e ângulo da legenda (alinhados ao briefing principal).
+- Tom de voz e estilo (alinhados à marca/persona/editoria e ao briefing principal).
 - Estrutura sugerida: gancho de abertura, desenvolvimento, CTA.
 - Sugestões de palavras-chave/temas a abordar e o que evitar.
 - Considere o formato (Reels, Carrossel, Story, etc) e a rede social ao orientar a duração e o ritmo do texto.
@@ -123,8 +138,14 @@ REGRAS:
 
 const IMAGE_SYSTEM = `Você é um diretor de arte brasileiro. Escreva um BRIEFING VISUAL/IMAGEM (8 a 14 frases, até 1800 caracteres) para a pauta abaixo.
 
+REGRA DE OURO — FIDELIDADE AO BRIEFING PRINCIPAL:
+- O contexto contém um bloco "BRIEFING PRINCIPAL DO CALENDÁRIO (FONTE DA VERDADE)".
+- Trate-o como direção INEGOCIÁVEL: estilo, mood, referências, restrições visuais e elementos ali mencionados DEVEM ser preservados.
+- Não suavize, não reescreva, não substitua e não ignore nenhuma instrução desse bloco.
+- Se o briefing principal mencionar algo visual específico (cores, ambientação, pessoas, produto, estética), reflita isso explicitamente no briefing visual gerado.
+
 Inclua:
-- Conceito visual central e enquadramento.
+- Conceito visual central e enquadramento (alinhados ao briefing principal).
 - Cena/elementos principais e secundários.
 - Paleta de cores (priorize a paleta da marca/editoria), iluminação e estilo fotográfico/ilustração.
 - Tipografia e hierarquia de texto na imagem (se aplicável ao formato).
