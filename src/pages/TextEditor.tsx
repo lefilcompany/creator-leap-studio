@@ -330,6 +330,17 @@ export default function TextEditor() {
   } | null>(null);
   // Active alignment guides (in image-pixel coordinates) shown while dragging.
   const [guides, setGuides] = useState<{ v: number[]; h: number[] }>({ v: [], h: [] });
+  // Grid + snap toggles, persisted across sessions.
+  const [gridDivisions, setGridDivisions] = useState<number>(() => {
+    const v = Number(localStorage.getItem("text-editor:gridDivisions"));
+    return Number.isFinite(v) && v > 0 ? v : 0; // 0 = off
+  });
+  const [snapEnabled, setSnapEnabled] = useState<boolean>(() => {
+    const v = localStorage.getItem("text-editor:snapEnabled");
+    return v === null ? true : v === "1";
+  });
+  useEffect(() => { localStorage.setItem("text-editor:gridDivisions", String(gridDivisions)); }, [gridDivisions]);
+  useEffect(() => { localStorage.setItem("text-editor:snapEnabled", snapEnabled ? "1" : "0"); }, [snapEnabled]);
 
   const displayScale = naturalSize.w ? displaySize.w / naturalSize.w : 1;
   // Use the original (text-free) image as the canvas base whenever available
