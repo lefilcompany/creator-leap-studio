@@ -1448,12 +1448,13 @@ const StageDesign = ({
         lighting: "natural",
       };
 
-      navigate("/create/image", { state: { prefillData } });
+      navigate(target === "video" ? "/create/video" : "/create/image", { state: { prefillData } });
     } catch (e: any) {
       console.error("open generator error", e);
       toast.error("Não foi possível abrir o gerador com o briefing.");
     } finally {
-      setOpening(false);
+      if (target === "video") setOpeningVideo(false);
+      else setOpening(false);
     }
   };
 
