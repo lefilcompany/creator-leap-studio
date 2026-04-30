@@ -1350,12 +1350,14 @@ const StageDesign = ({
 }) => {
   const navigate = useNavigate();
   const [opening, setOpening] = useState(false);
+  const [openingVideo, setOpeningVideo] = useState(false);
   const [textExpanded, setTextExpanded] = useState(false);
   const [imageExpanded, setImageExpanded] = useState(false);
 
-  const handleOpenGenerator = async () => {
+  const handleOpenGenerator = async (target: "image" | "video" = "image") => {
     try {
-      setOpening(true);
+      if (target === "video") setOpeningVideo(true);
+      else setOpening(true);
       const meta = (item.metadata || {}) as Record<string, any>;
       const platform: string | null = meta.platform ?? null;
       const format: string | null = meta.format ?? null;
