@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Sparkles, Zap, Video, Coins, Info, ImagePlus, X, HelpCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
@@ -20,6 +21,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { navbarSteps } from "@/components/onboarding/tourSteps";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { CreationProgressBar } from "@/components/CreationProgressBar";
+import { QuickContentLoading } from "@/components/quick-content/QuickContentLoading";
 
 import createBanner from "@/assets/create-banner.jpg";
 
