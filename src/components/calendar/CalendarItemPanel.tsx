@@ -1542,7 +1542,7 @@ const StageDesign = ({
           <>
             <Button
               variant="ghost"
-              onClick={handleOpenGenerator}
+              onClick={() => handleOpenGenerator("image")}
               disabled={opening}
               className="gap-2"
             >
@@ -1552,6 +1552,19 @@ const StageDesign = ({
                 <Sparkles className="h-4 w-4" />
               )}
               Gerar nova imagem
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleOpenGenerator("video")}
+              disabled={openingVideo}
+              className="gap-2"
+            >
+              {openingVideo ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <VideoIcon className="h-4 w-4" />
+              )}
+              Gerar vídeo
             </Button>
             <Button onClick={onAdvance} disabled={loading} className="gap-2">
               {loading ? (
@@ -1564,19 +1577,35 @@ const StageDesign = ({
             </Button>
           </>
         ) : (
-          <Button
-            onClick={handleOpenGenerator}
-            disabled={opening}
-            className="gap-2"
-          >
-            {opening ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Sparkles className="h-4 w-4" />
-            )}
-            Abrir gerador de imagens
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          <>
+            <Button
+              onClick={() => handleOpenGenerator("image")}
+              disabled={opening}
+              className="gap-2"
+            >
+              {opening ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              Abrir gerador de imagens
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleOpenGenerator("video")}
+              disabled={openingVideo}
+              className="gap-2"
+            >
+              {openingVideo ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <VideoIcon className="h-4 w-4" />
+              )}
+              Abrir gerador de vídeos
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </>
         )}
       </StickyActionBar>
     </div>
