@@ -32,6 +32,7 @@ import {
   Info,
   Check,
   ChevronDown,
+  Video as VideoIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -1349,12 +1350,14 @@ const StageDesign = ({
 }) => {
   const navigate = useNavigate();
   const [opening, setOpening] = useState(false);
+  const [openingVideo, setOpeningVideo] = useState(false);
   const [textExpanded, setTextExpanded] = useState(false);
   const [imageExpanded, setImageExpanded] = useState(false);
 
-  const handleOpenGenerator = async () => {
+  const handleOpenGenerator = async (target: "image" | "video" = "image") => {
     try {
-      setOpening(true);
+      if (target === "video") setOpeningVideo(true);
+      else setOpening(true);
       const meta = (item.metadata || {}) as Record<string, any>;
       const platform: string | null = meta.platform ?? null;
       const format: string | null = meta.format ?? null;
@@ -1445,12 +1448,13 @@ const StageDesign = ({
         lighting: "natural",
       };
 
-      navigate("/create/image", { state: { prefillData } });
+      navigate(target === "video" ? "/create/video" : "/create/image", { state: { prefillData } });
     } catch (e: any) {
       console.error("open generator error", e);
       toast.error("Não foi possível abrir o gerador com o briefing.");
     } finally {
-      setOpening(false);
+      if (target === "video") setOpeningVideo(false);
+      else setOpening(false);
     }
   };
 
@@ -1538,7 +1542,7 @@ const StageDesign = ({
           <>
             <Button
               variant="ghost"
-              onClick={handleOpenGenerator}
+              onClick={() => handleOpenGenerator("image")}
               disabled={opening}
               className="gap-2"
             >
@@ -1548,6 +1552,19 @@ const StageDesign = ({
                 <Sparkles className="h-4 w-4" />
               )}
               Gerar nova imagem
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleOpenGenerator("video")}
+              disabled={openingVideo}
+              className="gap-2"
+            >
+              {openingVideo ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <VideoIcon className="h-4 w-4" />
+              )}
+              Gerar vídeo
             </Button>
             <Button onClick={onAdvance} disabled={loading} className="gap-2">
               {loading ? (
@@ -1560,19 +1577,35 @@ const StageDesign = ({
             </Button>
           </>
         ) : (
-          <Button
-            onClick={handleOpenGenerator}
-            disabled={opening}
-            className="gap-2"
-          >
-            {opening ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Sparkles className="h-4 w-4" />
-            )}
-            Abrir gerador de imagens
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          <>
+            <Button
+              onClick={() => handleOpenGenerator("image")}
+              disabled={opening}
+              className="gap-2"
+            >
+              {opening ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              Abrir gerador de imagens
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleOpenGenerator("video")}
+              disabled={openingVideo}
+              className="gap-2"
+            >
+              {openingVideo ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <VideoIcon className="h-4 w-4" />
+              )}
+              Abrir gerador de vídeos
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </>
         )}
       </StickyActionBar>
     </div>
