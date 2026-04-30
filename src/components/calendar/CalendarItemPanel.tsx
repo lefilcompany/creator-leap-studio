@@ -32,6 +32,7 @@ import {
   Info,
   Check,
   ChevronDown,
+  Video as VideoIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
