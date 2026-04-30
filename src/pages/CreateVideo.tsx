@@ -137,6 +137,26 @@ export default function CreateVideo() {
   const filteredThemes = formData.brand ? themes.filter((t) => t.brandId === formData.brand) : [];
   const filteredPersonas = formData.brand ? personas.filter((p) => p.brandId === formData.brand) : [];
 
+  // Prefill from calendar / reuse-prompt navigation
+  useEffect(() => {
+    const pf = (location.state as any)?.prefillData;
+    if (!pf) return;
+    setFormData(prev => ({
+      ...prev,
+      brand: pf.brandId ?? prev.brand,
+      theme: pf.themeId ?? prev.theme,
+      persona: pf.personaId ?? prev.persona,
+      description: pf.description || pf.prompt || prev.description,
+      objective: pf.objective || pf.additionalInfo || prev.objective,
+      platform: pf.platform ?? prev.platform,
+      tone: Array.isArray(pf.tone) ? pf.tone : pf.tone ? [pf.tone] : prev.tone,
+      additionalInfo: pf.additionalInfo ?? prev.additionalInfo,
+      videoAspectRatio: pf.aspectRatio === "16:9" ? "16:9" : pf.aspectRatio === "9:16" ? "9:16" : prev.videoAspectRatio,
+    }));
+    setShowPrefillWarning(true);
+    window.history.replaceState({}, document.title);
+  }, []);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
