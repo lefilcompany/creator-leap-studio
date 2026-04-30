@@ -48,6 +48,7 @@ const toneOptions = ["inspirador", "motivacional", "profissional", "casual", "el
 export default function CreateVideo() {
   const { user, session, refreshUserCredits } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FormData>({
     brand: "",
@@ -69,6 +70,7 @@ export default function CreateVideo() {
   const [loading, setLoading] = useState<boolean>(false);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
+  const [showPrefillWarning, setShowPrefillWarning] = useState(false);
 
   // React Query for brands, themes, personas
   const teamId = user?.teamId;
