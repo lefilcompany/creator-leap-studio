@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Sparkles, Zap, Video, Coins, Info, ImagePlus, X, HelpCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
@@ -20,6 +21,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { navbarSteps } from "@/components/onboarding/tourSteps";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { CreationProgressBar } from "@/components/CreationProgressBar";
+import { QuickContentLoading } from "@/components/quick-content/QuickContentLoading";
 
 import createBanner from "@/assets/create-banner.jpg";
 
@@ -45,6 +48,7 @@ const toneOptions = ["inspirador", "motivacional", "profissional", "casual", "el
 export default function CreateVideo() {
   const { user, session, refreshUserCredits } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FormData>({
     brand: "",
@@ -66,6 +70,7 @@ export default function CreateVideo() {
   const [loading, setLoading] = useState<boolean>(false);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
+  const [showPrefillWarning, setShowPrefillWarning] = useState(false);
 
   // React Query for brands, themes, personas
   const teamId = user?.teamId;
@@ -131,6 +136,26 @@ export default function CreateVideo() {
   // Filtered themes/personas based on brand
   const filteredThemes = formData.brand ? themes.filter((t) => t.brandId === formData.brand) : [];
   const filteredPersonas = formData.brand ? personas.filter((p) => p.brandId === formData.brand) : [];
+
+  // Prefill from calendar / reuse-prompt navigation
+  useEffect(() => {
+    const pf = (location.state as any)?.prefillData;
+    if (!pf) return;
+    setFormData(prev => ({
+      ...prev,
+      brand: pf.brandId ?? prev.brand,
+      theme: pf.themeId ?? prev.theme,
+      persona: pf.personaId ?? prev.persona,
+      description: pf.description || pf.prompt || prev.description,
+      objective: pf.objective || pf.additionalInfo || prev.objective,
+      platform: pf.platform ?? prev.platform,
+      tone: Array.isArray(pf.tone) ? pf.tone : pf.tone ? [pf.tone] : prev.tone,
+      additionalInfo: pf.additionalInfo ?? prev.additionalInfo,
+      videoAspectRatio: pf.aspectRatio === "16:9" ? "16:9" : pf.aspectRatio === "9:16" ? "9:16" : prev.videoAspectRatio,
+    }));
+    setShowPrefillWarning(true);
+    window.history.replaceState({}, document.title);
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -246,6 +271,52 @@ export default function CreateVideo() {
     </div>
   );
 
+  // Loading screen mirrors the Image flow — keeps the user on the page while the job spins up
+  if (loading) {
+    return (
+      <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
+        {/* Banner */}
+        <div className="relative h-24 md:h-28 overflow-hidden">
+          <PageBreadcrumb items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criar Vídeo" }]} variant="overlay" />
+          <img src={createBanner} alt="Criar Vídeo" className="w-full h-full object-cover object-center" loading="eager" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        </div>
+
+        {/* Header Cards */}
+        <div className="relative px-4 sm:px-6 lg:px-8 -mt-8 z-10">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-stretch gap-3">
+            <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
+                <Video className="h-5 w-5 lg:h-6 lg:w-6" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight">Criar Vídeo</h1>
+                <p className="text-muted-foreground text-[11px] lg:text-xs">Gere vídeos profissionais com IA</p>
+              </div>
+              <div className="ml-auto flex items-center gap-2 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl px-3 py-1.5 flex-shrink-0 border border-primary/20">
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40" />
+                  <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-1.5">
+                    <Zap className="h-3.5 w-3.5" />
+                  </div>
+                </div>
+                <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{user?.credits || 0}</span>
+                <span className="text-xs text-muted-foreground font-medium">créditos</span>
+              </div>
+            </div>
+            <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex-shrink-0 flex items-center min-w-[320px]">
+              <CreationProgressBar currentStep="generating" />
+            </div>
+          </div>
+        </div>
+
+        <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
+          <QuickContentLoading isComplete={false} />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
       <TourSelector 
@@ -259,7 +330,7 @@ export default function CreateVideo() {
       />
 
       {/* Banner */}
-      <div className="relative h-28 md:h-36 overflow-hidden">
+      <div className="relative h-24 md:h-28 overflow-hidden">
         <PageBreadcrumb
           items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criar Vídeo" }]}
           variant="overlay"
@@ -273,65 +344,44 @@ export default function CreateVideo() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       </div>
 
-      {/* Header Card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 z-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
-                  <Video className="h-6 w-6 lg:h-7 lg:w-7" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl lg:text-2xl font-bold text-foreground">
-                      Criar Vídeo
-                    </h1>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="text-muted-foreground hover:text-foreground transition-colors">
-                          <HelpCircle className="h-4 w-4" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="text-sm w-72" side="bottom">
-                        <p className="font-medium mb-1">Criar Vídeo</p>
-                        <p className="text-muted-foreground text-xs">
-                          Gere vídeos profissionais com IA. Descreva o que deseja criar, selecione marca e persona para personalizar o resultado.
-                        </p>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <p className="text-muted-foreground text-xs lg:text-sm">
-                    Gere vídeos profissionais com IA
-                  </p>
+      {/* Header Cards (title + flow progress side-by-side) */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-8 z-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-stretch gap-3">
+          {/* Title card */}
+          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
+              <Video className="h-5 w-5 lg:h-6 lg:w-6" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight">Criar Vídeo</h1>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-foreground transition-colors"><HelpCircle className="h-3.5 w-3.5" /></button>
+                  </PopoverTrigger>
+                  <PopoverContent className="text-sm w-72" side="bottom">
+                    <p className="font-medium mb-1">Criar Vídeo</p>
+                    <p className="text-muted-foreground text-xs">Gere vídeos profissionais com IA. Descreva o que deseja criar, selecione marca e persona para personalizar o resultado.</p>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <p className="text-muted-foreground text-[11px] lg:text-xs">Gere vídeos profissionais com IA</p>
+            </div>
+            <div className="ml-auto flex items-center gap-2 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl px-3 py-1.5 flex-shrink-0 border border-primary/20">
+              <div className="relative flex-shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40" />
+                <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-1.5">
+                  <Zap className="h-3.5 w-3.5" />
                 </div>
               </div>
-              {user && (
-                <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
-                  <CardContent className="p-2.5 md:p-3">
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="relative flex-shrink-0">
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
-                        <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
-                          <Zap className="h-4 w-4" />
-                        </div>
-                      </div>
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
-                            {user?.credits || 0}
-                          </span>
-                          <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
-                            Créditos
-                          </p>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Disponíveis</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{user?.credits || 0}</span>
+              <span className="text-xs text-muted-foreground font-medium">créditos</span>
             </div>
+          </div>
+
+          {/* Progress bar card */}
+          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex-shrink-0 flex items-center min-w-[320px]">
+            <CreationProgressBar currentStep="config" />
           </div>
         </div>
       </div>
@@ -339,6 +389,14 @@ export default function CreateVideo() {
       {/* Main Form */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
         <div className="max-w-7xl mx-auto space-y-4 mt-4">
+          {showPrefillWarning && (
+            <Alert className="border-primary/50 bg-primary/5">
+              <Info className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                Os campos foram preenchidos com base no briefing do calendário. Revise antes de gerar o vídeo.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* 1. Descrição do Vídeo */}
           <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
