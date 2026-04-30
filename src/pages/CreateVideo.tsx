@@ -389,6 +389,14 @@ export default function CreateVideo() {
       {/* Main Form */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
         <div className="max-w-7xl mx-auto space-y-4 mt-4">
+          {showPrefillWarning && (
+            <Alert className="border-primary/50 bg-primary/5">
+              <Info className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                Os campos foram preenchidos com base no briefing do calendário. Revise antes de gerar o vídeo.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* 1. Descrição do Vídeo */}
           <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
