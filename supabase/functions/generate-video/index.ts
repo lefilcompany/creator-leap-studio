@@ -674,11 +674,13 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
         }],
         parameters: {
           aspectRatio: aspectRatio,
+          resolution: resolution || '1080p',
           durationSeconds: validatedDuration
         }
       };
-      
-      console.log(`🖼️ [Veo 3.0] Usando 1 imagem para image-to-video`);
+
+      console.log(`🖼️ [Veo 3.0] Usando 1 imagem como SUJEITO da cena`);
+      console.log(`🖼️ [Veo 3.0] Duração: ${validatedDuration}s • Resolução: ${resolution || '1080p'}`);
       console.log(`🖼️ [Veo 3.0] Duração validada: ${validatedDuration}s`);
     } else {
       // ✅ VEO 3.1: Estrutura para text-to-video
