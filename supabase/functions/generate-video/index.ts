@@ -711,7 +711,7 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
         parameters: {
           aspectRatio: aspectRatio,
           resolution: resolution,
-          durationSeconds: duration
+          durationSeconds: validatedDuration
         }
       };
       
