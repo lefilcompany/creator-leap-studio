@@ -105,12 +105,15 @@ export async function buildAgentLearningBlock(opts: LoadOptions): Promise<string
     .filter((d) => d.rating === "negative")
     .slice(0, negativeLimit);
 
-  if (positives.length === 0 && negatives.length === 0) return "";
+  if (positives.length === 0 && negatives.length === 0) {
+    return summaryLines.length > 0 ? summaryLines.join("\n") : "";
+  }
 
-  const lines: string[] = [];
-  lines.push("===== APRENDIZADO COM FEEDBACK DESTA MARCA =====");
+  const lines: string[] = [...summaryLines];
+  if (lines.length > 0) lines.push("");
+  lines.push("===== EXEMPLOS RECENTES DE FEEDBACK =====");
   lines.push(
-    "Os exemplos abaixo são feedbacks reais de quem aprovou ou ajustou conteúdos parecidos. Use-os como referência forte de estilo, tom e direção. Repita os padrões aprovados; evite os padrões reprovados."
+    "Os exemplos abaixo são feedbacks reais de quem aprovou ou ajustou conteúdos parecidos. Repita os padrões aprovados; evite os padrões reprovados."
   );
 
   if (positives.length > 0) {
