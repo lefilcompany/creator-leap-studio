@@ -94,7 +94,9 @@ export async function buildAgentLearningBlock(opts: LoadOptions): Promise<string
     .order("created_at", { ascending: false })
     .limit(40);
 
-  if (error || !data || data.length === 0) return "";
+  if (error || !data || data.length === 0) {
+    return summaryLines.length > 0 ? summaryLines.join("\n") : "";
+  }
 
   const positives = (data as FeedbackRow[])
     .filter((d) => d.rating === "positive")
