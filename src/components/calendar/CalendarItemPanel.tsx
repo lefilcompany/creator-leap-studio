@@ -1489,7 +1489,7 @@ const StageDesign = ({
               onClick={() => setTextExpanded((v) => !v)}
               className="mt-2 text-xs font-semibold text-primary hover:underline"
             >
-              {textExpanded ? "Recolher" : "Sofona — exibir tudo"}
+              {textExpanded ? "Recolher" : "Exibir tudo"}
             </button>
           )}
         </div>
@@ -1511,7 +1511,7 @@ const StageDesign = ({
               onClick={() => setImageExpanded((v) => !v)}
               className="mt-2 text-xs font-semibold text-primary hover:underline"
             >
-              {imageExpanded ? "Recolher" : "Sofona — exibir tudo"}
+              {imageExpanded ? "Recolher" : "Exibir tudo"}
             </button>
           )}
         </div>
