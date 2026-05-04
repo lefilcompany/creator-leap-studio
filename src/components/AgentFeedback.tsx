@@ -116,6 +116,24 @@ export function AgentFeedback({
           .single();
         if (error) throw error;
         setExistingId(data.id);
+
+        // Auto-trigger Agente Revisor a cada 5 feedbacks para este brand+agent
+        if (brandId) {
+          try {
+            const { count } = await supabase
+              .from("agent_feedback")
+              .select("id", { count: "exact", head: true })
+              .eq("brand_id", brandId)
+              .eq("agent_id", agentId);
+            if (count && count > 0 && count % 5 === 0) {
+              supabase.functions.invoke("revise-agent", {
+                body: { agentId, brandId },
+              }).catch((err) => console.warn("auto revise-agent failed", err));
+            }
+          } catch (err) {
+            console.warn("auto-trigger count failed", err);
+          }
+        }
       }
       setRating(newRating);
       toast.success(

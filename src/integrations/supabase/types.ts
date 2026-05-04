@@ -302,6 +302,48 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_style_summaries: {
+        Row: {
+          agent_id: string
+          brand_id: string | null
+          created_at: string
+          feedbacks_processed: number
+          id: string
+          last_revised_at: string | null
+          manually_edited: boolean
+          negative_rules: Json
+          positive_rules: Json
+          style_summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          brand_id?: string | null
+          created_at?: string
+          feedbacks_processed?: number
+          id?: string
+          last_revised_at?: string | null
+          manually_edited?: boolean
+          negative_rules?: Json
+          positive_rules?: Json
+          style_summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          brand_id?: string | null
+          created_at?: string
+          feedbacks_processed?: number
+          id?: string
+          last_revised_at?: string | null
+          manually_edited?: boolean
+          negative_rules?: Json
+          positive_rules?: Json
+          style_summary?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       brand_style_preferences: {
         Row: {
           brand_id: string

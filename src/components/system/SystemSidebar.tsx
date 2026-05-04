@@ -10,7 +10,8 @@ import {
   CreditCard,
   Settings,
   Ticket,
-  MessageSquareWarning
+  MessageSquareWarning,
+  Bot
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -88,6 +89,7 @@ export function SystemSidebar() {
     { href: "/system/logs", icon: ScrollText, label: "Logs" },
     { href: "/system/coupons", icon: Ticket, label: "Cupons" },
     { href: "/system/reports", icon: MessageSquareWarning, label: "Reports" },
+    { href: "/system/agents", icon: Bot, label: "Agente Revisor" },
     { href: "/system/settings", icon: Settings, label: "Configurações" },
   ];
 

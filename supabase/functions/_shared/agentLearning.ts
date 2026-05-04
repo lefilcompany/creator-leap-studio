@@ -58,6 +58,34 @@ export async function buildAgentLearningBlock(opts: LoadOptions): Promise<string
 
   const sb = createClient(supabaseUrl, serviceKey);
 
+  // 1) Style summary consolidado pelo Agente Revisor (se existir)
+  const { data: summaryRow } = await sb
+    .from("agent_style_summaries")
+    .select("style_summary, positive_rules, negative_rules")
+    .eq("brand_id", opts.brandId)
+    .eq("agent_id", opts.agentId)
+    .maybeSingle();
+
+  const summaryLines: string[] = [];
+  if (summaryRow && (summaryRow.style_summary || (summaryRow.positive_rules?.length ?? 0) > 0 || (summaryRow.negative_rules?.length ?? 0) > 0)) {
+    summaryLines.push("===== ESTILO APRENDIDO PELA MARCA (consolidado pelo Agente Revisor) =====");
+    if (summaryRow.style_summary) {
+      summaryLines.push(summaryRow.style_summary);
+    }
+    if ((summaryRow.positive_rules?.length ?? 0) > 0) {
+      summaryLines.push("");
+      summaryLines.push("SEMPRE FAÇA:");
+      (summaryRow.positive_rules as string[]).forEach((r, i) => summaryLines.push(`${i + 1}. ${r}`));
+    }
+    if ((summaryRow.negative_rules?.length ?? 0) > 0) {
+      summaryLines.push("");
+      summaryLines.push("NUNCA FAÇA:");
+      (summaryRow.negative_rules as string[]).forEach((r, i) => summaryLines.push(`${i + 1}. ${r}`));
+    }
+    summaryLines.push("===== FIM DO ESTILO APRENDIDO =====");
+  }
+
+  // 2) Feedbacks recentes brutos (como exemplos)
   const { data, error } = await sb
     .from("agent_feedback")
     .select("rating, comment, content_snapshot, created_at")
@@ -66,7 +94,9 @@ export async function buildAgentLearningBlock(opts: LoadOptions): Promise<string
     .order("created_at", { ascending: false })
     .limit(40);
 
-  if (error || !data || data.length === 0) return "";
+  if (error || !data || data.length === 0) {
+    return summaryLines.length > 0 ? summaryLines.join("\n") : "";
+  }
 
   const positives = (data as FeedbackRow[])
     .filter((d) => d.rating === "positive")
@@ -75,12 +105,15 @@ export async function buildAgentLearningBlock(opts: LoadOptions): Promise<string
     .filter((d) => d.rating === "negative")
     .slice(0, negativeLimit);
 
-  if (positives.length === 0 && negatives.length === 0) return "";
+  if (positives.length === 0 && negatives.length === 0) {
+    return summaryLines.length > 0 ? summaryLines.join("\n") : "";
+  }
 
-  const lines: string[] = [];
-  lines.push("===== APRENDIZADO COM FEEDBACK DESTA MARCA =====");
+  const lines: string[] = [...summaryLines];
+  if (lines.length > 0) lines.push("");
+  lines.push("===== EXEMPLOS RECENTES DE FEEDBACK =====");
   lines.push(
-    "Os exemplos abaixo são feedbacks reais de quem aprovou ou ajustou conteúdos parecidos. Use-os como referência forte de estilo, tom e direção. Repita os padrões aprovados; evite os padrões reprovados."
+    "Os exemplos abaixo são feedbacks reais de quem aprovou ou ajustou conteúdos parecidos. Repita os padrões aprovados; evite os padrões reprovados."
   );
 
   if (positives.length > 0) {
