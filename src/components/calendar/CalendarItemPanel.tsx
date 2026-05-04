@@ -789,6 +789,8 @@ const StageBriefing = ({
   const [textBrief, setTextBrief] = useState(item.text_briefing || "");
   const [imageBrief, setImageBrief] = useState(item.image_briefing || "");
   const [reviewing, setReviewing] = useState(false);
+  const [reviewTextExpanded, setReviewTextExpanded] = useState(false);
+  const [reviewImageExpanded, setReviewImageExpanded] = useState(false);
   const [pautaOpen, setPautaOpen] = useState(false);
 
   // Status de geração persistido em metadata.briefing_generation
