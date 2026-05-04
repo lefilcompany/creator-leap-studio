@@ -732,11 +732,24 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
       }
     }
 
-    // Adicionar prompt negativo se fornecido (vai em parameters)
-    if (negativePrompt && negativePrompt.trim()) {
-      requestBody.parameters.negativePrompt = negativePrompt;
-      console.log('⛔ Negative prompt:', negativePrompt);
+    // Negative prompt: combina o do usuário + auto anti-texto-quebrado/baixa qualidade
+    const autoNegatives: string[] = [
+      'low quality', 'blurry', 'pixelated', 'low resolution', 'compression artifacts',
+      'distorted faces', 'extra limbs', 'warped anatomy',
+      'shaky camera', 'jittery motion', 'choppy animation',
+      'flat 2D animation of a static image', 'ken burns effect on a photo',
+    ];
+    if (!includeText) {
+      autoNegatives.push(
+        'any text', 'words', 'letters', 'captions', 'subtitles', 'watermark',
+        'gibberish text', 'misspelled words', 'fake logos', 'distorted typography',
+        'unreadable writing', 'random characters'
+      );
     }
+    const userNeg = (negativePrompt || '').trim();
+    const finalNegative = [userNeg, autoNegatives.join(', ')].filter(Boolean).join(', ');
+    requestBody.parameters.negativePrompt = finalNegative;
+    console.log('⛔ Negative prompt:', finalNegative);
     
     console.log('📦 Request body preparado:', JSON.stringify(requestBody, null, 2));
 
