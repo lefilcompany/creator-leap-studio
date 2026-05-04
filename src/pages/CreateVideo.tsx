@@ -592,10 +592,15 @@ export default function CreateVideo() {
                   <Label className="text-xs font-medium text-foreground">Resolução</Label>
                   <NativeSelect
                     value={formData.videoResolution}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoResolution: value as any }))}
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      videoResolution: value as any,
+                      // 1080p exige 8s no Veo 3.1 — força duração quando trocar para 1080p
+                      videoDuration: value === '1080p' ? 8 : prev.videoDuration,
+                    }))}
                     options={[
                       { value: "720p", label: "720p (HD)" },
-                      { value: "1080p", label: "1080p (Full HD)" },
+                      { value: "1080p", label: "1080p (Full HD — 8s fixo)" },
                     ]}
                     placeholder="Selecione a resolução"
                     triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
@@ -607,11 +612,15 @@ export default function CreateVideo() {
                   <NativeSelect
                     value={String(formData.videoDuration)}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))}
-                    options={[
-                      { value: "4", label: "4 segundos" },
-                      { value: "6", label: "6 segundos" },
-                      { value: "8", label: "8 segundos" },
-                    ]}
+                    options={
+                      formData.videoResolution === '1080p'
+                        ? [{ value: "8", label: "8 segundos (obrigatório em 1080p)" }]
+                        : [
+                            { value: "4", label: "4 segundos" },
+                            { value: "6", label: "6 segundos" },
+                            { value: "8", label: "8 segundos" },
+                          ]
+                    }
                     placeholder="Selecione a duração"
                     triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                   />
