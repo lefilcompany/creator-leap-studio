@@ -10,7 +10,8 @@ import {
   CreditCard,
   Settings,
   Ticket,
-  MessageSquareWarning
+  MessageSquareWarning,
+  Bot
 } from "lucide-react";
 import { 
   Sidebar, 
