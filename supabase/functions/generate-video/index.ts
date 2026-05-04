@@ -562,10 +562,10 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
     let optimizedPrompt = '';
     
     if (generationType === 'image_to_video') {
-      // Veo 3.0: Prompt focado em movimento com preservação exata
+      // Veo 3.0: imagem é SUJEITO dentro da cena descrita pelo briefing
       const preserveIdentity = preserveImages && preserveImages.length > 0;
-      optimizedPrompt = buildVeo30Prompt(prompt, preserveIdentity, negativePrompt);
-      console.log('🎬 Using Veo 3.0 optimized prompt (Image-to-Video)');
+      optimizedPrompt = buildVeo30Prompt(prompt, preserveIdentity, negativePrompt, includeText);
+      console.log('🎬 Using Veo 3.0 optimized prompt (Image-to-Video, subject-in-scene)');
     } else {
       // Veo 3.1: Prompt estruturado com pesos e comandos imperativos
       const hasPreserveImages = preserveImages && preserveImages.length > 0;
