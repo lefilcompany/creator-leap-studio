@@ -44,14 +44,22 @@ const FORMATS = [
 const CalendarNew = () => {
   const navigate = useNavigate();
   const { data: brands = [] } = useBrands();
-  const { data: personas = [] } = usePersonas();
-  const { data: themes = [] } = useThemes();
   const createCalendar = useCreateCalendar();
 
   const [name, setName] = useState("");
   const [brandId, setBrandId] = useState<string>("");
   const [personaId, setPersonaId] = useState<string>("");
   const [themeId, setThemeId] = useState<string>("");
+
+  // Personas e editorias filtradas pela marca selecionada
+  const { data: personas = [] } = usePersonas(brandId || undefined);
+  const { data: themes = [] } = useThemes(brandId || undefined);
+
+  // Reset persona/editoria ao trocar de marca para evitar referências de outra marca
+  useEffect(() => {
+    setPersonaId("");
+    setThemeId("");
+  }, [brandId]);
   const [userInput, setUserInput] = useState("");
   const [briefingTitle, setBriefingTitle] = useState("");
   const [count, setCount] = useState(8);
