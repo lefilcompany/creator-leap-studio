@@ -76,9 +76,16 @@ REGRAS:
       ? `===== TÍTULO DO BRIEFING (ASSUNTO CENTRAL) =====\n${briefingTitle}\n===== FIM DO TÍTULO =====\n\nUse este título como tema central e não-negociável. Todo o briefing deve girar em torno dele.\n\n`
       : "";
 
+    const learningBlock = await buildAgentLearningBlock({
+      brandId: body.brand?.id || null,
+      agentId: "calendar_briefing",
+    });
+
     const userPrompt = `${titleBlock}${contextLines.join("\n") || "(sem contexto fornecido — gere algo genérico mas útil)"}
 
 Mês de referência: ${monthLabel}
+
+${learningBlock}
 
 Escreva o briefing.`;
 
