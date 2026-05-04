@@ -58,6 +58,34 @@ export async function buildAgentLearningBlock(opts: LoadOptions): Promise<string
 
   const sb = createClient(supabaseUrl, serviceKey);
 
+  // 1) Style summary consolidado pelo Agente Revisor (se existir)
+  const { data: summaryRow } = await sb
+    .from("agent_style_summaries")
+    .select("style_summary, positive_rules, negative_rules")
+    .eq("brand_id", opts.brandId)
+    .eq("agent_id", opts.agentId)
+    .maybeSingle();
+
+  const summaryLines: string[] = [];
+  if (summaryRow && (summaryRow.style_summary || (summaryRow.positive_rules?.length ?? 0) > 0 || (summaryRow.negative_rules?.length ?? 0) > 0)) {
+    summaryLines.push("===== ESTILO APRENDIDO PELA MARCA (consolidado pelo Agente Revisor) =====");
+    if (summaryRow.style_summary) {
+      summaryLines.push(summaryRow.style_summary);
+    }
+    if ((summaryRow.positive_rules?.length ?? 0) > 0) {
+      summaryLines.push("");
+      summaryLines.push("SEMPRE FAÇA:");
+      (summaryRow.positive_rules as string[]).forEach((r, i) => summaryLines.push(`${i + 1}. ${r}`));
+    }
+    if ((summaryRow.negative_rules?.length ?? 0) > 0) {
+      summaryLines.push("");
+      summaryLines.push("NUNCA FAÇA:");
+      (summaryRow.negative_rules as string[]).forEach((r, i) => summaryLines.push(`${i + 1}. ${r}`));
+    }
+    summaryLines.push("===== FIM DO ESTILO APRENDIDO =====");
+  }
+
+  // 2) Feedbacks recentes brutos (como exemplos)
   const { data, error } = await sb
     .from("agent_feedback")
     .select("rating, comment, content_snapshot, created_at")
