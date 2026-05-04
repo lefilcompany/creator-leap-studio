@@ -991,6 +991,16 @@ const StageBriefing = ({
             <ArrowRight className="h-4 w-4" />
           </Button>
         </StickyActionBar>
+
+        <AgentFeedback
+          agentId="image_briefing"
+          targetType="calendar_item_briefing"
+          targetId={item.id}
+          brandId={(item as any).brand_id || null}
+          contentSnapshot={{ text_briefing: textBrief, image_briefing: imageBrief }}
+          label="estes briefings (texto e imagem)"
+          className="mt-4"
+        />
       </div>
     );
   }
