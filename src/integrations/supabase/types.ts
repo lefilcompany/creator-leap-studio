@@ -254,6 +254,54 @@ export type Database = {
           },
         ]
       }
+      agent_feedback: {
+        Row: {
+          agent_id: string
+          brand_id: string | null
+          comment: string | null
+          content_snapshot: Json | null
+          context: Json | null
+          created_at: string
+          id: string
+          rating: string
+          target_id: string | null
+          target_type: string
+          team_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          brand_id?: string | null
+          comment?: string | null
+          content_snapshot?: Json | null
+          context?: Json | null
+          created_at?: string
+          id?: string
+          rating: string
+          target_id?: string | null
+          target_type: string
+          team_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          brand_id?: string | null
+          comment?: string | null
+          content_snapshot?: Json | null
+          context?: Json | null
+          created_at?: string
+          id?: string
+          rating?: string
+          target_id?: string | null
+          target_type?: string
+          team_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       brand_style_preferences: {
         Row: {
           brand_id: string
