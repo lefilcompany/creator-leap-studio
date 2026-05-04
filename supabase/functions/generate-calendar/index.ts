@@ -1,6 +1,8 @@
 // Edge function: generate-calendar
 // Gera lista de pautas (title, theme, scheduled_date) usando Gemini API direto.
 
+import { buildAgentLearningBlock } from "../_shared/agentLearning.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -8,7 +10,7 @@ const corsHeaders = {
 };
 
 interface RequestBody {
-  brand?: { name?: string; segment?: string; values?: string; keywords?: string } | null;
+  brand?: { id?: string; name?: string; segment?: string; values?: string; keywords?: string } | null;
   persona?: { name?: string; main_goal?: string; challenges?: string } | null;
   theme?: { title?: string; description?: string } | null;
   user_input: string;
@@ -89,10 +91,17 @@ REGRAS:
 {"items":[{"title":"...","theme":"...","scheduled_date":"YYYY-MM-DD","platform":"instagram","format":"reels"}, ...]}
 Sem texto adicional, sem markdown, sem cercas de código.`;
 
+    const learningBlock = await buildAgentLearningBlock({
+      brandId: body.brand?.id || null,
+      agentId: "calendar_items",
+    });
+
     const userPrompt = `${contextLines.join("\n")}
 
 BRIEFING DO USUÁRIO:
 ${body.user_input}
+
+${learningBlock}
 
 Mês de referência: ${monthLabel}
 Quantidade de pautas: ${count}`;

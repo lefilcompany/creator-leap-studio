@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { extractJSON } from '../_shared/geminiClient.ts';
+import { buildAgentLearningBlock } from '../_shared/agentLearning.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -402,7 +403,12 @@ serve(async (req) => {
       );
     }
 
-    const prompt = buildCaptionPrompt(formData);
+    const basePrompt = buildCaptionPrompt(formData);
+    const captionLearning = await buildAgentLearningBlock({
+      brandId: (formData as any).brandId || (formData as any).brand_id || null,
+      agentId: 'copy_caption',
+    });
+    const prompt = captionLearning ? `${captionLearning}\n\n${basePrompt}` : basePrompt;
 
     console.log("🔄 Chamando Gemini API...");
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {

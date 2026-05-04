@@ -21,6 +21,7 @@ import {
   buildFeedbackMessageParts,
   uint8ArrayToBase64,
 } from '../_shared/imagePromptBuilder.ts';
+import { buildAgentLearningBlock } from '../_shared/agentLearning.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -281,7 +282,12 @@ serve(async (req) => {
     });
 
     const dimensionPrefix = `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${aspectRatio} (${targetDims.width}x${targetDims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`;
-    const finalPrompt = `${dimensionPrefix}${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${finalNegativePrompt}`;
+    const agentLearning = await buildAgentLearningBlock({
+      brandId: formData.brandId || null,
+      agentId: 'image_generation',
+    });
+    const learningPrefix = agentLearning ? `${agentLearning}\n\n` : '';
+    const finalPrompt = `${dimensionPrefix}${learningPrefix}${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${finalNegativePrompt}`;
 
     console.log('[Step 3] Final prompt length:', finalPrompt.length, 'chars');
 

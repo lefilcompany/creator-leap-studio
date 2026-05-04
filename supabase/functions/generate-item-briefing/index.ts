@@ -4,6 +4,7 @@
 // o resultado é PERSISTIDO direto em calendar_items.text_briefing/image_briefing.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { buildAgentLearningBlock } from "../_shared/agentLearning.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -280,6 +281,7 @@ async function loadContextById(itemId: string) {
         }
       : null,
     brand: brandRes?.data ?? null,
+    brandId: cal?.brand_id ?? null,
     persona: personaRes?.data ?? null,
     theme: themeRes?.data ?? null,
   };
@@ -317,13 +319,29 @@ async function runGeneration(itemId: string, kind: Kind) {
   try {
     await setStatus(itemId, "pending", kind);
     const ctx = await loadContextById(itemId);
-    const userPrompt = `Contexto disponível:\n\n${buildContext(ctx)}\n\nEscreva o briefing solicitado.`;
+    const baseContext = `Contexto disponível:\n\n${buildContext(ctx)}\n\n`;
 
     const updates: Record<string, any> = {};
     if (kind === "text" || kind === "both") {
+      const learning = await buildAgentLearningBlock({
+        brandId: (ctx as any).brandId,
+        agentId: "image_briefing", // texto-briefing visual? — usa "calendar_items" abaixo
+      });
+      // Para o briefing de TEXTO da pauta, usamos a chave 'calendar_items' como já é
+      // o agente que produz texto associado às pautas.
+      const learningText = await buildAgentLearningBlock({
+        brandId: (ctx as any).brandId,
+        agentId: "calendar_items",
+      });
+      const userPrompt = `${baseContext}${learningText}\n\nEscreva o briefing solicitado.`;
       updates.text_briefing = await callGemini(TEXT_SYSTEM, userPrompt, GEMINI_API_KEY);
     }
     if (kind === "image" || kind === "both") {
+      const learningImg = await buildAgentLearningBlock({
+        brandId: (ctx as any).brandId,
+        agentId: "image_briefing",
+      });
+      const userPrompt = `${baseContext}${learningImg}\n\nEscreva o briefing solicitado.`;
       updates.image_briefing = await callGemini(IMAGE_SYSTEM, userPrompt, GEMINI_API_KEY);
     }
 

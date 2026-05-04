@@ -2,6 +2,8 @@
 // Gera uma ideia de briefing de calendário com base no contexto (marca/persona/editoria)
 // Usa Google Gemini API direta (GEMINI_API_KEY)
 
+import { buildAgentLearningBlock } from "../_shared/agentLearning.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -9,7 +11,7 @@ const corsHeaders = {
 };
 
 interface RequestBody {
-  brand?: { name?: string; segment?: string; values?: string; keywords?: string } | null;
+  brand?: { id?: string; name?: string; segment?: string; values?: string; keywords?: string } | null;
   persona?: { name?: string; main_goal?: string; challenges?: string } | null;
   theme?: { title?: string; description?: string } | null;
   reference_month?: string;
@@ -74,9 +76,16 @@ REGRAS:
       ? `===== TÍTULO DO BRIEFING (ASSUNTO CENTRAL) =====\n${briefingTitle}\n===== FIM DO TÍTULO =====\n\nUse este título como tema central e não-negociável. Todo o briefing deve girar em torno dele.\n\n`
       : "";
 
+    const learningBlock = await buildAgentLearningBlock({
+      brandId: body.brand?.id || null,
+      agentId: "calendar_briefing",
+    });
+
     const userPrompt = `${titleBlock}${contextLines.join("\n") || "(sem contexto fornecido — gere algo genérico mas útil)"}
 
 Mês de referência: ${monthLabel}
+
+${learningBlock}
 
 Escreva o briefing.`;
 

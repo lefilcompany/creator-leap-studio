@@ -24,6 +24,7 @@ import {
 } from "@/hooks/useCalendars";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CalendarItemPanel } from "@/components/calendar/CalendarItemPanel";
+import { AgentFeedback } from "@/components/AgentFeedback";
 import { cn } from "@/lib/utils";
 import {
   AlertDialog,
@@ -196,6 +197,21 @@ const CalendarView = () => {
           </AlertDialog>
         </div>
       </div>
+
+      {/* Feedback do agente do briefing principal */}
+      {calendar.user_input && (
+        <AgentFeedback
+          agentId="calendar_briefing"
+          targetType="content_calendar"
+          targetId={calendar.id}
+          brandId={calendar.brand_id}
+          contentSnapshot={{
+            title: calendar.name,
+            briefing: calendar.user_input,
+          }}
+          label="o briefing principal deste calendário"
+        />
+      )}
 
       {/* Layout principal: lista de pautas + editor */}
       <div
