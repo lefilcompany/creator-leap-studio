@@ -925,17 +925,35 @@ const StageBriefing = ({
               <p className="font-semibold text-muted-foreground mb-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-wider">
                 <FileText className="h-3 w-3" /> Texto / legenda
               </p>
-              <p className="line-clamp-6 whitespace-pre-wrap text-foreground/90">
+              <p className={cn("whitespace-pre-wrap text-foreground/90", !reviewTextExpanded && "line-clamp-6")}>
                 {textBrief}
               </p>
+              {textBrief.length > 280 && (
+                <button
+                  type="button"
+                  onClick={() => setReviewTextExpanded((v) => !v)}
+                  className="mt-2 text-xs font-semibold text-primary hover:underline"
+                >
+                  {reviewTextExpanded ? "Recolher" : "Exibir tudo"}
+                </button>
+              )}
             </div>
             <div className="rounded-lg bg-card p-3 shadow-sm">
               <p className="font-semibold text-muted-foreground mb-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-wider">
                 <ImageIcon className="h-3 w-3" /> Visual / imagem
               </p>
-              <p className="line-clamp-6 whitespace-pre-wrap text-foreground/90">
+              <p className={cn("whitespace-pre-wrap text-foreground/90", !reviewImageExpanded && "line-clamp-6")}>
                 {imageBrief}
               </p>
+              {imageBrief.length > 280 && (
+                <button
+                  type="button"
+                  onClick={() => setReviewImageExpanded((v) => !v)}
+                  className="mt-2 text-xs font-semibold text-primary hover:underline"
+                >
+                  {reviewImageExpanded ? "Recolher" : "Exibir tudo"}
+                </button>
+              )}
             </div>
           </div>
         </div>
