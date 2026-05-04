@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { checkVideoCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
+import { buildAgentLearningBlock } from '../_shared/agentLearning.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -585,6 +586,19 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
         negativePrompt
       );
       console.log('🎬 Using Veo 3.1 optimized prompt (Text-to-Video)');
+    }
+
+    // Injeta aprendizado por marca no início do prompt (se houver)
+    try {
+      const videoLearning = await buildAgentLearningBlock({
+        brandId: brand_id || null,
+        agentId: 'video_generation',
+      });
+      if (videoLearning) {
+        optimizedPrompt = `${videoLearning}\n\n${optimizedPrompt}`;
+      }
+    } catch (e) {
+      console.warn('agent learning (video) skipped:', e);
     }
 
     console.log('📏 Optimized prompt length:', optimizedPrompt.length);
