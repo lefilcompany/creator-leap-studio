@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,14 +44,22 @@ const FORMATS = [
 const CalendarNew = () => {
   const navigate = useNavigate();
   const { data: brands = [] } = useBrands();
-  const { data: personas = [] } = usePersonas();
-  const { data: themes = [] } = useThemes();
   const createCalendar = useCreateCalendar();
 
   const [name, setName] = useState("");
   const [brandId, setBrandId] = useState<string>("");
   const [personaId, setPersonaId] = useState<string>("");
   const [themeId, setThemeId] = useState<string>("");
+
+  // Personas e editorias filtradas pela marca selecionada
+  const { data: personas = [] } = usePersonas(brandId || undefined);
+  const { data: themes = [] } = useThemes(brandId || undefined);
+
+  // Reset persona/editoria ao trocar de marca para evitar referências de outra marca
+  useEffect(() => {
+    setPersonaId("");
+    setThemeId("");
+  }, [brandId]);
   const [userInput, setUserInput] = useState("");
   const [briefingTitle, setBriefingTitle] = useState("");
   const [count, setCount] = useState(8);
@@ -349,8 +357,8 @@ const CalendarNew = () => {
             </div>
             <div className="space-y-1.5">
               <Label>Persona</Label>
-              <Select value={personaId} onValueChange={setPersonaId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <Select value={personaId} onValueChange={setPersonaId} disabled={!brandId}>
+                <SelectTrigger><SelectValue placeholder={brandId ? "Selecione" : "Escolha uma marca primeiro"} /></SelectTrigger>
                 <SelectContent>
                   {personas.map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
@@ -361,15 +369,15 @@ const CalendarNew = () => {
             </div>
             <div className="space-y-1.5">
               <Label>Editoria</Label>
-              <Select value={themeId} onValueChange={setThemeId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <Select value={themeId} onValueChange={setThemeId} disabled={!brandId}>
+                <SelectTrigger><SelectValue placeholder={brandId ? "Selecione" : "Escolha uma marca primeiro"} /></SelectTrigger>
                 <SelectContent>
                   {themes.map((t) => (
                     <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">Eixo temático principal do mês.</p>
+              <p className="text-xs text-muted-foreground">Eixo temático principal do mês {brandId ? "(apenas da marca selecionada)" : ""}.</p>
             </div>
           </div>
         </div>
