@@ -198,7 +198,18 @@ export default function CreateVideo() {
 
     try {
       const selectedBrand = brands.find(b => b.id === formData.brand);
-      const videoPrompt = `${formData.objective}. ${formData.description}. Tom: ${formData.tone.join(", ")}${selectedBrand ? `. Marca: ${selectedBrand.name}` : ''}.`;
+      // Veo aceita prompts curtos. Truncamos cada campo para evitar 400 Bad Request
+      // quando o objetivo vier de um briefing longo (ex.: pré-preenchido pelo calendário).
+      const truncate = (s: string, max: number) => {
+        const clean = (s || "").replace(/\s+/g, " ").trim();
+        return clean.length > max ? clean.slice(0, max).trim() + "…" : clean;
+      };
+      const objectiveShort = truncate(formData.objective, 400);
+      const descriptionShort = truncate(formData.description, 600);
+      const toneShort = truncate(formData.tone.join(", "), 120);
+      let videoPrompt = `${objectiveShort}. ${descriptionShort}. Tom: ${toneShort}${selectedBrand ? `. Marca: ${selectedBrand.name}` : ''}.`;
+      // Hard cap final (Veo recomenda < ~2000 chars; usamos margem segura)
+      if (videoPrompt.length > 1500) videoPrompt = videoPrompt.slice(0, 1500).trim() + "…";
       
       const { data: actionData } = await supabase.from('actions').insert({
         type: 'GERAR_VIDEO',
@@ -244,7 +255,19 @@ export default function CreateVideo() {
 
       if (invokeError) {
         console.error('Erro ao chamar generate-video:', invokeError);
-        toast.error(invokeError.message || "Erro ao iniciar geração de vídeo", { id: toastId });
+        // Tenta extrair a mensagem de erro real do corpo da resposta da edge function
+        let detailedMsg = invokeError.message || "Erro ao iniciar geração de vídeo";
+        try {
+          const ctx: any = (invokeError as any).context;
+          if (ctx?.body) {
+            const parsed = typeof ctx.body === "string" ? JSON.parse(ctx.body) : ctx.body;
+            if (parsed?.error) detailedMsg = typeof parsed.error === "string" ? parsed.error : JSON.stringify(parsed.error);
+          } else if (typeof (invokeError as any).context?.json === "function") {
+            const parsed = await (invokeError as any).context.json();
+            if (parsed?.error) detailedMsg = typeof parsed.error === "string" ? parsed.error : JSON.stringify(parsed.error);
+          }
+        } catch { /* noop */ }
+        toast.error(detailedMsg, { id: toastId });
         return;
       }
 
