@@ -255,7 +255,19 @@ export default function CreateVideo() {
 
       if (invokeError) {
         console.error('Erro ao chamar generate-video:', invokeError);
-        toast.error(invokeError.message || "Erro ao iniciar geração de vídeo", { id: toastId });
+        // Tenta extrair a mensagem de erro real do corpo da resposta da edge function
+        let detailedMsg = invokeError.message || "Erro ao iniciar geração de vídeo";
+        try {
+          const ctx: any = (invokeError as any).context;
+          if (ctx?.body) {
+            const parsed = typeof ctx.body === "string" ? JSON.parse(ctx.body) : ctx.body;
+            if (parsed?.error) detailedMsg = typeof parsed.error === "string" ? parsed.error : JSON.stringify(parsed.error);
+          } else if (typeof (invokeError as any).context?.json === "function") {
+            const parsed = await (invokeError as any).context.json();
+            if (parsed?.error) detailedMsg = typeof parsed.error === "string" ? parsed.error : JSON.stringify(parsed.error);
+          }
+        } catch { /* noop */ }
+        toast.error(detailedMsg, { id: toastId });
         return;
       }
 
