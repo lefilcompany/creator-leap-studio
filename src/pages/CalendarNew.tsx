@@ -357,8 +357,8 @@ const CalendarNew = () => {
             </div>
             <div className="space-y-1.5">
               <Label>Persona</Label>
-              <Select value={personaId} onValueChange={setPersonaId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <Select value={personaId} onValueChange={setPersonaId} disabled={!brandId}>
+                <SelectTrigger><SelectValue placeholder={brandId ? "Selecione" : "Escolha uma marca primeiro"} /></SelectTrigger>
                 <SelectContent>
                   {personas.map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
@@ -369,15 +369,15 @@ const CalendarNew = () => {
             </div>
             <div className="space-y-1.5">
               <Label>Editoria</Label>
-              <Select value={themeId} onValueChange={setThemeId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <Select value={themeId} onValueChange={setThemeId} disabled={!brandId}>
+                <SelectTrigger><SelectValue placeholder={brandId ? "Selecione" : "Escolha uma marca primeiro"} /></SelectTrigger>
                 <SelectContent>
                   {themes.map((t) => (
                     <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">Eixo temático principal do mês.</p>
+              <p className="text-xs text-muted-foreground">Eixo temático principal do mês {brandId ? "(apenas da marca selecionada)" : ""}.</p>
             </div>
           </div>
         </div>
