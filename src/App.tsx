@@ -191,6 +191,7 @@ const App = () => (
                         <Route path="logs" element={<SuspenseRoute><SystemLogs /></SuspenseRoute>} />
                         <Route path="coupons" element={<SuspenseRoute><SystemCoupons /></SuspenseRoute>} />
                         <Route path="reports" element={<SuspenseRoute><SystemReports /></SuspenseRoute>} />
+                        <Route path="agents" element={<SuspenseRoute><SystemAgents /></SuspenseRoute>} />
                         <Route path="settings" element={<SuspenseRoute><SystemSettings /></SuspenseRoute>} />
                       </Route>
                       
