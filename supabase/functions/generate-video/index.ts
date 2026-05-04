@@ -657,6 +657,12 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
       validatedDuration = MAX_DURATION_VEO30;
     }
 
+    // Veo 3.1: 1080p exige obrigatoriamente 8 segundos. Coerge para evitar 400.
+    if (resolution === '1080p' && validatedDuration !== 8) {
+      console.warn(`⚠️ Resolução 1080p exige 8s — forçando duration de ${validatedDuration}s para 8s`);
+      validatedDuration = 8;
+    }
+
     if (generationType === 'image_to_video') {
       // ✅ VEO 3.0: Estrutura específica para image-to-video
       // Documentação: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/veo
@@ -705,7 +711,7 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
         parameters: {
           aspectRatio: aspectRatio,
           resolution: resolution,
-          durationSeconds: duration
+          durationSeconds: validatedDuration
         }
       };
       
