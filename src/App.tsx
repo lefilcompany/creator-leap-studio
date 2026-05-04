@@ -79,6 +79,7 @@ const SystemPlans = lazy(() => import("./pages/system/SystemPlans"));
 const SystemSettings = lazy(() => import("./pages/system/SystemSettings"));
 const SystemCoupons = lazy(() => import("./pages/system/SystemCoupons"));
 const SystemReports = lazy(() => import("./pages/system/SystemReports"));
+const SystemAgents = lazy(() => import("./pages/system/SystemAgents"));
 
 // Optimized QueryClient configuration
 const queryClient = new QueryClient({
