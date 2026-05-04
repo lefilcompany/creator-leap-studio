@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { AgentFeedback } from "@/components/AgentFeedback";
 import { toast } from "sonner";
 import {
   CheckCircle2,
@@ -774,6 +775,15 @@ const StageCalendar = ({
           </Button>
         </div>
       </div>
+
+      <AgentFeedback
+        agentId="calendar_items"
+        targetType="calendar_item"
+        targetId={item.id}
+        brandId={(item as any).brand_id || null}
+        contentSnapshot={{ title: item.title, theme: item.theme, notes: item.notes }}
+        label="esta pauta"
+      />
     </div>
   );
 };
