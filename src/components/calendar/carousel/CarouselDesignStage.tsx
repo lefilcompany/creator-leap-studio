@@ -60,8 +60,8 @@ export function CarouselDesignStage({
       id: item.id,
       updates: {
         design_approved: true,
-        design_approved_at: new Date().toISOString(),
-        stage: "review",
+        final_approved: true,
+        stage: "done",
       },
     });
   };
