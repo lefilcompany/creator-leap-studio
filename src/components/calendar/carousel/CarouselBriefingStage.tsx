@@ -4,14 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -24,7 +16,6 @@ import {
   Minus,
   ImageIcon,
   FileText,
-  Type,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -32,19 +23,7 @@ import {
   type CalendarItem,
 } from "@/hooks/useCalendars";
 import { AgentFeedback } from "@/components/AgentFeedback";
-import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
-import { CameraAngleGrid } from "@/components/quick-content/CameraAngleGrid";
-
-interface SlideImageSettings {
-  visualStyle?: string;
-  cameraAngle?: string;
-  lighting?: string;
-  composition?: string;
-  mood?: string;
-  imageIncludeText?: boolean;
-  imageTextContent?: string;
-  imageTextPosition?: string;
-}
+import type { SlideImageSettings } from "./SlideImageSettingsForm";
 
 interface CarouselSlide {
   index: number;
