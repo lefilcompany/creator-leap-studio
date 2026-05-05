@@ -44,6 +44,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { CarouselBriefingStage } from "@/components/calendar/carousel/CarouselBriefingStage";
 import { CarouselDesignStage } from "@/components/calendar/carousel/CarouselDesignStage";
+import { CalendarItemDoneView } from "@/components/calendar/CalendarItemDoneView";
 
 // Mapeia o formato escolhido na pauta para a melhor proporção da imagem
 const FORMAT_TO_ASPECT: Record<string, string> = {
