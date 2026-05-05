@@ -57,6 +57,41 @@ export function CarouselDesignStage({
     }
   };
 
+  const downloadOne = async (s: Slide) => {
+    if (!s.image_url) return;
+    try {
+      const res = await fetch(s.image_url, { mode: "cors" });
+      const blob = await res.blob();
+      const ext = blob.type.includes("png") ? "png" : blob.type.includes("webp") ? "webp" : "jpg";
+      saveAs(blob, `slide-${String(s.index).padStart(2, "0")}.${ext}`);
+    } catch (e: any) {
+      toast.error("Falha ao baixar imagem");
+    }
+  };
+
+  const downloadAll = async () => {
+    const ready = slides.filter((s) => !!s.image_url);
+    if (ready.length === 0) return;
+    try {
+      const zip = new JSZip();
+      await Promise.all(
+        ready.map(async (s) => {
+          try {
+            const res = await fetch(s.image_url!, { mode: "cors" });
+            const blob = await res.blob();
+            const ext = blob.type.includes("png") ? "png" : blob.type.includes("webp") ? "webp" : "jpg";
+            zip.file(`slide-${String(s.index).padStart(2, "0")}.${ext}`, blob);
+          } catch {}
+        }),
+      );
+      const out = await zip.generateAsync({ type: "blob" });
+      saveAs(out, `carrossel-${item.id.slice(0, 8)}.zip`);
+      toast.success("Carrossel baixado");
+    } catch (e: any) {
+      toast.error("Falha ao gerar zip");
+    }
+  };
+
   const approve = () => {
     update.mutate({
       id: item.id,
