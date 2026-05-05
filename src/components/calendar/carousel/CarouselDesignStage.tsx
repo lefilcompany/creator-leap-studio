@@ -17,6 +17,9 @@ interface Slide {
   index: number;
   role: string;
   headline: string;
+  caption_part?: string;
+  image_briefing?: string;
+  image_settings?: SlideImageSettings;
   image_url?: string | null;
   status?: "pending" | "generating" | "done" | "error";
   error?: string | null;
@@ -30,13 +33,22 @@ export function CarouselDesignStage({
   update: ReturnType<typeof useUpdateCalendarItem>;
 }) {
   const meta = (item.metadata || {}) as Record<string, any>;
-  const carousel = (meta.carousel || {}) as { slides?: Slide[]; generation?: any };
+  const carousel = (meta.carousel || {}) as { slides?: Slide[]; generation?: any; shared_style?: any };
   const slides = carousel.slides || [];
   const gen = carousel.generation || {};
   const isRunning = gen.status === "pending";
   const qc = useQueryClient();
   const [editing, setEditing] = useState<{ index: number; sequential: boolean } | null>(null);
+  const [settingsFor, setSettingsFor] = useState<number | null>(null);
   const layersByIndex = (meta.carousel?.text_layers || {}) as Record<string, TextLayer[]>;
+
+  const updateSlideSettings = async (index: number, settings: SlideImageSettings) => {
+    const nextSlides = slides.map((s) => (s.index === index ? { ...s, image_settings: settings } : s));
+    await update.mutateAsync({
+      id: item.id,
+      updates: { metadata: { ...meta, carousel: { ...carousel, slides: nextSlides } } },
+    });
+  };
 
   const saveSlideImage = async (index: number, newUrl: string, layers: TextLayer[]) => {
     const nextSlides = slides.map((s) => (s.index === index ? { ...s, image_url: newUrl } : s));
