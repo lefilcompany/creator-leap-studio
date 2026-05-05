@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Sparkles, CheckCircle2, AlertCircle, ImageIcon, RefreshCw, Download, Package } from "lucide-react";
+import { Loader2, Sparkles, CheckCircle2, AlertCircle, ImageIcon, RefreshCw, Download, Package, Type } from "lucide-react";
+import { TextOverlayEditor, type TextLayer } from "@/components/TextOverlayEditor";
 import { cn } from "@/lib/utils";
 import { useUpdateCalendarItem, type CalendarItem } from "@/hooks/useCalendars";
 import { AgentFeedback } from "@/components/AgentFeedback";
@@ -32,6 +33,37 @@ export function CarouselDesignStage({
   const gen = carousel.generation || {};
   const isRunning = gen.status === "pending";
   const qc = useQueryClient();
+  const [editing, setEditing] = useState<{ index: number; sequential: boolean } | null>(null);
+  const layersByIndex = (meta.carousel?.text_layers || {}) as Record<string, TextLayer[]>;
+
+  const saveSlideImage = async (index: number, newUrl: string, layers: TextLayer[]) => {
+    const nextSlides = slides.map((s) => (s.index === index ? { ...s, image_url: newUrl } : s));
+    const nextLayers = { ...layersByIndex, [String(index)]: layers };
+    await update.mutateAsync({
+      id: item.id,
+      updates: {
+        metadata: {
+          ...meta,
+          carousel: { ...carousel, slides: nextSlides, text_layers: nextLayers },
+        },
+      },
+    });
+  };
+
+  const handleSaved = async (newUrl: string, layers: TextLayer[]) => {
+    if (!editing) return;
+    await saveSlideImage(editing.index, newUrl, layers);
+    if (editing.sequential) {
+      const next = slides.find((s) => s.index > editing.index && s.image_url);
+      if (next) {
+        setEditing({ index: next.index, sequential: true });
+        return;
+      }
+      toast.success("Você editou todos os slides!");
+    }
+    setEditing(null);
+  };
+
 
   useEffect(() => {
     if (!isRunning && !slides.some((s) => s.status === "generating")) return;
@@ -117,10 +149,24 @@ export function CarouselDesignStage({
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {allDone && (
-            <Button onClick={downloadAll} variant="outline" size="lg" className="gap-2">
-              <Package className="h-4 w-4" />
-              Baixar todas (.zip)
-            </Button>
+            <>
+              <Button
+                onClick={() => {
+                  const first = slides.find((s) => s.image_url);
+                  if (first) setEditing({ index: first.index, sequential: true });
+                }}
+                variant="outline"
+                size="lg"
+                className="gap-2"
+              >
+                <Type className="h-4 w-4" />
+                Editar textos (em sequência)
+              </Button>
+              <Button onClick={downloadAll} variant="outline" size="lg" className="gap-2">
+                <Package className="h-4 w-4" />
+                Baixar todas (.zip)
+              </Button>
+            </>
           )}
           <Button onClick={() => trigger(false)} disabled={isRunning} size="lg" className="gap-2">
             {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -165,6 +211,14 @@ export function CarouselDesignStage({
                   title="Baixar"
                 >
                   <Download className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditing({ index: s.index, sequential: false })}
+                  className="bg-background/90 backdrop-blur rounded-md p-1.5 hover:bg-background transition"
+                  title="Editar texto"
+                >
+                  <Type className="h-3.5 w-3.5" />
                 </button>
                 <button
                   type="button"
@@ -214,6 +268,21 @@ export function CarouselDesignStage({
         contentSnapshot={{ carousel: { slides: slides.map((s) => ({ index: s.index, image_url: s.image_url })) } }}
         label="estas imagens do carrossel"
       />
+
+      {editing && (() => {
+        const slide = slides.find((s) => s.index === editing.index);
+        if (!slide?.image_url) return null;
+        const remaining = slides.filter((s) => s.index > editing.index && s.image_url).length;
+        return (
+          <TextOverlayEditor
+            open
+            onOpenChange={(o) => { if (!o) setEditing(null); }}
+            imageUrl={slide.image_url}
+            initialLayers={layersByIndex[String(editing.index)]}
+            onSaved={handleSaved}
+          />
+        );
+      })()}
     </div>
   );
 }
