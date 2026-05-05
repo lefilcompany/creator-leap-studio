@@ -157,14 +157,24 @@ export function CarouselDesignStage({
               </div>
             )}
             {s.status === "done" && (
-              <button
-                type="button"
-                onClick={() => trigger(true, [s.index])}
-                className="absolute bottom-2 right-2 z-10 bg-background/90 backdrop-blur rounded-md p-1.5 hover:bg-background transition"
-                title="Regerar"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-              </button>
+              <div className="absolute bottom-2 right-2 z-10 flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => downloadOne(s)}
+                  className="bg-background/90 backdrop-blur rounded-md p-1.5 hover:bg-background transition"
+                  title="Baixar"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => trigger(true, [s.index])}
+                  className="bg-background/90 backdrop-blur rounded-md p-1.5 hover:bg-background transition"
+                  title="Regerar"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </button>
+              </div>
             )}
             <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent text-white text-[10px] font-medium line-clamp-2">
               {s.headline}
