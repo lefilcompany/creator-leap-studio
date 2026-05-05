@@ -33,6 +33,37 @@ export function CarouselDesignStage({
   const gen = carousel.generation || {};
   const isRunning = gen.status === "pending";
   const qc = useQueryClient();
+  const [editing, setEditing] = useState<{ index: number; sequential: boolean } | null>(null);
+  const layersByIndex = (meta.carousel?.text_layers || {}) as Record<string, TextLayer[]>;
+
+  const saveSlideImage = async (index: number, newUrl: string, layers: TextLayer[]) => {
+    const nextSlides = slides.map((s) => (s.index === index ? { ...s, image_url: newUrl } : s));
+    const nextLayers = { ...layersByIndex, [String(index)]: layers };
+    await update.mutateAsync({
+      id: item.id,
+      updates: {
+        metadata: {
+          ...meta,
+          carousel: { ...carousel, slides: nextSlides, text_layers: nextLayers },
+        },
+      },
+    });
+  };
+
+  const handleSaved = async (newUrl: string, layers: TextLayer[]) => {
+    if (!editing) return;
+    await saveSlideImage(editing.index, newUrl, layers);
+    if (editing.sequential) {
+      const next = slides.find((s) => s.index > editing.index && s.image_url);
+      if (next) {
+        setEditing({ index: next.index, sequential: true });
+        return;
+      }
+      toast.success("Você editou todos os slides!");
+    }
+    setEditing(null);
+  };
+
 
   useEffect(() => {
     if (!isRunning && !slides.some((s) => s.status === "generating")) return;
