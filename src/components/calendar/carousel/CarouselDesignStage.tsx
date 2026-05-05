@@ -115,10 +115,18 @@ export function CarouselDesignStage({
             A capa é gerada primeiro e usada como referência visual para os demais.
           </p>
         </div>
-        <Button onClick={() => trigger(false)} disabled={isRunning} size="lg" className="gap-2">
-          {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {isRunning ? "Gerando…" : allDone ? "Regerar pendentes" : "Gerar todas as imagens"}
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {allDone && (
+            <Button onClick={downloadAll} variant="outline" size="lg" className="gap-2">
+              <Package className="h-4 w-4" />
+              Baixar todas (.zip)
+            </Button>
+          )}
+          <Button onClick={() => trigger(false)} disabled={isRunning} size="lg" className="gap-2">
+            {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {isRunning ? "Gerando…" : allDone ? "Regerar pendentes" : "Gerar todas as imagens"}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
