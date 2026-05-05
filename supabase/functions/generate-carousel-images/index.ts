@@ -19,12 +19,24 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+interface SlideImageSettings {
+  visualStyle?: string;
+  cameraAngle?: string;
+  lighting?: string;
+  composition?: string;
+  mood?: string;
+  imageIncludeText?: boolean;
+  imageTextContent?: string;
+  imageTextPosition?: string;
+}
+
 interface SlideRow {
   index: number;
   role: string;
   headline: string;
   caption_part: string;
   image_briefing: string;
+  image_settings?: SlideImageSettings;
   design_action_id: string | null;
   image_url: string | null;
   status: "pending" | "generating" | "done" | "error";
@@ -142,6 +154,7 @@ async function generateOneSlide(
   const description =
     `Slide ${slide.index} (${slide.role}) — ${slide.headline}\n\n${slide.image_briefing}${sharedBlock}${referenceNote}`.trim();
 
+  const settings = slide.image_settings || {};
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const body: any = {
     description,
@@ -150,12 +163,17 @@ async function generateOneSlide(
     personaId: cal?.persona_id || undefined,
     aspectRatio,
     contentType: "organic",
-    visualStyle: sharedStyle?.visual_style || "realistic",
-    composition: "auto",
-    lighting: "natural",
-    cameraAngle: "eye_level",
-    mood: sharedStyle?.mood || "auto",
+    visualStyle: settings.visualStyle || sharedStyle?.visual_style || "realistic",
+    composition: settings.composition || "auto",
+    lighting: settings.lighting || "natural",
+    cameraAngle: settings.cameraAngle || "eye_level",
+    mood: settings.mood || sharedStyle?.mood || "auto",
     platform: meta.platform || undefined,
+    imageIncludeText: !!settings.imageIncludeText,
+    imageTextContent: settings.imageIncludeText ? (settings.imageTextContent || slide.headline || "") : "",
+    imageTextPosition: settings.imageTextPosition || "center",
+    textContent: settings.imageIncludeText ? (settings.imageTextContent || slide.headline || "") : "",
+    textPosition: settings.imageTextPosition || "center",
   };
   if (referenceImageUrl) {
     body.styleReferenceImages = [referenceImageUrl];
