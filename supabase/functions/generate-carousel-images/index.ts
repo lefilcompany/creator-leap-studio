@@ -156,6 +156,7 @@ async function generateOneSlide(
 
   const settings = slide.image_settings || {};
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  // Texto na imagem é inserido em etapa separada (overlay), nunca pelo modelo aqui.
   const body: any = {
     description,
     brandId: cal?.brand_id || undefined,
@@ -169,14 +170,18 @@ async function generateOneSlide(
     cameraAngle: settings.cameraAngle || "eye_level",
     mood: settings.mood || sharedStyle?.mood || "auto",
     platform: meta.platform || undefined,
-    imageIncludeText: !!settings.imageIncludeText,
-    imageTextContent: settings.imageIncludeText ? (settings.imageTextContent || slide.headline || "") : "",
-    imageTextPosition: settings.imageTextPosition || "center",
-    textContent: settings.imageIncludeText ? (settings.imageTextContent || slide.headline || "") : "",
-    textPosition: settings.imageTextPosition || "center",
+    imageIncludeText: false,
+    imageTextContent: "",
+    imageTextPosition: "center",
+    textContent: "",
+    textPosition: "center",
   };
-  if (referenceImageUrl) {
-    body.styleReferenceImages = [referenceImageUrl];
+  // Prioriza referência enviada pelo usuário neste slide; senão usa a capa do carrossel.
+  const refs: string[] = [];
+  if (settings.referenceImageUrl) refs.push(settings.referenceImageUrl);
+  if (referenceImageUrl && referenceImageUrl !== settings.referenceImageUrl) refs.push(referenceImageUrl);
+  if (refs.length > 0) {
+    body.styleReferenceImages = refs;
   }
 
   const resp = await fetch(`${supabaseUrl}/functions/v1/generate-image`, {
