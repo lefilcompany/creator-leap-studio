@@ -44,6 +44,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { CarouselBriefingStage } from "@/components/calendar/carousel/CarouselBriefingStage";
 import { CarouselDesignStage } from "@/components/calendar/carousel/CarouselDesignStage";
+import { CalendarItemDoneView } from "@/components/calendar/CalendarItemDoneView";
 
 // Mapeia o formato escolhido na pauta para a melhor proporção da imagem
 const FORMAT_TO_ASPECT: Record<string, string> = {
@@ -343,18 +344,7 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
             />
           )
         )}
-        {viewStage === "done" && (
-          <div className="text-center py-12">
-            <div className="mx-auto h-14 w-14 rounded-full bg-success/15 text-success flex items-center justify-center mb-3">
-              <CheckCircle2 className="h-7 w-7" />
-            </div>
-            <h3 className="font-semibold text-base">Pauta concluída</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-              Esta pauta passou por todas as etapas do fluxo. Você pode acessá-la
-              no histórico a qualquer momento.
-            </p>
-          </div>
-        )}
+        {viewStage === "done" && <CalendarItemDoneView item={item} />}
       </div>
     </div>
   );

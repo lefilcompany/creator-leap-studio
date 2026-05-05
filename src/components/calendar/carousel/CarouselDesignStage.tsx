@@ -3,10 +3,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Sparkles, CheckCircle2, AlertCircle, ImageIcon, RefreshCw } from "lucide-react";
+import { Loader2, Sparkles, CheckCircle2, AlertCircle, ImageIcon, RefreshCw, Download, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUpdateCalendarItem, type CalendarItem } from "@/hooks/useCalendars";
 import { AgentFeedback } from "@/components/AgentFeedback";
+import { saveAs } from "file-saver";
+import JSZip from "jszip";
 
 interface Slide {
   index: number;
@@ -55,6 +57,41 @@ export function CarouselDesignStage({
     }
   };
 
+  const downloadOne = async (s: Slide) => {
+    if (!s.image_url) return;
+    try {
+      const res = await fetch(s.image_url, { mode: "cors" });
+      const blob = await res.blob();
+      const ext = blob.type.includes("png") ? "png" : blob.type.includes("webp") ? "webp" : "jpg";
+      saveAs(blob, `slide-${String(s.index).padStart(2, "0")}.${ext}`);
+    } catch (e: any) {
+      toast.error("Falha ao baixar imagem");
+    }
+  };
+
+  const downloadAll = async () => {
+    const ready = slides.filter((s) => !!s.image_url);
+    if (ready.length === 0) return;
+    try {
+      const zip = new JSZip();
+      await Promise.all(
+        ready.map(async (s) => {
+          try {
+            const res = await fetch(s.image_url!, { mode: "cors" });
+            const blob = await res.blob();
+            const ext = blob.type.includes("png") ? "png" : blob.type.includes("webp") ? "webp" : "jpg";
+            zip.file(`slide-${String(s.index).padStart(2, "0")}.${ext}`, blob);
+          } catch {}
+        }),
+      );
+      const out = await zip.generateAsync({ type: "blob" });
+      saveAs(out, `carrossel-${item.id.slice(0, 8)}.zip`);
+      toast.success("Carrossel baixado");
+    } catch (e: any) {
+      toast.error("Falha ao gerar zip");
+    }
+  };
+
   const approve = () => {
     update.mutate({
       id: item.id,
@@ -78,10 +115,18 @@ export function CarouselDesignStage({
             A capa é gerada primeiro e usada como referência visual para os demais.
           </p>
         </div>
-        <Button onClick={() => trigger(false)} disabled={isRunning} size="lg" className="gap-2">
-          {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {isRunning ? "Gerando…" : allDone ? "Regerar pendentes" : "Gerar todas as imagens"}
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {allDone && (
+            <Button onClick={downloadAll} variant="outline" size="lg" className="gap-2">
+              <Package className="h-4 w-4" />
+              Baixar todas (.zip)
+            </Button>
+          )}
+          <Button onClick={() => trigger(false)} disabled={isRunning} size="lg" className="gap-2">
+            {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {isRunning ? "Gerando…" : allDone ? "Regerar pendentes" : "Gerar todas as imagens"}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -112,14 +157,24 @@ export function CarouselDesignStage({
               </div>
             )}
             {s.status === "done" && (
-              <button
-                type="button"
-                onClick={() => trigger(true, [s.index])}
-                className="absolute bottom-2 right-2 z-10 bg-background/90 backdrop-blur rounded-md p-1.5 hover:bg-background transition"
-                title="Regerar"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-              </button>
+              <div className="absolute bottom-2 right-2 z-10 flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => downloadOne(s)}
+                  className="bg-background/90 backdrop-blur rounded-md p-1.5 hover:bg-background transition"
+                  title="Baixar"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => trigger(true, [s.index])}
+                  className="bg-background/90 backdrop-blur rounded-md p-1.5 hover:bg-background transition"
+                  title="Regerar"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </button>
+              </div>
             )}
             <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent text-white text-[10px] font-medium line-clamp-2">
               {s.headline}
