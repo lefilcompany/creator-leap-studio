@@ -3,8 +3,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Sparkles, CheckCircle2, AlertCircle, ImageIcon, RefreshCw, Download, Package, Type } from "lucide-react";
+import { Loader2, Sparkles, CheckCircle2, AlertCircle, ImageIcon, RefreshCw, Download, Package, Type, Settings2 } from "lucide-react";
 import { TextOverlayEditor, type TextLayer } from "@/components/TextOverlayEditor";
+import { SlideImageSettingsForm, type SlideImageSettings } from "./SlideImageSettingsForm";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useUpdateCalendarItem, type CalendarItem } from "@/hooks/useCalendars";
 import { AgentFeedback } from "@/components/AgentFeedback";
@@ -15,6 +17,9 @@ interface Slide {
   index: number;
   role: string;
   headline: string;
+  caption_part?: string;
+  image_briefing?: string;
+  image_settings?: SlideImageSettings;
   image_url?: string | null;
   status?: "pending" | "generating" | "done" | "error";
   error?: string | null;
@@ -28,13 +33,22 @@ export function CarouselDesignStage({
   update: ReturnType<typeof useUpdateCalendarItem>;
 }) {
   const meta = (item.metadata || {}) as Record<string, any>;
-  const carousel = (meta.carousel || {}) as { slides?: Slide[]; generation?: any };
+  const carousel = (meta.carousel || {}) as { slides?: Slide[]; generation?: any; shared_style?: any };
   const slides = carousel.slides || [];
   const gen = carousel.generation || {};
   const isRunning = gen.status === "pending";
   const qc = useQueryClient();
   const [editing, setEditing] = useState<{ index: number; sequential: boolean } | null>(null);
+  const [settingsFor, setSettingsFor] = useState<number | null>(null);
   const layersByIndex = (meta.carousel?.text_layers || {}) as Record<string, TextLayer[]>;
+
+  const updateSlideSettings = async (index: number, settings: SlideImageSettings) => {
+    const nextSlides = slides.map((s) => (s.index === index ? { ...s, image_settings: settings } : s));
+    await update.mutateAsync({
+      id: item.id,
+      updates: { metadata: { ...meta, carousel: { ...carousel, slides: nextSlides } } },
+    });
+  };
 
   const saveSlideImage = async (index: number, newUrl: string, layers: TextLayer[]) => {
     const nextSlides = slides.map((s) => (s.index === index ? { ...s, image_url: newUrl } : s));
@@ -189,6 +203,14 @@ export function CarouselDesignStage({
             <div className="absolute top-2 left-2 z-10 text-[10px] font-bold bg-background/90 backdrop-blur px-1.5 py-0.5 rounded">
               {s.index}
             </div>
+            <button
+              type="button"
+              onClick={() => setSettingsFor(s.index)}
+              className="absolute top-2 right-2 z-10 bg-background/90 backdrop-blur rounded-md p-1.5 hover:bg-background transition"
+              title="Configurações da imagem"
+            >
+              <Settings2 className="h-3.5 w-3.5" />
+            </button>
             {s.image_url ? (
               <img src={s.image_url} alt={`Slide ${s.index}`} className="w-full h-full object-cover" />
             ) : (
@@ -272,7 +294,6 @@ export function CarouselDesignStage({
       {editing && (() => {
         const slide = slides.find((s) => s.index === editing.index);
         if (!slide?.image_url) return null;
-        const remaining = slides.filter((s) => s.index > editing.index && s.image_url).length;
         return (
           <TextOverlayEditor
             open
@@ -281,6 +302,38 @@ export function CarouselDesignStage({
             initialLayers={layersByIndex[String(editing.index)]}
             onSaved={handleSaved}
           />
+        );
+      })()}
+
+      {settingsFor !== null && (() => {
+        const slide = slides.find((s) => s.index === settingsFor);
+        if (!slide) return null;
+        return (
+          <Dialog open onOpenChange={(o) => { if (!o) setSettingsFor(null); }}>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Slide {slide.index} · Configurações da imagem</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                {slide.image_briefing && (
+                  <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-xs">
+                    <div className="font-semibold text-muted-foreground uppercase tracking-wider mb-1">Briefing visual</div>
+                    <p className="text-foreground/80 whitespace-pre-wrap">{slide.image_briefing}</p>
+                  </div>
+                )}
+                <SlideImageSettingsForm
+                  value={slide.image_settings || {}}
+                  onChange={(v) => updateSlideSettings(slide.index, v)}
+                  defaultHeadline={slide.headline}
+                  sharedMood={carousel.shared_style?.mood}
+                  sharedVisualStyle={carousel.shared_style?.visual_style}
+                />
+              </div>
+              <DialogFooter>
+                <Button onClick={() => setSettingsFor(null)}>Concluído</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         );
       })()}
     </div>
