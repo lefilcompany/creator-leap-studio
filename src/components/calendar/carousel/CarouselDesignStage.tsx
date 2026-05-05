@@ -96,11 +96,39 @@ export function CarouselDesignStage({
         body: { item_id: item.id, regenerate, slide_indices: slideIndices },
       });
       if (error) throw error;
-      toast.info(slideIndices ? "Regerando slide…" : "Gerando imagens do carrossel…");
+      toast.info(slideIndices && slideIndices.length === 1 ? "Gerando slide…" : "Gerando imagens…");
       qc.invalidateQueries({ queryKey: ["calendar-items", item.calendar_id] });
     } catch (e: any) {
       toast.error(e?.message || "Falha ao gerar");
     }
+  };
+
+  // Propaga configuração de um slide (template) para os demais que ainda não têm config própria
+  const generateRestWithTemplate = async (templateIndex: number) => {
+    const template = slides.find((s) => s.index === templateIndex);
+    if (!template?.image_settings) {
+      toast.error("Configure as imagens do slide modelo primeiro");
+      return;
+    }
+    const targets = slides.filter((s) => s.index !== templateIndex && s.status !== "done");
+    if (targets.length === 0) {
+      toast.info("Nenhum slide pendente");
+      return;
+    }
+    const nextSlides = slides.map((s) => {
+      if (s.index === templateIndex) return s;
+      if (s.status === "done") return s;
+      // herda apenas se não tem config própria
+      if (!s.image_settings || Object.keys(s.image_settings).length === 0) {
+        return { ...s, image_settings: { ...template.image_settings } };
+      }
+      return s;
+    });
+    await update.mutateAsync({
+      id: item.id,
+      updates: { metadata: { ...meta, carousel: { ...carousel, slides: nextSlides } } },
+    });
+    await trigger(false, targets.map((s) => s.index));
   };
 
   const downloadOne = async (s: Slide) => {
