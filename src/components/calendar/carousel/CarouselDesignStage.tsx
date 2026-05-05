@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Sparkles, CheckCircle2, AlertCircle, ImageIcon, RefreshCw, Download, Package } from "lucide-react";
+import { Loader2, Sparkles, CheckCircle2, AlertCircle, ImageIcon, RefreshCw, Download, Package, Type, ArrowRight } from "lucide-react";
+import { TextOverlayEditor, type TextLayer } from "@/components/TextOverlayEditor";
 import { cn } from "@/lib/utils";
 import { useUpdateCalendarItem, type CalendarItem } from "@/hooks/useCalendars";
 import { AgentFeedback } from "@/components/AgentFeedback";
