@@ -314,6 +314,9 @@ async function runCarousel(
     if (allSlides.length === 0) throw new Error("Nenhum slide definido no metadata.carousel");
     const sharedStyle = carousel.shared_style || null;
 
+    // Garante uma action "pai" para agrupar todos os slides no histórico
+    const parentActionId = await ensureParentAction(itemId, userId, cal, meta);
+
     // Determina quais slides processar
     const targetIndices = options.slideIndices && options.slideIndices.length > 0
       ? options.slideIndices
