@@ -294,7 +294,6 @@ export function CarouselDesignStage({
       {editing && (() => {
         const slide = slides.find((s) => s.index === editing.index);
         if (!slide?.image_url) return null;
-        const remaining = slides.filter((s) => s.index > editing.index && s.image_url).length;
         return (
           <TextOverlayEditor
             open
@@ -305,6 +304,40 @@ export function CarouselDesignStage({
           />
         );
       })()}
+
+      {settingsFor !== null && (() => {
+        const slide = slides.find((s) => s.index === settingsFor);
+        if (!slide) return null;
+        return (
+          <Dialog open onOpenChange={(o) => { if (!o) setSettingsFor(null); }}>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Slide {slide.index} · Configurações da imagem</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                {slide.image_briefing && (
+                  <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-xs">
+                    <div className="font-semibold text-muted-foreground uppercase tracking-wider mb-1">Briefing visual</div>
+                    <p className="text-foreground/80 whitespace-pre-wrap">{slide.image_briefing}</p>
+                  </div>
+                )}
+                <SlideImageSettingsForm
+                  value={slide.image_settings || {}}
+                  onChange={(v) => updateSlideSettings(slide.index, v)}
+                  defaultHeadline={slide.headline}
+                  sharedMood={carousel.shared_style?.mood}
+                  sharedVisualStyle={carousel.shared_style?.visual_style}
+                />
+              </div>
+              <DialogFooter>
+                <Button onClick={() => setSettingsFor(null)}>Concluído</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
+  );
+}
   );
 }
