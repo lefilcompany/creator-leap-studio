@@ -214,6 +214,14 @@ export function CarouselDesignStage({
                 </button>
                 <button
                   type="button"
+                  onClick={() => setEditing({ index: s.index, sequential: false })}
+                  className="bg-background/90 backdrop-blur rounded-md p-1.5 hover:bg-background transition"
+                  title="Editar texto"
+                >
+                  <Type className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
                   onClick={() => trigger(true, [s.index])}
                   className="bg-background/90 backdrop-blur rounded-md p-1.5 hover:bg-background transition"
                   title="Regerar"
