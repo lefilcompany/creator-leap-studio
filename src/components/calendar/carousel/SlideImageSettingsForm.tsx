@@ -89,7 +89,7 @@ export function SlideImageSettingsForm({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Não autenticado");
       const ext = file.name.split(".").pop() || "png";
-      const path = `carousel-refs/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const path = `${user.id}/carousel-refs/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error } = await supabase.storage.from("content-images").upload(path, file, {
         contentType: file.type,
         upsert: false,
