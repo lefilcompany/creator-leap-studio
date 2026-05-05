@@ -350,6 +350,8 @@ async function runCarousel(
           image_url: res.imageUrl,
           design_action_id: res.actionId,
         });
+        if (parentActionId && res.actionId) await attachChildToParent(res.actionId, parentActionId);
+        if (parentActionId) await refreshParentResult(parentActionId, itemId);
         referenceImageUrl = res.imageUrl;
         coverActionId = res.actionId;
       } catch (e) {
