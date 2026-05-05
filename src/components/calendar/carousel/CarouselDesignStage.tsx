@@ -96,11 +96,39 @@ export function CarouselDesignStage({
         body: { item_id: item.id, regenerate, slide_indices: slideIndices },
       });
       if (error) throw error;
-      toast.info(slideIndices ? "Regerando slide…" : "Gerando imagens do carrossel…");
+      toast.info(slideIndices && slideIndices.length === 1 ? "Gerando slide…" : "Gerando imagens…");
       qc.invalidateQueries({ queryKey: ["calendar-items", item.calendar_id] });
     } catch (e: any) {
       toast.error(e?.message || "Falha ao gerar");
     }
+  };
+
+  // Propaga configuração de um slide (template) para os demais que ainda não têm config própria
+  const generateRestWithTemplate = async (templateIndex: number) => {
+    const template = slides.find((s) => s.index === templateIndex);
+    if (!template?.image_settings) {
+      toast.error("Configure as imagens do slide modelo primeiro");
+      return;
+    }
+    const targets = slides.filter((s) => s.index !== templateIndex && s.status !== "done");
+    if (targets.length === 0) {
+      toast.info("Nenhum slide pendente");
+      return;
+    }
+    const nextSlides = slides.map((s) => {
+      if (s.index === templateIndex) return s;
+      if (s.status === "done") return s;
+      // herda apenas se não tem config própria
+      if (!s.image_settings || Object.keys(s.image_settings).length === 0) {
+        return { ...s, image_settings: { ...template.image_settings } };
+      }
+      return s;
+    });
+    await update.mutateAsync({
+      id: item.id,
+      updates: { metadata: { ...meta, carousel: { ...carousel, slides: nextSlides } } },
+    });
+    await trigger(false, targets.map((s) => s.index));
   };
 
   const downloadOne = async (s: Slide) => {
@@ -182,15 +210,13 @@ export function CarouselDesignStage({
               </Button>
             </>
           )}
-          <Button onClick={() => trigger(false)} disabled={isRunning} size="lg" className="gap-2">
-            {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            {isRunning ? "Gerando…" : allDone ? "Regerar pendentes" : "Gerar todas as imagens"}
-          </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {slides.map((s) => (
+        {slides.map((s) => {
+          const hasSettings = !!s.image_settings && Object.keys(s.image_settings).length > 0;
+          return (
           <div
             key={s.index}
             className={cn(
@@ -214,13 +240,37 @@ export function CarouselDesignStage({
             {s.image_url ? (
               <img src={s.image_url} alt={`Slide ${s.index}`} className="w-full h-full object-cover" />
             ) : (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground">
+              <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground p-2 text-center">
                 {s.status === "generating" ? (
                   <Loader2 className="h-6 w-6 animate-spin" />
                 ) : s.status === "error" ? (
-                  <AlertCircle className="h-6 w-6 text-destructive" />
+                  <>
+                    <AlertCircle className="h-6 w-6 text-destructive" />
+                    <Button size="sm" variant="outline" onClick={() => trigger(true, [s.index])} className="gap-1 h-7 text-xs">
+                      <RefreshCw className="h-3 w-3" /> Tentar novamente
+                    </Button>
+                  </>
                 ) : (
-                  <ImageIcon className="h-6 w-6 opacity-40" />
+                  <>
+                    <ImageIcon className="h-6 w-6 opacity-40" />
+                    <Button
+                      size="sm"
+                      onClick={() => trigger(false, [s.index])}
+                      disabled={isRunning}
+                      className="gap-1 h-7 text-xs"
+                    >
+                      <Sparkles className="h-3 w-3" /> Gerar imagem
+                    </Button>
+                    {hasSettings && (
+                      <button
+                        type="button"
+                        onClick={() => generateRestWithTemplate(s.index)}
+                        className="text-[10px] underline text-muted-foreground hover:text-foreground"
+                      >
+                        Usar config nos demais
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -256,7 +306,8 @@ export function CarouselDesignStage({
               {s.headline}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {anyError && (
