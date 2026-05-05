@@ -180,6 +180,7 @@ export type Database = {
           deleted_at: string | null
           details: Json | null
           id: string
+          parent_action_id: string | null
           result: Json | null
           revisions: number | null
           status: string
@@ -197,6 +198,7 @@ export type Database = {
           deleted_at?: string | null
           details?: Json | null
           id?: string
+          parent_action_id?: string | null
           result?: Json | null
           revisions?: number | null
           status?: string
@@ -214,6 +216,7 @@ export type Database = {
           deleted_at?: string | null
           details?: Json | null
           id?: string
+          parent_action_id?: string | null
           result?: Json | null
           revisions?: number | null
           status?: string
@@ -229,6 +232,13 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "actions_parent_action_id_fkey"
+            columns: ["parent_action_id"]
+            isOneToOne: false
+            referencedRelation: "actions"
             referencedColumns: ["id"]
           },
           {
@@ -1917,33 +1927,60 @@ export type Database = {
           team_name: string
         }[]
       }
-      get_action_summaries: {
-        Args: {
-          p_brand_filter?: string
-          p_cursor_created_at?: string
-          p_cursor_id?: string
-          p_limit?: number
-          p_offset?: number
-          p_team_id?: string
-          p_type_filter?: string
-          p_user_id?: string
-        }
-        Returns: {
-          approved: boolean
-          brand_id: string
-          brand_name: string
-          created_at: string
-          id: string
-          image_url: string
-          objective: string
-          platform: string
-          thumb_path: string
-          title: string
-          total_count: number
-          type: string
-          video_url: string
-        }[]
-      }
+      get_action_summaries:
+        | {
+            Args: {
+              p_brand_filter?: string
+              p_cursor_created_at?: string
+              p_cursor_id?: string
+              p_limit?: number
+              p_offset?: number
+              p_team_id?: string
+              p_type_filter?: string
+              p_user_id?: string
+            }
+            Returns: {
+              approved: boolean
+              brand_id: string
+              brand_name: string
+              created_at: string
+              id: string
+              image_url: string
+              objective: string
+              platform: string
+              thumb_path: string
+              title: string
+              total_count: number
+              type: string
+              video_url: string
+            }[]
+          }
+        | {
+            Args: {
+              p_brand_filter?: string
+              p_cursor_created_at?: string
+              p_cursor_id?: string
+              p_limit?: number
+              p_offset?: number
+              p_team_id: string
+              p_type_filter?: string
+            }
+            Returns: {
+              approved: boolean
+              brand_id: string
+              brand_name: string
+              created_at: string
+              id: string
+              image_url: string
+              objective: string
+              platform: string
+              thumb_path: string
+              title: string
+              total_count: number
+              type: string
+              video_url: string
+            }[]
+          }
       get_all_teams_admin: {
         Args: never
         Returns: {
