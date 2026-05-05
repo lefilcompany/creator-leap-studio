@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -16,6 +24,7 @@ import {
   Minus,
   ImageIcon,
   FileText,
+  Type,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -23,6 +32,19 @@ import {
   type CalendarItem,
 } from "@/hooks/useCalendars";
 import { AgentFeedback } from "@/components/AgentFeedback";
+import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
+import { CameraAngleGrid } from "@/components/quick-content/CameraAngleGrid";
+
+interface SlideImageSettings {
+  visualStyle?: string;
+  cameraAngle?: string;
+  lighting?: string;
+  composition?: string;
+  mood?: string;
+  imageIncludeText?: boolean;
+  imageTextContent?: string;
+  imageTextPosition?: string;
+}
 
 interface CarouselSlide {
   index: number;
@@ -30,11 +52,50 @@ interface CarouselSlide {
   headline: string;
   caption_part: string;
   image_briefing: string;
+  image_settings?: SlideImageSettings;
   design_action_id?: string | null;
   image_url?: string | null;
   status?: "pending" | "generating" | "done" | "error";
   error?: string | null;
 }
+
+const LIGHTING_OPTIONS = [
+  { value: "natural", label: "Natural" },
+  { value: "studio", label: "Estúdio" },
+  { value: "golden_hour", label: "Golden hour" },
+  { value: "dramatic", label: "Dramática" },
+  { value: "soft", label: "Suave" },
+  { value: "neon", label: "Neon" },
+];
+
+const COMPOSITION_OPTIONS = [
+  { value: "auto", label: "Automática" },
+  { value: "rule_of_thirds", label: "Regra dos terços" },
+  { value: "centered", label: "Centralizada" },
+  { value: "symmetrical", label: "Simétrica" },
+  { value: "minimal", label: "Minimalista" },
+  { value: "dynamic", label: "Dinâmica" },
+];
+
+const MOOD_OPTIONS = [
+  { value: "auto", label: "Automático" },
+  { value: "energetic", label: "Energético" },
+  { value: "calm", label: "Calmo" },
+  { value: "professional", label: "Profissional" },
+  { value: "playful", label: "Divertido" },
+  { value: "luxury", label: "Sofisticado" },
+  { value: "warm", label: "Acolhedor" },
+];
+
+const TEXT_POSITIONS = [
+  { value: "top", label: "Topo" },
+  { value: "center", label: "Centro" },
+  { value: "bottom", label: "Rodapé" },
+  { value: "top-left", label: "Topo esquerdo" },
+  { value: "top-right", label: "Topo direito" },
+  { value: "bottom-left", label: "Rodapé esquerdo" },
+  { value: "bottom-right", label: "Rodapé direito" },
+];
 
 interface CarouselMeta {
   enabled?: boolean;
