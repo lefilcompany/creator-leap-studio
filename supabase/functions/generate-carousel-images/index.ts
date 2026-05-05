@@ -19,12 +19,24 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+interface SlideImageSettings {
+  visualStyle?: string;
+  cameraAngle?: string;
+  lighting?: string;
+  composition?: string;
+  mood?: string;
+  imageIncludeText?: boolean;
+  imageTextContent?: string;
+  imageTextPosition?: string;
+}
+
 interface SlideRow {
   index: number;
   role: string;
   headline: string;
   caption_part: string;
   image_briefing: string;
+  image_settings?: SlideImageSettings;
   design_action_id: string | null;
   image_url: string | null;
   status: "pending" | "generating" | "done" | "error";
