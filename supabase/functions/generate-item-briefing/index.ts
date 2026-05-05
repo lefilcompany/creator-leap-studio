@@ -482,7 +482,7 @@ Deno.serve(async (req) => {
 
       // EdgeRuntime.waitUntil mantém a tarefa viva mesmo após responder ao cliente.
       // @ts-ignore EdgeRuntime é provido pelo runtime do Supabase
-      EdgeRuntime.waitUntil(runGeneration(body.item_id, kind));
+      EdgeRuntime.waitUntil(runGeneration(body.item_id, kind, { carouselCount: body.carousel_count }));
 
       return new Response(
         JSON.stringify({ accepted: true, mode: "background", kind }),
