@@ -803,7 +803,56 @@ export default function ActionView() {
               {/* Row: Image + Details & Info side by side */}
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Image */}
-                {action.result?.imageUrl && (
+                {Array.isArray((action.result as any)?.slides) && (action.result as any).slides.length > 0 ? (
+                  <div className="lg:w-1/2">
+                    <SectionCard
+                      title={`Carrossel — ${(action.result as any).slides.length} slides`}
+                      icon={<LayoutGrid className="h-4 w-4" />}
+                      accentColor={accentColor}
+                      headerRight={
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
+                            const slides = (action.result as any).slides as Array<{ index: number; image_url: string | null }>;
+                            for (const s of slides) {
+                              if (s.image_url) await handleDownloadImage(s.image_url, `slide-${s.index}-${action.id}`);
+                            }
+                          }}
+                        >
+                          <Download className="mr-2 h-4 w-4" />Baixar todos
+                        </Button>
+                      }
+                    >
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {((action.result as any).slides as Array<{ index: number; role?: string; headline?: string; image_url: string | null }>)
+                          .slice()
+                          .sort((a, b) => a.index - b.index)
+                          .map((s) => (
+                            <div key={s.index} className="space-y-1.5">
+                              <div
+                                className="relative group rounded-lg overflow-hidden border border-border/10 shadow-sm cursor-pointer aspect-[4/5] bg-muted"
+                                onClick={() => s.image_url && setLightboxImage(s.image_url)}
+                              >
+                                {s.image_url ? (
+                                  <>
+                                    <img src={s.image_url} alt={`Slide ${s.index}`} className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                      <ZoomIn className="text-white h-6 w-6" />
+                                    </div>
+                                    <Badge className="absolute top-1.5 left-1.5 text-[10px] bg-black/60 text-white border-0">#{s.index}</Badge>
+                                  </>
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">Slide {s.index}</div>
+                                )}
+                              </div>
+                              {s.headline && <p className="text-[11px] text-muted-foreground line-clamp-2">{s.headline}</p>}
+                            </div>
+                          ))}
+                      </div>
+                    </SectionCard>
+                  </div>
+                ) : action.result?.imageUrl && (
                   <div className="lg:w-1/2">
                     <SectionCard title="Imagem Gerada" icon={<Image className="h-4 w-4" />} accentColor={accentColor}
                       headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
