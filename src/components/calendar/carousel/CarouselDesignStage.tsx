@@ -268,6 +268,21 @@ export function CarouselDesignStage({
         contentSnapshot={{ carousel: { slides: slides.map((s) => ({ index: s.index, image_url: s.image_url })) } }}
         label="estas imagens do carrossel"
       />
+
+      {editing && (() => {
+        const slide = slides.find((s) => s.index === editing.index);
+        if (!slide?.image_url) return null;
+        const remaining = slides.filter((s) => s.index > editing.index && s.image_url).length;
+        return (
+          <TextOverlayEditor
+            open
+            onOpenChange={(o) => { if (!o) setEditing(null); }}
+            imageUrl={slide.image_url}
+            initialLayers={layersByIndex[String(editing.index)]}
+            onSaved={handleSaved}
+          />
+        );
+      })()}
     </div>
   );
 }
