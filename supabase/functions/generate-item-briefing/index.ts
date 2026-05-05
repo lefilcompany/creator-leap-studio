@@ -12,13 +12,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-type Kind = "text" | "image" | "both";
+type Kind = "text" | "image" | "both" | "carousel";
 
 interface RequestBody {
   // Modo recomendado: passar apenas item_id e kind. A função busca o contexto sozinha
   // e persiste o resultado direto no banco em background.
   item_id?: string;
   kind?: Kind;
+  // Para modo carousel: número desejado de slides (3-10). Se ausente, IA decide.
+  carousel_count?: number;
 
   // Modo legado/sincrono: o cliente passa o contexto e recebe o briefing no payload.
   item?: {
