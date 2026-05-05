@@ -451,7 +451,7 @@ Deno.serve(async (req) => {
 
     // @ts-ignore EdgeRuntime
     EdgeRuntime.waitUntil(
-      runCarousel(body.item_id, token, {
+      runCarousel(body.item_id, token, user.id, {
         regenerate: body.regenerate === true,
         slideIndices: body.slide_indices,
       }),
