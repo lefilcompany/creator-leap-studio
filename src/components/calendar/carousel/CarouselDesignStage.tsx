@@ -210,11 +210,13 @@ export function CarouselDesignStage({
               </Button>
             </>
           )}
-          <Button onClick={() => trigger(false)} disabled={isRunning} size="lg" className="gap-2">
-            {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            {isRunning ? "Gerando…" : allDone ? "Regerar pendentes" : "Gerar todas as imagens"}
-          </Button>
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {slides.map((s) => {
+          const hasSettings = !!s.image_settings && Object.keys(s.image_settings).length > 0;
+          return (
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
