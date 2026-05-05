@@ -1,254 +1,115 @@
 
-# Workflow de Criação de Conteúdo com Briefing
+# Carrossel de ponta a ponta no Calendário de Conteúdo
 
-Hoje o usuário entra em **Criar Conteúdo** e preenche um formulário grande que dispara direto a geração de imagem + legenda. Vamos transformar isso em um **fluxo guiado de 4 passos** que parte de uma ideia (briefing) e termina na geração — preservando todo o motor atual de imagem/legenda.
+Hoje "carrossel" é apenas um rótulo de formato (`metadata.format = "carrossel"`) e cai exatamente no mesmo fluxo de um post único: 2 briefings, 1 imagem. Vamos transformar em um fluxo nativo com N slides.
 
----
+## 1. Modelo de dados (migration)
 
-## Visão geral do novo fluxo
-
-```text
-┌────────────┐   ┌────────────────┐   ┌─────────────────┐   ┌──────────────┐
-│ 1.Briefing │ → │ 2.Plano (1     │ → │ 3.Editar        │ → │ 4.Gerar      │
-│ (ideia)    │   │   template +   │   │   template      │   │ (imagem +    │
-│            │   │   alternativas)│   │   confirmado    │   │  legenda)    │
-└────────────┘   └────────────────┘   └─────────────────┘   └──────────────┘
-   marca           IA propõe          usuário ajusta         pipeline atual
-   editoria        direção visual      visual / legenda       (CreateContent)
-   persona         + copy + cores      cores / tom
-   objetivo
-   ideia inicial
-```
-
-- O **fluxo padrão** do botão "Criar Conteúdo" passa a ser este wizard.
-- Há um **atalho discreto "Já sei o que quero criar"** que pula o briefing e leva direto ao formulário atual.
-- Toda a etapa 4 reaproveita o que já existe em `CreateContent.tsx` (campos, geração, créditos, persistência) — não reescrevemos o motor.
-
----
-
-## Backend
-
-### 1. Nova edge function `generate-content-templates`
-
-Recebe o briefing e devolve **1 template detalhado** (ou N alternativas quando o usuário pedir mais).
-
-**Payload (POST):**
-```json
-{
-  "briefingId": "uuid",
-  "brandId": "uuid",
-  "themeId": "uuid|null",
-  "personaId": "uuid|null",
-  "platform": "instagram|...",
-  "objective": "string",
-  "contentType": "organic|ads",
-  "idea": "string longa (briefing do usuário)",
-  "tone": ["inspirador", "..."],
-  "additionalNotes": "string",
-  "mode": "initial" | "more_alternatives",
-  "existingTemplates": [...]  // só em mode=more_alternatives, p/ evitar repetição
-}
-```
-
-**Saída:** array de templates com a mesma estrutura de um "post" do Calendário, **expandida com direção visual completa** para alimentar `CreateContent`:
+Tudo persistido em `calendar_items.metadata.carousel` para não criar tabela nova:
 
 ```json
-{
-  "templates": [{
-    "id": "uuid-local",
-    "title": "...",
-    "format": "Reels | Carrossel | Post estático | ...",
-    "bigIdea": "...",
-    "summary": "2-3 frases",
-    "caption": "legenda completa pronta",
-    "hashtags": ["..."],
-    "cta": "...",
-    "visualDirection": {
-      "description": "descrição visual detalhada da imagem",
-      "visualStyle": "realistic|animated|...",
-      "mood": "...",
-      "lighting": "...",
-      "composition": "...",
-      "cameraAngle": "...",
-      "colorPalette": "...",
-      "aspectRatio": "1:1|4:5|9:16|...",
-      "imageText": { "include": false, "content": "", "position": "center" }
+"carousel": {
+  "enabled": true,
+  "suggested_count": 6,
+  "count": 6,
+  "shared_style": { "palette": "...", "typography": "...", "mood": "...", "visual_style": "realistic" },
+  "reference_action_id": "uuid-do-slide-1",
+  "slides": [
+    {
+      "index": 1,
+      "role": "capa | desenvolvimento | cta",
+      "headline": "...",
+      "caption_part": "...",
+      "image_briefing": "...",
+      "design_action_id": "uuid",
+      "image_url": "...",
+      "status": "pending | generating | done | error",
+      "error": null
     }
-  }]
+  ]
 }
 ```
+`design_action_id` raiz continua existindo, mas aponta para o slide 1 (capa) por compatibilidade com o resto do app (histórico, thumbs, aprovação final).
 
-**Lógica:**
-- Valida JWT, valida briefing (não aceita campos com `xxx`, `aaa`, `...` — heurística simples + tamanho mínimo de ~30 chars na ideia).
-- Carrega contexto da marca (segmento, valores, paleta), tema (tom, público) e persona (se houver).
-- Chama Gemini (modelo `gemini-2.5-flash`, JSON via `responseSchema`) com prompt que reusa as diretrizes do `generate-plan` mas aprofunda a parte visual.
-- Em `mode: "more_alternatives"`, envia os títulos/big ideas existentes na instrução e pede 2 variações distintas de ângulo.
-- **Não cobra créditos aqui** — o briefing+plano fazem parte do pacote único (ver tabela de preços abaixo).
+## 2. Etapa Calendário (sem mudança visual)
+Nada muda — o usuário continua escolhendo formato "Carrossel" como hoje.
 
-### 2. Nova tabela `content_briefings`
+## 3. Etapa Briefing (mudanças significativas)
 
-Armazena o briefing e os templates gerados, permitindo retomar e auditar:
+Quando `format === "carrossel"`:
 
-```sql
-create table public.content_briefings (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  team_id uuid,
-  brand_id uuid not null,
-  theme_id uuid,
-  persona_id uuid,
-  platform text,
-  objective text,
-  content_type text default 'organic',
-  idea text not null,
-  tone text[] default '{}',
-  additional_notes text,
-  templates jsonb default '[]',           -- array de templates gerados
-  selected_template_id text,              -- id do template escolhido
-  edited_template jsonb,                  -- versão final após edição
-  status text default 'draft',            -- draft|templates_generated|confirmed|completed
-  action_id uuid,                         -- preenchido quando finaliza geração
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-alter table public.content_briefings enable row level security;
--- Policies idênticas ao padrão `can_access_resource(user_id, team_id)` já em uso.
-```
+- Aparece um bloco extra "**Estrutura do carrossel**" acima dos campos de briefing:
+  - Slider/stepper "Quantos slides?" (3–10), pré-preenchido com sugestão da IA
+  - Botão "Sugerir com IA" — chama `suggest-carousel-structure` que retorna `{ suggested_count, slides: [{ role, headline, caption_part, image_briefing }] }`
+- Os 2 campos atuais (texto/imagem) viram **abas** dentro de cada slide:
+  - Lista vertical/tabs de slides (Slide 1 — Capa, Slide 2…, Slide N — CTA)
+  - Para cada slide: campo de copy (headline + parte da legenda) + campo de briefing visual + botão "Gerar este slide com IA"
+  - Botão geral "Gerar todos com IA" continua existindo
+- Bloco "**Estilo compartilhado**" (paleta, tipografia, mood, visual style) — gerado uma vez e fica fixo; usado em todos os prompts para coerência
+- Validação para avançar: todos os slides com `image_briefing.length >= 10` e `headline` preenchido
+- Tela de aprovação mostra grid com os N slides resumidos
 
-### 3. Modelo de créditos — pacote único
+Edge function `generate-item-briefing` ganha modo `carousel`:
+- Recebe `count` e `shared_style`
+- Retorna array de slides já estruturados (capa → desenvolvimento → cta) num único call Gemini, com instrução de manter coerência narrativa e visual
 
-Adicionar ao `lib/creditCosts.ts` e `_shared/creditCosts.ts`:
+## 4. Etapa Design (mudança principal)
 
-```ts
-CONTENT_BRIEFING_PACKAGE: 10  // briefing + plano + 1 imagem completa + legenda
-```
+Substitui o atual "abrir CreateImage com prefill" por geração inline em paralelo:
 
-- **Cobrado uma única vez**, no momento em que o usuário clica em **"Gerar conteúdo"** na etapa 4 do workflow (e não na geração dos templates).
-- A edge function `generate-content-templates` é gratuita em si — apenas reserva contexto.
-- Se o usuário gerar **conteúdos extras** a partir do mesmo briefing (botão "Gerar mais um a partir deste plano"), cobra apenas `COMPLETE_IMAGE` (8 créd) por vez, pois o briefing/plano já foi pago.
-- A pré-validação de créditos (`checkUserCredits`) acontece no início do passo 4 para evitar frustração no fim do fluxo.
+- Card por slide num grid responsivo (2 col desktop, 1 mobile) mostrando:
+  - Miniatura (placeholder enquanto `pending`/`generating`, imagem quando `done`)
+  - Headline do slide, badge do papel (Capa/Desenvolvimento/CTA)
+  - Botão "Regenerar" individual (custo: 1× crédito de imagem completa)
+  - Status visual (spinner / check / erro com retry)
+- CTA principal "**Gerar todas as imagens**" no topo:
+  - Confirmação de custo: `N × COMPLETE_IMAGE_MEDIUM` créditos
+  - Dispara nova edge function `generate-carousel-images`:
+    1. Gera **slide 1 (capa)** primeiro, sozinho — vira referência visual
+    2. Faz upload + cria `actions` row para slide 1 → `reference_action_id`
+    3. Dispara slides 2..N **em paralelo** (`Promise.all`) usando slide 1 como `image_url` de referência (image-to-image leve via Gemini nano banana, prompt instrui "manter paleta, tipografia, mood, ambientação; trocar cena conforme briefing")
+    4. Cada slide gera sua própria `actions` row + atualiza `metadata.carousel.slides[i]`
+  - Cliente faz polling em `metadata.carousel` para atualizar UI em tempo real
+- Botão "Aprovar carrossel" só fica ativo quando todos os slides têm `status === "done"`
+- Aprovação final: marca `final_approved = true` e cria/atualiza ação principal apontando para o conjunto
 
-### 4. Reuso do motor atual
+## 5. Visualização do resultado
 
-A edge function de geração final continua sendo o pipeline existente (`generate-image` + `generate-caption`). O wizard apenas:
-- Pré-preenche o payload do `CreateContent` com os campos do `edited_template`.
-- Marca `metadata.briefing_id` na ação salva, para rastreabilidade no histórico.
+- `ActionView` ganha um modo "carousel" quando `details.carousel === true`: carrossel embla com os N slides, navegação dot/seta
+- `History` thumbnail usa o slide 1 + badge "Carrossel · N"
+- Download/PPTX export gera 1 slide por imagem na ordem
 
----
+## 6. Feedback e aprendizado
 
-## Frontend
+- `AgentFeedback` no painel de Design fica com `agentId="carousel_image"` e snapshot de todos os slides
+- O agente revisor já existente (`revise-agent`) reaproveita esses feedbacks para evoluir prompts de carrossel por marca
 
-### Estrutura — Stepper horizontal em página única
+## Arquivos novos/editados
 
-Nova página `src/pages/CreateContentWorkflow.tsx` montada na rota `/create/content` (a rota atual `/create/image` continua funcionando como **atalho direto**).
+**Novos:**
+- `supabase/functions/suggest-carousel-structure/index.ts`
+- `supabase/functions/generate-carousel-images/index.ts`
+- `src/components/calendar/carousel/CarouselStructurePanel.tsx`
+- `src/components/calendar/carousel/CarouselSlideEditor.tsx`
+- `src/components/calendar/carousel/CarouselDesignGrid.tsx`
+- `src/components/ActionCarouselViewer.tsx`
 
-Layout:
+**Editados:**
+- `supabase/functions/generate-item-briefing/index.ts` — modo carousel
+- `src/components/calendar/CalendarItemPanel.tsx` — desvia `StageBriefing`/`StageDesign` quando formato = carrossel
+- `src/pages/ActionView.tsx` — render do viewer multi-slide
+- `src/components/historico/ActionList.tsx` — badge "Carrossel · N"
+- `src/lib/exportHistoryToPptx.ts` — exporta N slides
+- `src/lib/creditCosts.ts` (+ shared) — opcional: alias `CAROUSEL_IMAGE` = `COMPLETE_IMAGE_MEDIUM`
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  [Banner pequeno + breadcrumb]                              │
-├─────────────────────────────────────────────────────────────┤
-│  [Stepper]  ●─────●─────○─────○                              │
-│             Briefing  Plano  Editar  Gerar                  │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│   Conteúdo da etapa atual (componente isolado)              │
-│                                                             │
-├─────────────────────────────────────────────────────────────┤
-│  [← Voltar]                            [Avançar / Gerar →]  │
-└─────────────────────────────────────────────────────────────┘
-```
+## Custos de crédito
+- Sugestão de estrutura: grátis (texto leve)
+- Briefings: 0 (já gratuito hoje)
+- Geração: `N × COMPLETE_IMAGE_MEDIUM` (8 créditos por slide), confirmação clara antes de disparar
+- Regeneração individual: 1 × `COMPLETE_IMAGE_MEDIUM`
 
-- **Estado** mantido em `useReducer` local + persistido em `sessionStorage` (chave `create-content-workflow`) para sobreviver a refresh.
-- **Stepper** clicável apenas para etapas já visitadas (não pula para frente).
-- **Mobile (< 640px)**: stepper vira lista vertical compacta com check; botões de navegação ficam fixos no rodapé (`sticky bottom-0`).
-- **Atalho "Já sei o que quero criar"** aparece como link discreto no canto superior direito do banner, levando a `/create/image?skip_briefing=1`.
-
-### Componentes novos (em `src/components/create-workflow/`)
-
-1. **`StepIndicator.tsx`** — barra de progresso responsiva, recebe `currentStep` e `steps[]`.
-2. **`Step1Briefing.tsx`** — formulário do briefing:
-   - Marca (obrigatório, reusa carregamento atual)
-   - Editoria e Persona (opcionais, filtradas pela marca)
-   - Plataforma (obrigatório)
-   - Objetivo (obrigatório, select: Autoridade / Engajamento / Conversão / Educação / Marca)
-   - Tipo de conteúdo (orgânico / ads)
-   - **Ideia / briefing** (textarea grande, mín. 30 chars, validação anti-`xxx`)
-   - Tom de voz (multiselect, máx. 4)
-   - Notas adicionais (opcional)
-   - Helper text com exemplos de bons briefings.
-3. **`Step2Plan.tsx`** — exibe o template gerado:
-   - Card grande com título, formato, big idea, copy preview, hashtags, miniatura da direção visual (descrita).
-   - Botão **"Gerar 2 alternativas"** (chama `generate-content-templates` em `mode: more_alternatives`).
-   - Quando há alternativas, mostra como carrossel/grid; usuário marca a escolhida.
-   - Loading skeleton enquanto IA processa.
-4. **`Step3EditTemplate.tsx`** — formulário editável com tudo que veio do template:
-   - Tabs: **Visual** (descrição, estilo, mood, paleta, aspect ratio, ângulo, iluminação) + **Legenda** (caption, CTA, hashtags) + **Texto na imagem** (toggle).
-   - Reusa componentes existentes: `VisualStyleGrid`, `CameraAngleGrid`, `FormatPreview`.
-   - Cada campo tem placeholder com o valor sugerido pela IA + botão "↺ Restaurar sugestão".
-5. **`Step4Generate.tsx`** — preview consolidado + botão final:
-   - Mostra o resumo do que vai ser gerado.
-   - Chip de custo: **10 créditos (pacote completo)** ou **8 créditos** se for "gerar mais um".
-   - Botão **"Gerar conteúdo"** dispara o pipeline atual de `CreateContent` e leva para `/result`.
-   - Após geração, oferece **"Gerar outro conteúdo a partir deste briefing"** (volta para etapa 2 com novas alternativas, custo reduzido).
-
-### Hook `useContentWorkflow`
-
-Centraliza:
-- estado das 4 etapas + validação de avanço,
-- chamadas para `generate-content-templates`,
-- montagem do payload final para o motor de geração existente,
-- persistência em `sessionStorage` + sincronização com tabela `content_briefings`.
-
-### Mudanças no `ContentCreationSelector`
-
-A tela `/create` (seleção entre Imagem / Vídeo / Marketplace / Revisar) continua igual. A diferença é:
-- O card **"Criar Conteúdo"** passa a apontar para `/create/content` (nova rota do workflow), e não mais para `/create/image`.
-- Adiciona uma badge sutil "Novo • Com briefing IA" no card.
-
-### Página `CreateImage` atual
-
-- Permanece intacta como atalho via `/create/image?skip_briefing=1`.
-- Quando aberta com esse param, mostra um banner discreto: *"Você está pulando o briefing assistido. Quer começar do zero com IA? [Voltar ao workflow]"*.
-
----
-
-## Migrações de banco (resumo)
-
-Uma única migração:
-
-1. `create table public.content_briefings (...)` com RLS.
-2. Policies usando `can_access_resource(user_id, team_id)` (já existe).
-3. Trigger `update_updated_at_column` (já existe) em `content_briefings`.
-
-Nenhuma alteração em tabelas existentes.
-
----
-
-## Considerações técnicas
-
-- **Validação anti-briefing-vazio**: front (zod) + back (heurística). Rejeita ideia com `< 30 chars`, ou que tenha `> 50%` de caracteres repetidos, ou que case com regex `/^(x|a|\.|teste)+$/i`.
-- **Responsividade**: stepper colapsa em mobile; cards de template usam `grid-cols-1 md:grid-cols-2`; botões de navegação viram `sticky bottom-0` em telas pequenas.
-- **Acessibilidade**: stepper marcado com `aria-current="step"`; navegação por teclado entre etapas; foco vai para o primeiro campo da nova etapa ao avançar.
-- **Erros e rate limit (429/402)**: a edge function de templates trata e devolve mensagens prontas; o front mostra toast e mantém o estado para o usuário tentar novamente sem perder o briefing.
-- **Histórico**: a ação final continua sendo gravada na tabela `actions` (tipo `CONTENT_FROM_BRIEFING`), com `metadata.briefing_id` para conseguir reabrir o briefing.
-
----
-
-## Entregáveis
-
-**Banco**
-- Migração: tabela `content_briefings` + policies + trigger.
-
-**Edge functions**
-- Nova: `supabase/functions/generate-content-templates/index.ts`.
-- Atualizar: `_shared/creditCosts.ts` (`CONTENT_BRIEFING_PACKAGE: 10`).
-
-**Frontend**
-- Nova página: `src/pages/CreateContentWorkflow.tsx`.
-- Novos componentes: `src/components/create-workflow/StepIndicator.tsx`, `Step1Briefing.tsx`, `Step2Plan.tsx`, `Step3EditTemplate.tsx`, `Step4Generate.tsx`.
-- Novo hook: `src/hooks/useContentWorkflow.ts`.
-- Atualizar `src/lib/creditCosts.ts` com `CONTENT_BRIEFING_PACKAGE`.
-- Atualizar `src/App.tsx`: rota `/create/content` → `CreateContentWorkflow`.
-- Atualizar `src/pages/ContentCreationSelector.tsx`: card "Criar Conteúdo" aponta para `/create/content` e ganha badge "Novo".
-- Atualizar `src/pages/CreateImage.tsx`: banner discreto quando `?skip_briefing=1`.
+## Pontos de atenção
+- Aspect ratio fixo do carrossel: **4:5** (já mapeado em `FORMAT_TO_ASPECT`)
+- Limite hard de 10 slides para evitar custo descontrolado e rate limit do Gemini
+- Se uma imagem falhar, o conjunto não bloqueia — usuário regenera só a que falhou
+- Polling: já existe padrão em `StageBriefing`, reusar (3.5s, invalidate query)

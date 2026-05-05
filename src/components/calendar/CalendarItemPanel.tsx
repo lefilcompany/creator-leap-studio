@@ -42,6 +42,8 @@ import {
   type CalendarStage,
 } from "@/hooks/useCalendars";
 import { useNavigate } from "react-router-dom";
+import { CarouselBriefingStage } from "@/components/calendar/carousel/CarouselBriefingStage";
+import { CarouselDesignStage } from "@/components/calendar/carousel/CarouselDesignStage";
 
 // Mapeia o formato escolhido na pauta para a melhor proporção da imagem
 const FORMAT_TO_ASPECT: Record<string, string> = {
@@ -315,23 +317,31 @@ export const CalendarItemPanel = ({ item }: { item: CalendarItem }) => {
           />
         )}
         {viewStage === "briefing" && (
-          <StageBriefing item={item} update={update} />
+          ((item.metadata as any)?.format === "carrossel") ? (
+            <CarouselBriefingStage item={item} update={update} />
+          ) : (
+            <StageBriefing item={item} update={update} />
+          )
         )}
         {(viewStage === "design" || viewStage === "review") && (
-          <StageDesign
-            item={item}
-            onAdvance={() =>
-              update.mutate({
-                id: item.id,
-                updates: {
-                  design_approved: true,
-                  final_approved: true,
-                  stage: "done",
-                },
-              })
-            }
-            loading={update.isPending}
-          />
+          ((item.metadata as any)?.format === "carrossel") ? (
+            <CarouselDesignStage item={item} update={update} />
+          ) : (
+            <StageDesign
+              item={item}
+              onAdvance={() =>
+                update.mutate({
+                  id: item.id,
+                  updates: {
+                    design_approved: true,
+                    final_approved: true,
+                    stage: "done",
+                  },
+                })
+              }
+              loading={update.isPending}
+            />
+          )
         )}
         {viewStage === "done" && (
           <div className="text-center py-12">

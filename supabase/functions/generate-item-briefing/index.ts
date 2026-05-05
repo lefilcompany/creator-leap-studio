@@ -12,13 +12,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-type Kind = "text" | "image" | "both";
+type Kind = "text" | "image" | "both" | "carousel";
 
 interface RequestBody {
   // Modo recomendado: passar apenas item_id e kind. A função busca o contexto sozinha
   // e persiste o resultado direto no banco em background.
   item_id?: string;
   kind?: Kind;
+  // Para modo carousel: número desejado de slides (3-10). Se ausente, IA decide.
+  carousel_count?: number;
 
   // Modo legado/sincrono: o cliente passa o contexto e recebe o briefing no payload.
   item?: {
@@ -183,6 +185,50 @@ REGRAS:
 - Não invente elementos da marca que não estão no contexto.
 - Foque em direção visual clara, técnica e acionável.`;
 
+const CAROUSEL_SYSTEM = `# AGENTE: ESPECIALISTA EM CARROSSÉIS PARA REDES SOCIAIS
+
+Você é um(a) estrategista de conteúdo brasileiro(a) especialista em CARROSSÉIS de alta performance (Instagram, LinkedIn, TikTok). Domina arquitetura narrativa de carrossel: capa que para o scroll, slides de desenvolvimento com 1 ideia cada, ritmo de leitura, transições visuais e CTA final.
+
+SUA MISSÃO: estruturar um carrossel COMPLETO a partir do contexto da pauta. Você define quantos slides fazem sentido, o papel de cada um e produz briefing de copy + briefing visual por slide.
+
+REGRAS DE ENTREGA (OBRIGATÓRIAS):
+- Responda EXCLUSIVAMENTE com um JSON válido, sem markdown, sem comentários, sem texto antes ou depois.
+- Nunca se apresente, não explique seu raciocínio.
+- Português do Brasil, denso e acionável.
+
+REGRA DE OURO — FIDELIDADE AO BRIEFING PRINCIPAL:
+- Trate o "BRIEFING PRINCIPAL DO CALENDÁRIO" como inegociável: tom, posicionamento, restrições, palavras-chave.
+
+ESTRUTURA NARRATIVA OBRIGATÓRIA:
+- Slide 1 = "capa" (gancho visual + headline curta que para o scroll, máx 6 palavras na headline)
+- Slides do meio = "desenvolvimento" (1 ideia por slide, encadeamento lógico)
+- Último slide = "cta" (chamada clara para a ação esperada)
+- Quantidade ideal entre 3 e 10. Se o usuário sugerir um número, respeite-o exatamente. Caso contrário escolha o número que melhor serve ao tema (geralmente 5–7).
+
+ESTILO COMPARTILHADO (shared_style):
+Defina UMA direção visual coerente para o carrossel inteiro: paleta exata (cite cores ou tons), tipografia (família/peso/estilo), mood (sensação geral), visual_style (uma das opções: realistic, animated, cartoon, anime, watercolor, oil_painting, digital_art, sketch, minimalist, vintage). Esta direção será aplicada a TODOS os slides para garantir unidade visual.
+
+PARA CADA SLIDE:
+- "role": "capa" | "desenvolvimento" | "cta"
+- "headline": frase curta e impactante (máx 8 palavras)
+- "caption_part": 1 parágrafo curto (40-90 palavras) que expande a ideia daquele slide e que pode ser usado na legenda do post
+- "image_briefing": direção visual densa daquele slide (60-150 palavras), seguindo o shared_style mas com cena/elementos próprios
+
+FORMATO DA RESPOSTA (JSON estrito):
+{
+  "shared_style": {
+    "palette": "string com paleta exata",
+    "typography": "string com família/peso",
+    "mood": "string descrevendo a sensação",
+    "visual_style": "uma das chaves listadas acima"
+  },
+  "slides": [
+    { "role": "capa", "headline": "...", "caption_part": "...", "image_briefing": "..." },
+    { "role": "desenvolvimento", "headline": "...", "caption_part": "...", "image_briefing": "..." },
+    { "role": "cta", "headline": "...", "caption_part": "...", "image_briefing": "..." }
+  ]
+}`;
+
 async function callGemini(systemPrompt: string, userPrompt: string, apiKey: string): Promise<string> {
   const model = "gemini-2.5-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -310,7 +356,7 @@ async function setStatus(
   await admin.from("calendar_items").update({ metadata: meta }).eq("id", itemId);
 }
 
-async function runGeneration(itemId: string, kind: Kind) {
+async function runGeneration(itemId: string, kind: Kind, opts: { carouselCount?: number } = {}) {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   if (!GEMINI_API_KEY) {
     await setStatus(itemId, "error", kind, { error: "GEMINI_API_KEY ausente" });
@@ -322,13 +368,80 @@ async function runGeneration(itemId: string, kind: Kind) {
     const baseContext = `Contexto disponível:\n\n${buildContext(ctx)}\n\n`;
 
     const updates: Record<string, any> = {};
-    if (kind === "text" || kind === "both") {
-      const learning = await buildAgentLearningBlock({
+
+    if (kind === "carousel") {
+      const learningCar = await buildAgentLearningBlock({
         brandId: (ctx as any).brandId,
-        agentId: "image_briefing", // texto-briefing visual? — usa "calendar_items" abaixo
+        agentId: "image_briefing",
       });
-      // Para o briefing de TEXTO da pauta, usamos a chave 'calendar_items' como já é
-      // o agente que produz texto associado às pautas.
+      const countHint = opts.carouselCount && opts.carouselCount >= 3 && opts.carouselCount <= 10
+        ? `\n\nO usuário pediu EXATAMENTE ${opts.carouselCount} slides — respeite esse número.`
+        : "\n\nO usuário não definiu quantidade — escolha o número ideal entre 3 e 10.";
+      const userPrompt = `${baseContext}${learningCar}\n\nEstruture o carrossel completo agora.${countHint}`;
+      const raw = await callGemini(CAROUSEL_SYSTEM, userPrompt, GEMINI_API_KEY);
+      // Parse JSON estrito (tolera markdown)
+      const cleaned = raw.replace(/^```json\s*|```$/gi, "").trim();
+      const jsonStart = cleaned.indexOf("{");
+      const jsonEnd = cleaned.lastIndexOf("}");
+      const jsonStr = jsonStart >= 0 ? cleaned.slice(jsonStart, jsonEnd + 1) : cleaned;
+      let parsed: any;
+      try {
+        parsed = JSON.parse(jsonStr);
+      } catch (parseErr) {
+        throw new Error("PARSE_ERROR: resposta da IA não é JSON válido");
+      }
+      const slides = Array.isArray(parsed.slides) ? parsed.slides : [];
+      if (slides.length < 2) throw new Error("EMPTY_RESPONSE");
+
+      // Persiste no metadata.carousel
+      const admin = adminClient();
+      const { data: cur } = await admin
+        .from("calendar_items")
+        .select("metadata")
+        .eq("id", itemId)
+        .maybeSingle();
+      const meta = ((cur?.metadata as any) || {}) as Record<string, any>;
+      const existingSlides: any[] = Array.isArray(meta.carousel?.slides) ? meta.carousel.slides : [];
+      const newSlides = slides.map((s: any, idx: number) => ({
+        index: idx + 1,
+        role: s.role || (idx === 0 ? "capa" : idx === slides.length - 1 ? "cta" : "desenvolvimento"),
+        headline: String(s.headline || "").trim(),
+        caption_part: String(s.caption_part || "").trim(),
+        image_briefing: String(s.image_briefing || "").trim(),
+        // Preserva resultados de imagem se já existiam (regeneração de briefing)
+        design_action_id: existingSlides[idx]?.design_action_id ?? null,
+        image_url: existingSlides[idx]?.image_url ?? null,
+        status: existingSlides[idx]?.status === "done" ? "done" : "pending",
+        error: null,
+      }));
+      meta.carousel = {
+        ...(meta.carousel || {}),
+        enabled: true,
+        count: newSlides.length,
+        suggested_count: newSlides.length,
+        shared_style: parsed.shared_style || meta.carousel?.shared_style || null,
+        slides: newSlides,
+      };
+      // Também sincroniza text_briefing (concatena caption_parts) e image_briefing (resumo)
+      const concatCaption = newSlides
+        .map((s) => `Slide ${s.index} (${s.role}) — ${s.headline}\n${s.caption_part}`)
+        .join("\n\n");
+      const concatImage = newSlides
+        .map((s) => `Slide ${s.index} (${s.role}) — ${s.headline}\n${s.image_briefing}`)
+        .join("\n\n");
+      await admin
+        .from("calendar_items")
+        .update({
+          metadata: meta,
+          text_briefing: concatCaption,
+          image_briefing: concatImage,
+        })
+        .eq("id", itemId);
+      await setStatus(itemId, "done", kind);
+      return;
+    }
+
+    if (kind === "text" || kind === "both") {
       const learningText = await buildAgentLearningBlock({
         brandId: (ctx as any).brandId,
         agentId: "calendar_items",
@@ -369,7 +482,7 @@ Deno.serve(async (req) => {
 
       // EdgeRuntime.waitUntil mantém a tarefa viva mesmo após responder ao cliente.
       // @ts-ignore EdgeRuntime é provido pelo runtime do Supabase
-      EdgeRuntime.waitUntil(runGeneration(body.item_id, kind));
+      EdgeRuntime.waitUntil(runGeneration(body.item_id, kind, { carouselCount: body.carousel_count }));
 
       return new Response(
         JSON.stringify({ accepted: true, mode: "background", kind }),
