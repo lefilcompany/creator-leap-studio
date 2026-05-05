@@ -25,6 +25,7 @@ interface SlideImageSettings {
   lighting?: string;
   composition?: string;
   mood?: string;
+  referenceImageUrl?: string | null;
   imageIncludeText?: boolean;
   imageTextContent?: string;
   imageTextPosition?: string;
