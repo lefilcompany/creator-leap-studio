@@ -306,7 +306,8 @@ export function CarouselDesignStage({
               {s.headline}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {anyError && (
