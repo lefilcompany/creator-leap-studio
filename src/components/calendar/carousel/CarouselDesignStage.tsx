@@ -203,6 +203,14 @@ export function CarouselDesignStage({
             <div className="absolute top-2 left-2 z-10 text-[10px] font-bold bg-background/90 backdrop-blur px-1.5 py-0.5 rounded">
               {s.index}
             </div>
+            <button
+              type="button"
+              onClick={() => setSettingsFor(s.index)}
+              className="absolute top-2 right-2 z-10 bg-background/90 backdrop-blur rounded-md p-1.5 hover:bg-background transition"
+              title="Configurações da imagem"
+            >
+              <Settings2 className="h-3.5 w-3.5" />
+            </button>
             {s.image_url ? (
               <img src={s.image_url} alt={`Slide ${s.index}`} className="w-full h-full object-cover" />
             ) : (
