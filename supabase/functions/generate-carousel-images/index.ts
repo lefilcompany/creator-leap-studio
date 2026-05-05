@@ -389,12 +389,14 @@ async function runCarousel(
               image_url: res.imageUrl,
               design_action_id: res.actionId,
             });
+            if (parentActionId && res.actionId) await attachChildToParent(res.actionId, parentActionId);
           } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
             await patchSlide(itemId, idx, { status: "error", error: msg });
           }
         }),
       );
+      if (parentActionId) await refreshParentResult(parentActionId, itemId);
     }
 
     // 3) Atualiza design_action_id raiz com a capa (se gerada)
