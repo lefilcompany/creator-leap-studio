@@ -149,10 +149,24 @@ export function CarouselDesignStage({
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {allDone && (
-            <Button onClick={downloadAll} variant="outline" size="lg" className="gap-2">
-              <Package className="h-4 w-4" />
-              Baixar todas (.zip)
-            </Button>
+            <>
+              <Button
+                onClick={() => {
+                  const first = slides.find((s) => s.image_url);
+                  if (first) setEditing({ index: first.index, sequential: true });
+                }}
+                variant="outline"
+                size="lg"
+                className="gap-2"
+              >
+                <Type className="h-4 w-4" />
+                Editar textos (em sequência)
+              </Button>
+              <Button onClick={downloadAll} variant="outline" size="lg" className="gap-2">
+                <Package className="h-4 w-4" />
+                Baixar todas (.zip)
+              </Button>
+            </>
           )}
           <Button onClick={() => trigger(false)} disabled={isRunning} size="lg" className="gap-2">
             {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
