@@ -196,9 +196,113 @@ async function generateOneSlide(
   return { imageUrl: data.imageUrl, actionId: data.actionId };
 }
 
+async function ensureParentAction(
+  itemId: string,
+  userId: string,
+  cal: any,
+  meta: Record<string, any>,
+): Promise<string | null> {
+  const sb = adminClient();
+  const carousel = (meta.carousel || {}) as Record<string, any>;
+  const existing = carousel.parent_action_id as string | undefined;
+  if (existing) {
+    const { data } = await sb.from("actions").select("id").eq("id", existing).maybeSingle();
+    if (data?.id) return existing;
+  }
+
+  const slidesPreview: any[] = Array.isArray(carousel.slides) ? carousel.slides : [];
+  const { data: created, error } = await sb
+    .from("actions")
+    .insert({
+      type: "CRIAR_CONTEUDO",
+      user_id: userId,
+      team_id: null,
+      brand_id: cal?.brand_id || null,
+      status: "Aprovado",
+      approved: true,
+      details: {
+        kind: "carousel",
+        item_id: itemId,
+        platform: meta.platform || null,
+        format: meta.format || "carrossel",
+        total_slides: slidesPreview.length,
+      },
+      result: {
+        kind: "carousel",
+        title: meta.title || carousel.title || "Carrossel",
+        description: meta.description || null,
+        slides: slidesPreview.map((s: any) => ({
+          index: s.index,
+          role: s.role,
+          headline: s.headline,
+          image_url: s.image_url || null,
+        })),
+      },
+    })
+    .select("id")
+    .single();
+  if (error || !created?.id) {
+    console.error("ensureParentAction error", error);
+    return null;
+  }
+  const fresh = await sb.from("calendar_items").select("metadata").eq("id", itemId).maybeSingle();
+  const m = ((fresh.data?.metadata as any) || {}) as Record<string, any>;
+  m.carousel = { ...(m.carousel || {}), parent_action_id: created.id };
+  await sb.from("calendar_items").update({ metadata: m }).eq("id", itemId);
+  return created.id;
+}
+
+async function attachChildToParent(childActionId: string, parentActionId: string) {
+  const sb = adminClient();
+  await sb.from("actions").update({ parent_action_id: parentActionId }).eq("id", childActionId);
+}
+
+async function refreshParentResult(parentActionId: string, itemId: string) {
+  const sb = adminClient();
+  const { data: cur } = await sb
+    .from("calendar_items")
+    .select("metadata")
+    .eq("id", itemId)
+    .maybeSingle();
+  const meta = ((cur?.metadata as any) || {}) as Record<string, any>;
+  const slides: SlideRow[] = Array.isArray(meta?.carousel?.slides) ? meta.carousel.slides : [];
+  const cover = slides.find((s) => s.index === 1);
+  const slidesOut = slides
+    .slice()
+    .sort((a, b) => a.index - b.index)
+    .map((s) => ({
+      index: s.index,
+      role: s.role,
+      headline: s.headline,
+      image_url: s.image_url || null,
+      status: s.status,
+    }));
+  const { data: parent } = await sb
+    .from("actions")
+    .select("result, thumb_path")
+    .eq("id", parentActionId)
+    .maybeSingle();
+  const prevResult = ((parent?.result as any) || {}) as Record<string, any>;
+  const newResult = {
+    ...prevResult,
+    kind: "carousel",
+    slides: slidesOut,
+    imageUrl: cover?.image_url || prevResult.imageUrl || null,
+  };
+  const updates: any = { result: newResult };
+  if (cover?.image_url && !parent?.thumb_path) {
+    // try to derive object path from URL
+    const marker = "/storage/v1/object/public/content-images/";
+    const idx = cover.image_url.indexOf(marker);
+    if (idx >= 0) updates.thumb_path = cover.image_url.slice(idx + marker.length).split("?")[0];
+  }
+  await sb.from("actions").update(updates).eq("id", parentActionId);
+}
+
 async function runCarousel(
   itemId: string,
   authToken: string,
+  userId: string,
   options: { regenerate?: boolean; slideIndices?: number[] },
 ) {
   try {
@@ -209,6 +313,9 @@ async function runCarousel(
     const allSlides: SlideRow[] = Array.isArray(carousel.slides) ? carousel.slides : [];
     if (allSlides.length === 0) throw new Error("Nenhum slide definido no metadata.carousel");
     const sharedStyle = carousel.shared_style || null;
+
+    // Garante uma action "pai" para agrupar todos os slides no histórico
+    const parentActionId = await ensureParentAction(itemId, userId, cal, meta);
 
     // Determina quais slides processar
     const targetIndices = options.slideIndices && options.slideIndices.length > 0
@@ -243,6 +350,8 @@ async function runCarousel(
           image_url: res.imageUrl,
           design_action_id: res.actionId,
         });
+        if (parentActionId && res.actionId) await attachChildToParent(res.actionId, parentActionId);
+        if (parentActionId) await refreshParentResult(parentActionId, itemId);
         referenceImageUrl = res.imageUrl;
         coverActionId = res.actionId;
       } catch (e) {
@@ -280,12 +389,14 @@ async function runCarousel(
               image_url: res.imageUrl,
               design_action_id: res.actionId,
             });
+            if (parentActionId && res.actionId) await attachChildToParent(res.actionId, parentActionId);
           } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
             await patchSlide(itemId, idx, { status: "error", error: msg });
           }
         }),
       );
+      if (parentActionId) await refreshParentResult(parentActionId, itemId);
     }
 
     // 3) Atualiza design_action_id raiz com a capa (se gerada)
@@ -340,7 +451,7 @@ Deno.serve(async (req) => {
 
     // @ts-ignore EdgeRuntime
     EdgeRuntime.waitUntil(
-      runCarousel(body.item_id, token, {
+      runCarousel(body.item_id, token, user.id, {
         regenerate: body.regenerate === true,
         slideIndices: body.slide_indices,
       }),
