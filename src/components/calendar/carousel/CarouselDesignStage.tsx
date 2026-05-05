@@ -217,10 +217,6 @@ export function CarouselDesignStage({
         {slides.map((s) => {
           const hasSettings = !!s.image_settings && Object.keys(s.image_settings).length > 0;
           return (
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {slides.map((s) => (
           <div
             key={s.index}
             className={cn(
@@ -244,13 +240,37 @@ export function CarouselDesignStage({
             {s.image_url ? (
               <img src={s.image_url} alt={`Slide ${s.index}`} className="w-full h-full object-cover" />
             ) : (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground">
+              <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground p-2 text-center">
                 {s.status === "generating" ? (
                   <Loader2 className="h-6 w-6 animate-spin" />
                 ) : s.status === "error" ? (
-                  <AlertCircle className="h-6 w-6 text-destructive" />
+                  <>
+                    <AlertCircle className="h-6 w-6 text-destructive" />
+                    <Button size="sm" variant="outline" onClick={() => trigger(true, [s.index])} className="gap-1 h-7 text-xs">
+                      <RefreshCw className="h-3 w-3" /> Tentar novamente
+                    </Button>
+                  </>
                 ) : (
-                  <ImageIcon className="h-6 w-6 opacity-40" />
+                  <>
+                    <ImageIcon className="h-6 w-6 opacity-40" />
+                    <Button
+                      size="sm"
+                      onClick={() => trigger(false, [s.index])}
+                      disabled={isRunning}
+                      className="gap-1 h-7 text-xs"
+                    >
+                      <Sparkles className="h-3 w-3" /> Gerar imagem
+                    </Button>
+                    {hasSettings && (
+                      <button
+                        type="button"
+                        onClick={() => generateRestWithTemplate(s.index)}
+                        className="text-[10px] underline text-muted-foreground hover:text-foreground"
+                      >
+                        Usar config nos demais
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             )}
