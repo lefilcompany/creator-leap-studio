@@ -14,6 +14,7 @@ interface FavoriteEntry {
 
 export function useFavorites() {
   const { user, team } = useAuth();
+  const { currentWorkspace } = useWorkspace();
   const queryClient = useQueryClient();
 
   const { data: favorites = [], isLoading } = useQuery({
