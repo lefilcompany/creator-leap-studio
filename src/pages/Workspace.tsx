@@ -691,12 +691,12 @@ export default function WorkspacePage() {
               <div>
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">Modo de créditos</Label>
                 <p className="text-xs text-muted-foreground mt-1 mb-2">
-                  Pessoais: cada membro usa seus próprios créditos. Compartilhados: pool único do workspace.
+                  Individuais: cada pessoa usa os próprios créditos. Compartilhados: o workspace tem um saldo único usado pela equipe.
                 </p>
                 <Select value={creditMode} onValueChange={(v: any) => changeCreditMode(v)} disabled={!isOwner || savingCredits}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="personal">Pessoais</SelectItem>
+                    <SelectItem value="personal">Individuais</SelectItem>
                     <SelectItem value="shared">Compartilhados</SelectItem>
                   </SelectContent>
                 </Select>
@@ -716,7 +716,7 @@ export default function WorkspacePage() {
                       <div>
                         <Label className="text-xs uppercase tracking-wide text-muted-foreground">Transferir dos seus créditos pessoais para o workspace</Label>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Você tem <strong>{user?.credits ?? 0}</strong> créditos pessoais. O valor transferido sai do seu saldo e entra no pool do workspace.
+                          Você tem <strong>{user?.credits ?? 0}</strong> créditos pessoais. O valor transferido sai do seu saldo e passa a ficar guardado no workspace.
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -738,7 +738,7 @@ export default function WorkspacePage() {
                   <div className="rounded-xl border p-4 space-y-2">
                     <div className="font-medium text-sm">Limite mensal por membro</div>
                     <p className="text-xs text-muted-foreground">
-                      Defina quantos créditos do pool cada membro pode usar por mês. Edite na aba <strong>Membros</strong>.
+                      Defina quantos créditos do saldo do workspace cada membro pode usar por mês. Edite na aba <strong>Membros</strong>.
                     </p>
                   </div>
                 </>
@@ -760,7 +760,7 @@ export default function WorkspacePage() {
             <div>
               <Label>Limite mensal de créditos compartilhados</Label>
               <Input type="number" min={0} value={inviteLimit} onChange={e => setInviteLimit(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" />
-              <p className="text-xs text-muted-foreground mt-1">Quantos créditos do pool do workspace este membro pode usar por mês. <strong>0</strong> bloqueia o consumo. Aplica-se apenas ao modo compartilhado.</p>
+              <p className="text-xs text-muted-foreground mt-1">Quantos créditos do saldo do workspace este membro pode usar por mês. <strong>0</strong> bloqueia o consumo. Aplica-se apenas ao modo compartilhado.</p>
             </div>
             <PermissionsEditor value={invitePerms} onChange={setInvitePerms} />
           </div>
@@ -784,24 +784,39 @@ export default function WorkspacePage() {
 
       {/* Confirm switch shared -> personal with leftover pool */}
       <Dialog open={switchToPersonalOpen} onOpenChange={setSwitchToPersonalOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Mudar para créditos pessoais</DialogTitle></DialogHeader>
-          <div className="space-y-3 text-sm">
-            <p>
-              O workspace ainda tem <strong>{sharedCredits} créditos</strong> no pool compartilhado.
-              O que deseja fazer antes de trocar para o modo pessoal?
+        <DialogContent className="max-w-xl sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Voltar para créditos individuais</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p className="text-muted-foreground">
+              Você está saindo do modo <strong>Compartilhado</strong>. Hoje o workspace tem
+              <strong> {sharedCredits} créditos </strong> guardados em conjunto. Esses créditos vieram do seu saldo pessoal quando você transferiu para o workspace.
             </p>
-            <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
-              <li><strong>Devolver para mim:</strong> os {sharedCredits} créditos voltam para o seu saldo pessoal e o pool fica zerado.</li>
-              <li><strong>Manter no workspace:</strong> os créditos ficam guardados no pool e só serão usados se você reativar o modo compartilhado.</li>
-            </ul>
+            <p className="text-muted-foreground">
+              No modo <strong>Individual</strong>, cada pessoa usa apenas os próprios créditos. Por isso, antes de trocar, escolha o que fazer com os créditos que estão guardados no workspace:
+            </p>
+            <div className="grid sm:grid-cols-2 gap-3 pt-1">
+              <div className="rounded-xl border bg-muted/30 p-4 space-y-1">
+                <div className="font-medium text-sm">Devolver para mim</div>
+                <p className="text-xs text-muted-foreground">
+                  Os <strong>{sharedCredits} créditos</strong> voltam para a sua conta pessoal e o saldo do workspace fica em <strong>0</strong>.
+                </p>
+              </div>
+              <div className="rounded-xl border bg-muted/30 p-4 space-y-1">
+                <div className="font-medium text-sm">Deixar no workspace</div>
+                <p className="text-xs text-muted-foreground">
+                  Os <strong>{sharedCredits} créditos</strong> ficam guardados no workspace, sem serem usados, até você ativar de novo o modo Compartilhado.
+                </p>
+              </div>
+            </div>
           </div>
-          <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => setSwitchToPersonalOpen(false)} disabled={savingCredits}>
+          <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:gap-2">
+            <Button variant="ghost" onClick={() => setSwitchToPersonalOpen(false)} disabled={savingCredits}>
               Cancelar
             </Button>
-            <Button variant="secondary" onClick={keepAndSwitchToPersonal} disabled={savingCredits}>
-              Manter no workspace
+            <Button variant="outline" onClick={keepAndSwitchToPersonal} disabled={savingCredits}>
+              Deixar no workspace
             </Button>
             <Button onClick={refundAndSwitchToPersonal} disabled={savingCredits}>
               {savingCredits && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
