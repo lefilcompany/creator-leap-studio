@@ -1,115 +1,119 @@
 
-# Carrossel de ponta a ponta no Calendário de Conteúdo
+# Workspaces — Nova arquitetura colaborativa
 
-Hoje "carrossel" é apenas um rótulo de formato (`metadata.format = "carrossel"`) e cai exatamente no mesmo fluxo de um post único: 2 briefings, 1 imagem. Vamos transformar em um fluxo nativo com N slides.
+Substituir o conceito atual de "equipe única por usuário" por **Workspaces**, mantendo todas as funcionalidades existentes (histórico, marcas, conteúdo) sob esse novo escopo. Cada usuário sempre terá ao menos 1 workspace pessoal; pode pertencer a vários workspaces; pode trocar entre eles por um seletor abaixo da logo.
 
-## 1. Modelo de dados (migration)
+## 1. Modelo de dados (migrações Test → Live no publish)
 
-Tudo persistido em `calendar_items.metadata.carousel` para não criar tabela nova:
+### Novas tabelas
 
-```json
-"carousel": {
-  "enabled": true,
-  "suggested_count": 6,
-  "count": 6,
-  "shared_style": { "palette": "...", "typography": "...", "mood": "...", "visual_style": "realistic" },
-  "reference_action_id": "uuid-do-slide-1",
-  "slides": [
-    {
-      "index": 1,
-      "role": "capa | desenvolvimento | cta",
-      "headline": "...",
-      "caption_part": "...",
-      "image_briefing": "...",
-      "design_action_id": "uuid",
-      "image_url": "...",
-      "status": "pending | generating | done | error",
-      "error": null
-    }
-  ]
-}
-```
-`design_action_id` raiz continua existindo, mas aponta para o slide 1 (capa) por compatibilidade com o resto do app (histórico, thumbs, aprovação final).
+- `workspaces` — `id`, `name`, `slug`, `owner_id`, `avatar_url`, `is_personal` (bool), `credit_mode` ('personal' | 'shared'), `shared_credits` (int, usado se shared), `created_at`, `updated_at`. Personal workspace é criado automaticamente no signup (trigger `handle_new_user`).
+- `workspace_members` — `id`, `workspace_id`, `user_id` (nullable se ainda não cadastrado), `email` (para convite), `role` ('owner' | 'member'), `status` ('pending' | 'active'), `monthly_credit_limit` (nullable, só faz sentido em modo shared/doação), `credits_used_this_month` (int), `permissions` (jsonb: `{brands:{view,create,edit,delete}, content:{...}, history:{...}, calendars:{...}, personas:{...}, themes:{...}, members:{manage}, billing:{manage}}`), `invited_by`, `invited_at`, `joined_at`.
+- `workspace_invites` — `id`, `workspace_id`, `email`, `token` (uuid único), `role`, `permissions`, `monthly_credit_limit`, `expires_at`, `accepted_at`, `invited_by`. Token enviado por e-mail com link `/invite/:token`.
 
-## 2. Etapa Calendário (sem mudança visual)
-Nada muda — o usuário continua escolhendo formato "Carrossel" como hoje.
+### Alterações em tabelas existentes
 
-## 3. Etapa Briefing (mudanças significativas)
+Adicionar `workspace_id uuid` em todas as tabelas que hoje usam `team_id`:
+`actions`, `brands`, `personas`, `strategic_themes`, `content_briefings`, `content_calendars`, `calendar_items`, `creation_feedback`, `agent_feedback`, `brand_style_preferences`, `custom_fonts`, `action_categories`, `action_favorites`, `notifications`, `text_style_templates`, `credit_history`, `credit_purchases`.
 
-Quando `format === "carrossel"`:
+`team_id` é mantido temporariamente (deprecated, somente leitura). Toda escrita nova grava `workspace_id`. Hooks/edge functions são atualizados para preferir `workspace_id`; fallback lê `team_id` enquanto a base for migrada.
 
-- Aparece um bloco extra "**Estrutura do carrossel**" acima dos campos de briefing:
-  - Slider/stepper "Quantos slides?" (3–10), pré-preenchido com sugestão da IA
-  - Botão "Sugerir com IA" — chama `suggest-carousel-structure` que retorna `{ suggested_count, slides: [{ role, headline, caption_part, image_briefing }] }`
-- Os 2 campos atuais (texto/imagem) viram **abas** dentro de cada slide:
-  - Lista vertical/tabs de slides (Slide 1 — Capa, Slide 2…, Slide N — CTA)
-  - Para cada slide: campo de copy (headline + parte da legenda) + campo de briefing visual + botão "Gerar este slide com IA"
-  - Botão geral "Gerar todos com IA" continua existindo
-- Bloco "**Estilo compartilhado**" (paleta, tipografia, mood, visual style) — gerado uma vez e fica fixo; usado em todos os prompts para coerência
-- Validação para avançar: todos os slides com `image_briefing.length >= 10` e `headline` preenchido
-- Tela de aprovação mostra grid com os N slides resumidos
+`profiles`: adicionar `current_workspace_id` (workspace ativo na sessão).
 
-Edge function `generate-item-briefing` ganha modo `carousel`:
-- Recebe `count` e `shared_style`
-- Retorna array de slides já estruturados (capa → desenvolvimento → cta) num único call Gemini, com instrução de manter coerência narrativa e visual
+### RLS — função canônica
 
-## 4. Etapa Design (mudança principal)
+Substituir `can_access_resource(user_id, team_id)` por `can_access_workspace_resource(user_id, workspace_id, required_permission text)`. Implementação SECURITY DEFINER que verifica:
+1. `user_id = auth.uid()`, OU
+2. existe `workspace_members(workspace_id, user_id=auth.uid(), status='active')` E o `permissions->required_permission` é true.
 
-Substitui o atual "abrir CreateImage com prefill" por geração inline em paralelo:
+Policies de cada tabela passam a usar essa função. A antiga `can_access_resource` é mantida por compatibilidade até a migração completa do código.
 
-- Card por slide num grid responsivo (2 col desktop, 1 mobile) mostrando:
-  - Miniatura (placeholder enquanto `pending`/`generating`, imagem quando `done`)
-  - Headline do slide, badge do papel (Capa/Desenvolvimento/CTA)
-  - Botão "Regenerar" individual (custo: 1× crédito de imagem completa)
-  - Status visual (spinner / check / erro com retry)
-- CTA principal "**Gerar todas as imagens**" no topo:
-  - Confirmação de custo: `N × COMPLETE_IMAGE_MEDIUM` créditos
-  - Dispara nova edge function `generate-carousel-images`:
-    1. Gera **slide 1 (capa)** primeiro, sozinho — vira referência visual
-    2. Faz upload + cria `actions` row para slide 1 → `reference_action_id`
-    3. Dispara slides 2..N **em paralelo** (`Promise.all`) usando slide 1 como `image_url` de referência (image-to-image leve via Gemini nano banana, prompt instrui "manter paleta, tipografia, mood, ambientação; trocar cena conforme briefing")
-    4. Cada slide gera sua própria `actions` row + atualiza `metadata.carousel.slides[i]`
-  - Cliente faz polling em `metadata.carousel` para atualizar UI em tempo real
-- Botão "Aprovar carrossel" só fica ativo quando todos os slides têm `status === "done"`
-- Aprovação final: marca `final_approved = true` e cria/atualiza ação principal apontando para o conjunto
+### Migração de dados (script numa migration)
 
-## 5. Visualização do resultado
+Para cada `teams` existente:
+1. Cria `workspaces` com `owner_id = teams.admin_id`, `is_personal=false`, `name=teams.name`, `credit_mode='personal'`.
+2. Cria `workspace_members` para cada `profiles.team_id = teams.id` e cada `team_members.team_id`, com `role='owner'` para admin e `role='member'` para os demais; `permissions` padrão = todas marcadas (compatível com hoje).
+3. Atualiza todas as tabelas com `team_id` setado, gravando `workspace_id` correspondente.
+4. Para **todo** usuário em `profiles`, cria também 1 `workspaces is_personal=true` com `owner_id = profile.id`, `name = "<Primeiro nome>'s workspace"`, `credit_mode='personal'`.
+5. Define `profiles.current_workspace_id` = workspace pessoal (default).
 
-- `ActionView` ganha um modo "carousel" quando `details.carousel === true`: carrossel embla com os N slides, navegação dot/seta
-- `History` thumbnail usa o slide 1 + badge "Carrossel · N"
-- Download/PPTX export gera 1 slide por imagem na ordem
+## 2. Backend / Edge functions
 
-## 6. Feedback e aprendizado
+- `workspace-invite` — recebe `{workspace_id, email, role, permissions, monthly_credit_limit}`. Cria `workspace_invites`, dispara e-mail (template auth `invite-workspace`) com link `https://pla.creator.lefil.com.br/invite/<token>`.
+- `workspace-accept-invite` — recebe `token`. Se usuário não existe → redireciona para `/register?invite=<token>` (Register grava `pending_invite_token` em metadata e processa pós-confirmação). Se existe → cria `workspace_members` ativo, marca invite `accepted_at`.
+- `workspace-update-member` — atualizar role/permissions/limite por membro (apenas owner ou quem tem `members.manage`).
+- `workspace-set-credit-mode` — alterar `credit_mode` (personal | shared); se shared, owner define `shared_credits` (transferência opcional do balance pessoal do owner para o pool — perguntar na UI).
+- Atualizar **todas** as edge functions de geração de conteúdo para:
+  - receber `workspace_id` no body,
+  - debitar de `profiles.credits` se `credit_mode='personal'`, ou de `workspaces.shared_credits` se shared (e respeitar `monthly_credit_limit` por membro, atualizando `credits_used_this_month`).
+  - gravar `workspace_id` em `actions`, `credit_history`, etc.
 
-- `AgentFeedback` no painel de Design fica com `agentId="carousel_image"` e snapshot de todos os slides
-- O agente revisor já existente (`revise-agent`) reaproveita esses feedbacks para evoluir prompts de carrossel por marca
+Job cron mensal para zerar `credits_used_this_month` em `workspace_members`.
 
-## Arquivos novos/editados
+## 3. Frontend
 
-**Novos:**
-- `supabase/functions/suggest-carousel-structure/index.ts`
-- `supabase/functions/generate-carousel-images/index.ts`
-- `src/components/calendar/carousel/CarouselStructurePanel.tsx`
-- `src/components/calendar/carousel/CarouselSlideEditor.tsx`
-- `src/components/calendar/carousel/CarouselDesignGrid.tsx`
-- `src/components/ActionCarouselViewer.tsx`
+### Contexto e seletor
 
-**Editados:**
-- `supabase/functions/generate-item-briefing/index.ts` — modo carousel
-- `src/components/calendar/CalendarItemPanel.tsx` — desvia `StageBriefing`/`StageDesign` quando formato = carrossel
-- `src/pages/ActionView.tsx` — render do viewer multi-slide
-- `src/components/historico/ActionList.tsx` — badge "Carrossel · N"
-- `src/lib/exportHistoryToPptx.ts` — exporta N slides
-- `src/lib/creditCosts.ts` (+ shared) — opcional: alias `CAROUSEL_IMAGE` = `COMPLETE_IMAGE_MEDIUM`
+- Novo `WorkspaceContext` (`src/contexts/WorkspaceContext.tsx`) com `currentWorkspace`, `workspaces`, `members`, `setCurrentWorkspace()`, `permissions` (do membership ativo). Persiste `current_workspace_id` em `profiles`.
+- `AppSidebar`: abaixo da logo, novo `WorkspaceSwitcher` (dropdown) inspirado no print enviado:
+  - mostra avatar + nome do workspace atual + chevron;
+  - ao abrir: cards com workspace atual (nome, plano, nº de membros, botões "Configurações" e "Convidar membros"), barra de créditos;
+  - lista "Todos os workspaces" com badge (Pessoal / Pro), check no atual;
+  - rodapé: "Criar novo workspace" + "Encontrar workspaces" (placeholder).
 
-## Custos de crédito
-- Sugestão de estrutura: grátis (texto leve)
-- Briefings: 0 (já gratuito hoje)
-- Geração: `N × COMPLETE_IMAGE_MEDIUM` (8 créditos por slide), confirmação clara antes de disparar
-- Regeneração individual: 1 × `COMPLETE_IMAGE_MEDIUM`
+### Páginas
 
-## Pontos de atenção
-- Aspect ratio fixo do carrossel: **4:5** (já mapeado em `FORMAT_TO_ASPECT`)
-- Limite hard de 10 slides para evitar custo descontrolado e rate limit do Gemini
-- Se uma imagem falhar, o conjunto não bloqueia — usuário regenera só a que falhou
-- Polling: já existe padrão em `StageBriefing`, reusar (3.5s, invalidate query)
+- `/workspace` (substitui `/team`) — gestão do workspace atual:
+  - aba **Visão geral**: nome, avatar, plano, créditos (modo + saldo), botão configurar.
+  - aba **Membros**: tabela inspirada no segundo print (Name, Role, Joined date, Usage do mês, Total usage, Credit limit, menu …). Botões "Invite link", "Invite members", "Export". Dropdown de role e ações de remover/transferir owner.
+  - aba **Convites**: pendentes / reenviar / cancelar.
+  - aba **Permissões**: por membro, modal com switches granulares por recurso (Marcas: ver/criar/editar/excluir; Conteúdo: ver/criar; Histórico: ver/excluir; Calendários; Personas; Temas; Membros: gerenciar; Billing: gerenciar).
+  - aba **Créditos**: toggle Pessoal ↔ Compartilhado; se compartilhado, input `monthly_credit_limit` por membro.
+- `/invite/:token` — aceitar convite (usuário logado: aceita; deslogado: redireciona pra `/register?invite=...`).
+- Atualizar `Register` e `Login` para tratar `?invite=<token>`: ao concluir signup/login, chamar `workspace-accept-invite` automaticamente.
+
+### Refactor abrangente
+
+- Substituir todas as 60+ ocorrências de `team_id`/`teamId` em hooks (`useBrands`, `useActions`, `useThemes`, `usePersonas`, `useFavorites`, `useCalendars`, `useCustomFonts`, `useCategories`, `useCreditHistory`, `useTeamData`, `useTeamAccess`, `useHistoryActions`, `useTrash`) e nas páginas (`Dashboard`, `History`, `Brands`, `Personas`, `Themes`, `CreateContent`, `CreateImage`, `CreateVideo`, `QuickContent`, `PlanContent`, `ReviewContent`, `MarketplaceContent`, `BrandView`, `ActionView`, etc.) por `workspaceId` lido do `WorkspaceContext`.
+- `AuthContext`: ao logar, carregar `current_workspace_id` e injetar no `WorkspaceProvider`.
+- `useCreditsAction`: ler do workspace atual; se shared, validar `monthly_credit_limit` do membership.
+- Esconder `/team` antigo (redirect → `/workspace`).
+- `SystemTeams` admin → renomear para `SystemWorkspaces` (lista todos os workspaces).
+
+### UI do switcher (seguindo prints)
+
+- Botão pequeno com avatar quadrado colorido + nome.
+- Dropdown 320px largura, fundo `bg-card`, `rounded-2xl`, divisórias sutis.
+- Ícones de configurações (`Settings`) e convite (`UserPlus`).
+- Barra de créditos com gradiente (`primary`).
+
+## 4. E-mails (auth/transactional)
+
+Configurar template transacional `workspace-invite` via infra de e-mails Lovable:
+- assunto: "Você foi convidado para o workspace <nome> no Creator"
+- corpo: nome do convidante, nome do workspace, botão "Aceitar convite" → link com token, validade 7 dias.
+
+## 5. Memória do projeto
+
+Atualizar `mem://index.md` Core: substituir "Team membership optional… `teammate_profiles`" por: "Workspaces obrigatórios; cada usuário tem 1 workspace pessoal + N compartilhados. `workspace_id` é o escopo canônico. `team_id` é legado/leitura."
+
+Adicionar `mem://architecture/workspaces-model.md` com regras de credit_mode, permissions jsonb e fluxo de convite.
+
+## 6. Ordem de implementação
+
+1. Migração SQL: novas tabelas, colunas `workspace_id`, função RLS, policies, dados migrados.
+2. Trigger `handle_new_user` → cria workspace pessoal.
+3. `WorkspaceContext` + `WorkspaceSwitcher` no `AppSidebar`.
+4. Página `/workspace` (Visão geral + Membros + Convites + Permissões + Créditos).
+5. Edge functions de convite/aceite + templates de e-mail.
+6. Refactor incremental de hooks/páginas: `team_id` → `workspace_id`, mantendo fallback de leitura para registros antigos durante 1 ciclo.
+7. Atualizar edge functions de geração para usar `workspace_id` e respeitar credit_mode/limites.
+8. Atualizar `SystemTeams` → `SystemWorkspaces`.
+9. Atualizar memória.
+
+## 7. Riscos / observações
+
+- Refactor é grande (~70 arquivos); será feito em lotes coerentes para evitar quebra.
+- Durante a migração, manter `team_id` populado em escritas novas (espelho) por segurança e remover no commit final.
+- RLS recursivo: usar SECURITY DEFINER em `can_access_workspace_resource` para evitar loops via `workspace_members`.
+- Créditos: alteração tem impacto em `useCreditsAction` e ~12 edge functions; testar individualmente.
