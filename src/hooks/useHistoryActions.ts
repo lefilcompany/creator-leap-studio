@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import type { BrandSummary } from '@/types/brand';
