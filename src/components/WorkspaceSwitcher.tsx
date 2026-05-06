@@ -79,12 +79,7 @@ export function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
         {/* Header card */}
         <div className="p-4 border-b">
           <div className="flex items-center gap-3">
-            <span className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-lg text-white font-semibold',
-              colorFor(currentWorkspace.id)
-            )}>
-              {initial(currentWorkspace.name)}
-            </span>
+            <WsAvatar ws={currentWorkspace} size={10} />
             <div className="min-w-0">
               <div className="font-semibold truncate">{currentWorkspace.name}</div>
               <div className="text-xs text-muted-foreground">
@@ -137,12 +132,7 @@ export function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
                 onClick={() => { switchWorkspace(w.id); setOpen(false); }}
                 className="w-full flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-muted/60 transition-colors"
               >
-                <span className={cn(
-                  'flex h-7 w-7 items-center justify-center rounded-md text-white text-xs font-semibold',
-                  colorFor(w.id)
-                )}>
-                  {initial(w.name)}
-                </span>
+                <WsAvatar ws={w} size={7} />
                 <span className="flex-1 min-w-0 text-left text-sm truncate">{w.name}</span>
                 {w.is_personal && (
                   <span className="text-[10px] uppercase font-semibold bg-muted px-1.5 py-0.5 rounded">
