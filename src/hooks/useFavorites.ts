@@ -14,21 +14,23 @@ interface FavoriteEntry {
 
 export function useFavorites() {
   const { user, team } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: wsLoading } = useWorkspace();
   const queryClient = useQueryClient();
 
   const { data: favorites = [], isLoading } = useQuery({
-    queryKey: ['action-favorites', user?.id, team?.id],
+    queryKey: ['action-favorites', user?.id, currentWorkspace?.id ?? null],
     queryFn: async () => {
+      if (!currentWorkspace?.id) return [] as FavoriteEntry[];
       const { data, error } = await supabase
         .from('action_favorites')
-        .select('action_id, scope, team_id, user_id');
+        .select('action_id, scope, team_id, user_id')
+        .eq('workspace_id', currentWorkspace.id);
       if (error) throw error;
       return (data || []) as FavoriteEntry[];
     },
-    enabled: !!user?.id,
-    staleTime: 1000 * 60 * 5, // 5 min — favorites change rarely
-    gcTime: 1000 * 60 * 30,   // keep in cache 30 min
+    enabled: !!user?.id && !wsLoading,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
   });
 
   const personalFavoriteIds = favorites
@@ -36,7 +38,7 @@ export function useFavorites() {
     .map(f => f.action_id);
 
   const teamFavoriteIds = favorites
-    .filter(f => f.scope === 'team' && f.team_id === team?.id)
+    .filter(f => f.scope === 'team')
     .map(f => f.action_id);
 
   const allFavoriteIds = [...new Set([...personalFavoriteIds, ...teamFavoriteIds])];
