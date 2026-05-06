@@ -7,7 +7,7 @@ import logoCreatorBranca from '@/assets/logoCreatorBranca.png';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, X, Camera, ChevronRight, ChevronLeft, Check, Users, Coins, Building2 } from 'lucide-react';
+import { Loader2, X, Camera, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Check, Users, Coins, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -186,7 +186,7 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
       {/* Body: vertical stepper (left) + conveyor content (right) */}
       <div className="flex-1 min-h-0 grid grid-cols-[260px_1fr] gap-8 px-8 pb-4">
         {/* Vertical stepper */}
-        <aside className="flex flex-col justify-center">
+        <aside className="flex flex-col justify-center gap-8">
           <ol className="space-y-2">
             {stepsMeta.map((s, i) => {
               const active = step === s.n;
@@ -226,6 +226,57 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
               );
             })}
           </ol>
+
+          {/* Nav controls below steps */}
+          <div className="flex flex-col gap-2 pl-1">
+            <Button
+              variant="outline"
+              size="lg"
+              className="justify-start gap-2"
+              onClick={() => setStep((s) => (s - 1) as Step)}
+              disabled={submitting || step === 1}
+              aria-label="Etapa anterior"
+            >
+              <ChevronUp className="h-4 w-4" />
+              Etapa anterior
+            </Button>
+
+            {step < 3 ? (
+              <Button
+                size="lg"
+                className="justify-start gap-2"
+                onClick={() => setStep((s) => (s + 1) as Step)}
+                disabled={(step === 1 && !canContinue1) || (step === 2 && !canContinue2)}
+                aria-label="Próxima etapa"
+              >
+                <ChevronDown className="h-4 w-4" />
+                Próxima etapa
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                className="justify-start gap-2"
+                onClick={submit}
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Criando...</>
+                ) : (
+                  <><Check className="h-4 w-4" /> Criar workspace</>
+                )}
+              </Button>
+            )}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={close}
+              disabled={submitting}
+              className="justify-start text-muted-foreground"
+            >
+              Cancelar
+            </Button>
+          </div>
         </aside>
 
         {/* Conveyor content */}
@@ -435,32 +486,6 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="px-8 py-5 shrink-0 border-t bg-card/50">
-        <div className="flex items-center justify-between gap-3">
-          <Button
-            variant="ghost"
-            onClick={step === 1 ? close : () => setStep((s) => (s - 1) as Step)}
-            disabled={submitting}
-          >
-            {step === 1 ? 'Cancelar' : (<><ChevronLeft className="h-4 w-4 mr-1" /> Voltar</>)}
-          </Button>
-
-          {step < 3 ? (
-            <Button
-              size="lg"
-              onClick={() => setStep((s) => (s + 1) as Step)}
-              disabled={(step === 1 && !canContinue1) || (step === 2 && !canContinue2)}
-            >
-              Continuar <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          ) : (
-            <Button size="lg" onClick={submit} disabled={submitting}>
-              {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Criando...</> : 'Criar workspace'}
-            </Button>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
