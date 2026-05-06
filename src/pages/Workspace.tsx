@@ -743,7 +743,7 @@ export default function WorkspacePage() {
 
 function MemberPermsForm({ member, onSave }: { member: Member; onSave: (m: Member, p: WorkspacePermissions, l: number | null) => void }) {
   const [perms, setPerms] = useState<WorkspacePermissions>(member.permissions || DEFAULT_PERMS);
-  const [limit, setLimit] = useState<number | ''>(member.monthly_credit_limit ?? '');
+  const [limit, setLimit] = useState<number | ''>(member.monthly_credit_limit ?? 0);
   return (
     <div className="space-y-4">
       <div>
