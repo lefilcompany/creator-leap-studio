@@ -186,6 +186,46 @@ export default function WorkspacePage() {
     fetchInvites();
   };
 
+  const resendInvite = async (inv: Invite) => {
+    if (!currentWorkspace) return;
+    try {
+      const { error } = await supabase.functions.invoke('workspace-invite', {
+        body: {
+          workspace_id: currentWorkspace.id,
+          email: inv.email,
+          role: inv.role,
+          permissions: DEFAULT_PERMS,
+          monthly_credit_limit: null,
+          resend_invite_id: inv.id,
+        },
+      });
+      if (error) throw error;
+      toast.success('Convite reenviado');
+      fetchInvites();
+    } catch (e: any) {
+      toast.error(e.message || 'Falha ao reenviar');
+    }
+  };
+
+  const transferOwnership = async (m: Member) => {
+    if (!currentWorkspace) return;
+    if (!confirm(`Transferir propriedade do workspace para ${m.profile?.name || m.email}? Você se tornará membro.`)) return;
+    const { error: e1 } = await supabase
+      .from('workspaces')
+      .update({ owner_id: m.user_id })
+      .eq('id', currentWorkspace.id);
+    if (e1) return toast.error(e1.message);
+    await supabase.from('workspace_members').update({ role: 'owner' }).eq('id', m.id);
+    await supabase
+      .from('workspace_members')
+      .update({ role: 'member' })
+      .eq('workspace_id', currentWorkspace.id)
+      .eq('user_id', user!.id);
+    toast.success('Propriedade transferida');
+    fetchMembers();
+    reload();
+  };
+
   if (!currentWorkspace) {
     return <div className="p-6"><Loader2 className="animate-spin" /></div>;
   }
