@@ -1,6 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
+import { useTheme } from 'next-themes';
+import logoCreatorPreta from '@/assets/logoCreatorPreta.png';
+import logoCreatorBranca from '@/assets/logoCreatorBranca.png';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
