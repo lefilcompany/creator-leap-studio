@@ -164,8 +164,8 @@ export default function WorkspacePage() {
     reload();
   };
 
-  const changeCreditMode = async (mode: 'personal' | 'shared') => {
-    if (!currentWorkspace) return;
+  const applyCreditMode = async (mode: 'personal' | 'shared') => {
+    if (!currentWorkspace) return false;
     const prev = creditMode;
     setCreditMode(mode);
     setSavingCredits(true);
@@ -176,11 +176,48 @@ export default function WorkspacePage() {
     setSavingCredits(false);
     if (error) {
       setCreditMode(prev);
-      return toast.error(error.message);
+      toast.error(error.message);
+      return false;
     }
     toast.success(mode === 'shared' ? 'Modo compartilhado ativado' : 'Modo pessoal ativado');
     reload();
+    return true;
   };
+
+  const changeCreditMode = async (mode: 'personal' | 'shared') => {
+    if (!currentWorkspace) return;
+    // Switching shared -> personal with leftover pool: ask user
+    if (mode === 'personal' && creditMode === 'shared' && (sharedCredits ?? 0) > 0) {
+      setSwitchToPersonalOpen(true);
+      return;
+    }
+    await applyCreditMode(mode);
+  };
+
+  const refundAndSwitchToPersonal = async () => {
+    if (!currentWorkspace) return;
+    setSavingCredits(true);
+    const { data, error } = await supabase.rpc('workspace_transfer_shared_to_personal', {
+      p_workspace_id: currentWorkspace.id,
+      p_amount: sharedCredits,
+    });
+    if (error) {
+      setSavingCredits(false);
+      return toast.error(error.message);
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row?.new_shared_credits != null) setSharedCredits(row.new_shared_credits);
+    setSavingCredits(false);
+    toast.success(`${sharedCredits} créditos devolvidos para você`);
+    setSwitchToPersonalOpen(false);
+    await applyCreditMode('personal');
+  };
+
+  const keepAndSwitchToPersonal = async () => {
+    setSwitchToPersonalOpen(false);
+    await applyCreditMode('personal');
+  };
+
 
   const transferToShared = async () => {
     if (!currentWorkspace) return;
