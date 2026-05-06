@@ -738,7 +738,7 @@ export default function WorkspacePage() {
                   <div className="rounded-xl border p-4 space-y-2">
                     <div className="font-medium text-sm">Limite mensal por membro</div>
                     <p className="text-xs text-muted-foreground">
-                      Defina quantos créditos do pool cada membro pode usar por mês. Edite na aba <strong>Membros</strong>.
+                      Defina quantos créditos do saldo do workspace cada membro pode usar por mês. Edite na aba <strong>Membros</strong>.
                     </p>
                   </div>
                 </>
