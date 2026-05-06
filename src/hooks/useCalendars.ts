@@ -155,6 +155,7 @@ export const useCreateCalendar = () => {
         calendar_id: calendar.id,
         user_id: user.id,
         team_id: user.teamId || null,
+        workspace_id: currentWorkspace?.id ?? null,
         title: item.title,
         theme: item.theme,
         scheduled_date: item.scheduled_date,
