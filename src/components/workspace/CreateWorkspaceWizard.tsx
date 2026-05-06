@@ -486,32 +486,6 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="px-8 py-5 shrink-0 border-t bg-card/50">
-        <div className="flex items-center justify-between gap-3">
-          <Button
-            variant="ghost"
-            onClick={step === 1 ? close : () => setStep((s) => (s - 1) as Step)}
-            disabled={submitting}
-          >
-            {step === 1 ? 'Cancelar' : (<><ChevronLeft className="h-4 w-4 mr-1" /> Voltar</>)}
-          </Button>
-
-          {step < 3 ? (
-            <Button
-              size="lg"
-              onClick={() => setStep((s) => (s + 1) as Step)}
-              disabled={(step === 1 && !canContinue1) || (step === 2 && !canContinue2)}
-            >
-              Continuar <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          ) : (
-            <Button size="lg" onClick={submit} disabled={submitting}>
-              {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Criando...</> : 'Criar workspace'}
-            </Button>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
