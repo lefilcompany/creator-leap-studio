@@ -92,6 +92,8 @@ export default function WorkspacePage() {
   const [transferring, setTransferring] = useState(false);
 
   const [permsModal, setPermsModal] = useState<Member | null>(null);
+  const [switchToPersonalOpen, setSwitchToPersonalOpen] = useState(false);
+
 
   useEffect(() => {
     if (!currentWorkspace) return;
@@ -162,8 +164,8 @@ export default function WorkspacePage() {
     reload();
   };
 
-  const changeCreditMode = async (mode: 'personal' | 'shared') => {
-    if (!currentWorkspace) return;
+  const applyCreditMode = async (mode: 'personal' | 'shared') => {
+    if (!currentWorkspace) return false;
     const prev = creditMode;
     setCreditMode(mode);
     setSavingCredits(true);
@@ -174,11 +176,48 @@ export default function WorkspacePage() {
     setSavingCredits(false);
     if (error) {
       setCreditMode(prev);
-      return toast.error(error.message);
+      toast.error(error.message);
+      return false;
     }
     toast.success(mode === 'shared' ? 'Modo compartilhado ativado' : 'Modo pessoal ativado');
     reload();
+    return true;
   };
+
+  const changeCreditMode = async (mode: 'personal' | 'shared') => {
+    if (!currentWorkspace) return;
+    // Switching shared -> personal with leftover pool: ask user
+    if (mode === 'personal' && creditMode === 'shared' && (sharedCredits ?? 0) > 0) {
+      setSwitchToPersonalOpen(true);
+      return;
+    }
+    await applyCreditMode(mode);
+  };
+
+  const refundAndSwitchToPersonal = async () => {
+    if (!currentWorkspace) return;
+    setSavingCredits(true);
+    const { data, error } = await supabase.rpc('workspace_transfer_shared_to_personal', {
+      p_workspace_id: currentWorkspace.id,
+      p_amount: sharedCredits,
+    });
+    if (error) {
+      setSavingCredits(false);
+      return toast.error(error.message);
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row?.new_shared_credits != null) setSharedCredits(row.new_shared_credits);
+    setSavingCredits(false);
+    toast.success(`${sharedCredits} créditos devolvidos para você`);
+    setSwitchToPersonalOpen(false);
+    await applyCreditMode('personal');
+  };
+
+  const keepAndSwitchToPersonal = async () => {
+    setSwitchToPersonalOpen(false);
+    await applyCreditMode('personal');
+  };
+
 
   const transferToShared = async () => {
     if (!currentWorkspace) return;
@@ -740,6 +779,35 @@ export default function WorkspacePage() {
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Permissões de {permsModal?.profile?.name}</DialogTitle></DialogHeader>
           {permsModal && <MemberPermsForm member={permsModal} onSave={updateMemberPerms} />}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm switch shared -> personal with leftover pool */}
+      <Dialog open={switchToPersonalOpen} onOpenChange={setSwitchToPersonalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Mudar para créditos pessoais</DialogTitle></DialogHeader>
+          <div className="space-y-3 text-sm">
+            <p>
+              O workspace ainda tem <strong>{sharedCredits} créditos</strong> no pool compartilhado.
+              O que deseja fazer antes de trocar para o modo pessoal?
+            </p>
+            <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
+              <li><strong>Devolver para mim:</strong> os {sharedCredits} créditos voltam para o seu saldo pessoal e o pool fica zerado.</li>
+              <li><strong>Manter no workspace:</strong> os créditos ficam guardados no pool e só serão usados se você reativar o modo compartilhado.</li>
+            </ul>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setSwitchToPersonalOpen(false)} disabled={savingCredits}>
+              Cancelar
+            </Button>
+            <Button variant="secondary" onClick={keepAndSwitchToPersonal} disabled={savingCredits}>
+              Manter no workspace
+            </Button>
+            <Button onClick={refundAndSwitchToPersonal} disabled={savingCredits}>
+              {savingCredits && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Devolver para mim
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
