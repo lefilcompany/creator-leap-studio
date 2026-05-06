@@ -59,6 +59,7 @@ export function useFavorites() {
           user_id: user!.id,
           action_id: actionId,
           scope,
+          workspace_id: currentWorkspace?.id ?? null,
         };
         if (scope === 'team' && team?.id) {
           insert.team_id = team.id;
