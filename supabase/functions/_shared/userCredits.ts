@@ -116,8 +116,8 @@ export async function deductUserCredits(
   userId: string,
   amount: number,
   workspaceId?: string | null,
-): Promise<{ success: boolean; newCredits: number; error?: string }> {
-  const wsId = workspaceId ?? null;
+): Promise<{ success: boolean; newCredits: number; error?: string; workspaceId?: string; creditMode?: 'personal' | 'shared' }> {
+  const wsId = await resolveActiveWorkspaceId(supabase, userId, workspaceId);
   const ws = await resolveWorkspace(supabase, wsId);
 
   // Shared workspace pool
