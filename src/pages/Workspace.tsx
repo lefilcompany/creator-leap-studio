@@ -556,8 +556,25 @@ export default function WorkspacePage() {
                       <td className="p-3 text-muted-foreground">
                         {m.joined_at ? new Date(m.joined_at).toLocaleDateString('pt-BR') : '—'}
                       </td>
-                      <td className="p-3">{m.credits_used_this_month}</td>
-                      <td className="p-3">{m.monthly_credit_limit ?? '∞'}</td>
+                      <td className="p-3">{creditMode === 'shared' ? m.credits_used_this_month : '—'}</td>
+                      <td className="p-3">
+                        {m.role === 'owner'
+                          ? <span className="text-muted-foreground">Sem limite</span>
+                          : creditMode !== 'shared'
+                            ? <span className="text-muted-foreground">—</span>
+                            : isOwner ? (
+                              <Input
+                                type="number"
+                                min={0}
+                                className="h-8 w-24"
+                                defaultValue={m.monthly_credit_limit ?? 0}
+                                onBlur={(e) => {
+                                  const v = e.target.value === '' ? 0 : Number(e.target.value);
+                                  if (v !== (m.monthly_credit_limit ?? 0)) updateMemberLimit(m.id, v);
+                                }}
+                              />
+                            ) : (m.monthly_credit_limit ?? 0)}
+                      </td>
                       <td className="p-3 text-right">
                         {isOwner && m.role !== 'owner' && (
                           <div className="flex gap-2 justify-end">
