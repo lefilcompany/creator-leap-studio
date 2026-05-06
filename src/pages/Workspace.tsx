@@ -302,7 +302,7 @@ export default function WorkspacePage() {
   const activeSection = SECTIONS.find(s => s.key === tab) ?? SECTIONS[0];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       <PageBreadcrumb items={[{ label: 'Workspace' }]} />
 
       {/* Header */}
