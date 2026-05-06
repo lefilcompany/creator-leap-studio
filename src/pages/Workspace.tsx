@@ -196,10 +196,11 @@ export default function WorkspacePage() {
 
   const refundAndSwitchToPersonal = async () => {
     if (!currentWorkspace) return;
+    const amount = sharedCredits;
     setSavingCredits(true);
     const { data, error } = await supabase.rpc('workspace_transfer_shared_to_personal', {
       p_workspace_id: currentWorkspace.id,
-      p_amount: sharedCredits,
+      p_amount: amount,
     });
     if (error) {
       setSavingCredits(false);
@@ -207,8 +208,9 @@ export default function WorkspacePage() {
     }
     const row = Array.isArray(data) ? data[0] : data;
     if (row?.new_shared_credits != null) setSharedCredits(row.new_shared_credits);
+    await refreshProfile();
     setSavingCredits(false);
-    toast.success(`${sharedCredits} créditos devolvidos para você`);
+    toast.success(`${amount} créditos devolvidos para você`);
     setSwitchToPersonalOpen(false);
     await applyCreditMode('personal');
   };
@@ -233,6 +235,7 @@ export default function WorkspacePage() {
     const row = Array.isArray(data) ? data[0] : data;
     if (row?.new_shared_credits != null) setSharedCredits(row.new_shared_credits);
     setTransferAmount('');
+    await refreshProfile();
     toast.success(`${amt} créditos transferidos para o workspace`);
     reload();
   };
