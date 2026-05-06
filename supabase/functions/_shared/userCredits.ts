@@ -122,18 +122,19 @@ export async function deductUserCredits(
 
   // Shared workspace pool
   if (ws && ws.credit_mode === 'shared') {
-    // Check member monthly limit
+    // Check member monthly limit (owner is exempt)
+    const isOwner = ws.owner_id === userId;
     const { data: member } = await supabase
       .from('workspace_members')
-      .select('monthly_credit_limit, credits_used_this_month')
+      .select('monthly_credit_limit, credits_used_this_month, role')
       .eq('workspace_id', ws.id)
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (member?.monthly_credit_limit != null) {
+    if (!isOwner && member?.monthly_credit_limit != null) {
       const used = member.credits_used_this_month ?? 0;
       if (used + amount > member.monthly_credit_limit) {
-        return { success: false, newCredits: ws.shared_credits ?? 0, error: 'Limite mensal de créditos do workspace atingido.' };
+        return { success: false, newCredits: ws.shared_credits ?? 0, error: 'Você não tem permissão para gastar créditos compartilhados deste workspace. Peça ao dono para aumentar seu limite mensal.' };
       }
     }
 
