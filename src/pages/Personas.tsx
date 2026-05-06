@@ -192,6 +192,7 @@ export default function PersonasPage() {
           .insert({
             team_id: user.teamId || null,
             user_id: user.id,
+            workspace_id: currentWorkspace?.id ?? null,
             brand_id: formData.brandId,
             name: formData.name,
             age: formData.age,
