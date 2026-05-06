@@ -92,6 +92,8 @@ export default function WorkspacePage() {
   const [transferring, setTransferring] = useState(false);
 
   const [permsModal, setPermsModal] = useState<Member | null>(null);
+  const [switchToPersonalOpen, setSwitchToPersonalOpen] = useState(false);
+
 
   useEffect(() => {
     if (!currentWorkspace) return;
