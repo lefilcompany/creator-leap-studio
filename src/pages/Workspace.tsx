@@ -115,6 +115,16 @@ export default function WorkspacePage() {
     }
   }, [params, setParams]);
 
+  // Open create workspace wizard via ?action=create
+  useEffect(() => {
+    if (params.get('action') === 'create') {
+      setCreateOpen(true);
+      const next = new URLSearchParams(params);
+      next.delete('action');
+      setParams(next, { replace: true });
+    }
+  }, [params, setParams]);
+
   const fetchMembers = async () => {
     if (!currentWorkspace) return;
     const { data: memData } = await supabase
