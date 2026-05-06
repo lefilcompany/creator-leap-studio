@@ -654,7 +654,7 @@ export default function WorkspacePage() {
                 <p className="text-xs text-muted-foreground mt-1 mb-2">
                   Pessoais: cada membro usa seus próprios créditos. Compartilhados: pool único do workspace.
                 </p>
-                <Select value={creditMode} onValueChange={(v: any) => setCreditMode(v)} disabled={!isOwner}>
+                <Select value={creditMode} onValueChange={(v: any) => changeCreditMode(v)} disabled={!isOwner || savingCredits}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="personal">Pessoais</SelectItem>
