@@ -27,6 +27,8 @@ export default function MarcasPage() {
   const location = useLocation();
   const initialViewMode = (location.state as any)?.viewMode as string | undefined;
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
+  const { hasPermission } = useWorkspace();
+  const canCreate = hasPermission('brands.create');
   const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [brandToEdit, setBrandToEdit] = useState<Brand | null>(null);
