@@ -18,7 +18,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { toast } from 'sonner';
-import { Mail, Trash2, UserPlus, Settings as SettingsIcon, Crown, Loader2 } from 'lucide-react';
+import { Mail, Trash2, UserPlus, Settings as SettingsIcon, Crown, Loader2, ArrowRightLeft, Send } from 'lucide-react';
 
 interface Member {
   id: string;
@@ -308,10 +308,15 @@ export default function WorkspacePage() {
                     <td className="p-3 text-right">
                       {isOwner && m.role !== 'owner' && (
                         <div className="flex gap-2 justify-end">
-                          <Button variant="ghost" size="sm" onClick={() => setPermsModal(m)}>
+                          <Button variant="ghost" size="sm" onClick={() => setPermsModal(m)} title="Permissões">
                             <SettingsIcon className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => removeMember(m)}>
+                          {m.user_id && (
+                            <Button variant="ghost" size="sm" onClick={() => transferOwnership(m)} title="Transferir propriedade">
+                              <ArrowRightLeft className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="sm" onClick={() => removeMember(m)} title="Remover">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -346,9 +351,14 @@ export default function WorkspacePage() {
                     <td className="p-3 text-muted-foreground">{new Date(i.expires_at).toLocaleDateString('pt-BR')}</td>
                     <td className="p-3 text-right">
                       {isOwner && (
-                        <Button variant="ghost" size="sm" onClick={() => cancelInvite(i.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1 justify-end">
+                          <Button variant="ghost" size="sm" onClick={() => resendInvite(i)} title="Reenviar convite">
+                            <Send className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => cancelInvite(i.id)} title="Cancelar">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       )}
                     </td>
                   </tr>
