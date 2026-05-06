@@ -10,6 +10,7 @@ import { useHistoryActions, useHistoryBrands } from "@/hooks/useHistoryActions";
 import { useBrands } from "@/hooks/useBrands";
 import { usePersonas } from "@/hooks/usePersonas";
 import { useThemes } from "@/hooks/useThemes";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { TourSelector } from '@/components/onboarding/TourSelector';
