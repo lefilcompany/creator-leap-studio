@@ -112,6 +112,7 @@ export const useCalendarStats = (calendarId: string) => {
 export const useCreateCalendar = () => {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
   return useMutation({
     mutationFn: async (input: {
       name: string;
@@ -136,6 +137,7 @@ export const useCreateCalendar = () => {
         .insert({
           user_id: user.id,
           team_id: user.teamId || null,
+          workspace_id: currentWorkspace?.id ?? null,
           name: input.name,
           description: input.description || null,
           brand_id: input.brand_id || null,
@@ -147,6 +149,7 @@ export const useCreateCalendar = () => {
         .select()
         .single();
       if (calErr) throw calErr;
+
 
       const itemsPayload = input.items.map((item, idx) => ({
         calendar_id: calendar.id,
