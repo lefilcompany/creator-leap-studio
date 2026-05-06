@@ -842,6 +842,8 @@ export default function WorkspacePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CreateWorkspaceWizard open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   );
 }
