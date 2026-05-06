@@ -21,10 +21,10 @@ interface HistoryPage {
 
 export function useHistoryBrands() {
   const { user } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: wsLoading } = useWorkspace();
 
   return useQuery({
-    queryKey: ['history-brands', currentWorkspace?.id, user?.id],
+    queryKey: ['history-brands', currentWorkspace?.id ?? null, user?.id],
     queryFn: async () => {
       let query = supabase
         .from('brands')
@@ -32,8 +32,9 @@ export function useHistoryBrands() {
         .order('name');
       if (currentWorkspace?.id) {
         query = query.eq('workspace_id', currentWorkspace.id);
-      } else if (user?.id) {
-        query = query.eq('user_id', user.id);
+      } else {
+        // No workspace context — return empty to avoid leaking other workspaces
+        return [] as BrandSummary[];
       }
       const { data, error } = await query;
       if (error) throw error;
@@ -47,7 +48,7 @@ export function useHistoryBrands() {
         updatedAt: brand.updated_at
       })) as BrandSummary[];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !wsLoading,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
   });
