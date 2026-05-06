@@ -76,6 +76,7 @@ const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 // Lazy loaded pages - System
 const System = lazy(() => import("./pages/System"));
 const SystemTeams = lazy(() => import("./pages/system/SystemTeams"));
+const SystemWorkspaces = lazy(() => import("./pages/system/SystemWorkspaces"));
 const SystemUsers = lazy(() => import("./pages/system/SystemUsers"));
 const SystemLogs = lazy(() => import("./pages/system/SystemLogs"));
 const SystemPlans = lazy(() => import("./pages/system/SystemPlans"));
