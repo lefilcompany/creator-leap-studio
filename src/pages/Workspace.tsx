@@ -85,9 +85,11 @@ export default function WorkspacePage() {
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteLimit, setInviteLimit] = useState<number | ''>('');
+  const [inviteLimit, setInviteLimit] = useState<number | ''>(0);
   const [invitePerms, setInvitePerms] = useState<WorkspacePermissions>(DEFAULT_PERMS);
   const [sending, setSending] = useState(false);
+  const [transferAmount, setTransferAmount] = useState<number | ''>('');
+  const [transferring, setTransferring] = useState(false);
 
   const [permsModal, setPermsModal] = useState<Member | null>(null);
 
@@ -165,12 +167,39 @@ export default function WorkspacePage() {
     setSavingCredits(true);
     const { error } = await supabase
       .from('workspaces')
-      .update({ credit_mode: creditMode, shared_credits: sharedCredits })
+      .update({ credit_mode: creditMode })
       .eq('id', currentWorkspace.id);
     setSavingCredits(false);
     if (error) return toast.error(error.message);
-    toast.success('Configurações de créditos salvas');
+    toast.success('Modo de créditos atualizado');
     reload();
+  };
+
+  const transferToShared = async () => {
+    if (!currentWorkspace) return;
+    const amt = transferAmount === '' ? 0 : Number(transferAmount);
+    if (!amt || amt <= 0) return toast.error('Informe um valor maior que zero');
+    setTransferring(true);
+    const { data, error } = await supabase.rpc('workspace_transfer_personal_to_shared', {
+      p_workspace_id: currentWorkspace.id,
+      p_amount: amt,
+    });
+    setTransferring(false);
+    if (error) return toast.error(error.message);
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row?.new_shared_credits != null) setSharedCredits(row.new_shared_credits);
+    setTransferAmount('');
+    toast.success(`${amt} créditos transferidos para o workspace`);
+    reload();
+  };
+
+  const updateMemberLimit = async (memberId: string, limit: number | null) => {
+    const { error } = await supabase
+      .from('workspace_members')
+      .update({ monthly_credit_limit: limit })
+      .eq('id', memberId);
+    if (error) return toast.error(error.message);
+    fetchMembers();
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,7 +255,7 @@ export default function WorkspacePage() {
       toast.success('Convite enviado!');
       setInviteOpen(false);
       setInviteEmail('');
-      setInviteLimit('');
+      setInviteLimit(0);
       setInvitePerms(DEFAULT_PERMS);
       fetchInvites();
     } catch (e: any) {
@@ -268,7 +297,7 @@ export default function WorkspacePage() {
           email: inv.email,
           role: inv.role,
           permissions: DEFAULT_PERMS,
-          monthly_credit_limit: null,
+          monthly_credit_limit: 0,
           resend_invite_id: inv.id,
         },
       });
@@ -527,8 +556,25 @@ export default function WorkspacePage() {
                       <td className="p-3 text-muted-foreground">
                         {m.joined_at ? new Date(m.joined_at).toLocaleDateString('pt-BR') : '—'}
                       </td>
-                      <td className="p-3">{m.credits_used_this_month}</td>
-                      <td className="p-3">{m.monthly_credit_limit ?? '∞'}</td>
+                      <td className="p-3">{creditMode === 'shared' ? m.credits_used_this_month : '—'}</td>
+                      <td className="p-3">
+                        {m.role === 'owner'
+                          ? <span className="text-muted-foreground">Sem limite</span>
+                          : creditMode !== 'shared'
+                            ? <span className="text-muted-foreground">—</span>
+                            : isOwner ? (
+                              <Input
+                                type="number"
+                                min={0}
+                                className="h-8 w-24"
+                                defaultValue={m.monthly_credit_limit ?? 0}
+                                onBlur={(e) => {
+                                  const v = e.target.value === '' ? 0 : Number(e.target.value);
+                                  if (v !== (m.monthly_credit_limit ?? 0)) updateMemberLimit(m.id, v);
+                                }}
+                              />
+                            ) : (m.monthly_credit_limit ?? 0)}
+                      </td>
                       <td className="p-3 text-right">
                         {isOwner && m.role !== 'owner' && (
                           <div className="flex gap-2 justify-end">
@@ -613,16 +659,46 @@ export default function WorkspacePage() {
                 </Select>
               </div>
               {creditMode === 'shared' && (
-                <div>
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Saldo compartilhado</Label>
-                  <Input
-                    className="mt-2"
-                    type="number"
-                    value={sharedCredits}
-                    onChange={e => setSharedCredits(Number(e.target.value))}
-                    disabled={!isOwner}
-                  />
-                </div>
+                <>
+                  <div className="rounded-xl border bg-muted/30 p-4 space-y-1">
+                    <div className="text-xs uppercase tracking-wide text-muted-foreground">Saldo do workspace</div>
+                    <div className="text-2xl font-semibold">{sharedCredits} créditos</div>
+                    <p className="text-xs text-muted-foreground">
+                      Esses créditos pertencem ao workspace e são consumidos pelos membros conforme o limite mensal de cada um. Por padrão, novos membros têm limite <strong>0</strong> (não podem gastar nada). O dono não tem limite.
+                    </p>
+                  </div>
+
+                  {isOwner && (
+                    <div className="rounded-xl border p-4 space-y-3">
+                      <div>
+                        <Label className="text-xs uppercase tracking-wide text-muted-foreground">Transferir dos seus créditos pessoais para o workspace</Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Você tem <strong>{user?.credits ?? 0}</strong> créditos pessoais. O valor transferido sai do seu saldo e entra no pool do workspace.
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="Quantidade"
+                          value={transferAmount}
+                          onChange={e => setTransferAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                        />
+                        <Button onClick={transferToShared} disabled={transferring || !transferAmount}>
+                          {transferring && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                          Transferir
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="rounded-xl border p-4 space-y-2">
+                    <div className="font-medium text-sm">Limite mensal por membro</div>
+                    <p className="text-xs text-muted-foreground">
+                      Defina quantos créditos do pool cada membro pode usar por mês. Edite na aba <strong>Membros</strong>.
+                    </p>
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -639,8 +715,9 @@ export default function WorkspacePage() {
               <Input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="email@exemplo.com" />
             </div>
             <div>
-              <Label>Limite mensal de créditos (opcional)</Label>
-              <Input type="number" value={inviteLimit} onChange={e => setInviteLimit(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Sem limite" />
+              <Label>Limite mensal de créditos compartilhados</Label>
+              <Input type="number" min={0} value={inviteLimit} onChange={e => setInviteLimit(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" />
+              <p className="text-xs text-muted-foreground mt-1">Quantos créditos do pool do workspace este membro pode usar por mês. <strong>0</strong> bloqueia o consumo. Aplica-se apenas ao modo compartilhado.</p>
             </div>
             <PermissionsEditor value={invitePerms} onChange={setInvitePerms} />
           </div>
@@ -667,12 +744,13 @@ export default function WorkspacePage() {
 
 function MemberPermsForm({ member, onSave }: { member: Member; onSave: (m: Member, p: WorkspacePermissions, l: number | null) => void }) {
   const [perms, setPerms] = useState<WorkspacePermissions>(member.permissions || DEFAULT_PERMS);
-  const [limit, setLimit] = useState<number | ''>(member.monthly_credit_limit ?? '');
+  const [limit, setLimit] = useState<number | ''>(member.monthly_credit_limit ?? 0);
   return (
     <div className="space-y-4">
       <div>
-        <Label>Limite mensal de créditos</Label>
-        <Input type="number" value={limit} onChange={e => setLimit(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Sem limite" />
+        <Label>Limite mensal de créditos compartilhados</Label>
+        <Input type="number" min={0} value={limit} onChange={e => setLimit(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" />
+        <p className="text-xs text-muted-foreground mt-1">0 bloqueia o consumo. Aplica-se apenas ao modo compartilhado.</p>
       </div>
       <PermissionsEditor value={perms} onChange={setPerms} />
       <DialogFooter>
