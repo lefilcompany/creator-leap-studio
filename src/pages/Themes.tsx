@@ -48,10 +48,13 @@ export default function Themes() {
       if (!user?.id) return;
       setIsLoadingBrands(true);
       try {
-        const { data, error } = await supabase
+        let q = supabase
           .from('brands')
           .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
           .order('name', { ascending: true });
+        if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
+        else q = q.eq('user_id', user.id);
+        const { data, error } = await q;
 
         if (error) throw error;
 
@@ -82,7 +85,7 @@ export default function Themes() {
       }
     };
     loadBrands();
-  }, [user?.id]);
+  }, [user?.id, currentWorkspace?.id]);
 
   // Load themes
   useEffect(() => {
