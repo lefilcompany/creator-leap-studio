@@ -91,11 +91,14 @@ export default function PersonasPage() {
     if (!user?.id) return;
     setIsLoadingPersonas(true);
     try {
-      const { data, error } = await supabase
+      let q = supabase
         .from('personas')
         .select('id, brand_id, name, created_at')
         .order('created_at', { ascending: false })
         .limit(ITEMS_PER_PAGE);
+      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
+      else q = q.eq('user_id', user.id);
+      const { data, error } = await q;
 
       if (error) throw error;
 
@@ -113,7 +116,7 @@ export default function PersonasPage() {
     } finally {
       setIsLoadingPersonas(false);
     }
-  }, [user?.id]);
+  }, [user?.id, currentWorkspace?.id]);
 
   useEffect(() => {
     loadPersonas();
