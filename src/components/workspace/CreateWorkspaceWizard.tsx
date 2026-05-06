@@ -155,21 +155,16 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener('keydown', onKey);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
   if (!open) return null;
 
-  const content = (
-    <div className="fixed inset-0 z-[100] bg-background flex flex-col animate-in fade-in duration-200">
+  return (
+    <div className="w-full h-full flex flex-col animate-fade-in">
+
       {/* Top bar with logo */}
       <div className="flex items-center justify-between px-6 py-5">
         <img src={logo} alt="Creator" className="h-8 w-auto" />
