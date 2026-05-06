@@ -171,8 +171,8 @@ export function useHistoryActions(filters: HistoryFilters) {
     },
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    enabled: !!user?.id,
-    staleTime: 1000 * 60 * 2, // 2 min cache — avoid re-fetching on every navigation
-    gcTime: 1000 * 60 * 15,   // keep in cache 15 min
+    enabled: !!user?.id && !wsLoading,
+    staleTime: 1000 * 60 * 2,
+    gcTime: 1000 * 60 * 15,
   });
 }
