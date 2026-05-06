@@ -18,6 +18,7 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { brandsSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import brandsBanner from '@/assets/brands-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
