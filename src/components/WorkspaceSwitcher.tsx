@@ -19,6 +19,32 @@ function colorFor(id: string) {
   return colors[i];
 }
 
+function WsAvatar({ ws, size }: { ws: { id: string; name: string; avatar_url?: string | null }; size: number }) {
+  const px = `${size / 4}rem`;
+  if (ws.avatar_url) {
+    return (
+      <img
+        src={ws.avatar_url}
+        alt={ws.name}
+        className="rounded-md object-cover flex-shrink-0"
+        style={{ width: px, height: px }}
+      />
+    );
+  }
+  return (
+    <span
+      className={cn(
+        'flex items-center justify-center rounded-md text-white font-semibold flex-shrink-0',
+        colorFor(ws.id)
+      )}
+      style={{ width: px, height: px, fontSize: size <= 7 ? '0.75rem' : '1rem' }}
+    >
+      {initial(ws.name)}
+    </span>
+  );
+}
+
+
 export function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
   const { workspaces, currentWorkspace, switchWorkspace } = useWorkspace();
   const { user } = useAuth();
@@ -36,11 +62,8 @@ export function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
             collapsed && 'justify-center'
           )}
         >
-          <span className={cn(
-            'flex h-7 w-7 items-center justify-center rounded-md text-white text-sm font-semibold flex-shrink-0',
-            colorFor(currentWorkspace.id)
-          )}>
-            {initial(currentWorkspace.name)}
+          <span className={cn('flex-shrink-0', collapsed ? '' : '')}>
+            <WsAvatar ws={currentWorkspace} size={7} />
           </span>
           {!collapsed && (
             <>
