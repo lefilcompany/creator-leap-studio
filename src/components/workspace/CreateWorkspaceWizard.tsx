@@ -153,26 +153,18 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
   const { theme } = useTheme();
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
 
-  const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    if (!open) { setMounted(false); return; }
-    const t = requestAnimationFrame(() => setMounted(true));
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     window.addEventListener('keydown', onKey);
-    return () => {
-      cancelAnimationFrame(t);
-      window.removeEventListener('keydown', onKey);
-    };
+    return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
   if (!open) return null;
 
   return (
-    <div
-      className={`w-full h-full flex flex-col transition-all duration-500 ease-out ${
-        mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-      }`}
-    >
+    <div className="w-full h-full flex flex-col">
+
 
 
       {/* Top bar with logo */}
