@@ -465,11 +465,10 @@ export default function WorkspacePage() {
                 <UserPlus className="h-4 w-4 mr-2" /> Convidar
               </Button>
             )}
-            {tab === 'credits' && isOwner && (
-              <Button onClick={saveCredits} disabled={savingCredits} size="sm" className="shrink-0">
-                {savingCredits ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                Salvar
-              </Button>
+            {tab === 'credits' && isOwner && savingCredits && (
+              <div className="flex items-center text-xs text-muted-foreground shrink-0">
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Salvando…
+              </div>
             )}
           </div>
 
