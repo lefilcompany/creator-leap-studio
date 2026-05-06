@@ -25,7 +25,7 @@ type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId'
 
 export default function PersonasPage() {
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
-  const { hasPermission } = useWorkspace();
+  const { hasPermission, currentWorkspace } = useWorkspace();
   const canCreate = hasPermission('personas.create');
   const location = useLocation();
   const navigate = useNavigate();
