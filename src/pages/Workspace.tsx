@@ -716,7 +716,7 @@ export default function WorkspacePage() {
                       <div>
                         <Label className="text-xs uppercase tracking-wide text-muted-foreground">Transferir dos seus créditos pessoais para o workspace</Label>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Você tem <strong>{user?.credits ?? 0}</strong> créditos pessoais. O valor transferido sai do seu saldo e entra no pool do workspace.
+                          Você tem <strong>{user?.credits ?? 0}</strong> créditos pessoais. O valor transferido sai do seu saldo e passa a ficar guardado no workspace.
                         </p>
                       </div>
                       <div className="flex gap-2">
