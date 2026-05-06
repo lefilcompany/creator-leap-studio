@@ -228,7 +228,7 @@ export default function WorkspacePage() {
       toast.success('Convite enviado!');
       setInviteOpen(false);
       setInviteEmail('');
-      setInviteLimit('');
+      setInviteLimit(0);
       setInvitePerms(DEFAULT_PERMS);
       fetchInvites();
     } catch (e: any) {
