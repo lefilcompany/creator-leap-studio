@@ -93,11 +93,14 @@ export default function Themes() {
       if (!user?.id) return;
       setIsLoadingThemes(true);
       try {
-        const { data, error } = await supabase
+        let q = supabase
           .from('strategic_themes')
           .select('id, brand_id, title, created_at')
           .order('created_at', { ascending: false })
           .limit(ITEMS_PER_PAGE);
+        if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
+        else q = q.eq('user_id', user.id);
+        const { data, error } = await q;
 
         if (error) throw error;
 
