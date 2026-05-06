@@ -715,8 +715,9 @@ export default function WorkspacePage() {
               <Input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="email@exemplo.com" />
             </div>
             <div>
-              <Label>Limite mensal de créditos (opcional)</Label>
-              <Input type="number" value={inviteLimit} onChange={e => setInviteLimit(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Sem limite" />
+              <Label>Limite mensal de créditos compartilhados</Label>
+              <Input type="number" min={0} value={inviteLimit} onChange={e => setInviteLimit(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" />
+              <p className="text-xs text-muted-foreground mt-1">Quantos créditos do pool do workspace este membro pode usar por mês. <strong>0</strong> bloqueia o consumo. Aplica-se apenas ao modo compartilhado.</p>
             </div>
             <PermissionsEditor value={invitePerms} onChange={setInvitePerms} />
           </div>
