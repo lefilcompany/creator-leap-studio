@@ -659,16 +659,46 @@ export default function WorkspacePage() {
                 </Select>
               </div>
               {creditMode === 'shared' && (
-                <div>
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Saldo compartilhado</Label>
-                  <Input
-                    className="mt-2"
-                    type="number"
-                    value={sharedCredits}
-                    onChange={e => setSharedCredits(Number(e.target.value))}
-                    disabled={!isOwner}
-                  />
-                </div>
+                <>
+                  <div className="rounded-xl border bg-muted/30 p-4 space-y-1">
+                    <div className="text-xs uppercase tracking-wide text-muted-foreground">Saldo do workspace</div>
+                    <div className="text-2xl font-semibold">{sharedCredits} créditos</div>
+                    <p className="text-xs text-muted-foreground">
+                      Esses créditos pertencem ao workspace e são consumidos pelos membros conforme o limite mensal de cada um. Por padrão, novos membros têm limite <strong>0</strong> (não podem gastar nada). O dono não tem limite.
+                    </p>
+                  </div>
+
+                  {isOwner && (
+                    <div className="rounded-xl border p-4 space-y-3">
+                      <div>
+                        <Label className="text-xs uppercase tracking-wide text-muted-foreground">Transferir dos seus créditos pessoais para o workspace</Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Você tem <strong>{user?.credits ?? 0}</strong> créditos pessoais. O valor transferido sai do seu saldo e entra no pool do workspace.
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="Quantidade"
+                          value={transferAmount}
+                          onChange={e => setTransferAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                        />
+                        <Button onClick={transferToShared} disabled={transferring || !transferAmount}>
+                          {transferring && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                          Transferir
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="rounded-xl border p-4 space-y-2">
+                    <div className="font-medium text-sm">Limite mensal por membro</div>
+                    <p className="text-xs text-muted-foreground">
+                      Defina quantos créditos do pool cada membro pode usar por mês. Edite na aba <strong>Membros</strong>.
+                    </p>
+                  </div>
+                </>
               )}
             </div>
           )}
