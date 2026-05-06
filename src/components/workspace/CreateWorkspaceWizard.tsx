@@ -232,7 +232,7 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
           <div className="flex flex-col gap-2 pl-1">
             <Button
               variant="outline"
-              size="lg"
+              size="sm"
               className="justify-start gap-2"
               onClick={() => setStep((s) => (s - 1) as Step)}
               disabled={submitting || step === 1}
@@ -244,7 +244,7 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
 
             {step < 3 ? (
               <Button
-                size="lg"
+                size="sm"
                 className="justify-start gap-2"
                 onClick={() => setStep((s) => (s + 1) as Step)}
                 disabled={(step === 1 && !canContinue1) || (step === 2 && !canContinue2)}
@@ -255,7 +255,7 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
               </Button>
             ) : (
               <Button
-                size="lg"
+                size="sm"
                 className="justify-start gap-2"
                 onClick={submit}
                 disabled={submitting}
