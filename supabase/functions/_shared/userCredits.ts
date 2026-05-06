@@ -183,7 +183,7 @@ export async function deductUserCredits(
     .eq('id', userId);
 
   if (updateError) return { success: false, newCredits: effectiveCredits, error: 'Erro ao deduzir créditos' };
-  return { success: true, newCredits };
+  return { success: true, newCredits, workspaceId: wsId ?? undefined, creditMode: 'personal' };
 }
 
 export async function addUserCredits(
