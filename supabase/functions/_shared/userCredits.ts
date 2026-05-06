@@ -233,6 +233,10 @@ export async function recordUserCreditUsage(
     metadata?: any;
   }
 ) {
+  let workspaceId = params.workspaceId;
+  if (!workspaceId) {
+    workspaceId = (await resolveActiveWorkspaceId(supabase, params.userId, null)) ?? undefined;
+  }
   const { error } = await supabase
     .from('credit_history')
     .insert({
