@@ -162,16 +162,21 @@ export default function WorkspacePage() {
     reload();
   };
 
-  const saveCredits = async () => {
+  const changeCreditMode = async (mode: 'personal' | 'shared') => {
     if (!currentWorkspace) return;
+    const prev = creditMode;
+    setCreditMode(mode);
     setSavingCredits(true);
     const { error } = await supabase
       .from('workspaces')
-      .update({ credit_mode: creditMode })
+      .update({ credit_mode: mode })
       .eq('id', currentWorkspace.id);
     setSavingCredits(false);
-    if (error) return toast.error(error.message);
-    toast.success('Modo de créditos atualizado');
+    if (error) {
+      setCreditMode(prev);
+      return toast.error(error.message);
+    }
+    toast.success(mode === 'shared' ? 'Modo compartilhado ativado' : 'Modo pessoal ativado');
     reload();
   };
 
