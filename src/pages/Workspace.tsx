@@ -115,15 +115,17 @@ export default function WorkspacePage() {
     }
   }, [params, setParams]);
 
-  // Open create workspace wizard via ?action=create
+  // Open create workspace wizard via ?action=create (kept in URL so layout enters immersive mode)
   useEffect(() => {
-    if (params.get('action') === 'create') {
-      setCreateOpen(true);
-      const next = new URLSearchParams(params);
-      next.delete('action');
-      setParams(next, { replace: true });
-    }
-  }, [params, setParams]);
+    setCreateOpen(params.get('action') === 'create');
+  }, [params]);
+
+  const closeCreateWizard = () => {
+    const next = new URLSearchParams(params);
+    next.delete('action');
+    setParams(next, { replace: true });
+    setCreateOpen(false);
+  };
 
   const fetchMembers = async () => {
     if (!currentWorkspace) return;
@@ -388,14 +390,15 @@ export default function WorkspacePage() {
     return n.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase() || 'W';
   }, [currentWorkspace?.name]);
 
+  if (createOpen) {
+    return <CreateWorkspaceWizard open onClose={closeCreateWizard} />;
+  }
+
   if (!currentWorkspace) {
     return (
-      <>
-        <div className="flex h-[60vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-        <CreateWorkspaceWizard open={createOpen} onClose={() => setCreateOpen(false)} />
-      </>
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
@@ -843,7 +846,7 @@ export default function WorkspacePage() {
         </DialogContent>
       </Dialog>
 
-      <CreateWorkspaceWizard open={createOpen} onClose={() => setCreateOpen(false)} />
+      
     </div>
   );
 }
