@@ -390,14 +390,15 @@ export default function WorkspacePage() {
     return n.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase() || 'W';
   }, [currentWorkspace?.name]);
 
+  if (createOpen) {
+    return <CreateWorkspaceWizard open onClose={closeCreateWizard} />;
+  }
+
   if (!currentWorkspace) {
     return (
-      <>
-        <div className="flex h-[60vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-        <CreateWorkspaceWizard open={createOpen} onClose={() => setCreateOpen(false)} />
-      </>
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
