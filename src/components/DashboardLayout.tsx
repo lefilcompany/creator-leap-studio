@@ -22,29 +22,13 @@ export const DashboardLayout = () => {
       <div className="h-screen w-full flex flex-col overflow-hidden bg-[var(--layout-bg)]">
         <UpdateBanner />
         <div className="flex flex-1 min-h-0 overflow-hidden">
-          {/* Sidebar wrapper collapses smoothly in immersive mode */}
-          <div
-            className={`shrink-0 overflow-hidden transition-[width,opacity] duration-500 ease-in-out ${
-              immersive ? 'w-0 opacity-0 pointer-events-none' : 'w-auto opacity-100'
-            }`}
-            aria-hidden={immersive}
-          >
-            <AppSidebar />
-          </div>
+          {!immersive && <AppSidebar />}
           <div className={
             isMobile
               ? "flex flex-1 flex-col min-w-0 bg-card"
-              : `flex flex-1 flex-col min-w-0 bg-card rounded-2xl shadow-xl mt-4 mr-4 mb-4 overflow-hidden transition-[margin] duration-500 ease-in-out ${immersive ? 'ml-4' : 'ml-1'}`
+              : `flex flex-1 flex-col min-w-0 bg-card rounded-2xl shadow-xl mt-4 mr-4 mb-4 overflow-hidden ${immersive ? 'ml-4' : 'ml-1'}`
           }>
-            {/* Header wrapper collapses height smoothly */}
-            <div
-              className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-in-out ${
-                immersive ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-32 opacity-100'
-              }`}
-              aria-hidden={immersive}
-            >
-              <Header />
-            </div>
+            {!immersive && <Header />}
             <main className="flex-1 overflow-x-hidden overflow-y-auto">
               <div className={immersive ? "w-full h-full" : "w-full h-full p-4 sm:p-6 lg:p-8"}>
                 <Outlet />
