@@ -170,9 +170,8 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
 
   return (
     <div className="w-full h-full flex flex-col overflow-hidden">
-      {/* Top: prominent logo + close */}
-      <div className="flex items-center justify-between px-8 pt-8 pb-4 shrink-0">
-        <img src={logo} alt="Creator" className="h-12 w-auto drop-shadow-sm" />
+      {/* Top: close button only */}
+      <div className="flex items-center justify-end px-8 pt-6 pb-2 shrink-0">
         <button
           onClick={close}
           disabled={submitting}
@@ -186,8 +185,10 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
       {/* Body: vertical stepper (left) + conveyor content (right) */}
       <div className="flex-1 min-h-0 grid grid-cols-[260px_1fr] gap-8 px-8 pb-4">
         {/* Vertical stepper */}
-        <aside className="flex flex-col justify-center gap-8">
+        <aside className="flex flex-col justify-center gap-6">
+          <img src={logo} alt="Creator" className="h-10 w-auto self-start pl-1" />
           <ol className="space-y-2">
+
             {stepsMeta.map((s, i) => {
               const active = step === s.n;
               const done = step > s.n;
