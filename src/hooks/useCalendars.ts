@@ -49,13 +49,17 @@ export interface CalendarItem {
 
 export const useCalendars = () => {
   const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
   return useQuery({
-    queryKey: ["content-calendars", user?.id, user?.teamId],
+    queryKey: ["content-calendars", currentWorkspace?.id, user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("content_calendars")
-        .select("*")
-        .order("created_at", { ascending: false });
+      let query = supabase.from("content_calendars").select("*").order("created_at", { ascending: false });
+      if (currentWorkspace?.id) {
+        query = query.eq('workspace_id', currentWorkspace.id);
+      } else if (user?.id) {
+        query = query.eq('user_id', user.id);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return (data || []) as ContentCalendar[];
     },
