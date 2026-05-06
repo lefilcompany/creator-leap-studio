@@ -162,16 +162,21 @@ export default function WorkspacePage() {
     reload();
   };
 
-  const saveCredits = async () => {
+  const changeCreditMode = async (mode: 'personal' | 'shared') => {
     if (!currentWorkspace) return;
+    const prev = creditMode;
+    setCreditMode(mode);
     setSavingCredits(true);
     const { error } = await supabase
       .from('workspaces')
-      .update({ credit_mode: creditMode })
+      .update({ credit_mode: mode })
       .eq('id', currentWorkspace.id);
     setSavingCredits(false);
-    if (error) return toast.error(error.message);
-    toast.success('Modo de créditos atualizado');
+    if (error) {
+      setCreditMode(prev);
+      return toast.error(error.message);
+    }
+    toast.success(mode === 'shared' ? 'Modo compartilhado ativado' : 'Modo pessoal ativado');
     reload();
   };
 
@@ -460,11 +465,10 @@ export default function WorkspacePage() {
                 <UserPlus className="h-4 w-4 mr-2" /> Convidar
               </Button>
             )}
-            {tab === 'credits' && isOwner && (
-              <Button onClick={saveCredits} disabled={savingCredits} size="sm" className="shrink-0">
-                {savingCredits ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                Salvar
-              </Button>
+            {tab === 'credits' && isOwner && savingCredits && (
+              <div className="flex items-center text-xs text-muted-foreground shrink-0">
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Salvando…
+              </div>
             )}
           </div>
 
@@ -650,7 +654,7 @@ export default function WorkspacePage() {
                 <p className="text-xs text-muted-foreground mt-1 mb-2">
                   Pessoais: cada membro usa seus próprios créditos. Compartilhados: pool único do workspace.
                 </p>
-                <Select value={creditMode} onValueChange={(v: any) => setCreditMode(v)} disabled={!isOwner}>
+                <Select value={creditMode} onValueChange={(v: any) => changeCreditMode(v)} disabled={!isOwner || savingCredits}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="personal">Pessoais</SelectItem>
