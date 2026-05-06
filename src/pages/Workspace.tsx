@@ -694,27 +694,54 @@ function PermissionsEditor({ value, onChange }: { value: WorkspacePermissions; o
     { key: 'billing', label: 'Cobrança', actions: ['manage'] },
   ];
   const labelMap: Record<string, string> = { view: 'Ver', create: 'Criar', edit: 'Editar', delete: 'Excluir', manage: 'Gerenciar' };
+
+  const allOn = (key: keyof WorkspacePermissions, actions: string[]) =>
+    actions.every(a => !!(value as any)[key]?.[a]);
+
+  const toggleAll = (key: keyof WorkspacePermissions, actions: string[], on: boolean) => {
+    const next = { ...(value as any)[key] };
+    actions.forEach(a => { next[a] = on; });
+    onChange({ ...value, [key]: next });
+  };
+
   return (
-    <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
-      {groups.map(g => (
-        <div key={g.key} className="border rounded-lg p-3">
-          <div className="font-medium text-sm mb-2">{g.label}</div>
-          <div className="grid grid-cols-2 gap-2">
-            {g.actions.map(a => (
-              <label key={a} className="flex items-center justify-between text-sm">
-                <span>{labelMap[a]}</span>
-                <Switch
-                  checked={!!(value as any)[g.key]?.[a]}
-                  onCheckedChange={(c) => onChange({
-                    ...value,
-                    [g.key]: { ...(value as any)[g.key], [a]: c },
-                  })}
-                />
-              </label>
-            ))}
-          </div>
-        </div>
-      ))}
+    <div className="space-y-2">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground px-1">
+        Permissões
+      </div>
+      <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+        {groups.map(g => {
+          const all = allOn(g.key, g.actions);
+          return (
+            <div key={g.key} className="border rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
+                <div className="font-medium text-sm">{g.label}</div>
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Tudo</span>
+                  <Switch
+                    checked={all}
+                    onCheckedChange={(c) => toggleAll(g.key, g.actions, c)}
+                  />
+                </label>
+              </div>
+              <div className="divide-y">
+                {g.actions.map(a => (
+                  <label key={a} className="flex items-center justify-between px-3 py-2 text-sm cursor-pointer hover:bg-muted/30">
+                    <span>{labelMap[a]}</span>
+                    <Switch
+                      checked={!!(value as any)[g.key]?.[a]}
+                      onCheckedChange={(c) => onChange({
+                        ...value,
+                        [g.key]: { ...(value as any)[g.key], [a]: c },
+                      })}
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
