@@ -7,7 +7,7 @@ import logoCreatorBranca from '@/assets/logoCreatorBranca.png';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, X, Camera, ChevronRight, ChevronLeft, Check, Users, Coins, Building2 } from 'lucide-react';
+import { Loader2, X, Camera, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Check, Users, Coins, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
