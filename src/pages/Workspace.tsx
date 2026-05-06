@@ -23,6 +23,7 @@ import {
   ChevronRight, Camera, Save, ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CreateWorkspaceWizard } from '@/components/workspace/CreateWorkspaceWizard';
 
 interface Member {
   id: string;
