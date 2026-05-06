@@ -40,13 +40,19 @@ export default function MarcasPage() {
 
   // Fetch ALL brands (used for grid view and as base for list pagination)
   const { data: allBrands = [], isLoading: isQueryLoading } = useQuery({
-    queryKey: ['brands', user?.id],
+    queryKey: ['brands', user?.id, currentWorkspace?.id],
     queryFn: async () => {
       if (!user?.id) return [] as BrandSummary[];
-      const { data, error } = await supabase
+      let q = supabase
         .from('brands')
         .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
         .order('name', { ascending: true });
+      if (currentWorkspace?.id) {
+        q = q.eq('workspace_id', currentWorkspace.id);
+      } else {
+        q = q.eq('user_id', user.id);
+      }
+      const { data, error } = await q;
 
       if (error) throw error;
 
