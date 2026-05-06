@@ -1,119 +1,67 @@
+# Criar novo workspace — fluxo em etapas
 
-# Workspaces — Nova arquitetura colaborativa
+## Problema
 
-Substituir o conceito atual de "equipe única por usuário" por **Workspaces**, mantendo todas as funcionalidades existentes (histórico, marcas, conteúdo) sob esse novo escopo. Cada usuário sempre terá ao menos 1 workspace pessoal; pode pertencer a vários workspaces; pode trocar entre eles por um seletor abaixo da logo.
+Hoje o botão "Criar novo workspace" no `WorkspaceSwitcher` navega para `/workspace?action=create`, mas a página `Workspace.tsx` ignora o parâmetro `action`. Nada acontece. Não existe nenhuma UI de criação no projeto.
 
-## 1. Modelo de dados (migrações Test → Live no publish)
+## Solução
 
-### Novas tabelas
+Criar um modal **full-screen** (estilo da referência da Lovable) que abre quando a URL tem `?action=create`, com etapas curtas, perguntas diretas e termos já usados no app (nada de "pool", manter "Individuais" / "Compartilhados", como já ajustado nas memórias).
 
-- `workspaces` — `id`, `name`, `slug`, `owner_id`, `avatar_url`, `is_personal` (bool), `credit_mode` ('personal' | 'shared'), `shared_credits` (int, usado se shared), `created_at`, `updated_at`. Personal workspace é criado automaticamente no signup (trigger `handle_new_user`).
-- `workspace_members` — `id`, `workspace_id`, `user_id` (nullable se ainda não cadastrado), `email` (para convite), `role` ('owner' | 'member'), `status` ('pending' | 'active'), `monthly_credit_limit` (nullable, só faz sentido em modo shared/doação), `credits_used_this_month` (int), `permissions` (jsonb: `{brands:{view,create,edit,delete}, content:{...}, history:{...}, calendars:{...}, personas:{...}, themes:{...}, members:{manage}, billing:{manage}}`), `invited_by`, `invited_at`, `joined_at`.
-- `workspace_invites` — `id`, `workspace_id`, `email`, `token` (uuid único), `role`, `permissions`, `monthly_credit_limit`, `expires_at`, `accepted_at`, `invited_by`. Token enviado por e-mail com link `/invite/:token`.
+## Etapas do wizard
 
-### Alterações em tabelas existentes
+```
+[1 Identidade]  →  [2 Créditos]  →  [3 Revisão]
+```
 
-Adicionar `workspace_id uuid` em todas as tabelas que hoje usam `team_id`:
-`actions`, `brands`, `personas`, `strategic_themes`, `content_briefings`, `content_calendars`, `calendar_items`, `creation_feedback`, `agent_feedback`, `brand_style_preferences`, `custom_fonts`, `action_categories`, `action_favorites`, `notifications`, `text_style_templates`, `credit_history`, `credit_purchases`.
+**Etapa 1 — Identidade do workspace**
+- Avatar (opcional, upload imediato após criar — pode ser pulado)
+- Nome do workspace (obrigatório, mín. 2 chars)
+- Frase curta de apoio: "Espaço para colaborar com sua equipe e organizar marcas, conteúdos e calendários."
+- Botões: `Cancelar` · `Continuar`
 
-`team_id` é mantido temporariamente (deprecated, somente leitura). Toda escrita nova grava `workspace_id`. Hooks/edge functions são atualizados para preferir `workspace_id`; fallback lê `team_id` enquanto a base for migrada.
+**Etapa 2 — Modelo de créditos**  
+Dois cards lado a lado (mesma linguagem do `Workspace.tsx`):
+- **Individuais** (padrão / recomendado) — "Cada membro usa os próprios créditos. Sem transferências, sem limites a configurar."
+- **Compartilhados** — "Você disponibiliza créditos para o workspace e define quanto cada membro pode gastar por mês."
 
-`profiles`: adicionar `current_workspace_id` (workspace ativo na sessão).
+Se escolher **Compartilhados**, mostra logo abaixo:
+- Input "Disponibilizar agora (opcional)" — quantidade a transferir do saldo pessoal (validar contra `user.credits`, permite 0)
+- Input "Limite mensal padrão por membro" (default `0` = não pode gastar; texto auxiliar reforça que membros começam com 0 conforme regra do app)
+- Texto: "Você pode ajustar tudo isso depois em Configurações do Workspace."
 
-### RLS — função canônica
+Botões: `Voltar` · `Continuar`
 
-Substituir `can_access_resource(user_id, team_id)` por `can_access_workspace_resource(user_id, workspace_id, required_permission text)`. Implementação SECURITY DEFINER que verifica:
-1. `user_id = auth.uid()`, OU
-2. existe `workspace_members(workspace_id, user_id=auth.uid(), status='active')` E o `permissions->required_permission` é true.
+**Etapa 3 — Revisão e criar**
+- Resumo: nome, avatar, modo de créditos (e valor a transferir + limite padrão se compartilhado)
+- Botões: `Voltar` · `Criar workspace` (loading)
 
-Policies de cada tabela passam a usar essa função. A antiga `can_access_resource` é mantida por compatibilidade até a migração completa do código.
+## Lógica de submit (sequencial, com rollback simples)
 
-### Migração de dados (script numa migration)
+1. `INSERT public.workspaces { name, owner_id: user.id, is_personal: false, credit_mode }` → recebe `workspace_id`.
+2. `INSERT public.workspace_members { workspace_id, user_id, role: 'owner', status: 'active', joined_at: now() }`.
+3. Se avatar selecionado: upload em `workspace-avatars/{workspace_id}/...` e `UPDATE workspaces.avatar_url`.
+4. Se modo `shared` e valor > 0: `rpc('workspace_transfer_personal_to_shared', { p_workspace_id, p_amount })` (já existe).
+5. `UPDATE profiles.current_workspace_id = workspace_id` (entra no workspace recém-criado).
+6. `WorkspaceContext.reload()` + `refreshProfile()` + `navigate('/workspace')` (limpa `?action=create`).
+7. `toast.success("Workspace criado")`.
 
-Para cada `teams` existente:
-1. Cria `workspaces` com `owner_id = teams.admin_id`, `is_personal=false`, `name=teams.name`, `credit_mode='personal'`.
-2. Cria `workspace_members` para cada `profiles.team_id = teams.id` e cada `team_members.team_id`, com `role='owner'` para admin e `role='member'` para os demais; `permissions` padrão = todas marcadas (compatível com hoje).
-3. Atualiza todas as tabelas com `team_id` setado, gravando `workspace_id` correspondente.
-4. Para **todo** usuário em `profiles`, cria também 1 `workspaces is_personal=true` com `owner_id = profile.id`, `name = "<Primeiro nome>'s workspace"`, `credit_mode='personal'`.
-5. Define `profiles.current_workspace_id` = workspace pessoal (default).
+Erros em qualquer etapa: `toast.error` com mensagem; se já criou o workspace e a transferência falhar, manter o workspace e avisar que a transferência não ocorreu (usuário pode refazer em Configurações).
 
-## 2. Backend / Edge functions
+## UI / arquivos
 
-- `workspace-invite` — recebe `{workspace_id, email, role, permissions, monthly_credit_limit}`. Cria `workspace_invites`, dispara e-mail (template auth `invite-workspace`) com link `https://pla.creator.lefil.com.br/invite/<token>`.
-- `workspace-accept-invite` — recebe `token`. Se usuário não existe → redireciona para `/register?invite=<token>` (Register grava `pending_invite_token` em metadata e processa pós-confirmação). Se existe → cria `workspace_members` ativo, marca invite `accepted_at`.
-- `workspace-update-member` — atualizar role/permissions/limite por membro (apenas owner ou quem tem `members.manage`).
-- `workspace-set-credit-mode` — alterar `credit_mode` (personal | shared); se shared, owner define `shared_credits` (transferência opcional do balance pessoal do owner para o pool — perguntar na UI).
-- Atualizar **todas** as edge functions de geração de conteúdo para:
-  - receber `workspace_id` no body,
-  - debitar de `profiles.credits` se `credit_mode='personal'`, ou de `workspaces.shared_credits` se shared (e respeitar `monthly_credit_limit` por membro, atualizando `credits_used_this_month`).
-  - gravar `workspace_id` em `actions`, `credit_history`, etc.
+- **Novo:** `src/components/workspace/CreateWorkspaceWizard.tsx` — `Dialog` em modo full-screen (`max-w-none w-screen h-screen rounded-none p-0`) com header (logo + botão fechar X), conteúdo central com `max-w-xl` e indicador de passos no topo (1·2·3 com linha de progresso). Reutiliza `Button`, `Input`, `Label`, `Avatar`, `cn`, padrão floating board (`bg-card`, `rounded-2xl`).
+- **Editar:** `src/pages/Workspace.tsx`
+  - `useEffect` adicional: se `params.get('action') === 'create'` → abre o wizard e remove o param da URL.
+  - Renderiza `<CreateWorkspaceWizard open={...} onClose={...} onCreated={...} />`.
+- **Editar:** `src/components/WorkspaceSwitcher.tsx` — manter o `navigate('/workspace?action=create')` (já funciona, só passa a ter handler).
 
-Job cron mensal para zerar `credits_used_this_month` em `workspace_members`.
+## Linguagem (memórias do projeto)
+- "Individuais" / "Compartilhados" (não "Pessoais", não "pool").
+- "Disponibilizar créditos para o workspace" (não "transferir para o pool").
+- Sem rótulo "(opcional)" — usar texto auxiliar quando precisar.
+- Breadcrumbs/back: usar botão `Voltar` entre etapas; botão `X` no canto fecha o wizard.
 
-## 3. Frontend
-
-### Contexto e seletor
-
-- Novo `WorkspaceContext` (`src/contexts/WorkspaceContext.tsx`) com `currentWorkspace`, `workspaces`, `members`, `setCurrentWorkspace()`, `permissions` (do membership ativo). Persiste `current_workspace_id` em `profiles`.
-- `AppSidebar`: abaixo da logo, novo `WorkspaceSwitcher` (dropdown) inspirado no print enviado:
-  - mostra avatar + nome do workspace atual + chevron;
-  - ao abrir: cards com workspace atual (nome, plano, nº de membros, botões "Configurações" e "Convidar membros"), barra de créditos;
-  - lista "Todos os workspaces" com badge (Pessoal / Pro), check no atual;
-  - rodapé: "Criar novo workspace" + "Encontrar workspaces" (placeholder).
-
-### Páginas
-
-- `/workspace` (substitui `/team`) — gestão do workspace atual:
-  - aba **Visão geral**: nome, avatar, plano, créditos (modo + saldo), botão configurar.
-  - aba **Membros**: tabela inspirada no segundo print (Name, Role, Joined date, Usage do mês, Total usage, Credit limit, menu …). Botões "Invite link", "Invite members", "Export". Dropdown de role e ações de remover/transferir owner.
-  - aba **Convites**: pendentes / reenviar / cancelar.
-  - aba **Permissões**: por membro, modal com switches granulares por recurso (Marcas: ver/criar/editar/excluir; Conteúdo: ver/criar; Histórico: ver/excluir; Calendários; Personas; Temas; Membros: gerenciar; Billing: gerenciar).
-  - aba **Créditos**: toggle Pessoal ↔ Compartilhado; se compartilhado, input `monthly_credit_limit` por membro.
-- `/invite/:token` — aceitar convite (usuário logado: aceita; deslogado: redireciona pra `/register?invite=...`).
-- Atualizar `Register` e `Login` para tratar `?invite=<token>`: ao concluir signup/login, chamar `workspace-accept-invite` automaticamente.
-
-### Refactor abrangente
-
-- Substituir todas as 60+ ocorrências de `team_id`/`teamId` em hooks (`useBrands`, `useActions`, `useThemes`, `usePersonas`, `useFavorites`, `useCalendars`, `useCustomFonts`, `useCategories`, `useCreditHistory`, `useTeamData`, `useTeamAccess`, `useHistoryActions`, `useTrash`) e nas páginas (`Dashboard`, `History`, `Brands`, `Personas`, `Themes`, `CreateContent`, `CreateImage`, `CreateVideo`, `QuickContent`, `PlanContent`, `ReviewContent`, `MarketplaceContent`, `BrandView`, `ActionView`, etc.) por `workspaceId` lido do `WorkspaceContext`.
-- `AuthContext`: ao logar, carregar `current_workspace_id` e injetar no `WorkspaceProvider`.
-- `useCreditsAction`: ler do workspace atual; se shared, validar `monthly_credit_limit` do membership.
-- Esconder `/team` antigo (redirect → `/workspace`).
-- `SystemTeams` admin → renomear para `SystemWorkspaces` (lista todos os workspaces).
-
-### UI do switcher (seguindo prints)
-
-- Botão pequeno com avatar quadrado colorido + nome.
-- Dropdown 320px largura, fundo `bg-card`, `rounded-2xl`, divisórias sutis.
-- Ícones de configurações (`Settings`) e convite (`UserPlus`).
-- Barra de créditos com gradiente (`primary`).
-
-## 4. E-mails (auth/transactional)
-
-Configurar template transacional `workspace-invite` via infra de e-mails Lovable:
-- assunto: "Você foi convidado para o workspace <nome> no Creator"
-- corpo: nome do convidante, nome do workspace, botão "Aceitar convite" → link com token, validade 7 dias.
-
-## 5. Memória do projeto
-
-Atualizar `mem://index.md` Core: substituir "Team membership optional… `teammate_profiles`" por: "Workspaces obrigatórios; cada usuário tem 1 workspace pessoal + N compartilhados. `workspace_id` é o escopo canônico. `team_id` é legado/leitura."
-
-Adicionar `mem://architecture/workspaces-model.md` com regras de credit_mode, permissions jsonb e fluxo de convite.
-
-## 6. Ordem de implementação
-
-1. Migração SQL: novas tabelas, colunas `workspace_id`, função RLS, policies, dados migrados.
-2. Trigger `handle_new_user` → cria workspace pessoal.
-3. `WorkspaceContext` + `WorkspaceSwitcher` no `AppSidebar`.
-4. Página `/workspace` (Visão geral + Membros + Convites + Permissões + Créditos).
-5. Edge functions de convite/aceite + templates de e-mail.
-6. Refactor incremental de hooks/páginas: `team_id` → `workspace_id`, mantendo fallback de leitura para registros antigos durante 1 ciclo.
-7. Atualizar edge functions de geração para usar `workspace_id` e respeitar credit_mode/limites.
-8. Atualizar `SystemTeams` → `SystemWorkspaces`.
-9. Atualizar memória.
-
-## 7. Riscos / observações
-
-- Refactor é grande (~70 arquivos); será feito em lotes coerentes para evitar quebra.
-- Durante a migração, manter `team_id` populado em escritas novas (espelho) por segurança e remover no commit final.
-- RLS recursivo: usar SECURITY DEFINER em `can_access_workspace_resource` para evitar loops via `workspace_members`.
-- Créditos: alteração tem impacto em `useCreditsAction` e ~12 edge functions; testar individualmente.
+## Não-escopo
+- Seleção de plano: o app cobra créditos por usuário (`profiles.plan_id`, `profiles.credits`), não por workspace. Não faz sentido pedir plano na criação — fica fora.
+- Convites de membros: já existem em Configurações do Workspace; o wizard finaliza levando o usuário para lá caso queira convidar (link "Convidar membros agora" na tela de sucesso).

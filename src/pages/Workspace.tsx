@@ -23,6 +23,7 @@ import {
   ChevronRight, Camera, Save, ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CreateWorkspaceWizard } from '@/components/workspace/CreateWorkspaceWizard';
 
 interface Member {
   id: string;
@@ -93,7 +94,7 @@ export default function WorkspacePage() {
 
   const [permsModal, setPermsModal] = useState<Member | null>(null);
   const [switchToPersonalOpen, setSwitchToPersonalOpen] = useState(false);
-
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     if (!currentWorkspace) return;
@@ -110,6 +111,16 @@ export default function WorkspacePage() {
       setInviteOpen(true);
       const next = new URLSearchParams(params);
       next.delete('invite');
+      setParams(next, { replace: true });
+    }
+  }, [params, setParams]);
+
+  // Open create workspace wizard via ?action=create
+  useEffect(() => {
+    if (params.get('action') === 'create') {
+      setCreateOpen(true);
+      const next = new URLSearchParams(params);
+      next.delete('action');
       setParams(next, { replace: true });
     }
   }, [params, setParams]);
@@ -379,9 +390,12 @@ export default function WorkspacePage() {
 
   if (!currentWorkspace) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <>
+        <div className="flex h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+        <CreateWorkspaceWizard open={createOpen} onClose={() => setCreateOpen(false)} />
+      </>
     );
   }
 
@@ -828,6 +842,8 @@ export default function WorkspacePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CreateWorkspaceWizard open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   );
 }
