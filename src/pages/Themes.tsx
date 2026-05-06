@@ -22,6 +22,7 @@ type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'te
 
 export default function Themes() {
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
+  const { hasPermission } = (await import('@/contexts/WorkspaceContext')).useWorkspace ? require('@/contexts/WorkspaceContext').useWorkspace() : { hasPermission: () => true };
   const navigate = useNavigate();
   const location = useLocation();
   const initialViewMode = (location.state as any)?.viewMode || 'grid';
