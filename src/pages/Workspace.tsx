@@ -100,6 +100,16 @@ export default function WorkspacePage() {
     fetchInvites();
   }, [currentWorkspace?.id]);
 
+  // Open invite modal via ?invite=1 (from sidebar switcher)
+  useEffect(() => {
+    if (params.get('invite') === '1') {
+      setInviteOpen(true);
+      const next = new URLSearchParams(params);
+      next.delete('invite');
+      setParams(next, { replace: true });
+    }
+  }, [params, setParams]);
+
   const fetchMembers = async () => {
     if (!currentWorkspace) return;
     const { data: memData } = await supabase
