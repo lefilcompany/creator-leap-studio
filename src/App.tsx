@@ -76,6 +76,7 @@ const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 // Lazy loaded pages - System
 const System = lazy(() => import("./pages/System"));
 const SystemTeams = lazy(() => import("./pages/system/SystemTeams"));
+const SystemWorkspaces = lazy(() => import("./pages/system/SystemWorkspaces"));
 const SystemUsers = lazy(() => import("./pages/system/SystemUsers"));
 const SystemLogs = lazy(() => import("./pages/system/SystemLogs"));
 const SystemPlans = lazy(() => import("./pages/system/SystemPlans"));
@@ -194,6 +195,7 @@ const App = () => (
                         <Route path="users" element={<SuspenseRoute><SystemUsers /></SuspenseRoute>} />
                         <Route path="plans" element={<SuspenseRoute><SystemPlans /></SuspenseRoute>} />
                         <Route path="teams" element={<SuspenseRoute><SystemTeams /></SuspenseRoute>} />
+                        <Route path="workspaces" element={<SuspenseRoute><SystemWorkspaces /></SuspenseRoute>} />
                         <Route path="logs" element={<SuspenseRoute><SystemLogs /></SuspenseRoute>} />
                         <Route path="coupons" element={<SuspenseRoute><SystemCoupons /></SuspenseRoute>} />
                         <Route path="reports" element={<SuspenseRoute><SystemReports /></SuspenseRoute>} />

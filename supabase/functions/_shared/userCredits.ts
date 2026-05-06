@@ -1,6 +1,11 @@
 /**
- * Utilitário para gerenciar créditos do usuário individual (profiles.credits)
- * Créditos expiram 30 dias após a compra (credits_expire_at)
+ * Utilitário para gerenciar créditos.
+ * - Pessoal: profiles.credits (com expiração 30 dias).
+ * - Workspace compartilhado: workspaces.shared_credits (sem expiração própria).
+ *
+ * Quando workspaceId é fornecido, o helper resolve o credit_mode do workspace
+ * e debita/credita do pool correto, respeitando o monthly_credit_limit do member
+ * (workspace_members.monthly_credit_limit).
  */
 
 export interface UserCreditsResult {
@@ -9,34 +14,38 @@ export interface UserCreditsResult {
   teamId?: string;
   planId: string;
   creditsExpireAt?: string;
+  workspaceId?: string;
+  creditMode?: 'personal' | 'shared';
 }
 
-/**
- * Verifica se os créditos do usuário estão expirados
- */
 function areCreditsExpired(expireAt?: string | null): boolean {
-  if (!expireAt) return false; // Sem data de expiração = não expira (legado)
+  if (!expireAt) return false;
   return new Date(expireAt) < new Date();
 }
 
-/**
- * Retorna os créditos efetivos (0 se expirados)
- */
 function getEffectiveCredits(credits: number, expireAt?: string | null): number {
   if (areCreditsExpired(expireAt)) return 0;
   return credits;
 }
 
-/**
- * Busca os créditos do usuário individual
- */
+async function resolveWorkspace(supabase: any, workspaceId?: string | null) {
+  if (!workspaceId) return null;
+  const { data } = await supabase
+    .from('workspaces')
+    .select('id, credit_mode, shared_credits, owner_id')
+    .eq('id', workspaceId)
+    .maybeSingle();
+  return data || null;
+}
+
 export async function getUserCredits(
   supabase: any,
-  userId: string
+  userId: string,
+  workspaceId?: string | null,
 ): Promise<UserCreditsResult | null> {
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, credits, team_id, plan_id, credits_expire_at')
+    .select('id, credits, team_id, plan_id, credits_expire_at, current_workspace_id')
     .eq('id', userId)
     .single();
 
@@ -45,56 +54,104 @@ export async function getUserCredits(
     return null;
   }
 
-  const effectiveCredits = getEffectiveCredits(profile.credits || 0, profile.credits_expire_at);
+  const wsId = workspaceId ?? profile.current_workspace_id ?? null;
+  const ws = await resolveWorkspace(supabase, wsId);
 
+  if (ws && ws.credit_mode === 'shared') {
+    return {
+      userId: profile.id,
+      credits: ws.shared_credits ?? 0,
+      teamId: profile.team_id,
+      planId: profile.plan_id || 'free',
+      workspaceId: ws.id,
+      creditMode: 'shared',
+    };
+  }
+
+  const effective = getEffectiveCredits(profile.credits || 0, profile.credits_expire_at);
   return {
     userId: profile.id,
-    credits: effectiveCredits,
+    credits: effective,
     teamId: profile.team_id,
     planId: profile.plan_id || 'free',
     creditsExpireAt: profile.credits_expire_at,
+    workspaceId: ws?.id,
+    creditMode: 'personal',
   };
 }
 
-/**
- * Verifica se o usuário tem créditos suficientes (considerando expiração)
- */
 export async function checkUserCredits(
   supabase: any,
   userId: string,
-  requiredCredits: number
-): Promise<{ hasCredits: boolean; currentCredits: number; teamId?: string }> {
-  const result = await getUserCredits(supabase, userId);
-  
-  if (!result) {
-    return { hasCredits: false, currentCredits: 0 };
-  }
-
+  requiredCredits: number,
+  workspaceId?: string | null,
+): Promise<{ hasCredits: boolean; currentCredits: number; teamId?: string; workspaceId?: string; creditMode?: 'personal' | 'shared' }> {
+  const result = await getUserCredits(supabase, userId, workspaceId);
+  if (!result) return { hasCredits: false, currentCredits: 0 };
   return {
     hasCredits: result.credits >= requiredCredits,
     currentCredits: result.credits,
     teamId: result.teamId,
+    workspaceId: result.workspaceId,
+    creditMode: result.creditMode,
   };
 }
 
-/**
- * Deduz créditos do usuário individual (verifica expiração antes)
- */
 export async function deductUserCredits(
   supabase: any,
   userId: string,
-  amount: number
+  amount: number,
+  workspaceId?: string | null,
 ): Promise<{ success: boolean; newCredits: number; error?: string }> {
-  // Buscar créditos atuais com expiração
+  const wsId = workspaceId ?? null;
+  const ws = await resolveWorkspace(supabase, wsId);
+
+  // Shared workspace pool
+  if (ws && ws.credit_mode === 'shared') {
+    // Check member monthly limit
+    const { data: member } = await supabase
+      .from('workspace_members')
+      .select('monthly_credit_limit, credits_used_this_month')
+      .eq('workspace_id', ws.id)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (member?.monthly_credit_limit != null) {
+      const used = member.credits_used_this_month ?? 0;
+      if (used + amount > member.monthly_credit_limit) {
+        return { success: false, newCredits: ws.shared_credits ?? 0, error: 'Limite mensal de créditos do workspace atingido.' };
+      }
+    }
+
+    const current = ws.shared_credits ?? 0;
+    if (current < amount) {
+      return { success: false, newCredits: current, error: 'Créditos compartilhados insuficientes.' };
+    }
+    const newCredits = current - amount;
+    const { error: upErr } = await supabase
+      .from('workspaces')
+      .update({ shared_credits: newCredits })
+      .eq('id', ws.id);
+    if (upErr) return { success: false, newCredits: current, error: 'Erro ao deduzir créditos do workspace.' };
+
+    if (member) {
+      await supabase
+        .from('workspace_members')
+        .update({ credits_used_this_month: (member.credits_used_this_month ?? 0) + amount })
+        .eq('workspace_id', ws.id)
+        .eq('user_id', userId);
+    }
+    return { success: true, newCredits };
+  }
+
+  // Personal credits
   const { data: profile, error: fetchError } = await supabase
     .from('profiles')
     .select('credits, credits_expire_at')
     .eq('id', userId)
     .single();
 
-  if (fetchError || !profile) {
-    return { success: false, newCredits: 0, error: 'Usuário não encontrado' };
-  }
+  if (fetchError || !profile) return { success: false, newCredits: 0, error: 'Usuário não encontrado' };
 
   const effectiveCredits = getEffectiveCredits(profile.credits || 0, profile.credits_expire_at);
   const newCredits = effectiveCredits - amount;
@@ -106,76 +163,54 @@ export async function deductUserCredits(
     return { success: false, newCredits: effectiveCredits, error: 'Créditos insuficientes' };
   }
 
-  // Atualizar créditos
   const { error: updateError } = await supabase
     .from('profiles')
     .update({ credits: newCredits })
     .eq('id', userId);
 
-  if (updateError) {
-    console.error('Error deducting credits:', updateError);
-    return { success: false, newCredits: effectiveCredits, error: 'Erro ao deduzir créditos' };
-  }
-
+  if (updateError) return { success: false, newCredits: effectiveCredits, error: 'Erro ao deduzir créditos' };
   return { success: true, newCredits };
 }
 
-/**
- * Adiciona créditos ao usuário individual (ex: compra ou reembolso)
- * Ao adicionar créditos, define nova data de expiração (30 dias)
- */
 export async function addUserCredits(
   supabase: any,
   userId: string,
   amount: number,
   setExpiration: boolean = true
 ): Promise<{ success: boolean; newCredits: number; error?: string }> {
-  // Buscar créditos atuais
   const { data: profile, error: fetchError } = await supabase
     .from('profiles')
     .select('credits, max_credits, credits_expire_at')
     .eq('id', userId)
     .single();
 
-  if (fetchError || !profile) {
-    return { success: false, newCredits: 0, error: 'Usuário não encontrado' };
-  }
+  if (fetchError || !profile) return { success: false, newCredits: 0, error: 'Usuário não encontrado' };
 
-  // Créditos novos substituem os antigos (não acumulam)
   const newCredits = amount;
   const currentMaxCredits = profile.max_credits || 0;
   const newMaxCredits = Math.max(currentMaxCredits, newCredits);
 
-  // Calcular nova data de expiração: 30 dias a partir de agora
   const updateData: any = { credits: newCredits, max_credits: newMaxCredits };
-  
   if (setExpiration) {
     const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     updateData.credits_expire_at = expireAt;
   }
 
-  // Atualizar créditos e max_credits
   const { error: updateError } = await supabase
     .from('profiles')
     .update(updateData)
     .eq('id', userId);
 
-  if (updateError) {
-    console.error('Error adding credits:', updateError);
-    return { success: false, newCredits: profile.credits || 0, error: 'Erro ao adicionar créditos' };
-  }
-
+  if (updateError) return { success: false, newCredits: profile.credits || 0, error: 'Erro ao adicionar créditos' };
   return { success: true, newCredits };
 }
 
-/**
- * Registra uso de crédito no histórico (agora usando user_id como referência principal)
- */
 export async function recordUserCreditUsage(
   supabase: any,
   params: {
     userId: string;
     teamId?: string;
+    workspaceId?: string;
     actionType: string;
     creditsUsed: number;
     creditsBefore: number;
@@ -189,6 +224,7 @@ export async function recordUserCreditUsage(
     .insert({
       user_id: params.userId,
       team_id: params.teamId || null,
+      workspace_id: params.workspaceId || null,
       action_type: params.actionType,
       credits_used: params.creditsUsed,
       credits_before: params.creditsBefore,
@@ -197,7 +233,5 @@ export async function recordUserCreditUsage(
       metadata: params.metadata || {},
     });
 
-  if (error) {
-    console.error('Failed to record credit usage:', error);
-  }
+  if (error) console.error('Failed to record credit usage:', error);
 }

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { toast } from "sonner";
 
 export type CalendarStage = "calendar" | "briefing" | "design" | "review" | "done";
@@ -111,6 +112,7 @@ export const useCalendarStats = (calendarId: string) => {
 export const useCreateCalendar = () => {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
   return useMutation({
     mutationFn: async (input: {
       name: string;
@@ -135,6 +137,7 @@ export const useCreateCalendar = () => {
         .insert({
           user_id: user.id,
           team_id: user.teamId || null,
+          workspace_id: currentWorkspace?.id ?? null,
           name: input.name,
           description: input.description || null,
           brand_id: input.brand_id || null,
@@ -147,10 +150,12 @@ export const useCreateCalendar = () => {
         .single();
       if (calErr) throw calErr;
 
+
       const itemsPayload = input.items.map((item, idx) => ({
         calendar_id: calendar.id,
         user_id: user.id,
         team_id: user.teamId || null,
+        workspace_id: currentWorkspace?.id ?? null,
         title: item.title,
         theme: item.theme,
         scheduled_date: item.scheduled_date,

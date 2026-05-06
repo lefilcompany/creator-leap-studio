@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 
 export type FavoriteScope = 'personal' | 'team';
 
@@ -13,6 +14,7 @@ interface FavoriteEntry {
 
 export function useFavorites() {
   const { user, team } = useAuth();
+  const { currentWorkspace } = useWorkspace();
   const queryClient = useQueryClient();
 
   const { data: favorites = [], isLoading } = useQuery({
@@ -57,6 +59,7 @@ export function useFavorites() {
           user_id: user!.id,
           action_id: actionId,
           scope,
+          workspace_id: currentWorkspace?.id ?? null,
         };
         if (scope === 'team' && team?.id) {
           insert.team_id = team.id;
