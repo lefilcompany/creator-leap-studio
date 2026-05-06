@@ -153,6 +153,7 @@ export default function MarcasPage() {
           .insert({
             team_id: user.teamId || null,
             user_id: user.id,
+            workspace_id: currentWorkspace?.id ?? null,
             name: formData.name,
             responsible: formData.responsible,
             segment: formData.segment,
