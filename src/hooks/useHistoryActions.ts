@@ -21,14 +21,21 @@ interface HistoryPage {
 
 export function useHistoryBrands() {
   const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
 
   return useQuery({
-    queryKey: ['history-brands', user?.id],
+    queryKey: ['history-brands', currentWorkspace?.id, user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('brands')
         .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
         .order('name');
+      if (currentWorkspace?.id) {
+        query = query.eq('workspace_id', currentWorkspace.id);
+      } else if (user?.id) {
+        query = query.eq('user_id', user.id);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return (data || []).map(brand => ({
         id: brand.id,
