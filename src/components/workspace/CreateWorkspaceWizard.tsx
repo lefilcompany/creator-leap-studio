@@ -438,6 +438,5 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
       </div>
     </div>
   );
-
-  return createPortal(content, document.body);
 }
+
