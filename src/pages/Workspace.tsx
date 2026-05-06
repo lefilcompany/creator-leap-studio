@@ -167,12 +167,39 @@ export default function WorkspacePage() {
     setSavingCredits(true);
     const { error } = await supabase
       .from('workspaces')
-      .update({ credit_mode: creditMode, shared_credits: sharedCredits })
+      .update({ credit_mode: creditMode })
       .eq('id', currentWorkspace.id);
     setSavingCredits(false);
     if (error) return toast.error(error.message);
-    toast.success('Configurações de créditos salvas');
+    toast.success('Modo de créditos atualizado');
     reload();
+  };
+
+  const transferToShared = async () => {
+    if (!currentWorkspace) return;
+    const amt = transferAmount === '' ? 0 : Number(transferAmount);
+    if (!amt || amt <= 0) return toast.error('Informe um valor maior que zero');
+    setTransferring(true);
+    const { data, error } = await supabase.rpc('workspace_transfer_personal_to_shared', {
+      p_workspace_id: currentWorkspace.id,
+      p_amount: amt,
+    });
+    setTransferring(false);
+    if (error) return toast.error(error.message);
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row?.new_shared_credits != null) setSharedCredits(row.new_shared_credits);
+    setTransferAmount('');
+    toast.success(`${amt} créditos transferidos para o workspace`);
+    reload();
+  };
+
+  const updateMemberLimit = async (memberId: string, limit: number | null) => {
+    const { error } = await supabase
+      .from('workspace_members')
+      .update({ monthly_credit_limit: limit })
+      .eq('id', memberId);
+    if (error) return toast.error(error.message);
+    fetchMembers();
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
