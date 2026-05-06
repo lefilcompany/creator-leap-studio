@@ -691,7 +691,7 @@ export default function WorkspacePage() {
               <div>
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">Modo de créditos</Label>
                 <p className="text-xs text-muted-foreground mt-1 mb-2">
-                  Pessoais: cada membro usa seus próprios créditos. Compartilhados: pool único do workspace.
+                  Individuais: cada pessoa usa os próprios créditos. Compartilhados: o workspace tem um saldo único usado pela equipe.
                 </p>
                 <Select value={creditMode} onValueChange={(v: any) => changeCreditMode(v)} disabled={!isOwner || savingCredits}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
