@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { WorkspaceProvider } from "./contexts/WorkspaceContext";
 import { OnboardingProvider } from "./components/onboarding/OnboardingProvider";
 import { EventTrackingProvider } from "./components/EventTrackingProvider";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
@@ -69,6 +70,8 @@ const CategoryView = lazy(() => import("./pages/CategoryView"));
 const Trash = lazy(() => import("./pages/Trash"));
 const CalendarNew = lazy(() => import("./pages/CalendarNew"));
 const CalendarView = lazy(() => import("./pages/CalendarView"));
+const WorkspacePage = lazy(() => import("./pages/Workspace"));
+const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 
 // Lazy loaded pages - System
 const System = lazy(() => import("./pages/System"));
@@ -116,6 +119,7 @@ const App = () => (
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <LanguageProvider>
           <AuthProvider>
+            <WorkspaceProvider>
             <OnboardingProvider>
               <TooltipProvider>
                 <Toaster />
@@ -139,6 +143,7 @@ const App = () => (
                       <Route path="/onboarding/canceled" element={<SuspenseRoute><OnboardingCanceled /></SuspenseRoute>} />
                       <Route path="/payment-success" element={<SuspenseRoute><PaymentSuccess /></SuspenseRoute>} />
                       <Route path="/contact" element={<SuspenseRoute><Contact /></SuspenseRoute>} />
+                      <Route path="/invite/:token" element={<SuspenseRoute><AcceptInvite /></SuspenseRoute>} />
                       
                       {/* Dashboard routes with sidebar layout */}
                       <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
@@ -169,6 +174,7 @@ const App = () => (
                         <Route path="text-editor" element={<SuspenseRoute><TextEditor /></SuspenseRoute>} />
                         <Route path="credits" element={<SuspenseRoute><Credits /></SuspenseRoute>} />
                         <Route path="team" element={<SuspenseRoute><Team /></SuspenseRoute>} />
+                        <Route path="workspace" element={<SuspenseRoute><WorkspacePage /></SuspenseRoute>} />
                         <Route path="team-dashboard" element={<SuspenseRoute><TeamDashboard /></SuspenseRoute>} />
                         <Route path="profile" element={<SuspenseRoute><Profile /></SuspenseRoute>} />
                         <Route path="profile/:userId" element={<SuspenseRoute><PublicProfile /></SuspenseRoute>} />
@@ -203,6 +209,7 @@ const App = () => (
                 </BrowserRouter>
               </TooltipProvider>
             </OnboardingProvider>
+            </WorkspaceProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>
