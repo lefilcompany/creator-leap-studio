@@ -155,7 +155,7 @@ export async function deductUserCredits(
         .eq('workspace_id', ws.id)
         .eq('user_id', userId);
     }
-    return { success: true, newCredits };
+    return { success: true, newCredits, workspaceId: ws.id, creditMode: 'shared' };
   }
 
   // Personal credits
