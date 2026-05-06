@@ -150,7 +150,6 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
     }
   };
 
-  return (
   const { theme } = useTheme();
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
 
