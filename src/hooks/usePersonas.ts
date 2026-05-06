@@ -13,26 +13,16 @@ export const usePersonas = (brandId?: string) => {
   const { currentWorkspace } = useWorkspace();
 
   return useQuery({
-    queryKey: ['personas', currentWorkspace?.id, team?.id, user?.id, brandId],
+    queryKey: ['personas', currentWorkspace?.id, user?.id, brandId],
     queryFn: async () => {
       if (!user?.id) return [];
-
       let query = supabase.from('personas').select('*').order('name');
-
       if (currentWorkspace?.id) {
-        query = query.or(
-          `workspace_id.eq.${currentWorkspace.id}` +
-          (team?.id ? `,team_id.eq.${team.id}` : '') +
-          `,user_id.eq.${user.id}`
-        );
-      } else if (team?.id) {
-        query = query.or(`team_id.eq.${team.id},user_id.eq.${user.id}`);
+        query = query.eq('workspace_id', currentWorkspace.id);
       } else {
         query = query.eq('user_id', user.id);
       }
-
       if (brandId) query = query.eq('brand_id', brandId);
-
       const { data, error } = await query;
       if (error) throw error;
       return data;

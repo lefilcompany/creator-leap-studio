@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -50,6 +51,7 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefin
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [memberships, setMemberships] = useState<WorkspaceMembership[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
@@ -108,7 +110,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     if (user?.id) {
       await supabase.from('profiles').update({ current_workspace_id: id }).eq('id', user.id);
     }
-  }, [user?.id]);
+    // Invalidate all workspace-scoped queries so UI reloads fresh data
+    queryClient.invalidateQueries();
+  }, [user?.id, queryClient]);
 
   const currentWorkspace = useMemo(
     () => workspaces.find(w => w.id === currentId) ?? null,
