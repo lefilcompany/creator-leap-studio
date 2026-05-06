@@ -696,7 +696,7 @@ export default function WorkspacePage() {
                 <Select value={creditMode} onValueChange={(v: any) => changeCreditMode(v)} disabled={!isOwner || savingCredits}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="personal">Pessoais</SelectItem>
+                    <SelectItem value="personal">Individuais</SelectItem>
                     <SelectItem value="shared">Compartilhados</SelectItem>
                   </SelectContent>
                 </Select>
