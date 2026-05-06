@@ -748,8 +748,9 @@ function MemberPermsForm({ member, onSave }: { member: Member; onSave: (m: Membe
   return (
     <div className="space-y-4">
       <div>
-        <Label>Limite mensal de créditos</Label>
-        <Input type="number" value={limit} onChange={e => setLimit(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Sem limite" />
+        <Label>Limite mensal de créditos compartilhados</Label>
+        <Input type="number" min={0} value={limit} onChange={e => setLimit(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" />
+        <p className="text-xs text-muted-foreground mt-1">0 bloqueia o consumo. Aplica-se apenas ao modo compartilhado.</p>
       </div>
       <PermissionsEditor value={perms} onChange={setPerms} />
       <DialogFooter>
