@@ -56,12 +56,17 @@ export function useHistoryBrands() {
 
 export function useHistoryActions(filters: HistoryFilters) {
   const { user } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: wsLoading } = useWorkspace();
 
   return useInfiniteQuery<HistoryPage>({
-    queryKey: ['history-actions', currentWorkspace?.id, user?.id, filters.brandFilter, filters.typeFilter],
+    queryKey: ['history-actions', currentWorkspace?.id ?? null, user?.id, filters.brandFilter, filters.typeFilter],
     queryFn: async ({ pageParam }) => {
       const cursor = pageParam as { createdAt: string; id: string } | undefined;
+
+      // Strict workspace isolation: never return cross-workspace data
+      if (!currentWorkspace?.id) {
+        return { actions: [], nextCursor: null, totalCount: 0 };
+      }
 
       let typeDbValue: string | null = null;
       if (filters.typeFilter !== 'all') {
@@ -71,21 +76,15 @@ export function useHistoryActions(filters: HistoryFilters) {
         if (entry) typeDbValue = entry[0];
       }
 
-      // Filter directly by workspace_id
       let q = supabase
         .from('actions')
         .select('id, type, created_at, approved, brand_id, thumb_path, result, details, brands:brand_id(name)')
         .is('deleted_at', null)
         .is('parent_action_id', null)
+        .eq('workspace_id', currentWorkspace.id)
         .order('created_at', { ascending: false })
         .order('id', { ascending: false })
         .limit(ITEMS_PER_PAGE);
-
-      if (currentWorkspace?.id) {
-        q = q.eq('workspace_id', currentWorkspace.id);
-      } else {
-        q = q.eq('user_id', user!.id);
-      }
 
       if (filters.brandFilter !== 'all') q = q.eq('brand_id', filters.brandFilter);
       if (typeDbValue) q = q.eq('type', typeDbValue);
