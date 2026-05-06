@@ -115,15 +115,17 @@ export default function WorkspacePage() {
     }
   }, [params, setParams]);
 
-  // Open create workspace wizard via ?action=create
+  // Open create workspace wizard via ?action=create (kept in URL so layout enters immersive mode)
   useEffect(() => {
-    if (params.get('action') === 'create') {
-      setCreateOpen(true);
-      const next = new URLSearchParams(params);
-      next.delete('action');
-      setParams(next, { replace: true });
-    }
-  }, [params, setParams]);
+    setCreateOpen(params.get('action') === 'create');
+  }, [params]);
+
+  const closeCreateWizard = () => {
+    const next = new URLSearchParams(params);
+    next.delete('action');
+    setParams(next, { replace: true });
+    setCreateOpen(false);
+  };
 
   const fetchMembers = async () => {
     if (!currentWorkspace) return;
