@@ -78,7 +78,7 @@ export function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
             </Button>
             <Button
               variant="outline" size="sm" className="flex-1"
-              onClick={() => { setOpen(false); navigate('/workspace?tab=members'); }}
+              onClick={() => { setOpen(false); navigate('/workspace?tab=members&invite=1'); }}
             >
               <UserPlus className="h-3.5 w-3.5 mr-1" /> Convidar
             </Button>
