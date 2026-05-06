@@ -38,6 +38,20 @@ async function resolveWorkspace(supabase: any, workspaceId?: string | null) {
   return data || null;
 }
 
+async function resolveActiveWorkspaceId(
+  supabase: any,
+  userId: string,
+  workspaceId?: string | null,
+): Promise<string | null> {
+  if (workspaceId) return workspaceId;
+  const { data } = await supabase
+    .from('profiles')
+    .select('current_workspace_id')
+    .eq('id', userId)
+    .maybeSingle();
+  return data?.current_workspace_id ?? null;
+}
+
 export async function getUserCredits(
   supabase: any,
   userId: string,
