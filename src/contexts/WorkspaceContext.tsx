@@ -51,6 +51,7 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefin
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [memberships, setMemberships] = useState<WorkspaceMembership[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
