@@ -270,7 +270,7 @@ export default function WorkspacePage() {
           email: inv.email,
           role: inv.role,
           permissions: DEFAULT_PERMS,
-          monthly_credit_limit: null,
+          monthly_credit_limit: 0,
           resend_invite_id: inv.id,
         },
       });
