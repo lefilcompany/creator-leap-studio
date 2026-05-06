@@ -21,10 +21,10 @@ interface HistoryPage {
 
 export function useHistoryBrands() {
   const { user } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: wsLoading } = useWorkspace();
 
   return useQuery({
-    queryKey: ['history-brands', currentWorkspace?.id, user?.id],
+    queryKey: ['history-brands', currentWorkspace?.id ?? null, user?.id],
     queryFn: async () => {
       let query = supabase
         .from('brands')
@@ -32,8 +32,9 @@ export function useHistoryBrands() {
         .order('name');
       if (currentWorkspace?.id) {
         query = query.eq('workspace_id', currentWorkspace.id);
-      } else if (user?.id) {
-        query = query.eq('user_id', user.id);
+      } else {
+        // No workspace context — return empty to avoid leaking other workspaces
+        return [] as BrandSummary[];
       }
       const { data, error } = await query;
       if (error) throw error;
@@ -47,7 +48,7 @@ export function useHistoryBrands() {
         updatedAt: brand.updated_at
       })) as BrandSummary[];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !wsLoading,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
   });
@@ -55,12 +56,17 @@ export function useHistoryBrands() {
 
 export function useHistoryActions(filters: HistoryFilters) {
   const { user } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: wsLoading } = useWorkspace();
 
   return useInfiniteQuery<HistoryPage>({
-    queryKey: ['history-actions', currentWorkspace?.id, user?.id, filters.brandFilter, filters.typeFilter],
+    queryKey: ['history-actions', currentWorkspace?.id ?? null, user?.id, filters.brandFilter, filters.typeFilter],
     queryFn: async ({ pageParam }) => {
       const cursor = pageParam as { createdAt: string; id: string } | undefined;
+
+      // Strict workspace isolation: never return cross-workspace data
+      if (!currentWorkspace?.id) {
+        return { actions: [], nextCursor: null, totalCount: 0 };
+      }
 
       let typeDbValue: string | null = null;
       if (filters.typeFilter !== 'all') {
@@ -70,21 +76,15 @@ export function useHistoryActions(filters: HistoryFilters) {
         if (entry) typeDbValue = entry[0];
       }
 
-      // Filter directly by workspace_id
       let q = supabase
         .from('actions')
         .select('id, type, created_at, approved, brand_id, thumb_path, result, details, brands:brand_id(name)')
         .is('deleted_at', null)
         .is('parent_action_id', null)
+        .eq('workspace_id', currentWorkspace.id)
         .order('created_at', { ascending: false })
         .order('id', { ascending: false })
         .limit(ITEMS_PER_PAGE);
-
-      if (currentWorkspace?.id) {
-        q = q.eq('workspace_id', currentWorkspace.id);
-      } else {
-        q = q.eq('user_id', user!.id);
-      }
 
       if (filters.brandFilter !== 'all') q = q.eq('brand_id', filters.brandFilter);
       if (typeDbValue) q = q.eq('type', typeDbValue);
@@ -171,8 +171,8 @@ export function useHistoryActions(filters: HistoryFilters) {
     },
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    enabled: !!user?.id,
-    staleTime: 1000 * 60 * 2, // 2 min cache — avoid re-fetching on every navigation
-    gcTime: 1000 * 60 * 15,   // keep in cache 15 min
+    enabled: !!user?.id && !wsLoading,
+    staleTime: 1000 * 60 * 2,
+    gcTime: 1000 * 60 * 15,
   });
 }
