@@ -17,11 +17,14 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { themesSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import themesBanner from '@/assets/themes-banner.jpg';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function Themes() {
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
+  const { hasPermission } = useWorkspace();
+  const canCreate = hasPermission('themes.create');
   const navigate = useNavigate();
   const location = useLocation();
   const initialViewMode = (location.state as any)?.viewMode || 'grid';
@@ -279,7 +282,7 @@ export default function Themes() {
     [themeToEdit, user, team, refreshTeamData, refreshUserCredits]
   );
 
-  const isButtonDisabled = !user || (user.credits || 0) < 1;
+  const isButtonDisabled = !user || (user.credits || 0) < 1 || !canCreate;
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
@@ -345,7 +348,7 @@ export default function Themes() {
             onClick={() => handleOpenDialog()}
             disabled={isButtonDisabled}
             className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
-            title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
+            title={!user ? 'Carregando...' : (!canCreate ? 'Sem permissão para criar nesta área do workspace' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined))}
           >
             <Plus className="mr-2 h-4 w-4" />
             Nova editoria

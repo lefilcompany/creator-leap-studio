@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     const { data: { user } } = await userClient.auth.getUser();
     if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
 
-    const { workspace_id, email, role = 'member', permissions = {}, monthly_credit_limit = null } = await req.json();
+    const { workspace_id, email, role = 'member', permissions = {}, monthly_credit_limit = null, resend_invite_id = null } = await req.json();
     if (!workspace_id || !email) {
       return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers: corsHeaders });
     }
@@ -31,20 +31,35 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
     }
 
-    // Create invite
-    const { data: invite, error: invErr } = await admin
-      .from('workspace_invites')
-      .insert({
-        workspace_id,
-        email: email.toLowerCase(),
-        role,
-        permissions,
-        monthly_credit_limit,
-        invited_by: user.id,
-      })
-      .select()
-      .single();
-    if (invErr) throw invErr;
+    let invite: any;
+    if (resend_invite_id) {
+      // Refresh expiry, keep same token
+      const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await admin
+        .from('workspace_invites')
+        .update({ expires_at: newExpiry })
+        .eq('id', resend_invite_id)
+        .eq('workspace_id', workspace_id)
+        .select()
+        .single();
+      if (error) throw error;
+      invite = data;
+    } else {
+      const { data, error: invErr } = await admin
+        .from('workspace_invites')
+        .insert({
+          workspace_id,
+          email: email.toLowerCase(),
+          role,
+          permissions,
+          monthly_credit_limit,
+          invited_by: user.id,
+        })
+        .select()
+        .single();
+      if (invErr) throw invErr;
+      invite = data;
+    }
 
     // Get inviter name
     const { data: inviter } = await admin.from('profiles').select('name').eq('id', user.id).maybeSingle();

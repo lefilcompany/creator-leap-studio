@@ -38,6 +38,20 @@ async function resolveWorkspace(supabase: any, workspaceId?: string | null) {
   return data || null;
 }
 
+async function resolveActiveWorkspaceId(
+  supabase: any,
+  userId: string,
+  workspaceId?: string | null,
+): Promise<string | null> {
+  if (workspaceId) return workspaceId;
+  const { data } = await supabase
+    .from('profiles')
+    .select('current_workspace_id')
+    .eq('id', userId)
+    .maybeSingle();
+  return data?.current_workspace_id ?? null;
+}
+
 export async function getUserCredits(
   supabase: any,
   userId: string,
@@ -102,8 +116,8 @@ export async function deductUserCredits(
   userId: string,
   amount: number,
   workspaceId?: string | null,
-): Promise<{ success: boolean; newCredits: number; error?: string }> {
-  const wsId = workspaceId ?? null;
+): Promise<{ success: boolean; newCredits: number; error?: string; workspaceId?: string; creditMode?: 'personal' | 'shared' }> {
+  const wsId = await resolveActiveWorkspaceId(supabase, userId, workspaceId);
   const ws = await resolveWorkspace(supabase, wsId);
 
   // Shared workspace pool
@@ -141,7 +155,7 @@ export async function deductUserCredits(
         .eq('workspace_id', ws.id)
         .eq('user_id', userId);
     }
-    return { success: true, newCredits };
+    return { success: true, newCredits, workspaceId: ws.id, creditMode: 'shared' };
   }
 
   // Personal credits
@@ -169,7 +183,7 @@ export async function deductUserCredits(
     .eq('id', userId);
 
   if (updateError) return { success: false, newCredits: effectiveCredits, error: 'Erro ao deduzir créditos' };
-  return { success: true, newCredits };
+  return { success: true, newCredits, workspaceId: wsId ?? undefined, creditMode: 'personal' };
 }
 
 export async function addUserCredits(
@@ -219,12 +233,16 @@ export async function recordUserCreditUsage(
     metadata?: any;
   }
 ) {
+  let workspaceId = params.workspaceId;
+  if (!workspaceId) {
+    workspaceId = (await resolveActiveWorkspaceId(supabase, params.userId, null)) ?? undefined;
+  }
   const { error } = await supabase
     .from('credit_history')
     .insert({
       user_id: params.userId,
       team_id: params.teamId || null,
-      workspace_id: params.workspaceId || null,
+      workspace_id: workspaceId || null,
       action_type: params.actionType,
       credits_used: params.creditsUsed,
       credits_before: params.creditsBefore,
