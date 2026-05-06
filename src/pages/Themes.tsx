@@ -202,6 +202,7 @@ export default function Themes() {
             .insert({
               team_id: user.teamId || null,
               user_id: user.id,
+              workspace_id: currentWorkspace?.id ?? null,
               brand_id: formData.brandId,
               title: formData.title,
               description: formData.description,
