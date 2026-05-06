@@ -314,9 +314,9 @@ export default function WorkspacePage() {
       </div>
 
       {/* Two-column layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[300px_minmax(0,1fr)] gap-6">
         {/* Sidebar */}
-        <aside className="space-y-4">
+        <aside className="space-y-4 min-w-0">
           {/* Identity card */}
           <div className="bg-card rounded-2xl border p-5 shadow-sm">
             <div className="flex flex-col items-center text-center">
@@ -397,31 +397,32 @@ export default function WorkspacePage() {
         </aside>
 
         {/* Content */}
-        <section className="bg-card rounded-2xl border shadow-sm p-6 lg:p-8">
+        <section className="bg-card rounded-2xl border shadow-sm p-4 sm:p-6 lg:p-8 min-w-0">
           {/* Section header */}
-          <div className="flex items-start justify-between gap-4 pb-5 border-b mb-6">
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+          <div className="flex flex-wrap items-start justify-between gap-3 pb-5 border-b mb-6">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                 <activeSection.icon className="h-5 w-5" />
               </div>
-              <div>
-                <h2 className="text-lg font-semibold">{activeSection.label}</h2>
-                <p className="text-sm text-muted-foreground">{activeSection.subtitle}</p>
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold truncate">{activeSection.label}</h2>
+                <p className="text-sm text-muted-foreground truncate">{activeSection.subtitle}</p>
               </div>
             </div>
             {tab === 'overview' && isOwner && (
-              <Button onClick={saveProfile} disabled={savingProfile}>
+              <Button onClick={saveProfile} disabled={savingProfile} size="sm" className="shrink-0">
                 {savingProfile ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                Salvar alterações
+                <span className="hidden sm:inline">Salvar alterações</span>
+                <span className="sm:hidden">Salvar</span>
               </Button>
             )}
             {tab === 'members' && isOwner && (
-              <Button onClick={() => setInviteOpen(true)}>
+              <Button onClick={() => setInviteOpen(true)} size="sm" className="shrink-0">
                 <UserPlus className="h-4 w-4 mr-2" /> Convidar
               </Button>
             )}
             {tab === 'credits' && isOwner && (
-              <Button onClick={saveCredits} disabled={savingCredits}>
+              <Button onClick={saveCredits} disabled={savingCredits} size="sm" className="shrink-0">
                 {savingCredits ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 Salvar
               </Button>
@@ -481,8 +482,8 @@ export default function WorkspacePage() {
 
           {/* Members */}
           {tab === 'members' && (
-            <div className="rounded-xl border overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="rounded-xl border overflow-x-auto">
+              <table className="w-full text-sm min-w-[640px]">
                 <thead className="bg-muted/40 text-left">
                   <tr>
                     <th className="p-3 font-medium">Nome</th>
@@ -547,8 +548,8 @@ export default function WorkspacePage() {
 
           {/* Invites */}
           {tab === 'invites' && (
-            <div className="rounded-xl border overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="rounded-xl border overflow-x-auto">
+              <table className="w-full text-sm min-w-[520px]">
                 <thead className="bg-muted/40 text-left">
                   <tr>
                     <th className="p-3 font-medium">E-mail</th>
