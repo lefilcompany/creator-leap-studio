@@ -218,7 +218,7 @@ export default function MarcasPage() {
     }
   }, [brandToEdit, user, t]);
 
-  const isButtonDisabled = !user || (user.credits || 0) < 1;
+  const isButtonDisabled = !user || (user.credits || 0) < 1 || !canCreate;
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
