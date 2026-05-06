@@ -23,7 +23,7 @@ type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'te
 
 export default function Themes() {
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
-  const { hasPermission } = useWorkspace();
+  const { hasPermission, currentWorkspace } = useWorkspace();
   const canCreate = hasPermission('themes.create');
   const navigate = useNavigate();
   const location = useLocation();
