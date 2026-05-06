@@ -24,33 +24,23 @@ export const useActions = (options: UseActionsOptions = {}) => {
   const { brandId, type, status, limit = 50 } = options;
 
   return useQuery({
-    queryKey: ['actions', currentWorkspace?.id, team?.id, user?.id, brandId, type, status, limit],
+    queryKey: ['actions', currentWorkspace?.id, user?.id, brandId, type, status, limit],
     queryFn: async () => {
       if (!user?.id) return [];
-
       let query = supabase
         .from('actions')
         .select('*, brands(name)')
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(limit);
-
       if (currentWorkspace?.id) {
-        query = query.or(
-          `workspace_id.eq.${currentWorkspace.id}` +
-          (team?.id ? `,team_id.eq.${team.id}` : '') +
-          `,user_id.eq.${user.id}`
-        );
-      } else if (team?.id) {
-        query = query.eq('team_id', team.id);
+        query = query.eq('workspace_id', currentWorkspace.id);
       } else {
         query = query.eq('user_id', user.id);
       }
-
       if (brandId) query = query.eq('brand_id', brandId);
       if (type) query = query.eq('type', type);
       if (status) query = query.eq('status', status);
-
       const { data, error } = await query;
       if (error) throw error;
       return data as ActionWithBrand[];
