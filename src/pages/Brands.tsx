@@ -284,7 +284,7 @@ export default function MarcasPage() {
             onClick={() => handleOpenDialog()} 
             disabled={isButtonDisabled}
             className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
-            title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
+            title={!user ? 'Carregando...' : (!canCreate ? 'Sem permissão para criar marcas neste workspace' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined))}
           >
             <Plus className="mr-2 h-4 w-4" />
             {t.brands.newBrand}
