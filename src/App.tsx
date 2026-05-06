@@ -195,6 +195,7 @@ const App = () => (
                         <Route path="users" element={<SuspenseRoute><SystemUsers /></SuspenseRoute>} />
                         <Route path="plans" element={<SuspenseRoute><SystemPlans /></SuspenseRoute>} />
                         <Route path="teams" element={<SuspenseRoute><SystemTeams /></SuspenseRoute>} />
+                        <Route path="workspaces" element={<SuspenseRoute><SystemWorkspaces /></SuspenseRoute>} />
                         <Route path="logs" element={<SuspenseRoute><SystemLogs /></SuspenseRoute>} />
                         <Route path="coupons" element={<SuspenseRoute><SystemCoupons /></SuspenseRoute>} />
                         <Route path="reports" element={<SuspenseRoute><SystemReports /></SuspenseRoute>} />
