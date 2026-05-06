@@ -796,7 +796,7 @@ export default function WorkspacePage() {
             <p className="text-muted-foreground">
               No modo <strong>Individual</strong>, cada pessoa usa apenas os próprios créditos. Por isso, antes de trocar, escolha o que fazer com os créditos que estão guardados no workspace:
             </p>
-            <div className="grid sm:grid-cols-2 gap-3 pt-1">
+            <div className="grid sm:grid-cols-2 gap-5 pt-2">
               <div className="rounded-xl border bg-muted/30 p-4 space-y-1">
                 <div className="font-medium text-sm">Devolver para mim</div>
                 <p className="text-xs text-muted-foreground">
