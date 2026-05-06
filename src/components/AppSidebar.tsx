@@ -15,6 +15,7 @@ import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
 import creatorSymbol from "@/assets/creator-symbol.png";
 import { SidebarTaskIndicator } from "@/components/SidebarTaskIndicator";
+import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 
 function NavItem({
   id,
@@ -335,6 +336,11 @@ export function AppSidebar() {
             <img src={logo} alt="Creator Logo" className="h-8 w-auto" />
           )}
         </NavLink>
+      </div>
+
+      {/* Workspace Switcher */}
+      <div className={cn("mb-3", collapsed ? "px-2" : "px-3")}>
+        <WorkspaceSwitcher collapsed={collapsed} />
       </div>
 
       {/* Navigation */}
