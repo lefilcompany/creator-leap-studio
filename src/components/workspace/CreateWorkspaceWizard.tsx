@@ -162,14 +162,17 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
 
   if (!open) return null;
 
+  const stepsMeta = [
+    { n: 1, label: 'Identidade', desc: 'Nome e foto do workspace' },
+    { n: 2, label: 'Créditos', desc: 'Modelo e limites' },
+    { n: 3, label: 'Confirmar', desc: 'Ajustar e criar' },
+  ] as const;
+
   return (
-    <div className="w-full h-full flex flex-col">
-
-
-
-      {/* Top bar with logo */}
-      <div className="flex items-center justify-between px-6 py-5">
-        <img src={logo} alt="Creator" className="h-8 w-auto" />
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      {/* Top: prominent logo + close */}
+      <div className="flex items-center justify-between px-8 pt-8 pb-4 shrink-0">
+        <img src={logo} alt="Creator" className="h-12 w-auto drop-shadow-sm" />
         <button
           onClick={close}
           disabled={submitting}
@@ -180,241 +183,261 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
         </button>
       </div>
 
-      {/* Stepper */}
-      <div className="px-6 pt-4 pb-2 flex justify-center">
-        <div className="flex items-center gap-3 w-full max-w-md">
-          {[1, 2, 3].map((n, i) => (
-            <div key={n} className="flex items-center flex-1">
-              <div
-                className={cn(
-                  'flex items-center justify-center h-8 w-8 rounded-full text-sm font-semibold border-2 transition-colors shrink-0',
-                  step >= n
-                    ? 'bg-primary border-primary text-primary-foreground'
-                    : 'border-muted-foreground/30 text-muted-foreground'
-                )}
-              >
-                {step > n ? <Check className="h-4 w-4" /> : n}
-              </div>
-              {i < 2 && (
-                <div
-                  className={cn(
-                    'flex-1 h-0.5 mx-2 rounded',
-                    step > n ? 'bg-primary' : 'bg-muted-foreground/20'
-                  )}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Body: vertical stepper (left) + conveyor content (right) */}
+      <div className="flex-1 min-h-0 grid grid-cols-[260px_1fr] gap-8 px-8 pb-4">
+        {/* Vertical stepper */}
+        <aside className="flex flex-col justify-center">
+          <ol className="space-y-2">
+            {stepsMeta.map((s, i) => {
+              const active = step === s.n;
+              const done = step > s.n;
+              return (
+                <li key={s.n} className="relative flex gap-3 py-2">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={cn(
+                        'flex items-center justify-center h-9 w-9 rounded-full text-sm font-semibold border-2 transition-all duration-300 shrink-0',
+                        active && 'bg-primary border-primary text-primary-foreground scale-110 shadow-md',
+                        done && 'bg-primary border-primary text-primary-foreground',
+                        !active && !done && 'border-muted-foreground/30 text-muted-foreground bg-card'
+                      )}
+                    >
+                      {done ? <Check className="h-4 w-4" /> : s.n}
+                    </div>
+                    {i < stepsMeta.length - 1 && (
+                      <div
+                        className={cn(
+                          'w-0.5 flex-1 my-1 min-h-8 rounded transition-colors duration-300',
+                          done ? 'bg-primary' : 'bg-muted-foreground/20'
+                        )}
+                      />
+                    )}
+                  </div>
+                  <div className="pt-1">
+                    <div className={cn(
+                      'text-sm font-semibold transition-colors',
+                      active ? 'text-foreground' : done ? 'text-foreground/80' : 'text-muted-foreground'
+                    )}>
+                      {s.label}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{s.desc}</div>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </aside>
 
-      {/* Content (centered vertically) */}
-      <div className="flex-1 overflow-y-auto px-6 py-8 flex items-center justify-center">
-        <div className="w-full max-w-2xl">
-          {step === 1 && (
-            <div className="space-y-8">
-              <div className="text-center space-y-3">
-                <h1 className="text-4xl font-bold tracking-tight">Crie seu workspace</h1>
-                <p className="text-muted-foreground text-lg">
-                  Um espaço para você colaborar com sua equipe e organizar marcas, conteúdos e calendários.
-                </p>
-              </div>
+        {/* Conveyor content */}
+        <div className="relative overflow-hidden">
+          <div
+            className="absolute inset-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{ transform: `translateY(-${(step - 1) * 100}%)` }}
+          >
+            {/* Step 1 */}
+            <div className="h-full w-full flex items-center">
+              <div className="w-full max-w-xl mx-auto space-y-6">
+                <div className="space-y-2">
+                  <h1 className="text-3xl font-bold tracking-tight">Crie seu workspace</h1>
+                  <p className="text-muted-foreground">
+                    Um espaço para você colaborar com sua equipe e organizar marcas, conteúdos e calendários.
+                  </p>
+                </div>
 
-              <div className="flex flex-col items-center gap-3 pt-2">
-                <div className="relative group">
-                  <Avatar className="h-28 w-28 border-4 border-card shadow-md">
-                    <AvatarImage src={avatarPreview ?? undefined} />
-                    <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary to-secondary text-white">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
+                <div className="flex items-center gap-4">
+                  <div className="relative group shrink-0">
+                    <Avatar className="h-20 w-20 border-4 border-card shadow-md">
+                      <AvatarImage src={avatarPreview ?? undefined} />
+                      <AvatarFallback className="text-xl font-bold bg-gradient-to-br from-primary to-secondary text-white">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    >
+                      <Camera className="h-5 w-5 text-white" />
+                    </button>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleAvatarSelect}
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
-                    className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    className="text-xs text-muted-foreground hover:text-foreground"
                   >
-                    <Camera className="h-6 w-6 text-white" />
+                    {avatarFile ? 'Trocar foto' : 'Adicionar foto'}
                   </button>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={handleAvatarSelect}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="ws-name">Nome do workspace</Label>
+                  <Input
+                    id="ws-name"
+                    autoFocus
+                    placeholder="Ex: Agência Lefil, Time Marketing..."
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && canContinue1 && setStep(2)}
+                    className="h-12 text-base"
                   />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  {avatarFile ? 'Trocar foto' : 'Adicionar foto'}
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ws-name">Nome do workspace</Label>
-                <Input
-                  id="ws-name"
-                  autoFocus
-                  placeholder="Ex: Agência Lefil, Time Marketing..."
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && canContinue1 && setStep(2)}
-                  className="h-12 text-base"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Mínimo de 2 caracteres. Você pode mudar depois.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-8">
-              <div className="text-center space-y-3">
-                <h1 className="text-4xl font-bold tracking-tight">Como os créditos funcionam aqui?</h1>
-                <p className="text-muted-foreground text-lg">
-                  Escolha o modelo que mais combina com a forma como sua equipe trabalha.
-                </p>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setCreditMode('personal')}
-                  className={cn(
-                    'text-left rounded-2xl border-2 p-6 transition-all bg-card hover:shadow-md',
-                    creditMode === 'personal' ? 'border-primary shadow-md' : 'border-border'
-                  )}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">Individuais</span>
-                    <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Recomendado
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Cada membro usa os próprios créditos. Sem transferências, sem limites para configurar.
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setCreditMode('shared')}
-                  className={cn(
-                    'text-left rounded-2xl border-2 p-6 transition-all bg-card hover:shadow-md',
-                    creditMode === 'shared' ? 'border-primary shadow-md' : 'border-border'
-                  )}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Coins className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">Compartilhados</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Você disponibiliza créditos para o workspace e define quanto cada membro pode gastar por mês.
-                  </p>
-                </button>
-              </div>
-
-              {creditMode === 'shared' && (
-                <div className="space-y-4 rounded-2xl border bg-card p-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="initial-transfer">Disponibilizar agora</Label>
-                    <Input
-                      id="initial-transfer"
-                      type="number"
-                      min={0}
-                      max={userCredits}
-                      placeholder="0"
-                      value={initialTransfer}
-                      onChange={(e) =>
-                        setInitialTransfer(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))
-                      }
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Você tem <strong>{userCredits}</strong> créditos individuais disponíveis. Pode deixar em 0 e disponibilizar depois.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="default-limit">Limite mensal padrão por membro</Label>
-                    <Input
-                      id="default-limit"
-                      type="number"
-                      min={0}
-                      placeholder="0"
-                      value={defaultMemberLimit}
-                      onChange={(e) =>
-                        setDefaultMemberLimit(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))
-                      }
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Por padrão, novos membros começam com <strong>0</strong> e não conseguem gastar créditos do workspace até você liberar.
-                    </p>
-                  </div>
-
                   <p className="text-xs text-muted-foreground">
-                    Você pode ajustar tudo depois em Configurações do Workspace.
+                    Mínimo de 2 caracteres. Você pode mudar depois.
                   </p>
                 </div>
-              )}
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="space-y-8">
-              <div className="text-center space-y-3">
-                <h1 className="text-4xl font-bold tracking-tight">Tudo certo?</h1>
-                <p className="text-muted-foreground text-lg">Confira os detalhes antes de criar.</p>
-              </div>
-
-              <div className="rounded-2xl border bg-card p-6 space-y-5">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-14 w-14">
-                    <AvatarImage src={avatarPreview ?? undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white font-bold">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <div className="font-semibold truncate">{name}</div>
-                    <div className="text-xs text-muted-foreground">Workspace de equipe</div>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4 space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Modelo de créditos</span>
-                    <span className="font-medium">
-                      {creditMode === 'personal' ? 'Individuais' : 'Compartilhados'}
-                    </span>
-                  </div>
-                  {creditMode === 'shared' && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Disponibilizar agora</span>
-                        <span className="font-medium">{transferAmt} créditos</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Limite mensal padrão por membro</span>
-                        <span className="font-medium">
-                          {defaultMemberLimit === '' ? 0 : Number(defaultMemberLimit)} créditos
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
               </div>
             </div>
-          )}
+
+            {/* Step 2 */}
+            <div className="h-full w-full flex items-center">
+              <div className="w-full max-w-xl mx-auto space-y-6">
+                <div className="space-y-2">
+                  <h1 className="text-3xl font-bold tracking-tight">Como os créditos funcionam aqui?</h1>
+                  <p className="text-muted-foreground">
+                    Escolha o modelo que mais combina com a forma como sua equipe trabalha.
+                  </p>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setCreditMode('personal')}
+                    className={cn(
+                      'text-left rounded-2xl border-2 p-5 transition-all bg-card hover:shadow-md',
+                      creditMode === 'personal' ? 'border-primary shadow-md' : 'border-border'
+                    )}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="h-5 w-5 text-primary" />
+                      <span className="font-semibold">Individuais</span>
+                      <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Recomendado
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cada membro usa os próprios créditos. Sem transferências, sem limites para configurar.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCreditMode('shared')}
+                    className={cn(
+                      'text-left rounded-2xl border-2 p-5 transition-all bg-card hover:shadow-md',
+                      creditMode === 'shared' ? 'border-primary shadow-md' : 'border-border'
+                    )}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Coins className="h-5 w-5 text-primary" />
+                      <span className="font-semibold">Compartilhados</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Você disponibiliza créditos para o workspace e define quanto cada membro pode gastar por mês.
+                    </p>
+                  </button>
+                </div>
+
+                {creditMode === 'shared' && (
+                  <div className="grid sm:grid-cols-2 gap-4 rounded-2xl border bg-card p-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="initial-transfer">Disponibilizar agora</Label>
+                      <Input
+                        id="initial-transfer"
+                        type="number"
+                        min={0}
+                        max={userCredits}
+                        placeholder="0"
+                        value={initialTransfer}
+                        onChange={(e) =>
+                          setInitialTransfer(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Você tem <strong>{userCredits}</strong> disponíveis.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="default-limit">Limite mensal por membro</Label>
+                      <Input
+                        id="default-limit"
+                        type="number"
+                        min={0}
+                        placeholder="0"
+                        value={defaultMemberLimit}
+                        onChange={(e) =>
+                          setDefaultMemberLimit(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Pode ajustar depois.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="h-full w-full flex items-center">
+              <div className="w-full max-w-xl mx-auto space-y-6">
+                <div className="space-y-2">
+                  <h1 className="text-3xl font-bold tracking-tight">Tudo certo?</h1>
+                  <p className="text-muted-foreground">Confira os detalhes antes de criar.</p>
+                </div>
+
+                <div className="rounded-2xl border bg-card p-6 space-y-5">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-14 w-14">
+                      <AvatarImage src={avatarPreview ?? undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white font-bold">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">{name}</div>
+                      <div className="text-xs text-muted-foreground">Workspace de equipe</div>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4 space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Modelo de créditos</span>
+                      <span className="font-medium">
+                        {creditMode === 'personal' ? 'Individuais' : 'Compartilhados'}
+                      </span>
+                    </div>
+                    {creditMode === 'shared' && (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Disponibilizar agora</span>
+                          <span className="font-medium">{transferAmt} créditos</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Limite mensal por membro</span>
+                          <span className="font-medium">
+                            {defaultMemberLimit === '' ? 0 : Number(defaultMemberLimit)} créditos
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-5 flex items-center justify-center gap-3">
-        <div className="w-full max-w-2xl flex items-center justify-between gap-3">
+      <div className="px-8 py-5 shrink-0 border-t bg-card/50">
+        <div className="flex items-center justify-between gap-3">
           <Button
             variant="ghost"
             onClick={step === 1 ? close : () => setStep((s) => (s - 1) as Step)}
