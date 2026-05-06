@@ -110,7 +110,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     if (user?.id) {
       await supabase.from('profiles').update({ current_workspace_id: id }).eq('id', user.id);
     }
-  }, [user?.id]);
+    // Invalidate all workspace-scoped queries so UI reloads fresh data
+    queryClient.invalidateQueries();
+  }, [user?.id, queryClient]);
 
   const currentWorkspace = useMemo(
     () => workspaces.find(w => w.id === currentId) ?? null,
