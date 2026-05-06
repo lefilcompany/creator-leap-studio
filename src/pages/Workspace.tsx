@@ -482,8 +482,8 @@ export default function WorkspacePage() {
 
           {/* Members */}
           {tab === 'members' && (
-            <div className="rounded-xl border overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="rounded-xl border overflow-x-auto">
+              <table className="w-full text-sm min-w-[640px]">
                 <thead className="bg-muted/40 text-left">
                   <tr>
                     <th className="p-3 font-medium">Nome</th>
