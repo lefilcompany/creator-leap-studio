@@ -120,7 +120,7 @@ export default function Themes() {
       }
     };
     loadThemes();
-  }, [user?.id]);
+  }, [user?.id, currentWorkspace?.id]);
 
   const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
     if (theme) {
