@@ -186,7 +186,7 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
       {/* Body: vertical stepper (left) + conveyor content (right) */}
       <div className="flex-1 min-h-0 grid grid-cols-[260px_1fr] gap-8 px-8 pb-4">
         {/* Vertical stepper */}
-        <aside className="flex flex-col justify-center">
+        <aside className="flex flex-col justify-center gap-8">
           <ol className="space-y-2">
             {stepsMeta.map((s, i) => {
               const active = step === s.n;
@@ -226,6 +226,57 @@ export function CreateWorkspaceWizard({ open, onClose, onCreated }: Props) {
               );
             })}
           </ol>
+
+          {/* Nav controls below steps */}
+          <div className="flex flex-col gap-2 pl-1">
+            <Button
+              variant="outline"
+              size="lg"
+              className="justify-start gap-2"
+              onClick={() => setStep((s) => (s - 1) as Step)}
+              disabled={submitting || step === 1}
+              aria-label="Etapa anterior"
+            >
+              <ChevronUp className="h-4 w-4" />
+              Etapa anterior
+            </Button>
+
+            {step < 3 ? (
+              <Button
+                size="lg"
+                className="justify-start gap-2"
+                onClick={() => setStep((s) => (s + 1) as Step)}
+                disabled={(step === 1 && !canContinue1) || (step === 2 && !canContinue2)}
+                aria-label="Próxima etapa"
+              >
+                <ChevronDown className="h-4 w-4" />
+                Próxima etapa
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                className="justify-start gap-2"
+                onClick={submit}
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Criando...</>
+                ) : (
+                  <><Check className="h-4 w-4" /> Criar workspace</>
+                )}
+              </Button>
+            )}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={close}
+              disabled={submitting}
+              className="justify-start text-muted-foreground"
+            >
+              Cancelar
+            </Button>
+          </div>
         </aside>
 
         {/* Conveyor content */}
