@@ -106,10 +106,10 @@ export function useCustomFonts() {
 
       const { data: pub } = supabase.storage.from("custom-fonts").getPublicUrl(path);
 
-      // Determine the team_id from the user's profile so team mates can see the font too.
+      // Determine the team_id and current workspace from the user's profile so team mates can see the font too.
       const { data: profile } = await supabase
         .from("profiles")
-        .select("team_id")
+        .select("team_id, current_workspace_id")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -117,6 +117,7 @@ export function useCustomFonts() {
         id: fontId,
         user_id: user.id,
         team_id: profile?.team_id ?? null,
+        workspace_id: profile?.current_workspace_id ?? null,
         family_name: family,
         display_name: display,
         file_url: pub.publicUrl,
