@@ -2245,6 +2245,13 @@ export type Database = {
         Args: { p_member_id: string; p_team_id: string }
         Returns: undefined
       }
+      workspace_transfer_personal_to_shared: {
+        Args: { p_amount: number; p_workspace_id: string }
+        Returns: {
+          new_personal_credits: number
+          new_shared_credits: number
+        }[]
+      }
     }
     Enums: {
       action_type:
