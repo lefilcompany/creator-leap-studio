@@ -23,7 +23,7 @@ type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'te
 
 export default function Themes() {
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
-  const { hasPermission } = useWorkspace();
+  const { hasPermission, currentWorkspace } = useWorkspace();
   const canCreate = hasPermission('themes.create');
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,10 +48,13 @@ export default function Themes() {
       if (!user?.id) return;
       setIsLoadingBrands(true);
       try {
-        const { data, error } = await supabase
+        let q = supabase
           .from('brands')
           .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
           .order('name', { ascending: true });
+        if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
+        else q = q.eq('user_id', user.id);
+        const { data, error } = await q;
 
         if (error) throw error;
 
@@ -82,7 +85,7 @@ export default function Themes() {
       }
     };
     loadBrands();
-  }, [user?.id]);
+  }, [user?.id, currentWorkspace?.id]);
 
   // Load themes
   useEffect(() => {
@@ -90,11 +93,14 @@ export default function Themes() {
       if (!user?.id) return;
       setIsLoadingThemes(true);
       try {
-        const { data, error } = await supabase
+        let q = supabase
           .from('strategic_themes')
           .select('id, brand_id, title, created_at')
           .order('created_at', { ascending: false })
           .limit(ITEMS_PER_PAGE);
+        if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
+        else q = q.eq('user_id', user.id);
+        const { data, error } = await q;
 
         if (error) throw error;
 
@@ -114,7 +120,7 @@ export default function Themes() {
       }
     };
     loadThemes();
-  }, [user?.id]);
+  }, [user?.id, currentWorkspace?.id]);
 
   const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
     if (theme) {
@@ -196,6 +202,7 @@ export default function Themes() {
             .insert({
               team_id: user.teamId || null,
               user_id: user.id,
+              workspace_id: currentWorkspace?.id ?? null,
               brand_id: formData.brandId,
               title: formData.title,
               description: formData.description,

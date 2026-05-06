@@ -25,7 +25,7 @@ type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId'
 
 export default function PersonasPage() {
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
-  const { hasPermission } = useWorkspace();
+  const { hasPermission, currentWorkspace } = useWorkspace();
   const canCreate = hasPermission('personas.create');
   const location = useLocation();
   const navigate = useNavigate();
@@ -48,10 +48,13 @@ export default function PersonasPage() {
       if (!user?.id) return;
       setIsLoadingBrands(true);
       try {
-        const { data, error } = await supabase
+        let q = supabase
           .from('brands')
           .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
           .order('name', { ascending: true });
+        if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
+        else q = q.eq('user_id', user.id);
+        const { data, error } = await q;
 
         if (error) throw error;
 
@@ -82,17 +85,20 @@ export default function PersonasPage() {
       }
     };
     loadBrands();
-  }, [user?.id]);
+  }, [user?.id, currentWorkspace?.id]);
 
   const loadPersonas = useCallback(async () => {
     if (!user?.id) return;
     setIsLoadingPersonas(true);
     try {
-      const { data, error } = await supabase
+      let q = supabase
         .from('personas')
         .select('id, brand_id, name, created_at')
         .order('created_at', { ascending: false })
         .limit(ITEMS_PER_PAGE);
+      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
+      else q = q.eq('user_id', user.id);
+      const { data, error } = await q;
 
       if (error) throw error;
 
@@ -110,7 +116,7 @@ export default function PersonasPage() {
     } finally {
       setIsLoadingPersonas(false);
     }
-  }, [user?.id]);
+  }, [user?.id, currentWorkspace?.id]);
 
   useEffect(() => {
     loadPersonas();
@@ -186,6 +192,7 @@ export default function PersonasPage() {
           .insert({
             team_id: user.teamId || null,
             user_id: user.id,
+            workspace_id: currentWorkspace?.id ?? null,
             brand_id: formData.brandId,
             name: formData.name,
             age: formData.age,

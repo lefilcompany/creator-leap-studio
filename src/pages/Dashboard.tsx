@@ -10,6 +10,7 @@ import { useHistoryActions, useHistoryBrands } from "@/hooks/useHistoryActions";
 import { useBrands } from "@/hooks/useBrands";
 import { usePersonas } from "@/hooks/usePersonas";
 import { useThemes } from "@/hooks/useThemes";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { TourSelector } from '@/components/onboarding/TourSelector';
@@ -25,6 +26,7 @@ import { PostRegistrationPurchaseModal } from "@/components/PostRegistrationPurc
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
+  const { currentWorkspace } = useWorkspace();
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
   // Prefetch data so other pages open instantly from cache
@@ -95,22 +97,24 @@ const Dashboard = () => {
   });
 
   const { data: brandsCount = 0 } = useQuery({
-    queryKey: ['dashboard-brands-count', user?.teamId],
+    queryKey: ['dashboard-brands-count', user?.id, currentWorkspace?.id],
     queryFn: async () => {
-      const { count } = await supabase
-        .from('brands')
-        .select('id', { count: 'exact', head: true });
+      let q = supabase.from('brands').select('id', { count: 'exact', head: true });
+      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
+      else if (user?.id) q = q.eq('user_id', user.id);
+      const { count } = await q;
       return count || 0;
     },
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
   });
   const { data: personasCount = 0 } = useQuery({
-    queryKey: ['dashboard-personas-count', user?.id],
+    queryKey: ['dashboard-personas-count', user?.id, currentWorkspace?.id],
     queryFn: async () => {
-      const { count } = await supabase
-        .from('personas')
-        .select('id', { count: 'exact', head: true });
+      let q = supabase.from('personas').select('id', { count: 'exact', head: true });
+      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
+      else if (user?.id) q = q.eq('user_id', user.id);
+      const { count } = await q;
       return count || 0;
     },
     enabled: !!user?.id,
@@ -118,11 +122,12 @@ const Dashboard = () => {
   });
 
   const { data: themesCount = 0 } = useQuery({
-    queryKey: ['dashboard-themes-count', user?.id],
+    queryKey: ['dashboard-themes-count', user?.id, currentWorkspace?.id],
     queryFn: async () => {
-      const { count } = await supabase
-        .from('strategic_themes')
-        .select('id', { count: 'exact', head: true });
+      let q = supabase.from('strategic_themes').select('id', { count: 'exact', head: true });
+      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
+      else if (user?.id) q = q.eq('user_id', user.id);
+      const { count } = await q;
       return count || 0;
     },
     enabled: !!user?.id,
