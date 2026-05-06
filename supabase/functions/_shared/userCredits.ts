@@ -242,7 +242,7 @@ export async function recordUserCreditUsage(
     .insert({
       user_id: params.userId,
       team_id: params.teamId || null,
-      workspace_id: params.workspaceId || null,
+      workspace_id: workspaceId || null,
       action_type: params.actionType,
       credits_used: params.creditsUsed,
       credits_before: params.creditsBefore,
