@@ -67,7 +67,7 @@ const SECTIONS: Array<{ key: SectionKey; label: string; subtitle: string; icon: 
 
 export default function WorkspacePage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const { currentWorkspace, isOwner, reload } = useWorkspace();
   const [params, setParams] = useSearchParams();
   const tab = (params.get('tab') as SectionKey) ?? 'overview';
