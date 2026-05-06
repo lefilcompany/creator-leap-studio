@@ -397,31 +397,32 @@ export default function WorkspacePage() {
         </aside>
 
         {/* Content */}
-        <section className="bg-card rounded-2xl border shadow-sm p-6 lg:p-8">
+        <section className="bg-card rounded-2xl border shadow-sm p-4 sm:p-6 lg:p-8 min-w-0">
           {/* Section header */}
-          <div className="flex items-start justify-between gap-4 pb-5 border-b mb-6">
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+          <div className="flex flex-wrap items-start justify-between gap-3 pb-5 border-b mb-6">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                 <activeSection.icon className="h-5 w-5" />
               </div>
-              <div>
-                <h2 className="text-lg font-semibold">{activeSection.label}</h2>
-                <p className="text-sm text-muted-foreground">{activeSection.subtitle}</p>
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold truncate">{activeSection.label}</h2>
+                <p className="text-sm text-muted-foreground truncate">{activeSection.subtitle}</p>
               </div>
             </div>
             {tab === 'overview' && isOwner && (
-              <Button onClick={saveProfile} disabled={savingProfile}>
+              <Button onClick={saveProfile} disabled={savingProfile} size="sm" className="shrink-0">
                 {savingProfile ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                Salvar alterações
+                <span className="hidden sm:inline">Salvar alterações</span>
+                <span className="sm:hidden">Salvar</span>
               </Button>
             )}
             {tab === 'members' && isOwner && (
-              <Button onClick={() => setInviteOpen(true)}>
+              <Button onClick={() => setInviteOpen(true)} size="sm" className="shrink-0">
                 <UserPlus className="h-4 w-4 mr-2" /> Convidar
               </Button>
             )}
             {tab === 'credits' && isOwner && (
-              <Button onClick={saveCredits} disabled={savingCredits}>
+              <Button onClick={saveCredits} disabled={savingCredits} size="sm" className="shrink-0">
                 {savingCredits ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 Salvar
               </Button>
