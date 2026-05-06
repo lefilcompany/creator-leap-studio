@@ -26,7 +26,7 @@ import { PostRegistrationPurchaseModal } from "@/components/PostRegistrationPurc
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
-  const { currentWorkspace } = require('@/contexts/WorkspaceContext').useWorkspace();
+  const { currentWorkspace } = useWorkspace();
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
   // Prefetch data so other pages open instantly from cache
