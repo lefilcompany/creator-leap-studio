@@ -548,8 +548,8 @@ export default function WorkspacePage() {
 
           {/* Invites */}
           {tab === 'invites' && (
-            <div className="rounded-xl border overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="rounded-xl border overflow-x-auto">
+              <table className="w-full text-sm min-w-[520px]">
                 <thead className="bg-muted/40 text-left">
                   <tr>
                     <th className="p-3 font-medium">E-mail</th>
