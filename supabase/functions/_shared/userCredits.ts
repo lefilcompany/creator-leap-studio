@@ -190,9 +190,13 @@ export async function addUserCredits(
   return { success: true, newCredits };
 }
 
+/**
+ * @deprecated Histórico já é gravado automaticamente por `consume_workspace_credits`.
+ * Mantido como no-op para compatibilidade com edge functions existentes.
+ */
 export async function recordUserCreditUsage(
-  supabase: any,
-  params: {
+  _supabase: any,
+  _params: {
     userId: string;
     teamId?: string;
     workspaceId?: string;
@@ -204,23 +208,6 @@ export async function recordUserCreditUsage(
     metadata?: any;
   }
 ) {
-  let workspaceId = params.workspaceId;
-  if (!workspaceId) {
-    workspaceId = (await resolveActiveWorkspaceId(supabase, params.userId, null)) ?? undefined;
-  }
-  const { error } = await supabase
-    .from('credit_history')
-    .insert({
-      user_id: params.userId,
-      team_id: params.teamId || null,
-      workspace_id: workspaceId || null,
-      action_type: params.actionType,
-      credits_used: params.creditsUsed,
-      credits_before: params.creditsBefore,
-      credits_after: params.creditsAfter,
-      description: params.description,
-      metadata: params.metadata || {},
-    });
-
-  if (error) console.error('Failed to record credit usage:', error);
+  // No-op: a RPC consume_workspace_credits já insere em credit_history.
+  return;
 }
