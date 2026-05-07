@@ -2,11 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useWorkspace, type WorkspacePermissions, type WorkspaceRole, defaultPermsForRole, CUSTOM_PRESETS } from '@/contexts/WorkspaceContext';
+import { useWorkspace, type WorkspacePermissions, type WorkspaceRole, defaultPermsForRole } from '@/contexts/WorkspaceContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -18,8 +18,8 @@ import { Badge } from '@/components/ui/badge';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { toast } from 'sonner';
 import {
-  Mail, Trash2, UserPlus, Settings as SettingsIcon, Crown, Loader2,
-  ArrowRightLeft, Send, Building2, Users, Coins, ShieldCheck,
+  Mail, Trash2, UserPlus, Crown, Loader2,
+  ArrowRightLeft, Send, Building2, Users, Coins,
   ChevronRight, Camera, Save, ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -46,26 +46,7 @@ interface Invite {
   created_at: string;
 }
 
-const DEFAULT_PERMS: WorkspacePermissions = defaultPermsForRole('editor');
-
-const ROLE_LABELS: Record<WorkspaceRole, string> = {
-  owner: 'Dono',
-  admin: 'Admin',
-  editor: 'Editor',
-  viewer: 'Leitor',
-  custom: 'Personalizado',
-  member: 'Editor',
-};
-
-const ROLE_DESCRIPTIONS: Record<Exclude<WorkspaceRole, 'owner'>, string> = {
-  admin: 'Gerencia membros, faturamento e todo o conteúdo',
-  editor: 'Cria e edita conteúdo, marcas, calendários',
-  viewer: 'Apenas visualiza — não pode criar nem editar',
-  custom: 'Permissões granulares definidas manualmente',
-  member: 'Cria e edita conteúdo, marcas, calendários',
-};
-
-const ASSIGNABLE_ROLES: WorkspaceRole[] = ['admin', 'editor', 'viewer', 'custom'];
+const DEFAULT_PERMS: WorkspacePermissions = defaultPermsForRole('member');
 
 type SectionKey = 'overview' | 'members' | 'invites' | 'credits';
 
@@ -96,14 +77,11 @@ export default function WorkspacePage() {
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<WorkspaceRole>('editor');
   const [inviteLimit, setInviteLimit] = useState<number | ''>(0);
-  const [invitePerms, setInvitePerms] = useState<WorkspacePermissions>(DEFAULT_PERMS);
   const [sending, setSending] = useState(false);
   const [transferAmount, setTransferAmount] = useState<number | ''>('');
   const [transferring, setTransferring] = useState(false);
 
-  const [permsModal, setPermsModal] = useState<Member | null>(null);
   const [switchToPersonalOpen, setSwitchToPersonalOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -317,8 +295,8 @@ export default function WorkspacePage() {
         body: {
           workspace_id: currentWorkspace.id,
           email: inviteEmail.trim().toLowerCase(),
-          role: inviteRole,
-          permissions: invitePerms,
+          role: 'member',
+          permissions: DEFAULT_PERMS,
           monthly_credit_limit: inviteLimit === '' ? null : Number(inviteLimit),
         },
       });
@@ -326,9 +304,7 @@ export default function WorkspacePage() {
       toast.success('Convite enviado!');
       setInviteOpen(false);
       setInviteEmail('');
-      setInviteRole('editor');
       setInviteLimit(0);
-      setInvitePerms(defaultPermsForRole('editor'));
       fetchInvites();
     } catch (e: any) {
       toast.error(e.message || 'Falha ao enviar convite');
@@ -337,32 +313,10 @@ export default function WorkspacePage() {
     }
   };
 
-  const updateMemberRole = async (m: Member, role: WorkspaceRole) => {
-    if (!currentWorkspace) return;
-    const { error } = await supabase
-      .from('workspace_members')
-      .update({ role, permissions: defaultPermsForRole(role) as any })
-      .eq('id', m.id);
-    if (error) return toast.error(error.message);
-    toast.success('Papel atualizado');
-    fetchMembers();
-  };
-
   const removeMember = async (m: Member) => {
     if (!currentWorkspace || !confirm(`Remover ${m.profile?.name || m.email}?`)) return;
     const { error } = await supabase.from('workspace_members').delete().eq('id', m.id);
     if (error) return toast.error(error.message);
-    fetchMembers();
-  };
-
-  const updateMemberPerms = async (member: Member, perms: WorkspacePermissions, limit: number | null) => {
-    const { error } = await supabase
-      .from('workspace_members')
-      .update({ permissions: perms as any, monthly_credit_limit: limit })
-      .eq('id', member.id);
-    if (error) return toast.error(error.message);
-    toast.success('Permissões atualizadas');
-    setPermsModal(null);
     fetchMembers();
   };
 
@@ -635,20 +589,9 @@ export default function WorkspacePage() {
                         </div>
                       </td>
                       <td className="p-3">
-                        {m.role === 'owner' ? (
-                          <Badge variant="outline" className="gap-1"><Crown className="h-3 w-3" /> Dono</Badge>
-                        ) : isOwner ? (
-                          <Select value={m.role} onValueChange={(v) => updateMemberRole(m, v as WorkspaceRole)}>
-                            <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {ASSIGNABLE_ROLES.map(r => (
-                                <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <Badge variant="secondary">{ROLE_LABELS[m.role]}</Badge>
-                        )}
+                        {m.role === 'owner'
+                          ? <Badge variant="outline" className="gap-1"><Crown className="h-3 w-3" /> Dono</Badge>
+                          : <Badge variant="secondary">Membro</Badge>}
                       </td>
                       <td className="p-3 text-muted-foreground">
                         {m.joined_at ? new Date(m.joined_at).toLocaleDateString('pt-BR') : '—'}
@@ -675,9 +618,6 @@ export default function WorkspacePage() {
                       <td className="p-3 text-right">
                         {isOwner && m.role !== 'owner' && (
                           <div className="flex gap-2 justify-end">
-                            <Button variant="ghost" size="sm" onClick={() => setPermsModal(m)} title="Permissões">
-                              <SettingsIcon className="h-4 w-4" />
-                            </Button>
                             {m.user_id && (
                               <Button variant="ghost" size="sm" onClick={() => transferOwnership(m)} title="Transferir propriedade">
                                 <ArrowRightLeft className="h-4 w-4" />
@@ -812,52 +752,13 @@ export default function WorkspacePage() {
               <Input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="email@exemplo.com" />
             </div>
             <div>
-              <Label>Papel</Label>
-              <Select value={inviteRole} onValueChange={(v) => {
-                const r = v as WorkspaceRole;
-                setInviteRole(r);
-                setInvitePerms(defaultPermsForRole(r));
-              }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {ASSIGNABLE_ROLES.map(r => (
-                    <SelectItem key={r} value={r}>
-                      <div className="flex flex-col items-start">
-                        <span>{ROLE_LABELS[r]}</span>
-                        <span className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[r as Exclude<WorkspaceRole,'owner'>]}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
               <Label>Limite mensal de créditos compartilhados</Label>
               <Input type="number" min={0} value={inviteLimit} onChange={e => setInviteLimit(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" />
               <p className="text-xs text-muted-foreground mt-1">Quantos créditos do saldo do workspace este membro pode usar por mês. Deixe em branco para <strong>bloquear</strong> o consumo até definir. Aplica-se apenas ao modo compartilhado.</p>
             </div>
-            {inviteRole === 'custom' && (
-              <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Modelos rápidos</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.entries(CUSTOM_PRESETS).map(([key, p]) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setInvitePerms(p.perms)}
-                      className="text-left rounded-md border bg-background hover:border-primary hover:bg-primary/5 transition px-3 py-2"
-                    >
-                      <div className="text-sm font-medium">{p.label}</div>
-                      <div className="text-xs text-muted-foreground line-clamp-2">{p.description}</div>
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">Escolha um modelo e ajuste cada permissão abaixo conforme precisar.</p>
-              </div>
-            )}
-            {(inviteRole === 'custom' || inviteRole === 'editor') && (
-              <PermissionsEditor value={invitePerms} onChange={setInvitePerms} />
-            )}
+            <p className="text-xs text-muted-foreground bg-muted/30 rounded-md p-2">
+              Todo membro do workspace tem acesso completo para criar, editar e excluir marcas, calendários, personas, temas e conteúdo. Apenas o dono gerencia membros e cobrança.
+            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancelar</Button>
@@ -869,13 +770,6 @@ export default function WorkspacePage() {
         </DialogContent>
       </Dialog>
 
-      {/* Member perms modal */}
-      <Dialog open={!!permsModal} onOpenChange={(o) => !o && setPermsModal(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Permissões de {permsModal?.profile?.name}</DialogTitle></DialogHeader>
-          {permsModal && <MemberPermsForm member={permsModal} onSave={updateMemberPerms} />}
-        </DialogContent>
-      </Dialog>
 
       {/* Confirm switch shared -> personal with leftover pool */}
       <Dialog open={switchToPersonalOpen} onOpenChange={setSwitchToPersonalOpen}>
@@ -926,84 +820,3 @@ export default function WorkspacePage() {
   );
 }
 
-function MemberPermsForm({ member, onSave }: { member: Member; onSave: (m: Member, p: WorkspacePermissions, l: number | null) => void }) {
-  const [perms, setPerms] = useState<WorkspacePermissions>(member.permissions || DEFAULT_PERMS);
-  const [limit, setLimit] = useState<number | ''>(member.monthly_credit_limit ?? 0);
-  return (
-    <div className="space-y-4">
-      <div>
-        <Label>Limite mensal de créditos compartilhados</Label>
-        <Input type="number" min={0} value={limit} onChange={e => setLimit(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" />
-        <p className="text-xs text-muted-foreground mt-1">0 bloqueia o consumo. Aplica-se apenas ao modo compartilhado.</p>
-      </div>
-      <PermissionsEditor value={perms} onChange={setPerms} />
-      <DialogFooter>
-        <Button onClick={() => onSave(member, perms, limit === '' ? null : Number(limit))}>Salvar</Button>
-      </DialogFooter>
-    </div>
-  );
-}
-
-function PermissionsEditor({ value, onChange }: { value: WorkspacePermissions; onChange: (p: WorkspacePermissions) => void }) {
-  const groups: Array<{ key: keyof WorkspacePermissions; label: string; actions: string[] }> = [
-    { key: 'brands', label: 'Marcas', actions: ['view', 'create', 'edit', 'delete'] },
-    { key: 'content', label: 'Conteúdo', actions: ['view', 'create'] },
-    { key: 'history', label: 'Histórico', actions: ['view', 'delete'] },
-    { key: 'calendars', label: 'Calendários', actions: ['view', 'create', 'edit', 'delete'] },
-    { key: 'personas', label: 'Personas', actions: ['view', 'create', 'edit', 'delete'] },
-    { key: 'themes', label: 'Temas', actions: ['view', 'create', 'edit', 'delete'] },
-    { key: 'members', label: 'Gestão de membros', actions: ['manage'] },
-    { key: 'billing', label: 'Cobrança', actions: ['manage'] },
-  ];
-  const labelMap: Record<string, string> = { view: 'Ver', create: 'Criar', edit: 'Editar', delete: 'Excluir', manage: 'Gerenciar' };
-
-  const allOn = (key: keyof WorkspacePermissions, actions: string[]) =>
-    actions.every(a => !!(value as any)[key]?.[a]);
-
-  const toggleAll = (key: keyof WorkspacePermissions, actions: string[], on: boolean) => {
-    const next = { ...(value as any)[key] };
-    actions.forEach(a => { next[a] = on; });
-    onChange({ ...value, [key]: next });
-  };
-
-  return (
-    <div className="space-y-2">
-      <div className="text-xs uppercase tracking-wide text-muted-foreground px-1">
-        Permissões
-      </div>
-      <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-        {groups.map(g => {
-          const all = allOn(g.key, g.actions);
-          return (
-            <div key={g.key} className="border rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
-                <div className="font-medium text-sm">{g.label}</div>
-                <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>Tudo</span>
-                  <Switch
-                    checked={all}
-                    onCheckedChange={(c) => toggleAll(g.key, g.actions, c)}
-                  />
-                </label>
-              </div>
-              <div className="divide-y">
-                {g.actions.map(a => (
-                  <label key={a} className="flex items-center justify-between px-3 py-2 text-sm cursor-pointer hover:bg-muted/30">
-                    <span>{labelMap[a]}</span>
-                    <Switch
-                      checked={!!(value as any)[g.key]?.[a]}
-                      onCheckedChange={(c) => onChange({
-                        ...value,
-                        [g.key]: { ...(value as any)[g.key], [a]: c },
-                      })}
-                    />
-                  </label>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
