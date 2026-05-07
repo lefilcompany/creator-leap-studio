@@ -174,6 +174,8 @@ export default function WorkspacePage() {
     setParams(next, { replace: true });
   };
 
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
   const fetchMembers = async () => {
     if (!currentWorkspace) return;
     const { data: memData } = await supabase
