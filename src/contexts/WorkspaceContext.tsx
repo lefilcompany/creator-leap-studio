@@ -28,15 +28,47 @@ export interface Workspace {
   owner_subscription_status?: string | null;
 }
 
+export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'viewer' | 'member';
+
 export interface WorkspaceMembership {
   id: string;
   workspace_id: string;
   user_id: string | null;
-  role: 'owner' | 'member';
+  role: WorkspaceRole;
   status: 'pending' | 'active';
-  permissions: WorkspacePermissions;
+  permissions: WorkspacePermissions | null;
   monthly_credit_limit: number | null;
   credits_used_this_month: number;
+}
+
+// Default permission preset by role. Custom JSON in `permissions` overrides leaf values.
+export function defaultPermsForRole(role: WorkspaceRole): WorkspacePermissions {
+  const all = (v: boolean) => ({ view: v, create: v, edit: v, delete: v });
+  if (role === 'owner' || role === 'admin') {
+    return {
+      brands: all(true), content: { view: true, create: true },
+      history: { view: true, delete: true },
+      calendars: all(true), personas: all(true), themes: all(true),
+      members: { manage: true }, billing: { manage: true },
+    };
+  }
+  if (role === 'viewer') {
+    return {
+      brands: all(false), content: { view: true, create: false },
+      history: { view: true, delete: false },
+      calendars: { ...all(false), view: true },
+      personas: { ...all(false), view: true },
+      themes: { ...all(false), view: true },
+      members: { manage: false }, billing: { manage: false },
+    };
+  }
+  // editor / member (legacy)
+  return {
+    brands: all(true), content: { view: true, create: true },
+    history: { view: true, delete: true },
+    calendars: all(true), personas: all(true), themes: all(true),
+    members: { manage: false }, billing: { manage: false },
+  };
 }
 
 interface WorkspaceContextType {
