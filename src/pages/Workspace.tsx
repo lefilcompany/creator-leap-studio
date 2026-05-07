@@ -1236,12 +1236,51 @@ function DangerSection({
   onAfterChange: () => Promise<void>;
 }) {
   const navigate = useNavigate();
-  const [busy, setBusy] = useState<null | 'leave' | 'archive' | 'delete'>(null);
+  const [busy, setBusy] = useState<null | 'leave' | 'archive' | 'delete' | 'transfer'>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferTarget, setTransferTarget] = useState<string | null>(null);
+  const [transferSearch, setTransferSearch] = useState('');
   const [confirmText, setConfirmText] = useState('');
   const archived = !!archivedAt;
-  const otherActiveMembers = members.filter(m => m.user_id !== userId && m.status === 'active').length;
+  const eligibleMembers = members.filter(m => m.user_id && m.user_id !== userId && m.status === 'active');
+  const otherActiveMembers = eligibleMembers.length;
+  const filteredTransferMembers = (() => {
+    const q = transferSearch.trim().toLowerCase();
+    if (!q) return eligibleMembers;
+    return eligibleMembers.filter(m => {
+      const n = (m.profile?.name || '').toLowerCase();
+      const e = (m.profile?.email || m.email || '').toLowerCase();
+      return n.includes(q) || e.includes(q);
+    });
+  })();
+
+  const handleTransfer = async () => {
+    if (!transferTarget) return;
+    setBusy('transfer');
+    try {
+      const target = members.find(m => m.id === transferTarget);
+      if (!target?.user_id) throw new Error('Membro inválido');
+      const { error: e1 } = await supabase
+        .from('workspaces').update({ owner_id: target.user_id }).eq('id', workspaceId);
+      if (e1) throw e1;
+      await supabase.from('workspace_members').update({ role: 'owner' }).eq('id', target.id);
+      await supabase.from('workspace_members')
+        .update({ role: 'member' })
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', userId);
+      toast.success(`Propriedade transferida para ${target.profile?.name || target.email}`);
+      setTransferOpen(false);
+      setTransferTarget(null);
+      setTransferSearch('');
+      await onAfterChange();
+    } catch (e: any) {
+      toast.error(e.message || 'Falha ao transferir');
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const handleLeave = async () => {
     setBusy('leave');
@@ -1324,10 +1363,16 @@ function DangerSection({
       <DangerRow
         title="Transferir propriedade"
         text="Repasse o controle do workspace para outro membro. Você passa a ser membro comum."
-        cta="Ir para membros"
-        disabled={!isOwner}
-        disabledHint={!isOwner ? 'Apenas o dono pode transferir.' : 'Use o menu de ações ao lado de cada membro.'}
-        onClick={onGoMembers}
+        cta="Transferir"
+        disabled={!isOwner || otherActiveMembers === 0}
+        disabledHint={
+          !isOwner
+            ? 'Apenas o dono pode transferir.'
+            : otherActiveMembers === 0
+              ? 'Adicione outro membro ativo antes de transferir.'
+              : undefined
+        }
+        onClick={() => { setTransferTarget(null); setTransferSearch(''); setTransferOpen(true); }}
       />
       <DangerRow
         title={archived ? 'Reativar workspace' : 'Arquivar workspace'}
@@ -1394,6 +1439,68 @@ function DangerSection({
             >
               {busy === 'delete' && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Excluir definitivamente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer ownership dialog */}
+      <Dialog open={transferOpen} onOpenChange={(v) => { setTransferOpen(v); if (!v) { setTransferTarget(null); setTransferSearch(''); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-amber-500" />
+              Transferir propriedade
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Selecione o novo dono de <strong>{workspaceName}</strong>. Você passará a ser membro comum e perderá privilégios de administração.
+          </p>
+          <div className="relative">
+            <Input
+              placeholder="Buscar por nome ou email..."
+              value={transferSearch}
+              onChange={e => setTransferSearch(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5 max-h-72 overflow-y-auto -mx-1 px-1">
+            {filteredTransferMembers.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">Nenhum membro encontrado</p>
+            ) : (
+              filteredTransferMembers.map(m => {
+                const selected = transferTarget === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setTransferTarget(m.id)}
+                    className={cn(
+                      'w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left',
+                      selected
+                        ? 'bg-primary/10 border border-primary/30 ring-1 ring-primary/20'
+                        : 'bg-muted/30 hover:bg-muted/50 border border-transparent'
+                    )}
+                  >
+                    <Avatar className="h-9 w-9 flex-shrink-0">
+                      <AvatarImage src={m.profile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                        {(m.profile?.name || m.email || '?').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{m.profile?.name || m.email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{m.profile?.email || m.email}</p>
+                    </div>
+                    <Badge variant="outline" className="text-xs capitalize">{m.role}</Badge>
+                  </button>
+                );
+              })
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferOpen(false)} disabled={busy === 'transfer'}>Cancelar</Button>
+            <Button onClick={handleTransfer} disabled={busy === 'transfer' || !transferTarget}>
+              {busy === 'transfer' && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Transferir propriedade
             </Button>
           </DialogFooter>
         </DialogContent>
