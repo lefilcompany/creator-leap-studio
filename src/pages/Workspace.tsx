@@ -851,7 +851,13 @@ function OverviewSection({
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <StatCard icon={Building2} label="Workspace" value={workspace.name} hint={workspace.is_personal ? 'Pessoal' : 'Equipe'} />
         <StatCard icon={Crown} label="Proprietário" value={ownerName} tone="primary" />
-        <StatCard icon={Sparkles} label="Plano atual" value={planName} hint={subStatus ?? 'Ativo'} tone="primary" />
+        <StatCard
+          icon={Wallet}
+          label="Modo de créditos"
+          value={creditMode === 'shared' ? 'Compartilhado' : 'Individual'}
+          hint={creditMode === 'shared' ? 'Saldo único do workspace' : 'Cada membro usa o próprio saldo'}
+          tone="primary"
+        />
         <StatCard icon={Users} label="Membros ativos" value={members.length} hint={`${members.length} pessoas no workspace`} />
         <StatCard
           icon={Mail}
