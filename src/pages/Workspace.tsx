@@ -507,41 +507,54 @@ export default function WorkspacePage() {
       </div>
 
       {/* TWO COL */}
-      <div className="grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)] gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start">
         {/* SIDE NAV */}
-        <aside className="space-y-5 min-w-0 xl:sticky xl:top-4 xl:self-start xl:max-h-[calc(100vh-2rem)] xl:overflow-y-auto">
-          <nav className="bg-card rounded-2xl border shadow-sm p-3">
-            {SECTION_GROUPS.map((g, gi) => (
-              <div key={g.label} className={cn('space-y-1.5', gi > 0 && 'mt-4 pt-4 border-t')}>
-                <div className="px-3 pb-2 text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
-                  {g.label}
+        <aside className="space-y-5 min-w-0 xl:sticky xl:top-4">
+          <nav className="bg-card rounded-2xl border shadow-sm p-2">
+            {SECTION_GROUPS.map((g, gi) => {
+              const containsActive = g.items.some(it => it.key === tab);
+              const isOpen = openGroups[g.label] ?? containsActive;
+              return (
+                <div key={g.label} className={cn(gi > 0 && 'mt-1 pt-1 border-t')}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenGroups(prev => ({ ...prev, [g.label]: !isOpen }))}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-[11px] uppercase tracking-wide text-muted-foreground font-semibold hover:bg-muted/40 transition-colors"
+                  >
+                    <span>{g.label}</span>
+                    <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', isOpen && 'rotate-180')} />
+                  </button>
+                  {isOpen && (
+                    <div className="space-y-1 mt-1 mb-1">
+                      {g.items.map(it => {
+                        const ItIcon = it.icon;
+                        const active = it.key === tab;
+                        return (
+                          <button
+                            key={it.key}
+                            onClick={() => setTab(it.key)}
+                            className={cn(
+                              'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm transition-all',
+                              active
+                                ? 'bg-primary/10 text-primary font-medium'
+                                : 'text-foreground hover:bg-muted/60'
+                            )}
+                          >
+                            <ItIcon className={cn('h-4 w-4 shrink-0', active && 'text-primary')} />
+                            <span className="flex-1 truncate">{it.label}</span>
+                            {it.soon && (
+                              <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                em breve
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-                {g.items.map(it => {
-                  const ItIcon = it.icon;
-                  const active = it.key === tab;
-                  return (
-                    <button
-                      key={it.key}
-                      onClick={() => setTab(it.key)}
-                      className={cn(
-                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm transition-all',
-                        active
-                          ? 'bg-primary/10 text-primary font-medium'
-                          : 'text-foreground hover:bg-muted/60'
-                      )}
-                    >
-                      <ItIcon className={cn('h-4 w-4 shrink-0', active && 'text-primary')} />
-                      <span className="flex-1 truncate">{it.label}</span>
-                      {it.soon && (
-                        <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                          em breve
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
+              );
+            })}
           </nav>
         </aside>
 
