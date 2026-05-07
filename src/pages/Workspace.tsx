@@ -702,7 +702,16 @@ export default function WorkspacePage() {
           )}
 
           {tab === 'danger' && (
-            <DangerSection isOwner={isOwner} workspaceName={currentWorkspace.name} />
+            <DangerSection
+              isOwner={isOwner}
+              workspaceName={currentWorkspace.name}
+              workspaceId={currentWorkspace.id}
+              archivedAt={(currentWorkspace as any).archived_at ?? null}
+              userId={user!.id}
+              members={members}
+              onGoMembers={() => setTab('members')}
+              onAfterChange={async () => { await reload(); }}
+            />
           )}
         </section>
       </div>
