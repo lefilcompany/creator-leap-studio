@@ -2245,6 +2245,10 @@ export type Database = {
         Returns: string
       }
       get_user_team_id: { Args: { p_user_id: string }; Returns: string }
+      get_workspace_role: {
+        Args: { _user_id: string; _workspace_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2263,6 +2267,10 @@ export type Database = {
       remove_team_member: {
         Args: { p_member_id: string; p_team_id: string }
         Returns: undefined
+      }
+      workspace_has_permission: {
+        Args: { _path: string; _user_id: string; _workspace_id: string }
+        Returns: boolean
       }
       workspace_transfer_personal_to_shared: {
         Args: { p_amount: number; p_workspace_id: string }

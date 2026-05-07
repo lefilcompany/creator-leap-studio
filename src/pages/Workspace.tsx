@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useWorkspace, type WorkspacePermissions } from '@/contexts/WorkspaceContext';
+import { useWorkspace, type WorkspacePermissions, type WorkspaceRole, defaultPermsForRole } from '@/contexts/WorkspaceContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,7 +29,7 @@ interface Member {
   id: string;
   user_id: string | null;
   email: string | null;
-  role: 'owner' | 'member';
+  role: WorkspaceRole;
   status: 'pending' | 'active';
   monthly_credit_limit: number | null;
   credits_used_this_month: number;
@@ -46,16 +46,24 @@ interface Invite {
   created_at: string;
 }
 
-const DEFAULT_PERMS: WorkspacePermissions = {
-  brands: { view: true, create: true, edit: true, delete: true },
-  content: { view: true, create: true },
-  history: { view: true, delete: true },
-  calendars: { view: true, create: true, edit: true, delete: true },
-  personas: { view: true, create: true, edit: true, delete: true },
-  themes: { view: true, create: true, edit: true, delete: true },
-  members: { manage: false },
-  billing: { manage: false },
+const DEFAULT_PERMS: WorkspacePermissions = defaultPermsForRole('editor');
+
+const ROLE_LABELS: Record<WorkspaceRole, string> = {
+  owner: 'Dono',
+  admin: 'Admin',
+  editor: 'Editor',
+  viewer: 'Leitor',
+  member: 'Editor',
 };
+
+const ROLE_DESCRIPTIONS: Record<Exclude<WorkspaceRole, 'owner'>, string> = {
+  admin: 'Gerencia membros, faturamento e todo o conteúdo',
+  editor: 'Cria e edita conteúdo, marcas, calendários',
+  viewer: 'Apenas visualiza — não pode criar nem editar',
+  member: 'Cria e edita conteúdo, marcas, calendários',
+};
+
+const ASSIGNABLE_ROLES: WorkspaceRole[] = ['admin', 'editor', 'viewer'];
 
 type SectionKey = 'overview' | 'members' | 'invites' | 'credits';
 
@@ -86,6 +94,7 @@ export default function WorkspacePage() {
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<WorkspaceRole>('editor');
   const [inviteLimit, setInviteLimit] = useState<number | ''>(0);
   const [invitePerms, setInvitePerms] = useState<WorkspacePermissions>(DEFAULT_PERMS);
   const [sending, setSending] = useState(false);
@@ -306,7 +315,7 @@ export default function WorkspacePage() {
         body: {
           workspace_id: currentWorkspace.id,
           email: inviteEmail.trim().toLowerCase(),
-          role: 'member',
+          role: inviteRole,
           permissions: invitePerms,
           monthly_credit_limit: inviteLimit === '' ? null : Number(inviteLimit),
         },
@@ -315,14 +324,26 @@ export default function WorkspacePage() {
       toast.success('Convite enviado!');
       setInviteOpen(false);
       setInviteEmail('');
+      setInviteRole('editor');
       setInviteLimit(0);
-      setInvitePerms(DEFAULT_PERMS);
+      setInvitePerms(defaultPermsForRole('editor'));
       fetchInvites();
     } catch (e: any) {
       toast.error(e.message || 'Falha ao enviar convite');
     } finally {
       setSending(false);
     }
+  };
+
+  const updateMemberRole = async (m: Member, role: WorkspaceRole) => {
+    if (!currentWorkspace) return;
+    const { error } = await supabase
+      .from('workspace_members')
+      .update({ role, permissions: defaultPermsForRole(role) as any })
+      .eq('id', m.id);
+    if (error) return toast.error(error.message);
+    toast.success('Papel atualizado');
+    fetchMembers();
   };
 
   const removeMember = async (m: Member) => {
@@ -612,9 +633,20 @@ export default function WorkspacePage() {
                         </div>
                       </td>
                       <td className="p-3">
-                        {m.role === 'owner'
-                          ? <Badge variant="outline" className="gap-1"><Crown className="h-3 w-3" /> Dono</Badge>
-                          : <Badge variant="secondary">Membro</Badge>}
+                        {m.role === 'owner' ? (
+                          <Badge variant="outline" className="gap-1"><Crown className="h-3 w-3" /> Dono</Badge>
+                        ) : isOwner ? (
+                          <Select value={m.role} onValueChange={(v) => updateMemberRole(m, v as WorkspaceRole)}>
+                            <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {ASSIGNABLE_ROLES.map(r => (
+                                <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge variant="secondary">{ROLE_LABELS[m.role]}</Badge>
+                        )}
                       </td>
                       <td className="p-3 text-muted-foreground">
                         {m.joined_at ? new Date(m.joined_at).toLocaleDateString('pt-BR') : '—'}
@@ -778,9 +810,29 @@ export default function WorkspacePage() {
               <Input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="email@exemplo.com" />
             </div>
             <div>
+              <Label>Papel</Label>
+              <Select value={inviteRole} onValueChange={(v) => {
+                const r = v as WorkspaceRole;
+                setInviteRole(r);
+                setInvitePerms(defaultPermsForRole(r));
+              }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {ASSIGNABLE_ROLES.map(r => (
+                    <SelectItem key={r} value={r}>
+                      <div className="flex flex-col items-start">
+                        <span>{ROLE_LABELS[r]}</span>
+                        <span className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[r as Exclude<WorkspaceRole,'owner'>]}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label>Limite mensal de créditos compartilhados</Label>
               <Input type="number" min={0} value={inviteLimit} onChange={e => setInviteLimit(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" />
-              <p className="text-xs text-muted-foreground mt-1">Quantos créditos do saldo do workspace este membro pode usar por mês. <strong>0</strong> bloqueia o consumo. Aplica-se apenas ao modo compartilhado.</p>
+              <p className="text-xs text-muted-foreground mt-1">Quantos créditos do saldo do workspace este membro pode usar por mês. Deixe em branco para <strong>bloquear</strong> o consumo até definir. Aplica-se apenas ao modo compartilhado.</p>
             </div>
             <PermissionsEditor value={invitePerms} onChange={setInvitePerms} />
           </div>
