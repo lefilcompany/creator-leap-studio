@@ -24,7 +24,7 @@ import {
   Users, Coins, Camera, Save, ImageIcon, Search, MoreHorizontal,
   LayoutDashboard, Sparkles, CreditCard, Workflow, Bell, ShieldCheck,
   Plug, History, AlertTriangle, RefreshCw, Filter, Download, CheckCircle2,
-  Clock, Wallet, TrendingUp, Calendar, ExternalLink,
+  Clock, Wallet, TrendingUp, Calendar, ExternalLink, ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CreateWorkspaceWizard } from '@/components/workspace/CreateWorkspaceWizard';
