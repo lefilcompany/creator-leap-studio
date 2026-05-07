@@ -84,6 +84,29 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           .select('*')
           .in('id', wsIds);
         wsData = data || [];
+
+        // Fetch owner plans to expose plan tag in UI
+        const ownerIds = Array.from(new Set(wsData.map((w: any) => w.owner_id).filter(Boolean)));
+        if (ownerIds.length) {
+          const { data: owners } = await supabase
+            .from('profiles')
+            .select('id, plan_id, subscription_status')
+            .in('id', ownerIds);
+          const { data: plans } = await supabase
+            .from('plans')
+            .select('id, name');
+          const plansMap = new Map((plans || []).map((p: any) => [p.id, p.name]));
+          const ownersMap = new Map((owners || []).map((o: any) => [o.id, o]));
+          wsData = wsData.map((w: any) => {
+            const owner = ownersMap.get(w.owner_id);
+            return {
+              ...w,
+              owner_plan_id: owner?.plan_id ?? null,
+              owner_plan_name: owner?.plan_id ? plansMap.get(owner.plan_id) ?? null : null,
+              owner_subscription_status: owner?.subscription_status ?? null,
+            };
+          });
+        }
       }
 
       // current_workspace_id from profile
