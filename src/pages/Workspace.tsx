@@ -645,9 +645,6 @@ export default function WorkspacePage() {
                       <td className="p-3 text-right">
                         {isOwner && m.role !== 'owner' && (
                           <div className="flex gap-2 justify-end">
-                            <Button variant="ghost" size="sm" onClick={() => setPermsModal(m)} title="Permissões">
-                              <SettingsIcon className="h-4 w-4" />
-                            </Button>
                             {m.user_id && (
                               <Button variant="ghost" size="sm" onClick={() => transferOwnership(m)} title="Transferir propriedade">
                                 <ArrowRightLeft className="h-4 w-4" />
