@@ -315,7 +315,7 @@ export default function WorkspacePage() {
         body: {
           workspace_id: currentWorkspace.id,
           email: inviteEmail.trim().toLowerCase(),
-          role: 'member',
+          role: inviteRole,
           permissions: invitePerms,
           monthly_credit_limit: inviteLimit === '' ? null : Number(inviteLimit),
         },
@@ -324,14 +324,26 @@ export default function WorkspacePage() {
       toast.success('Convite enviado!');
       setInviteOpen(false);
       setInviteEmail('');
+      setInviteRole('editor');
       setInviteLimit(0);
-      setInvitePerms(DEFAULT_PERMS);
+      setInvitePerms(defaultPermsForRole('editor'));
       fetchInvites();
     } catch (e: any) {
       toast.error(e.message || 'Falha ao enviar convite');
     } finally {
       setSending(false);
     }
+  };
+
+  const updateMemberRole = async (m: Member, role: WorkspaceRole) => {
+    if (!currentWorkspace) return;
+    const { error } = await supabase
+      .from('workspace_members')
+      .update({ role, permissions: defaultPermsForRole(role) as any })
+      .eq('id', m.id);
+    if (error) return toast.error(error.message);
+    toast.success('Papel atualizado');
+    fetchMembers();
   };
 
   const removeMember = async (m: Member) => {
