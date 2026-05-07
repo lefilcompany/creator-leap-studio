@@ -702,7 +702,16 @@ export default function WorkspacePage() {
           )}
 
           {tab === 'danger' && (
-            <DangerSection isOwner={isOwner} workspaceName={currentWorkspace.name} />
+            <DangerSection
+              isOwner={isOwner}
+              workspaceName={currentWorkspace.name}
+              workspaceId={currentWorkspace.id}
+              archivedAt={(currentWorkspace as any).archived_at ?? null}
+              userId={user!.id}
+              members={members}
+              onGoMembers={() => setTab('members')}
+              onAfterChange={async () => { await reload(); }}
+            />
           )}
         </section>
       </div>
@@ -1201,7 +1210,89 @@ function CreditsSection({
   );
 }
 
-function DangerSection({ isOwner, workspaceName }: { isOwner: boolean; workspaceName: string }) {
+function DangerSection({
+  isOwner,
+  workspaceName,
+  workspaceId,
+  archivedAt,
+  userId,
+  members,
+  onGoMembers,
+  onAfterChange,
+}: {
+  isOwner: boolean;
+  workspaceName: string;
+  workspaceId: string;
+  archivedAt: string | null;
+  userId: string;
+  members: Member[];
+  onGoMembers: () => void;
+  onAfterChange: () => Promise<void>;
+}) {
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState<null | 'leave' | 'archive' | 'delete'>(null);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const archived = !!archivedAt;
+  const otherActiveMembers = members.filter(m => m.user_id !== userId && m.status === 'active').length;
+
+  const handleLeave = async () => {
+    setBusy('leave');
+    try {
+      const { error } = await supabase
+        .from('workspace_members')
+        .delete()
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', userId);
+      if (error) throw error;
+      toast.success('Você saiu do workspace');
+      setLeaveOpen(false);
+      await onAfterChange();
+      navigate('/dashboard');
+    } catch (e: any) {
+      toast.error(e.message || 'Falha ao sair');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleArchiveToggle = async () => {
+    setBusy('archive');
+    try {
+      const { error } = await supabase
+        .from('workspaces')
+        .update({ archived_at: archived ? null : new Date().toISOString() } as any)
+        .eq('id', workspaceId);
+      if (error) throw error;
+      toast.success(archived ? 'Workspace reativado' : 'Workspace arquivado');
+      await onAfterChange();
+    } catch (e: any) {
+      toast.error(e.message || 'Falha ao arquivar');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    setBusy('delete');
+    try {
+      const { error } = await supabase
+        .from('workspaces')
+        .delete()
+        .eq('id', workspaceId);
+      if (error) throw error;
+      toast.success('Workspace excluído');
+      setDeleteOpen(false);
+      await onAfterChange();
+      navigate('/dashboard');
+    } catch (e: any) {
+      toast.error(e.message || 'Falha ao excluir');
+    } finally {
+      setBusy(null);
+    }
+  };
+
   return (
     <div className="space-y-4 max-w-2xl">
       <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
@@ -1222,35 +1313,91 @@ function DangerSection({ isOwner, workspaceName }: { isOwner: boolean; workspace
         cta="Sair"
         disabled={isOwner}
         disabledHint={isOwner ? 'Como dono, transfira a propriedade antes de sair.' : undefined}
+        onClick={() => setLeaveOpen(true)}
       />
       <DangerRow
         title="Transferir propriedade"
         text="Repasse o controle do workspace para outro membro. Você passa a ser membro comum."
-        cta="Transferir"
-        disabled
-        disabledHint="Use o menu de ações na lista de membros."
+        cta="Ir para membros"
+        disabled={!isOwner}
+        disabledHint={!isOwner ? 'Apenas o dono pode transferir.' : 'Use o menu de ações ao lado de cada membro.'}
+        onClick={onGoMembers}
       />
       <DangerRow
-        title="Arquivar workspace"
-        text="O workspace fica somente leitura para todos os membros. Pode ser reativado depois."
-        cta="Arquivar"
-        disabled
-        disabledHint="Em breve."
+        title={archived ? 'Reativar workspace' : 'Arquivar workspace'}
+        text={archived
+          ? 'O workspace está arquivado. Reativar libera novamente o uso para todos os membros.'
+          : 'O workspace fica somente leitura para todos os membros. Pode ser reativado depois.'}
+        cta={archived ? 'Reativar' : 'Arquivar'}
+        disabled={!isOwner || busy === 'archive'}
+        disabledHint={!isOwner ? 'Apenas o dono pode arquivar.' : undefined}
+        onClick={handleArchiveToggle}
+        loading={busy === 'archive'}
       />
       <DangerRow
         title="Excluir workspace"
         text="Remove o workspace e todos os dados associados. Esta ação não pode ser desfeita."
         cta="Excluir"
         destructive
-        disabled
-        disabledHint="Em breve."
+        disabled={!isOwner}
+        disabledHint={!isOwner ? 'Apenas o dono pode excluir.' : undefined}
+        onClick={() => { setConfirmText(''); setDeleteOpen(true); }}
       />
+
+      {/* Leave dialog */}
+      <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Sair do workspace</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Você vai perder o acesso a <strong>{workspaceName}</strong>. Para voltar, alguém precisará te convidar novamente.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLeaveOpen(false)} disabled={busy === 'leave'}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleLeave} disabled={busy === 'leave'}>
+              {busy === 'leave' && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirmar saída
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Excluir workspace</DialogTitle></DialogHeader>
+          <div className="space-y-3 text-sm">
+            <p className="text-muted-foreground">
+              Esta ação <strong>não pode ser desfeita</strong>. Todos os membros ({otherActiveMembers + 1}) perderão acesso e os dados associados serão removidos.
+            </p>
+            <div>
+              <Label className="text-xs">Para confirmar, digite o nome do workspace: <strong>{workspaceName}</strong></Label>
+              <Input
+                value={confirmText}
+                onChange={e => setConfirmText(e.target.value)}
+                placeholder={workspaceName}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={busy === 'delete'}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={busy === 'delete' || confirmText.trim() !== workspaceName.trim()}
+            >
+              {busy === 'delete' && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Excluir definitivamente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function DangerRow({ title, text, cta, destructive, disabled, disabledHint }:
-  { title: string; text: string; cta: string; destructive?: boolean; disabled?: boolean; disabledHint?: string }) {
+function DangerRow({ title, text, cta, destructive, disabled, disabledHint, onClick, loading }:
+  { title: string; text: string; cta: string; destructive?: boolean; disabled?: boolean; disabledHint?: string; onClick?: () => void; loading?: boolean }) {
   return (
     <div className="rounded-2xl border p-4 flex flex-wrap items-center justify-between gap-3">
       <div className="min-w-0">
@@ -1261,10 +1408,13 @@ function DangerRow({ title, text, cta, destructive, disabled, disabledHint }:
       <Button
         variant={destructive ? 'destructive' : 'outline'}
         size="sm"
-        disabled={disabled}
+        disabled={disabled || loading}
+        onClick={onClick}
       >
+        {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
         {cta}
       </Button>
     </div>
   );
 }
+
