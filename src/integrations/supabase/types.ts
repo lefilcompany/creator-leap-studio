@@ -1965,6 +1965,7 @@ export type Database = {
           invited_at: string | null
           invited_by: string | null
           joined_at: string | null
+          last_credit_reset_at: string
           monthly_credit_limit: number | null
           permissions: Json
           role: string
@@ -1980,6 +1981,7 @@ export type Database = {
           invited_at?: string | null
           invited_by?: string | null
           joined_at?: string | null
+          last_credit_reset_at?: string
           monthly_credit_limit?: number | null
           permissions?: Json
           role?: string
@@ -1995,6 +1997,7 @@ export type Database = {
           invited_at?: string | null
           invited_by?: string | null
           joined_at?: string | null
+          last_credit_reset_at?: string
           monthly_credit_limit?: number | null
           permissions?: Json
           role?: string
@@ -2124,6 +2127,22 @@ export type Database = {
       }
       can_edit_category: { Args: { p_category_id: string }; Returns: boolean }
       check_team_access: { Args: { p_team_id: string }; Returns: boolean }
+      consume_workspace_credits: {
+        Args: {
+          p_action_type: string
+          p_amount: number
+          p_metadata?: Json
+          p_reference_id?: string
+          p_user_id: string
+          p_workspace_id: string
+        }
+        Returns: {
+          credit_mode: string
+          error: string
+          new_balance: number
+          success: boolean
+        }[]
+      }
       create_team_for_user: {
         Args: {
           p_plan_id?: string
