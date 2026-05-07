@@ -58,8 +58,10 @@ export function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
       <PopoverTrigger asChild>
         <button
           className={cn(
-            'group flex items-center gap-2 w-full rounded-xl px-2 py-2 bg-card border border-border/60 shadow-md hover:shadow-lg hover:bg-muted/60 hover:border-primary/40 transition-all',
-            collapsed && 'justify-center'
+            'group flex items-center gap-2 bg-card border border-border/60 shadow-md hover:shadow-lg hover:bg-muted/60 hover:border-primary/40 transition-all',
+            collapsed
+              ? 'justify-center rounded-lg p-1.5 w-10 h-10 mx-auto'
+              : 'w-full rounded-xl px-2 py-2'
           )}
         >
           <span className={cn('flex-shrink-0', collapsed ? '' : '')}>
