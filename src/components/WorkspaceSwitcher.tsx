@@ -65,7 +65,7 @@ export function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
           )}
         >
           <span className={cn('flex-shrink-0', collapsed ? '' : '')}>
-            <WsAvatar ws={currentWorkspace} size={7} />
+            <WsAvatar ws={currentWorkspace} size={6} />
           </span>
           {!collapsed && (
             <>
