@@ -1443,6 +1443,68 @@ function DangerSection({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Transfer ownership dialog */}
+      <Dialog open={transferOpen} onOpenChange={(v) => { setTransferOpen(v); if (!v) { setTransferTarget(null); setTransferSearch(''); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-amber-500" />
+              Transferir propriedade
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Selecione o novo dono de <strong>{workspaceName}</strong>. Você passará a ser membro comum e perderá privilégios de administração.
+          </p>
+          <div className="relative">
+            <Input
+              placeholder="Buscar por nome ou email..."
+              value={transferSearch}
+              onChange={e => setTransferSearch(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5 max-h-72 overflow-y-auto -mx-1 px-1">
+            {filteredTransferMembers.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">Nenhum membro encontrado</p>
+            ) : (
+              filteredTransferMembers.map(m => {
+                const selected = transferTarget === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setTransferTarget(m.id)}
+                    className={cn(
+                      'w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left',
+                      selected
+                        ? 'bg-primary/10 border border-primary/30 ring-1 ring-primary/20'
+                        : 'bg-muted/30 hover:bg-muted/50 border border-transparent'
+                    )}
+                  >
+                    <Avatar className="h-9 w-9 flex-shrink-0">
+                      <AvatarImage src={m.profile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                        {(m.profile?.name || m.email || '?').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{m.profile?.name || m.email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{m.profile?.email || m.email}</p>
+                    </div>
+                    <Badge variant="outline" className="text-xs capitalize">{m.role}</Badge>
+                  </button>
+                );
+              })
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferOpen(false)} disabled={busy === 'transfer'}>Cancelar</Button>
+            <Button onClick={handleTransfer} disabled={busy === 'transfer' || !transferTarget}>
+              {busy === 'transfer' && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Transferir propriedade
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
