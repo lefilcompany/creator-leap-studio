@@ -111,80 +111,50 @@ export async function checkUserCredits(
   };
 }
 
+/**
+ * Centralized credit deduction.
+ * Delegates to the `consume_workspace_credits` RPC, which:
+ *  - resolves the active workspace and credit_mode
+ *  - enforces monthly_credit_limit in shared mode (owner exempt; NULL = blocked)
+ *  - performs lazy monthly reset of credits_used_this_month
+ *  - records into credit_history automatically
+ *
+ * Use this for ALL AI generation flows. Do not write directly to
+ * profiles.credits or workspaces.shared_credits in edge functions.
+ */
 export async function deductUserCredits(
   supabase: any,
   userId: string,
   amount: number,
   workspaceId?: string | null,
+  options?: { actionType?: string; referenceId?: string | null; metadata?: Record<string, unknown> },
 ): Promise<{ success: boolean; newCredits: number; error?: string; workspaceId?: string; creditMode?: 'personal' | 'shared' }> {
   const wsId = await resolveActiveWorkspaceId(supabase, userId, workspaceId);
-  const ws = await resolveWorkspace(supabase, wsId);
 
-  // Shared workspace pool
-  if (ws && ws.credit_mode === 'shared') {
-    // Check member monthly limit (owner is exempt)
-    const isOwner = ws.owner_id === userId;
-    const { data: member } = await supabase
-      .from('workspace_members')
-      .select('monthly_credit_limit, credits_used_this_month, role')
-      .eq('workspace_id', ws.id)
-      .eq('user_id', userId)
-      .maybeSingle();
+  const { data, error } = await supabase.rpc('consume_workspace_credits', {
+    p_workspace_id: wsId,
+    p_user_id: userId,
+    p_amount: amount,
+    p_action_type: options?.actionType ?? 'generation',
+    p_reference_id: options?.referenceId ?? null,
+    p_metadata: options?.metadata ?? {},
+  });
 
-    if (!isOwner && member?.monthly_credit_limit != null) {
-      const used = member.credits_used_this_month ?? 0;
-      if (used + amount > member.monthly_credit_limit) {
-        return { success: false, newCredits: ws.shared_credits ?? 0, error: 'Você não tem permissão para gastar créditos compartilhados deste workspace. Peça ao dono para aumentar seu limite mensal.' };
-      }
-    }
-
-    const current = ws.shared_credits ?? 0;
-    if (current < amount) {
-      return { success: false, newCredits: current, error: 'Créditos compartilhados insuficientes.' };
-    }
-    const newCredits = current - amount;
-    const { error: upErr } = await supabase
-      .from('workspaces')
-      .update({ shared_credits: newCredits })
-      .eq('id', ws.id);
-    if (upErr) return { success: false, newCredits: current, error: 'Erro ao deduzir créditos do workspace.' };
-
-    if (member) {
-      await supabase
-        .from('workspace_members')
-        .update({ credits_used_this_month: (member.credits_used_this_month ?? 0) + amount })
-        .eq('workspace_id', ws.id)
-        .eq('user_id', userId);
-    }
-    return { success: true, newCredits, workspaceId: ws.id, creditMode: 'shared' };
+  if (error) {
+    console.error('consume_workspace_credits error:', error);
+    return { success: false, newCredits: 0, error: error.message || 'Erro ao deduzir créditos' };
   }
 
-  // Personal credits
-  const { data: profile, error: fetchError } = await supabase
-    .from('profiles')
-    .select('credits, credits_expire_at')
-    .eq('id', userId)
-    .single();
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return { success: false, newCredits: 0, error: 'Resposta vazia da RPC de créditos' };
 
-  if (fetchError || !profile) return { success: false, newCredits: 0, error: 'Usuário não encontrado' };
-
-  const effectiveCredits = getEffectiveCredits(profile.credits || 0, profile.credits_expire_at);
-  const newCredits = effectiveCredits - amount;
-
-  if (newCredits < 0) {
-    if (areCreditsExpired(profile.credits_expire_at)) {
-      return { success: false, newCredits: 0, error: 'Seus créditos expiraram. Adquira um novo pacote para continuar.' };
-    }
-    return { success: false, newCredits: effectiveCredits, error: 'Créditos insuficientes' };
-  }
-
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({ credits: newCredits })
-    .eq('id', userId);
-
-  if (updateError) return { success: false, newCredits: effectiveCredits, error: 'Erro ao deduzir créditos' };
-  return { success: true, newCredits, workspaceId: wsId ?? undefined, creditMode: 'personal' };
+  return {
+    success: !!row.success,
+    newCredits: row.new_balance ?? 0,
+    error: row.error ?? undefined,
+    workspaceId: wsId ?? undefined,
+    creditMode: (row.credit_mode as 'personal' | 'shared') ?? undefined,
+  };
 }
 
 export async function addUserCredits(
