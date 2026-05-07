@@ -18,14 +18,12 @@ Deno.serve(async (req) => {
     const { data: { user } } = await userClient.auth.getUser();
     if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
 
-    const { workspace_id, email, role = 'editor', permissions = {}, monthly_credit_limit = null, resend_invite_id = null } = await req.json();
+    const { workspace_id, email, monthly_credit_limit = null, resend_invite_id = null } = await req.json();
     if (!workspace_id || !email) {
       return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers: corsHeaders });
     }
-    const allowedRoles = ['admin', 'editor', 'viewer', 'member'];
-    if (!allowedRoles.includes(role)) {
-      return new Response(JSON.stringify({ error: 'Invalid role' }), { status: 400, headers: corsHeaders });
-    }
+    const role = 'member';
+    const permissions = {};
 
     const admin = createClient(supabaseUrl, supabaseService);
 
