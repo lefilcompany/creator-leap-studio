@@ -1363,10 +1363,16 @@ function DangerSection({
       <DangerRow
         title="Transferir propriedade"
         text="Repasse o controle do workspace para outro membro. Você passa a ser membro comum."
-        cta="Ir para membros"
-        disabled={!isOwner}
-        disabledHint={!isOwner ? 'Apenas o dono pode transferir.' : 'Use o menu de ações ao lado de cada membro.'}
-        onClick={onGoMembers}
+        cta="Transferir"
+        disabled={!isOwner || otherActiveMembers === 0}
+        disabledHint={
+          !isOwner
+            ? 'Apenas o dono pode transferir.'
+            : otherActiveMembers === 0
+              ? 'Adicione outro membro ativo antes de transferir.'
+              : undefined
+        }
+        onClick={() => { setTransferTarget(null); setTransferSearch(''); setTransferOpen(true); }}
       />
       <DangerRow
         title={archived ? 'Reativar workspace' : 'Arquivar workspace'}
