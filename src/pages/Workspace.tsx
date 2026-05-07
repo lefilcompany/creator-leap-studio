@@ -295,8 +295,8 @@ export default function WorkspacePage() {
         body: {
           workspace_id: currentWorkspace.id,
           email: inviteEmail.trim().toLowerCase(),
-          role: inviteRole,
-          permissions: invitePerms,
+          role: 'member',
+          permissions: DEFAULT_PERMS,
           monthly_credit_limit: inviteLimit === '' ? null : Number(inviteLimit),
         },
       });
@@ -304,9 +304,7 @@ export default function WorkspacePage() {
       toast.success('Convite enviado!');
       setInviteOpen(false);
       setInviteEmail('');
-      setInviteRole('editor');
       setInviteLimit(0);
-      setInvitePerms(defaultPermsForRole('editor'));
       fetchInvites();
     } catch (e: any) {
       toast.error(e.message || 'Falha ao enviar convite');
@@ -315,32 +313,10 @@ export default function WorkspacePage() {
     }
   };
 
-  const updateMemberRole = async (m: Member, role: WorkspaceRole) => {
-    if (!currentWorkspace) return;
-    const { error } = await supabase
-      .from('workspace_members')
-      .update({ role, permissions: defaultPermsForRole(role) as any })
-      .eq('id', m.id);
-    if (error) return toast.error(error.message);
-    toast.success('Papel atualizado');
-    fetchMembers();
-  };
-
   const removeMember = async (m: Member) => {
     if (!currentWorkspace || !confirm(`Remover ${m.profile?.name || m.email}?`)) return;
     const { error } = await supabase.from('workspace_members').delete().eq('id', m.id);
     if (error) return toast.error(error.message);
-    fetchMembers();
-  };
-
-  const updateMemberPerms = async (member: Member, perms: WorkspacePermissions, limit: number | null) => {
-    const { error } = await supabase
-      .from('workspace_members')
-      .update({ permissions: perms as any, monthly_credit_limit: limit })
-      .eq('id', member.id);
-    if (error) return toast.error(error.message);
-    toast.success('Permissões atualizadas');
-    setPermsModal(null);
     fetchMembers();
   };
 
