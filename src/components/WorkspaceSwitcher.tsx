@@ -128,32 +128,22 @@ export function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
             Todos os workspaces
           </div>
           <div className="max-h-64 overflow-y-auto">
-            {workspaces.map((w) => {
-              const planLabel = w.owner_plan_name && w.owner_plan_id && w.owner_plan_id !== 'pack_trial'
-                ? w.owner_plan_name
-                : null;
-              return (
-                <button
-                  key={w.id}
-                  onClick={() => { switchWorkspace(w.id); setOpen(false); }}
-                  className="w-full flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-muted/60 transition-colors"
-                >
-                  <WsAvatar ws={w} size={7} />
-                  <span className="flex-1 min-w-0 text-left text-sm truncate">{w.name}</span>
-                  {w.is_personal && (
-                    <span className="text-[10px] uppercase font-semibold bg-muted px-1.5 py-0.5 rounded">
-                      Pessoal
-                    </span>
-                  )}
-                  {planLabel && (
-                    <span className="text-[10px] uppercase font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                      {planLabel}
-                    </span>
-                  )}
-                  {w.id === currentWorkspace.id && <Check className="h-4 w-4 text-primary" />}
-                </button>
-              );
-            })}
+            {workspaces.map((w) => (
+              <button
+                key={w.id}
+                onClick={() => { switchWorkspace(w.id); setOpen(false); }}
+                className="w-full flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-muted/60 transition-colors"
+              >
+                <WsAvatar ws={w} size={7} />
+                <span className="flex-1 min-w-0 text-left text-sm truncate">{w.name}</span>
+                {w.is_personal && (
+                  <span className="text-[10px] uppercase font-semibold bg-muted px-1.5 py-0.5 rounded">
+                    Pessoal
+                  </span>
+                )}
+                {w.id === currentWorkspace.id && <Check className="h-4 w-4 text-primary" />}
+              </button>
+            ))}
           </div>
         </div>
 
