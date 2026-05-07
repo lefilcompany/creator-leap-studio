@@ -46,26 +46,7 @@ interface Invite {
   created_at: string;
 }
 
-const DEFAULT_PERMS: WorkspacePermissions = defaultPermsForRole('editor');
-
-const ROLE_LABELS: Record<WorkspaceRole, string> = {
-  owner: 'Dono',
-  admin: 'Admin',
-  editor: 'Editor',
-  viewer: 'Leitor',
-  custom: 'Personalizado',
-  member: 'Editor',
-};
-
-const ROLE_DESCRIPTIONS: Record<Exclude<WorkspaceRole, 'owner'>, string> = {
-  admin: 'Gerencia membros, faturamento e todo o conteúdo',
-  editor: 'Cria e edita conteúdo, marcas, calendários',
-  viewer: 'Apenas visualiza — não pode criar nem editar',
-  custom: 'Permissões granulares definidas manualmente',
-  member: 'Cria e edita conteúdo, marcas, calendários',
-};
-
-const ASSIGNABLE_ROLES: WorkspaceRole[] = ['admin', 'editor', 'viewer', 'custom'];
+const DEFAULT_PERMS: WorkspacePermissions = defaultPermsForRole('member');
 
 type SectionKey = 'overview' | 'members' | 'invites' | 'credits';
 
