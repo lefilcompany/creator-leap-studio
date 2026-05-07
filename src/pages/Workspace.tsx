@@ -482,7 +482,7 @@ export default function WorkspacePage() {
                 <Building2 className="h-3.5 w-3.5" />
                 {currentWorkspace.is_personal ? 'Workspace pessoal' : 'Workspace de equipe'}
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
                 Configurações do Workspace
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5 max-w-xl">
