@@ -330,11 +330,25 @@ export function AppSidebar() {
           id="sidebar-logo"
           className="flex justify-center cursor-pointer hover:opacity-80 transition-opacity duration-300"
         >
-          {collapsed ? (
-            <img src={creatorSymbol} alt="Creator Symbol" className="h-10 w-10 object-contain" />
-          ) : (
-            <img src={logo} alt="Creator Logo" className="h-8 w-auto" />
-          )}
+          <img
+            src={creatorSymbol}
+            alt="Creator Symbol"
+            fetchPriority="high"
+            decoding="sync"
+            loading="eager"
+            className={cn("h-10 w-10 object-contain", collapsed ? "block" : "hidden")}
+          />
+          <img
+            src={logo}
+            alt="Creator Logo"
+            fetchPriority="high"
+            decoding="sync"
+            loading="eager"
+            className={cn("h-8 w-auto", collapsed ? "hidden" : "block")}
+          />
+          {/* Preload the inactive variant to keep both cached */}
+          <img src={creatorSymbol} alt="" aria-hidden className="hidden" />
+          <img src={logo} alt="" aria-hidden className="hidden" />
         </NavLink>
       </div>
 
