@@ -134,16 +134,16 @@ const Dashboard = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  // Operational KPIs: pending review + created this month
+  // Operational KPIs: pending review + created this month (workspace-scoped)
   const { data: pendingCount = 0 } = useQuery({
-    queryKey: ['dashboard-pending-count', user?.id, user?.teamId],
+    queryKey: ['dashboard-pending-count', user?.id, currentWorkspace?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
       let q = supabase
         .from('actions')
         .select('id', { count: 'exact', head: true })
         .eq('approved', false);
-      if (user.teamId) q = q.eq('team_id', user.teamId);
+      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
       else q = q.eq('user_id', user.id);
       const { count } = await q;
       return count || 0;
@@ -153,7 +153,7 @@ const Dashboard = () => {
   });
 
   const { data: monthCount = 0 } = useQuery({
-    queryKey: ['dashboard-month-count', user?.id, user?.teamId],
+    queryKey: ['dashboard-month-count', user?.id, currentWorkspace?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
       const startOfMonth = new Date();
@@ -163,7 +163,7 @@ const Dashboard = () => {
         .from('actions')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', startOfMonth.toISOString());
-      if (user.teamId) q = q.eq('team_id', user.teamId);
+      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
       else q = q.eq('user_id', user.id);
       const { count } = await q;
       return count || 0;
