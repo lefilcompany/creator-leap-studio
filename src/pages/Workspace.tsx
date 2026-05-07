@@ -1236,12 +1236,51 @@ function DangerSection({
   onAfterChange: () => Promise<void>;
 }) {
   const navigate = useNavigate();
-  const [busy, setBusy] = useState<null | 'leave' | 'archive' | 'delete'>(null);
+  const [busy, setBusy] = useState<null | 'leave' | 'archive' | 'delete' | 'transfer'>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferTarget, setTransferTarget] = useState<string | null>(null);
+  const [transferSearch, setTransferSearch] = useState('');
   const [confirmText, setConfirmText] = useState('');
   const archived = !!archivedAt;
-  const otherActiveMembers = members.filter(m => m.user_id !== userId && m.status === 'active').length;
+  const eligibleMembers = members.filter(m => m.user_id && m.user_id !== userId && m.status === 'active');
+  const otherActiveMembers = eligibleMembers.length;
+  const filteredTransferMembers = (() => {
+    const q = transferSearch.trim().toLowerCase();
+    if (!q) return eligibleMembers;
+    return eligibleMembers.filter(m => {
+      const n = (m.profile?.name || '').toLowerCase();
+      const e = (m.profile?.email || m.email || '').toLowerCase();
+      return n.includes(q) || e.includes(q);
+    });
+  })();
+
+  const handleTransfer = async () => {
+    if (!transferTarget) return;
+    setBusy('transfer');
+    try {
+      const target = members.find(m => m.id === transferTarget);
+      if (!target?.user_id) throw new Error('Membro inválido');
+      const { error: e1 } = await supabase
+        .from('workspaces').update({ owner_id: target.user_id }).eq('id', workspaceId);
+      if (e1) throw e1;
+      await supabase.from('workspace_members').update({ role: 'owner' }).eq('id', target.id);
+      await supabase.from('workspace_members')
+        .update({ role: 'member' })
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', userId);
+      toast.success(`Propriedade transferida para ${target.profile?.name || target.email}`);
+      setTransferOpen(false);
+      setTransferTarget(null);
+      setTransferSearch('');
+      await onAfterChange();
+    } catch (e: any) {
+      toast.error(e.message || 'Falha ao transferir');
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const handleLeave = async () => {
     setBusy('leave');
