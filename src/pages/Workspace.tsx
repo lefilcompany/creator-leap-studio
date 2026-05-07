@@ -797,13 +797,6 @@ export default function WorkspacePage() {
         </DialogContent>
       </Dialog>
 
-      {/* Member perms modal */}
-      <Dialog open={!!permsModal} onOpenChange={(o) => !o && setPermsModal(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Permissões de {permsModal?.profile?.name}</DialogTitle></DialogHeader>
-          {permsModal && <MemberPermsForm member={permsModal} onSave={updateMemberPerms} />}
-        </DialogContent>
-      </Dialog>
 
       {/* Confirm switch shared -> personal with leftover pool */}
       <Dialog open={switchToPersonalOpen} onOpenChange={setSwitchToPersonalOpen}>
