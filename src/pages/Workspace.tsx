@@ -18,8 +18,8 @@ import { Badge } from '@/components/ui/badge';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { toast } from 'sonner';
 import {
-  Mail, Trash2, UserPlus, Settings as SettingsIcon, Crown, Loader2,
-  ArrowRightLeft, Send, Building2, Users, Coins, ShieldCheck,
+  Mail, Trash2, UserPlus, Crown, Loader2,
+  ArrowRightLeft, Send, Building2, Users, Coins,
   ChevronRight, Camera, Save, ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
