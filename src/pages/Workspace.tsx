@@ -616,20 +616,9 @@ export default function WorkspacePage() {
                         </div>
                       </td>
                       <td className="p-3">
-                        {m.role === 'owner' ? (
-                          <Badge variant="outline" className="gap-1"><Crown className="h-3 w-3" /> Dono</Badge>
-                        ) : isOwner ? (
-                          <Select value={m.role} onValueChange={(v) => updateMemberRole(m, v as WorkspaceRole)}>
-                            <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {ASSIGNABLE_ROLES.map(r => (
-                                <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <Badge variant="secondary">{ROLE_LABELS[m.role]}</Badge>
-                        )}
+                        {m.role === 'owner'
+                          ? <Badge variant="outline" className="gap-1"><Crown className="h-3 w-3" /> Dono</Badge>
+                          : <Badge variant="secondary">Membro</Badge>}
                       </td>
                       <td className="p-3 text-muted-foreground">
                         {m.joined_at ? new Date(m.joined_at).toLocaleDateString('pt-BR') : '—'}
