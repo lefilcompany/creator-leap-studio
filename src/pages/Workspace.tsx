@@ -510,10 +510,10 @@ export default function WorkspacePage() {
       <div className="grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)] gap-6">
         {/* SIDE NAV */}
         <aside className="space-y-5 min-w-0">
-          <nav className="bg-card rounded-2xl border shadow-sm p-2">
+          <nav className="bg-card rounded-2xl border shadow-sm p-3">
             {SECTION_GROUPS.map((g, gi) => (
-              <div key={g.label} className={cn(gi > 0 && 'mt-2 pt-2 border-t')}>
-                <div className="px-3 py-1.5 text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
+              <div key={g.label} className={cn('space-y-1.5', gi > 0 && 'mt-4 pt-4 border-t')}>
+                <div className="px-3 pb-2 text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
                   {g.label}
                 </div>
                 {g.items.map(it => {
@@ -524,7 +524,7 @@ export default function WorkspacePage() {
                       key={it.key}
                       onClick={() => setTab(it.key)}
                       className={cn(
-                        'w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm transition-all',
+                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm transition-all',
                         active
                           ? 'bg-primary/10 text-primary font-medium'
                           : 'text-foreground hover:bg-muted/60'
