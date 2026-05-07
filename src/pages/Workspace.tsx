@@ -836,7 +836,28 @@ export default function WorkspacePage() {
               <Input type="number" min={0} value={inviteLimit} onChange={e => setInviteLimit(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" />
               <p className="text-xs text-muted-foreground mt-1">Quantos créditos do saldo do workspace este membro pode usar por mês. Deixe em branco para <strong>bloquear</strong> o consumo até definir. Aplica-se apenas ao modo compartilhado.</p>
             </div>
-            <PermissionsEditor value={invitePerms} onChange={setInvitePerms} />
+            {inviteRole === 'custom' && (
+              <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Modelos rápidos</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries(CUSTOM_PRESETS).map(([key, p]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setInvitePerms(p.perms)}
+                      className="text-left rounded-md border bg-background hover:border-primary hover:bg-primary/5 transition px-3 py-2"
+                    >
+                      <div className="text-sm font-medium">{p.label}</div>
+                      <div className="text-xs text-muted-foreground line-clamp-2">{p.description}</div>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">Escolha um modelo e ajuste cada permissão abaixo conforme precisar.</p>
+              </div>
+            )}
+            {(inviteRole === 'custom' || inviteRole === 'editor') && (
+              <PermissionsEditor value={invitePerms} onChange={setInvitePerms} />
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancelar</Button>
