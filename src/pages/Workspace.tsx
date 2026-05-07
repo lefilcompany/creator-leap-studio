@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useWorkspace, type WorkspacePermissions, type WorkspaceRole, defaultPermsForRole, CUSTOM_PRESETS } from '@/contexts/WorkspaceContext';
+import { useWorkspace, type WorkspacePermissions, type WorkspaceRole, defaultPermsForRole } from '@/contexts/WorkspaceContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
