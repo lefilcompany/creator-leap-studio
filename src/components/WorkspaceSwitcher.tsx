@@ -58,7 +58,7 @@ export function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
       <PopoverTrigger asChild>
         <button
           className={cn(
-            'group flex items-center gap-2 w-full rounded-xl px-2 py-2 hover:bg-muted/60 transition-colors',
+            'group flex items-center gap-2 w-full rounded-xl px-2 py-2 bg-card border border-border/60 shadow-md hover:shadow-lg hover:bg-muted/60 hover:border-primary/40 transition-all',
             collapsed && 'justify-center'
           )}
         >
