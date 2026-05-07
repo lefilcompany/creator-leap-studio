@@ -94,6 +94,7 @@ export default function WorkspacePage() {
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<WorkspaceRole>('editor');
   const [inviteLimit, setInviteLimit] = useState<number | ''>(0);
   const [invitePerms, setInvitePerms] = useState<WorkspacePermissions>(DEFAULT_PERMS);
   const [sending, setSending] = useState(false);
