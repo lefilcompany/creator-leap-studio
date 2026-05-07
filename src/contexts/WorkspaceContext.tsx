@@ -28,7 +28,7 @@ export interface Workspace {
   owner_subscription_status?: string | null;
 }
 
-export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'viewer' | 'member';
+export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'viewer' | 'custom' | 'member';
 
 export interface WorkspaceMembership {
   id: string;
@@ -41,34 +41,81 @@ export interface WorkspaceMembership {
   credits_used_this_month: number;
 }
 
-// Default permission preset by role. Custom JSON in `permissions` overrides leaf values.
-export function defaultPermsForRole(role: WorkspaceRole): WorkspacePermissions {
-  const all = (v: boolean) => ({ view: v, create: v, edit: v, delete: v });
-  if (role === 'owner' || role === 'admin') {
-    return {
-      brands: all(true), content: { view: true, create: true },
-      history: { view: true, delete: true },
-      calendars: all(true), personas: all(true), themes: all(true),
-      members: { manage: true }, billing: { manage: true },
-    };
-  }
-  if (role === 'viewer') {
-    return {
-      brands: all(false), content: { view: true, create: false },
+const allOn = (v: boolean) => ({ view: v, create: v, edit: v, delete: v });
+const viewOnly = { view: true, create: false, edit: false, delete: false };
+const noneCRUD = allOn(false);
+
+const ADMIN_PRESET: WorkspacePermissions = {
+  brands: allOn(true), content: { view: true, create: true },
+  history: { view: true, delete: true },
+  calendars: allOn(true), personas: allOn(true), themes: allOn(true),
+  members: { manage: true }, billing: { manage: true },
+};
+
+const EDITOR_PRESET: WorkspacePermissions = {
+  brands: allOn(true), content: { view: true, create: true },
+  history: { view: true, delete: true },
+  calendars: allOn(true), personas: allOn(true), themes: allOn(true),
+  members: { manage: false }, billing: { manage: false },
+};
+
+const VIEWER_PRESET: WorkspacePermissions = {
+  brands: viewOnly, content: { view: true, create: false },
+  history: { view: true, delete: false },
+  calendars: viewOnly, personas: viewOnly, themes: viewOnly,
+  members: { manage: false }, billing: { manage: false },
+};
+
+// Focused presets — common org roles in marketing teams
+export const CUSTOM_PRESETS: Record<string, { label: string; description: string; perms: WorkspacePermissions }> = {
+  brand_manager: {
+    label: 'Gestor de Marcas',
+    description: 'Cria e edita marcas, personas e temas. Visualiza o resto.',
+    perms: {
+      brands: allOn(true), content: { view: true, create: false },
       history: { view: true, delete: false },
-      calendars: { ...all(false), view: true },
-      personas: { ...all(false), view: true },
-      themes: { ...all(false), view: true },
+      calendars: viewOnly,
+      personas: allOn(true), themes: allOn(true),
       members: { manage: false }, billing: { manage: false },
-    };
-  }
-  // editor / member (legacy)
-  return {
-    brands: all(true), content: { view: true, create: true },
-    history: { view: true, delete: true },
-    calendars: all(true), personas: all(true), themes: all(true),
+    },
+  },
+  planner: {
+    label: 'Planejador de Calendário',
+    description: 'Cria e gerencia calendários. Sem acesso a marcas.',
+    perms: {
+      brands: viewOnly, content: { view: true, create: false },
+      history: { view: true, delete: false },
+      calendars: allOn(true), personas: viewOnly, themes: viewOnly,
+      members: { manage: false }, billing: { manage: false },
+    },
+  },
+  creator: {
+    label: 'Criador de Conteúdo',
+    description: 'Gera conteúdo e vê histórico. Não mexe em marcas/calendários.',
+    perms: {
+      brands: viewOnly, content: { view: true, create: true },
+      history: { view: true, delete: false },
+      calendars: viewOnly, personas: viewOnly, themes: viewOnly,
+      members: { manage: false }, billing: { manage: false },
+    },
+  },
+  reviewer: {
+    label: 'Aprovador',
+    description: 'Apenas visualiza tudo (ideal para clientes/diretores).',
+    perms: VIEWER_PRESET,
+  },
+};
+
+export function defaultPermsForRole(role: WorkspaceRole): WorkspacePermissions {
+  if (role === 'owner' || role === 'admin') return ADMIN_PRESET;
+  if (role === 'viewer') return VIEWER_PRESET;
+  if (role === 'custom') return {
+    brands: noneCRUD, content: { view: false, create: false },
+    history: { view: false, delete: false },
+    calendars: noneCRUD, personas: noneCRUD, themes: noneCRUD,
     members: { manage: false }, billing: { manage: false },
   };
+  return EDITOR_PRESET;
 }
 
 interface WorkspaceContextType {
