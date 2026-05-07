@@ -810,9 +810,29 @@ export default function WorkspacePage() {
               <Input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="email@exemplo.com" />
             </div>
             <div>
+              <Label>Papel</Label>
+              <Select value={inviteRole} onValueChange={(v) => {
+                const r = v as WorkspaceRole;
+                setInviteRole(r);
+                setInvitePerms(defaultPermsForRole(r));
+              }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {ASSIGNABLE_ROLES.map(r => (
+                    <SelectItem key={r} value={r}>
+                      <div className="flex flex-col items-start">
+                        <span>{ROLE_LABELS[r]}</span>
+                        <span className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[r as Exclude<WorkspaceRole,'owner'>]}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label>Limite mensal de créditos compartilhados</Label>
               <Input type="number" min={0} value={inviteLimit} onChange={e => setInviteLimit(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" />
-              <p className="text-xs text-muted-foreground mt-1">Quantos créditos do saldo do workspace este membro pode usar por mês. <strong>0</strong> bloqueia o consumo. Aplica-se apenas ao modo compartilhado.</p>
+              <p className="text-xs text-muted-foreground mt-1">Quantos créditos do saldo do workspace este membro pode usar por mês. Deixe em branco para <strong>bloquear</strong> o consumo até definir. Aplica-se apenas ao modo compartilhado.</p>
             </div>
             <PermissionsEditor value={invitePerms} onChange={setInvitePerms} />
           </div>
