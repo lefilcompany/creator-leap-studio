@@ -232,16 +232,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const hasPermission = useCallback((path: string) => {
     if (isOwner) return true;
     if (!currentMembership) return false;
-    if (currentMembership.role === 'admin') return true;
-    const base = defaultPermsForRole(currentMembership.role);
-    const merged = { ...base, ...(currentMembership.permissions || {}) } as any;
-    const parts = path.split('.');
-    let cur: any = merged;
-    for (const p of parts) {
-      if (cur == null) return false;
-      cur = cur[p];
-    }
-    return !!cur;
+    // All workspace members have full access. Only members/billing
+    // remain owner-only.
+    const section = path.split('.')[0];
+    if (section === 'members' || section === 'billing') return false;
+    return true;
   }, [currentMembership, isOwner]);
 
   return (
