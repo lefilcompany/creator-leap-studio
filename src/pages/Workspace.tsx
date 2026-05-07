@@ -29,7 +29,7 @@ interface Member {
   id: string;
   user_id: string | null;
   email: string | null;
-  role: 'owner' | 'member';
+  role: WorkspaceRole;
   status: 'pending' | 'active';
   monthly_credit_limit: number | null;
   credits_used_this_month: number;
@@ -46,16 +46,24 @@ interface Invite {
   created_at: string;
 }
 
-const DEFAULT_PERMS: WorkspacePermissions = {
-  brands: { view: true, create: true, edit: true, delete: true },
-  content: { view: true, create: true },
-  history: { view: true, delete: true },
-  calendars: { view: true, create: true, edit: true, delete: true },
-  personas: { view: true, create: true, edit: true, delete: true },
-  themes: { view: true, create: true, edit: true, delete: true },
-  members: { manage: false },
-  billing: { manage: false },
+const DEFAULT_PERMS: WorkspacePermissions = defaultPermsForRole('editor');
+
+const ROLE_LABELS: Record<WorkspaceRole, string> = {
+  owner: 'Dono',
+  admin: 'Admin',
+  editor: 'Editor',
+  viewer: 'Leitor',
+  member: 'Editor',
 };
+
+const ROLE_DESCRIPTIONS: Record<Exclude<WorkspaceRole, 'owner'>, string> = {
+  admin: 'Gerencia membros, faturamento e todo o conteúdo',
+  editor: 'Cria e edita conteúdo, marcas, calendários',
+  viewer: 'Apenas visualiza — não pode criar nem editar',
+  member: 'Cria e edita conteúdo, marcas, calendários',
+};
+
+const ASSIGNABLE_ROLES: WorkspaceRole[] = ['admin', 'editor', 'viewer'];
 
 type SectionKey = 'overview' | 'members' | 'invites' | 'credits';
 
