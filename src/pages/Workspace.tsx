@@ -509,7 +509,7 @@ export default function WorkspacePage() {
       {/* TWO COL */}
       <div className="grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)] gap-6">
         {/* SIDE NAV */}
-        <aside className="space-y-5 min-w-0">
+        <aside className="space-y-5 min-w-0 xl:sticky xl:top-4 xl:self-start xl:max-h-[calc(100vh-2rem)] xl:overflow-y-auto">
           <nav className="bg-card rounded-2xl border shadow-sm p-3">
             {SECTION_GROUPS.map((g, gi) => (
               <div key={g.label} className={cn('space-y-1.5', gi > 0 && 'mt-4 pt-4 border-t')}>
