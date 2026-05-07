@@ -23,6 +23,9 @@ export interface Workspace {
   credit_mode: 'personal' | 'shared';
   shared_credits: number;
   legacy_team_id: string | null;
+  owner_plan_id?: string | null;
+  owner_plan_name?: string | null;
+  owner_subscription_status?: string | null;
 }
 
 export interface WorkspaceMembership {
