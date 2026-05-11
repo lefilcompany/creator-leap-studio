@@ -853,7 +853,15 @@ export default function ActionView() {
                             <div key={s.index} className="space-y-1.5">
                               <div
                                 className="relative group rounded-lg overflow-hidden border border-border/10 shadow-sm cursor-pointer aspect-[4/5] bg-muted"
-                                onClick={() => s.image_url && setLightboxImage(s.image_url)}
+                                onClick={() => {
+                                  if (!s.image_url) return;
+                                  const gallery = ((action.result as any).slides as Array<{ index: number; image_url: string | null }>)
+                                    .slice()
+                                    .sort((a, b) => a.index - b.index)
+                                    .map((x) => x.image_url)
+                                    .filter((u): u is string => !!u);
+                                  openLightbox(s.image_url, gallery);
+                                }}
                               >
                                 {s.image_url ? (
                                   <>
