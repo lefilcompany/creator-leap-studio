@@ -64,9 +64,6 @@ export const DashboardCalendars = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-foreground" asChild>
-            <Link to="/plan">Ver todos</Link>
-          </Button>
           <Button size="sm" className="h-8" asChild>
             <Link to="/novo-calendario">
               <Plus className="mr-1 h-3.5 w-3.5" /> Novo calendário
