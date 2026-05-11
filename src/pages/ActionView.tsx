@@ -66,6 +66,30 @@ const DetailField = ({ label, children }: { label: string; children: React.React
   </div>
 );
 
+// ── ExpandableText ───────────────────────────────────────────
+const ExpandableText = ({ text, charLimit = 220 }: { text: string; charLimit?: number }) => {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text.length > charLimit;
+  if (!isLong) {
+    return <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{text}</p>;
+  }
+  return (
+    <div>
+      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+        {expanded ? text : `${text.slice(0, charLimit).trimEnd()}…`}
+      </p>
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="mt-1.5 text-xs font-medium text-primary hover:underline"
+      >
+        {expanded ? 'Ver menos' : 'Ver mais'}
+      </button>
+    </div>
+  );
+};
+
+
 // ── PlatformIcon ─────────────────────────────────────────────
 function PlatformIcon({ platform, className = "h-4 w-4" }: { platform: string; className?: string }) {
   switch (platform) {
@@ -817,7 +841,7 @@ export default function ActionView() {
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Image */}
                 {Array.isArray((action.result as any)?.slides) && (action.result as any).slides.length > 0 ? (
-                  <div className="lg:w-1/2">
+                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
                     <SectionCard
                       title={`Carrossel — ${(action.result as any).slides.length} slides`}
                       icon={<LayoutGrid className="h-4 w-4" />}
@@ -874,7 +898,7 @@ export default function ActionView() {
                     </SectionCard>
                   </div>
                 ) : action.result?.imageUrl && (
-                  <div className="lg:w-1/2">
+                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
                     <SectionCard title="Imagem Gerada" icon={<Image className="h-4 w-4" />} accentColor={accentColor}
                       headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                     >
@@ -897,13 +921,13 @@ export default function ActionView() {
                     <div className="space-y-5">
                       {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
                       {action.details?.platform && renderPlatformField(action.details.platform)}
-                      {action.details?.description && <DetailField label="Descrição"><p className="text-sm text-foreground leading-relaxed">{action.details.description}</p></DetailField>}
+                      {action.details?.description && <DetailField label="Descrição"><ExpandableText text={action.details.description} /></DetailField>}
                       {action.details?.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
                         <DetailField label="Tom de Voz">
                           <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
                         </DetailField>
                       )}
-                      {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                      {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
                       <Separator className="bg-border/10" />
                       <div className="grid grid-cols-2 gap-4">
                         <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
@@ -959,7 +983,7 @@ export default function ActionView() {
               <div className="flex flex-col lg:flex-row lg:items-stretch gap-6">
                 {/* Image */}
                 {action.result?.imageUrl && (
-                  <div className="lg:w-1/2">
+                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
                     <SectionCard title="Imagem Gerada" icon={<Image className="h-4 w-4" />} accentColor={accentColor}
                       headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                     >
@@ -1015,7 +1039,7 @@ export default function ActionView() {
                       <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
                     </DetailField>
                   )}
-                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
                   {action.details?.isVideoMode && (
                     <div className="grid grid-cols-2 gap-4">
                       <DetailField label="Modo de Geração"><Badge variant="secondary">Vídeo</Badge></DetailField>
@@ -1040,7 +1064,7 @@ export default function ActionView() {
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Video */}
               {action.result?.videoUrl && (
-                <div className="lg:w-1/2">
+                <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
                   <SectionCard title="Vídeo Gerado" icon={<Video className="h-4 w-4" />} accentColor={accentColor}
                     headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadVideo(action.result!.videoUrl!, `video-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                   >
@@ -1070,7 +1094,7 @@ export default function ActionView() {
                       </DetailField>
                     )}
                     {action.details?.aspectRatio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.aspectRatio}</p></DetailField>}
-                    {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                    {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
                     <Separator className="bg-border/10" />
                     <div className="grid grid-cols-2 gap-4">
                       <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
@@ -1090,7 +1114,7 @@ export default function ActionView() {
               {/* Row: Original image (if image review) + Details & Info */}
               <div className="flex flex-col lg:flex-row gap-6">
                 {action.result?.originalImage && (
-                  <div className="lg:w-1/2">
+                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
                     <SectionCard title="Imagem Original" icon={<Image className="h-4 w-4" />} accentColor={accentColor}>
                       <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm cursor-pointer" onClick={() => setLightboxImage(action.result!.originalImage!)}>
                         <img src={action.result.originalImage} alt="Imagem original" className="w-full h-auto" />
@@ -1175,7 +1199,7 @@ export default function ActionView() {
                     </DetailField>
                   )}
                   {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
-                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
                   <Separator className="bg-border/10" />
                   <div className="grid grid-cols-2 gap-4">
                     <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
