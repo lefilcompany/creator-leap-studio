@@ -405,6 +405,27 @@ export default function ActionView() {
   const [copying, setCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightboxGallery, setLightboxGallery] = useState<string[]>([]);
+  const openLightbox = (url: string, gallery?: string[]) => {
+    const list = gallery && gallery.length > 0 ? gallery.filter(Boolean) : [url];
+    setLightboxGallery(list);
+    setLightboxImage(url);
+  };
+  const lightboxIndex = lightboxImage ? Math.max(0, lightboxGallery.indexOf(lightboxImage)) : -1;
+  const goLightbox = (dir: -1 | 1) => {
+    if (lightboxGallery.length < 2 || lightboxIndex < 0) return;
+    const next = (lightboxIndex + dir + lightboxGallery.length) % lightboxGallery.length;
+    setLightboxImage(lightboxGallery[next]);
+  };
+  useEffect(() => {
+    if (!lightboxImage) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') goLightbox(-1);
+      else if (e.key === 'ArrowRight') goLightbox(1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxImage, lightboxGallery]);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const [showFullPlan, setShowFullPlan] = useState(false);
   const { data: actionCats = [] } = useActionCategories(actionId);
