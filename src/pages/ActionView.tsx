@@ -1282,7 +1282,7 @@ export default function ActionView() {
       </div>
 
       {/* ═══ Image Lightbox Dialog ═══ */}
-      <Dialog open={!!lightboxImage} onOpenChange={() => setLightboxImage(null)}>
+      <Dialog open={!!lightboxImage} onOpenChange={(o) => { if (!o) { setLightboxImage(null); setLightboxGallery([]); } }}>
         <DialogContent className="max-w-[90vw] max-h-[90vh] p-2 bg-black/95 border-none">
           <div className="relative flex items-center justify-center w-full h-full">
             {lightboxImage && (
@@ -1291,6 +1291,29 @@ export default function ActionView() {
                 alt="Visualização ampliada"
                 className="max-w-full max-h-[85vh] object-contain rounded-lg"
               />
+            )}
+            {lightboxGallery.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Imagem anterior"
+                  onClick={(e) => { e.stopPropagation(); goLightbox(-1); }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Próxima imagem"
+                  onClick={(e) => { e.stopPropagation(); goLightbox(1); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-black/60 text-white text-xs font-medium">
+                  {lightboxIndex + 1} / {lightboxGallery.length}
+                </div>
+              </>
             )}
             <div className="absolute bottom-4 right-4 flex gap-2">
               <Button
