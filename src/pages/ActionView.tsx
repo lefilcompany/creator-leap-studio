@@ -841,7 +841,7 @@ export default function ActionView() {
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Image */}
                 {Array.isArray((action.result as any)?.slides) && (action.result as any).slides.length > 0 ? (
-                  <div className="lg:w-1/2">
+                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
                     <SectionCard
                       title={`Carrossel — ${(action.result as any).slides.length} slides`}
                       icon={<LayoutGrid className="h-4 w-4" />}
@@ -898,7 +898,7 @@ export default function ActionView() {
                     </SectionCard>
                   </div>
                 ) : action.result?.imageUrl && (
-                  <div className="lg:w-1/2">
+                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
                     <SectionCard title="Imagem Gerada" icon={<Image className="h-4 w-4" />} accentColor={accentColor}
                       headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                     >
@@ -983,7 +983,7 @@ export default function ActionView() {
               <div className="flex flex-col lg:flex-row lg:items-stretch gap-6">
                 {/* Image */}
                 {action.result?.imageUrl && (
-                  <div className="lg:w-1/2">
+                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
                     <SectionCard title="Imagem Gerada" icon={<Image className="h-4 w-4" />} accentColor={accentColor}
                       headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                     >
@@ -1064,7 +1064,7 @@ export default function ActionView() {
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Video */}
               {action.result?.videoUrl && (
-                <div className="lg:w-1/2">
+                <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
                   <SectionCard title="Vídeo Gerado" icon={<Video className="h-4 w-4" />} accentColor={accentColor}
                     headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadVideo(action.result!.videoUrl!, `video-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                   >
@@ -1114,7 +1114,7 @@ export default function ActionView() {
               {/* Row: Original image (if image review) + Details & Info */}
               <div className="flex flex-col lg:flex-row gap-6">
                 {action.result?.originalImage && (
-                  <div className="lg:w-1/2">
+                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
                     <SectionCard title="Imagem Original" icon={<Image className="h-4 w-4" />} accentColor={accentColor}>
                       <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm cursor-pointer" onClick={() => setLightboxImage(action.result!.originalImage!)}>
                         <img src={action.result.originalImage} alt="Imagem original" className="w-full h-auto" />
