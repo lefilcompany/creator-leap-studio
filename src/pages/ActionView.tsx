@@ -921,13 +921,13 @@ export default function ActionView() {
                     <div className="space-y-5">
                       {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
                       {action.details?.platform && renderPlatformField(action.details.platform)}
-                      {action.details?.description && <DetailField label="Descrição"><p className="text-sm text-foreground leading-relaxed">{action.details.description}</p></DetailField>}
+                      {action.details?.description && <DetailField label="Descrição"><ExpandableText text={action.details.description} /></DetailField>}
                       {action.details?.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
                         <DetailField label="Tom de Voz">
                           <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
                         </DetailField>
                       )}
-                      {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                      {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
                       <Separator className="bg-border/10" />
                       <div className="grid grid-cols-2 gap-4">
                         <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
@@ -1039,7 +1039,7 @@ export default function ActionView() {
                       <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
                     </DetailField>
                   )}
-                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
                   {action.details?.isVideoMode && (
                     <div className="grid grid-cols-2 gap-4">
                       <DetailField label="Modo de Geração"><Badge variant="secondary">Vídeo</Badge></DetailField>
@@ -1094,7 +1094,7 @@ export default function ActionView() {
                       </DetailField>
                     )}
                     {action.details?.aspectRatio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.aspectRatio}</p></DetailField>}
-                    {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                    {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
                     <Separator className="bg-border/10" />
                     <div className="grid grid-cols-2 gap-4">
                       <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
@@ -1199,7 +1199,7 @@ export default function ActionView() {
                     </DetailField>
                   )}
                   {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
-                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
                   <Separator className="bg-border/10" />
                   <div className="grid grid-cols-2 gap-4">
                     <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
