@@ -742,14 +742,6 @@ export default function ActionView() {
               </p>
               {/* Status + Category badges */}
               <div className="flex flex-wrap items-center gap-2 mt-3">
-                {action.approved && (
-                  <Badge className={cn(
-                    'bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10',
-                    "cursor-default"
-                  )}>
-                    Aprovado
-                  </Badge>
-                )}
                 {(action.revisions ?? 0) > 0 && (
                   <Badge variant="outline">{action.revisions} {action.revisions === 1 ? 'revisão' : 'revisões'}</Badge>
                 )}
