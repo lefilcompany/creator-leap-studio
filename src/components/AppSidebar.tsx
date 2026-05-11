@@ -308,9 +308,7 @@ export function AppSidebar() {
     { id: "nav-history", href: "/history", icon: History, label: t.sidebar.history },
   ];
 
-  const postCategoryLinks = [
-    { id: "nav-team", href: "/team", icon: UsersRound, label: t.sidebar.team },
-  ];
+  const postCategoryLinks: Array<{ id: string; href: string; icon: React.ElementType; label: string }> = [];
 
   const actionButtons = [
     { id: "nav-plan-content", href: "/novo-calendario", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
