@@ -1319,6 +1319,43 @@ export default function ActionView() {
               <Button
                 variant="secondary"
                 size="sm"
+                onClick={async () => {
+                  if (!lightboxImage) return;
+                  try {
+                    const res = await fetch(lightboxImage, { mode: "cors" });
+                    const blob = await res.blob();
+                    if (navigator.clipboard && (window as any).ClipboardItem) {
+                      // Convert to PNG if needed (clipboard requires png)
+                      let toCopy = blob;
+                      if (!blob.type.includes("png")) {
+                        const bitmap = await createImageBitmap(blob);
+                        const canvas = document.createElement("canvas");
+                        canvas.width = bitmap.width;
+                        canvas.height = bitmap.height;
+                        const ctx = canvas.getContext("2d");
+                        ctx?.drawImage(bitmap, 0, 0);
+                        toCopy = await new Promise<Blob>((resolve, reject) =>
+                          canvas.toBlob((b) => (b ? resolve(b) : reject()), "image/png")!,
+                        );
+                      }
+                      await navigator.clipboard.write([
+                        new (window as any).ClipboardItem({ "image/png": toCopy }),
+                      ]);
+                      toast.success("Imagem copiada");
+                    } else {
+                      throw new Error("Clipboard API indisponível");
+                    }
+                  } catch (e: any) {
+                    toast.error(e?.message || "Falha ao copiar imagem");
+                  }
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copiar
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => lightboxImage && handleDownloadImage(lightboxImage, `imagem-${action.id}`)}
               >
                 <Download className="mr-2 h-4 w-4" />
