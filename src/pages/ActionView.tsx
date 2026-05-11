@@ -66,6 +66,30 @@ const DetailField = ({ label, children }: { label: string; children: React.React
   </div>
 );
 
+// ── ExpandableText ───────────────────────────────────────────
+const ExpandableText = ({ text, charLimit = 220 }: { text: string; charLimit?: number }) => {
+  const [expanded, setExpanded] = React.useState(false);
+  const isLong = text.length > charLimit;
+  if (!isLong) {
+    return <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{text}</p>;
+  }
+  return (
+    <div>
+      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+        {expanded ? text : `${text.slice(0, charLimit).trimEnd()}…`}
+      </p>
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="mt-1.5 text-xs font-medium text-primary hover:underline"
+      >
+        {expanded ? 'Ver menos' : 'Ver mais'}
+      </button>
+    </div>
+  );
+};
+
+
 // ── PlatformIcon ─────────────────────────────────────────────
 function PlatformIcon({ platform, className = "h-4 w-4" }: { platform: string; className?: string }) {
   switch (platform) {
