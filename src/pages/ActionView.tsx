@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput, Users, Globe, X, ZoomIn, FolderOpen, Lightbulb, Target, Hash } from 'lucide-react';
+import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput, Users, Globe, X, ZoomIn, FolderOpen, Lightbulb, Target, Hash, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ComplianceAlert, type ComplianceData } from '@/components/ComplianceAlert';
 import type { Action } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
@@ -405,6 +405,27 @@ export default function ActionView() {
   const [copying, setCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightboxGallery, setLightboxGallery] = useState<string[]>([]);
+  const openLightbox = (url: string, gallery?: string[]) => {
+    const list = gallery && gallery.length > 0 ? gallery.filter(Boolean) : [url];
+    setLightboxGallery(list);
+    setLightboxImage(url);
+  };
+  const lightboxIndex = lightboxImage ? Math.max(0, lightboxGallery.indexOf(lightboxImage)) : -1;
+  const goLightbox = (dir: -1 | 1) => {
+    if (lightboxGallery.length < 2 || lightboxIndex < 0) return;
+    const next = (lightboxIndex + dir + lightboxGallery.length) % lightboxGallery.length;
+    setLightboxImage(lightboxGallery[next]);
+  };
+  useEffect(() => {
+    if (!lightboxImage) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') goLightbox(-1);
+      else if (e.key === 'ArrowRight') goLightbox(1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxImage, lightboxGallery]);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const [showFullPlan, setShowFullPlan] = useState(false);
   const { data: actionCats = [] } = useActionCategories(actionId);
@@ -832,7 +853,15 @@ export default function ActionView() {
                             <div key={s.index} className="space-y-1.5">
                               <div
                                 className="relative group rounded-lg overflow-hidden border border-border/10 shadow-sm cursor-pointer aspect-[4/5] bg-muted"
-                                onClick={() => s.image_url && setLightboxImage(s.image_url)}
+                                onClick={() => {
+                                  if (!s.image_url) return;
+                                  const gallery = ((action.result as any).slides as Array<{ index: number; image_url: string | null }>)
+                                    .slice()
+                                    .sort((a, b) => a.index - b.index)
+                                    .map((x) => x.image_url)
+                                    .filter((u): u is string => !!u);
+                                  openLightbox(s.image_url, gallery);
+                                }}
                               >
                                 {s.image_url ? (
                                   <>
@@ -1253,7 +1282,7 @@ export default function ActionView() {
       </div>
 
       {/* ═══ Image Lightbox Dialog ═══ */}
-      <Dialog open={!!lightboxImage} onOpenChange={() => setLightboxImage(null)}>
+      <Dialog open={!!lightboxImage} onOpenChange={(o) => { if (!o) { setLightboxImage(null); setLightboxGallery([]); } }}>
         <DialogContent className="max-w-[90vw] max-h-[90vh] p-2 bg-black/95 border-none">
           <div className="relative flex items-center justify-center w-full h-full">
             {lightboxImage && (
@@ -1262,6 +1291,29 @@ export default function ActionView() {
                 alt="Visualização ampliada"
                 className="max-w-full max-h-[85vh] object-contain rounded-lg"
               />
+            )}
+            {lightboxGallery.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Imagem anterior"
+                  onClick={(e) => { e.stopPropagation(); goLightbox(-1); }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Próxima imagem"
+                  onClick={(e) => { e.stopPropagation(); goLightbox(1); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-black/60 text-white text-xs font-medium">
+                  {lightboxIndex + 1} / {lightboxGallery.length}
+                </div>
+              </>
             )}
             <div className="absolute bottom-4 right-4 flex gap-2">
               <Button
