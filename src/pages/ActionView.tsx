@@ -68,7 +68,7 @@ const DetailField = ({ label, children }: { label: string; children: React.React
 
 // ── ExpandableText ───────────────────────────────────────────
 const ExpandableText = ({ text, charLimit = 220 }: { text: string; charLimit?: number }) => {
-  const [expanded, setExpanded] = React.useState(false);
+  const [expanded, setExpanded] = useState(false);
   const isLong = text.length > charLimit;
   if (!isLong) {
     return <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{text}</p>;
