@@ -217,14 +217,16 @@ const AdminUsers = () => {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: "Ativos 7d · Externos", value: activeStats.external7, accent: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
-          { label: "Ativos 7d · Internos", value: activeStats.internal7, accent: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
-          { label: "Ativos 30d · Externos", value: activeStats.external30, accent: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
-          { label: "Ativos 30d · Internos", value: activeStats.internal30, accent: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+          { label: "Logados 7d · Externos", value: loginStats?.external_7d, accent: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
+          { label: "Logados 7d · Internos", value: loginStats?.internal_7d, accent: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+          { label: "Logados 30d · Externos", value: loginStats?.external_30d, accent: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
+          { label: "Logados 30d · Internos", value: loginStats?.internal_30d, accent: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
         ].map((s) => (
           <div key={s.label} className={`rounded-2xl border p-4 ${s.bg}`}>
             <p className="text-xs text-muted-foreground mb-1">{s.label}</p>
-            <p className={`text-2xl font-bold ${s.accent}`}>{s.value}</p>
+            <p className={`text-2xl font-bold ${s.accent}`}>
+              {loginStats === null ? "—" : s.value ?? 0}
+            </p>
           </div>
         ))}
       </div>
