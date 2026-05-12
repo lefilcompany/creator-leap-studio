@@ -180,6 +180,28 @@ const AdminUsers = () => {
 
   const totalPages = Math.ceil(filteredUsers.length / pageSize);
 
+  const activeStats = useMemo(() => {
+    const now = Date.now();
+    const d7 = now - 7 * 24 * 60 * 60 * 1000;
+    const d30 = now - 30 * 24 * 60 * 60 * 1000;
+    const stats = {
+      internal7: 0, external7: 0,
+      internal30: 0, external30: 0,
+    };
+    users.forEach((u) => {
+      if (!u.last_online_at) return;
+      const t = new Date(u.last_online_at).getTime();
+      const isInternal = (u.email || "").toLowerCase().endsWith("@lefil.com.br");
+      if (t >= d30) {
+        if (isInternal) stats.internal30++; else stats.external30++;
+      }
+      if (t >= d7) {
+        if (isInternal) stats.internal7++; else stats.external7++;
+      }
+    });
+    return stats;
+  }, [users]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
