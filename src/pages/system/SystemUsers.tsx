@@ -180,6 +180,28 @@ const AdminUsers = () => {
 
   const totalPages = Math.ceil(filteredUsers.length / pageSize);
 
+  const activeStats = useMemo(() => {
+    const now = Date.now();
+    const d7 = now - 7 * 24 * 60 * 60 * 1000;
+    const d30 = now - 30 * 24 * 60 * 60 * 1000;
+    const stats = {
+      internal7: 0, external7: 0,
+      internal30: 0, external30: 0,
+    };
+    users.forEach((u) => {
+      if (!u.last_online_at) return;
+      const t = new Date(u.last_online_at).getTime();
+      const isInternal = (u.email || "").toLowerCase().endsWith("@lefil.com.br");
+      if (t >= d30) {
+        if (isInternal) stats.internal30++; else stats.external30++;
+      }
+      if (t >= d7) {
+        if (isInternal) stats.internal7++; else stats.external7++;
+      }
+    });
+    return stats;
+  }, [users]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -198,6 +220,20 @@ const AdminUsers = () => {
         <p className="text-muted-foreground">
           Gerencie todos os usuários da plataforma — créditos individuais
         </p>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { label: "Ativos 7d · Externos", value: activeStats.external7, accent: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
+          { label: "Ativos 7d · Internos", value: activeStats.internal7, accent: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+          { label: "Ativos 30d · Externos", value: activeStats.external30, accent: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
+          { label: "Ativos 30d · Internos", value: activeStats.internal30, accent: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+        ].map((s) => (
+          <div key={s.label} className={`rounded-2xl border p-4 ${s.bg}`}>
+            <p className="text-xs text-muted-foreground mb-1">{s.label}</p>
+            <p className={`text-2xl font-bold ${s.accent}`}>{s.value}</p>
+          </div>
+        ))}
       </div>
 
       <Card className="border-0 shadow-xl bg-gradient-to-br from-background to-muted/10">
