@@ -47,6 +47,21 @@ const AdminUsers = () => {
   
   const [pageSize, setPageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loginStats, setLoginStats] = useState<{
+    internal_7d: number; external_7d: number;
+    internal_30d: number; external_30d: number;
+    internal_total: number; external_total: number;
+  } | null>(null);
+
+  useEffect(() => {
+    supabase.functions.invoke("admin-login-stats").then(({ data, error }) => {
+      if (error) {
+        console.error("admin-login-stats", error);
+        return;
+      }
+      setLoginStats(data);
+    });
+  }, []);
 
   useEffect(() => {
     fetchData();
