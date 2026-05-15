@@ -626,8 +626,10 @@ const Onboarding = () => {
                         className="h-10 w-10 rounded-full hover:bg-primary hover:text-primary-foreground transition-all"
                         onClick={decrementCredits}
                         disabled={customCredits <= MIN_CREDITS}
+                        aria-label="Diminuir quantidade de créditos"
                       >
                         <Minus className="h-4 w-4" />
+                        <span className="sr-only">Diminuir créditos</span>
                       </Button>
                       
                       <div className="text-center min-w-[80px]">
@@ -648,8 +650,10 @@ const Onboarding = () => {
                         className="h-10 w-10 rounded-full hover:bg-primary hover:text-primary-foreground transition-all"
                         onClick={incrementCredits}
                         disabled={customCredits >= MAX_CREDITS}
+                        aria-label="Aumentar quantidade de créditos"
                       >
                         <Plus className="h-4 w-4" />
+                        <span className="sr-only">Aumentar créditos</span>
                       </Button>
                     </div>
 
@@ -694,6 +698,7 @@ const Onboarding = () => {
       exit={{ opacity: 0, x: -50 }}
       className="w-full max-w-lg mx-auto"
     >
+      <h1 className="sr-only">{authMode === 'register' ? 'Criar conta — Onboarding Creator' : 'Entrar — Onboarding Creator'}</h1>
       <div className="rounded-2xl bg-card shadow-lg border border-border/50 overflow-hidden">
         {/* Package/Custom summary header */}
         {(selectedPackage || isCustomSelected) && (
@@ -1019,6 +1024,7 @@ const Onboarding = () => {
       animate={{ opacity: 1 }}
       className="text-center space-y-6"
     >
+      <h1 className="sr-only">Pagamento — Onboarding Creator</h1>
       <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>

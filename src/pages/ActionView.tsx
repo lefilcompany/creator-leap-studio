@@ -1231,7 +1231,7 @@ export default function ActionView() {
                       {action.result?.plan && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
+                            <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Baixar planejamento"><Download className="h-4 w-4" /><span className="sr-only">Baixar planejamento</span></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-card z-50">
                             <DropdownMenuItem onClick={() => handleDownloadDocx(action.result!.plan!)} className="cursor-pointer"><FileText className="mr-2 h-4 w-4" />Download DOCX</DropdownMenuItem>

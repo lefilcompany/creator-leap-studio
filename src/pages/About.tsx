@@ -50,10 +50,10 @@ export default function About() {
         {/* Missão */}
         <Card className="mb-8 border-2 border-primary/20 shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-2xl">
+            <h2 className="flex items-center gap-3 text-2xl font-semibold leading-none tracking-tight">
               <Target className="h-8 w-8 text-primary" />
               Nossa Missão
-            </CardTitle>
+            </h2>
           </CardHeader>
           <CardContent>
             <p className="text-lg text-muted-foreground leading-relaxed">
@@ -130,7 +130,7 @@ export default function About() {
         {/* O que fazemos */}
         <Card className="mb-8 border-2 border-secondary/20 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-2xl">O que fazemos</CardTitle>
+            <h2 className="text-2xl font-semibold leading-none tracking-tight">O que fazemos</h2>
             <CardDescription className="text-lg">
               Transformamos ideias em conteúdo de impacto
             </CardDescription>
