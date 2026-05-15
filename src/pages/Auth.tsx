@@ -873,6 +873,9 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
             className="absolute bottom-[8%] left-[5%] w-40 h-40 sm:w-52 sm:h-52 object-contain opacity-[0.09] dark:opacity-[0.04]"
             style={{ filter: "blur(4px)" }}
             animate={{
