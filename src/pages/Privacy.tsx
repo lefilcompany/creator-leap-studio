@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import privacyBanner from "@/assets/privacy-banner.jpg";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { SeoHead } from "@/components/SeoHead";
 
 const privacySections = [
   {
@@ -221,6 +222,11 @@ const Privacy = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SeoHead
+        title="Política de Privacidade | Creator AI"
+        description="Saiba como o Creator AI coleta, usa, armazena e protege seus dados pessoais conforme a LGPD, incluindo o uso de inteligência artificial."
+        path="/privacy"
+      />
       {/* Banner */}
       <div className="relative h-36 lg:h-52">
         <img
@@ -267,9 +273,9 @@ const Privacy = () => {
                     <div className="flex-shrink-0 w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
                       <Icon className="w-5 h-5 text-primary" />
                     </div>
-                    <span className="text-base font-semibold text-foreground">
+                    <h2 className="text-base font-semibold text-foreground m-0">
                       {section.title}
-                    </span>
+                    </h2>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 lg:px-5 pb-5 pt-0 ml-[52px]">
