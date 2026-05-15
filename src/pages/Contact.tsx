@@ -161,6 +161,6 @@ export default function Contact() {
           <p>© 2025 Creator. Todos os direitos reservados.</p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
