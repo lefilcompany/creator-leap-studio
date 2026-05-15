@@ -7,6 +7,7 @@ import { CreatorLogo } from "@/components/CreatorLogo";
 import { Lock, Eye, EyeOff, Sun, Moon, Loader2, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SeoHead } from "@/components/SeoHead";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -169,13 +170,20 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+    <main className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+      <SeoHead
+        title="Redefinir senha | Creator AI"
+        description="Crie uma nova senha segura para a sua conta Creator AI."
+        path="/reset-password"
+      />
+      <h1 className="sr-only">Redefinir senha — Creator AI</h1>
       {/* Theme toggle button */}
       <Button
         variant="ghost"
         size="icon"
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full"
+        aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
       >
         <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
         <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -224,8 +232,10 @@ const ResetPassword = () => {
                         size="icon" 
                         className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground hover:bg-accent/60" 
                         onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                       >
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        <span className="sr-only">{showPassword ? "Ocultar senha" : "Mostrar senha"}</span>
                       </Button>
                     </div>
                     {strength && (
@@ -253,8 +263,10 @@ const ResetPassword = () => {
                         size="icon" 
                         className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground hover:bg-accent/60" 
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        aria-label={showConfirmPassword ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
                       >
                         {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        <span className="sr-only">{showConfirmPassword ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}</span>
                       </Button>
                     </div>
                   </div>
