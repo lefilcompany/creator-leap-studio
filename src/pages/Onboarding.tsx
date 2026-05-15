@@ -626,8 +626,10 @@ const Onboarding = () => {
                         className="h-10 w-10 rounded-full hover:bg-primary hover:text-primary-foreground transition-all"
                         onClick={decrementCredits}
                         disabled={customCredits <= MIN_CREDITS}
+                        aria-label="Diminuir quantidade de créditos"
                       >
                         <Minus className="h-4 w-4" />
+                        <span className="sr-only">Diminuir créditos</span>
                       </Button>
                       
                       <div className="text-center min-w-[80px]">
@@ -648,8 +650,10 @@ const Onboarding = () => {
                         className="h-10 w-10 rounded-full hover:bg-primary hover:text-primary-foreground transition-all"
                         onClick={incrementCredits}
                         disabled={customCredits >= MAX_CREDITS}
+                        aria-label="Aumentar quantidade de créditos"
                       >
                         <Plus className="h-4 w-4" />
+                        <span className="sr-only">Aumentar créditos</span>
                       </Button>
                     </div>
 

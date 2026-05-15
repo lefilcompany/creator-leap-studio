@@ -57,6 +57,7 @@ export const DashboardHeader = ({
             {formatToday()}
           </p>
           <h1 className="text-2xl sm:text-3xl lg:text-[2rem] font-bold tracking-tight text-foreground leading-tight">
+            <span className="sr-only">Visão Geral — </span>
             {greeting}, <span className="text-primary">{firstName}</span>
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl">
