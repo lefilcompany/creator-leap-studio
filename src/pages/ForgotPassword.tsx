@@ -7,6 +7,7 @@ import { CreatorLogo } from "@/components/CreatorLogo";
 import { Mail, ArrowLeft, Sun, Moon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SeoHead } from "@/components/SeoHead";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -56,13 +57,20 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+    <main className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+      <SeoHead
+        title="Recuperar senha | Creator AI"
+        description="Recupere o acesso à sua conta Creator AI. Enviamos um link de redefinição de senha para o email cadastrado."
+        path="/forgot-password"
+      />
+      <h1 className="sr-only">Recuperar senha — Creator AI</h1>
       {/* Theme toggle button */}
       <Button
         variant="ghost"
         size="icon"
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full"
+        aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
       >
         <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
         <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
