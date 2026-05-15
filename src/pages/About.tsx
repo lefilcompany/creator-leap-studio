@@ -2,10 +2,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, Heart, Users, Lightbulb, Target, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logoCreatorPreta from '@/assets/logoCreatorPreta.png';
+import { SeoHead } from '@/components/SeoHead';
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
+    <main className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
+      <SeoHead
+        title="Sobre o Creator AI | Plataforma de IA para Conteúdo"
+        description="Conheça a missão e os valores do Creator AI: democratizar a criação de conteúdo de marca com inteligência artificial."
+        path="/about"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'Creator AI',
+          url: 'https://pla.creator.lefil.com.br',
+          logo: 'https://pla.creator.lefil.com.br/favicon.ico',
+          description: 'Plataforma de criação de conteúdo com inteligência artificial para marcas e empresas.',
+        }}
+      />
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
