@@ -29,6 +29,7 @@ import { getEmailRedirectUrl } from "@/lib/auth-urls";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 
 import decorativeElement from "@/assets/decorative-element.png";
+import { SeoHead } from "@/components/SeoHead";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -430,8 +431,10 @@ const Auth = () => {
             size="icon"
             className="absolute top-1/2 -translate-y-1/2 right-0.5 h-9 w-9 text-muted-foreground hover:bg-accent/60"
             onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
           >
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            <span className="sr-only">{showPassword ? "Ocultar senha" : "Mostrar senha"}</span>
           </Button>
         </div>
       </div>
@@ -531,8 +534,10 @@ const Auth = () => {
               size="icon"
               className="absolute right-0.5 top-1/2 transform -translate-y-1/2 h-8 w-8"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
             >
               {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+              <span className="sr-only">{showPassword ? "Ocultar senha" : "Mostrar senha"}</span>
             </Button>
           </div>
 
@@ -553,8 +558,10 @@ const Auth = () => {
               size="icon"
               className="absolute right-0.5 top-1/2 transform -translate-y-1/2 h-8 w-8"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label={showConfirmPassword ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
             >
               {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+              <span className="sr-only">{showConfirmPassword ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}</span>
             </Button>
           </div>
         </div>
@@ -736,6 +743,16 @@ const Auth = () => {
 
   return (
     <>
+      <SeoHead
+        title={isLoginMode ? "Entrar | Creator AI" : "Criar conta | Creator AI"}
+        description={
+          isLoginMode
+            ? "Acesse sua conta no Creator AI e continue criando conteúdo de marca com inteligência artificial."
+            : "Crie sua conta no Creator AI e comece a planejar e produzir conteúdo de marca com inteligência artificial."
+        }
+        path={isLoginMode ? "/login" : "/cadastro"}
+      />
+      <h1 className="sr-only">Creator AI — Inteligência Artificial para Criação de Conteúdo</h1>
       {/* Registration loading overlay */}
       <AnimatePresence>
         {registrationStep && (
@@ -766,7 +783,7 @@ const Auth = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto p-4 sm:p-6"
+      <main className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto p-4 sm:p-6"
         style={{
           background: 'linear-gradient(135deg, hsl(330 70% 92%) 0%, hsl(310 50% 93%) 20%, hsl(280 55% 94%) 40%, hsl(330 60% 95%) 60%, hsl(200 60% 93%) 80%, hsl(270 50% 92%) 100%)',
         }}
@@ -870,8 +887,10 @@ const Auth = () => {
           size="icon"
           className="absolute top-4 right-4 z-50 rounded-full bg-card/40 backdrop-blur-sm border-0 hover:bg-primary/10 hover:text-primary transition-colors"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
         >
           {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          <span className="sr-only">Alternar tema</span>
         </Button>
 
         {/* Container centralizado */}
@@ -1003,7 +1022,7 @@ const Auth = () => {
             </a>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Modal de Política de Privacidade */}
       <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>

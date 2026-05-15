@@ -3,6 +3,7 @@ import { Mail, Phone, MessageSquare, Clock } from 'lucide-react';
 import { useEffect } from 'react';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import profileBanner from '@/assets/profile-banner.jpg';
+import { SeoHead } from '@/components/SeoHead';
 
 export default function Contact() {
   useEffect(() => {
@@ -19,7 +20,27 @@ export default function Contact() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background">
+      <SeoHead
+        title="Contato | Creator AI"
+        description="Fale com a equipe do Creator AI por email ou WhatsApp. Atendimento de segunda a sexta, das 8h às 18h."
+        path="/contact"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'Creator AI',
+          url: 'https://pla.creator.lefil.com.br',
+          email: 'suporte.creator@lefil.com.br',
+          contactPoint: [{
+            '@type': 'ContactPoint',
+            telephone: '+55-81-99660-0072',
+            contactType: 'customer support',
+            email: 'suporte.creator@lefil.com.br',
+            areaServed: 'BR',
+            availableLanguage: ['Portuguese'],
+          }],
+        }}
+      />
       {/* Banner */}
       <div className="relative h-36 lg:h-52">
         <img
@@ -140,6 +161,6 @@ export default function Contact() {
           <p>© 2025 Creator. Todos os direitos reservados.</p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
