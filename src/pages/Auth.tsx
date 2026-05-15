@@ -743,6 +743,16 @@ const Auth = () => {
 
   return (
     <>
+      <SeoHead
+        title={isLoginMode ? "Entrar | Creator AI" : "Criar conta | Creator AI"}
+        description={
+          isLoginMode
+            ? "Acesse sua conta no Creator AI e continue criando conteúdo de marca com inteligência artificial."
+            : "Crie sua conta no Creator AI e comece a planejar e produzir conteúdo de marca com inteligência artificial."
+        }
+        path={isLoginMode ? "/login" : "/cadastro"}
+      />
+      <h1 className="sr-only">Creator AI — Inteligência Artificial para Criação de Conteúdo</h1>
       {/* Registration loading overlay */}
       <AnimatePresence>
         {registrationStep && (
