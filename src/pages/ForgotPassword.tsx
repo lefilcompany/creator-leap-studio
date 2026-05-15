@@ -170,7 +170,7 @@ const ForgotPassword = () => {
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Voltar ao login
                 </Button>
-              </div>
+    </main>
             )}
           </div>
         </div>
