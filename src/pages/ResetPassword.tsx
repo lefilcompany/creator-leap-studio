@@ -310,8 +310,4 @@ const ResetPassword = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
-};
-
-export default ResetPassword;
+    </main>
