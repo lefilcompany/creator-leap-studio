@@ -783,7 +783,7 @@ const Auth = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto p-4 sm:p-6"
+      <main className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto p-4 sm:p-6"
         style={{
           background: 'linear-gradient(135deg, hsl(330 70% 92%) 0%, hsl(310 50% 93%) 20%, hsl(280 55% 94%) 40%, hsl(330 60% 95%) 60%, hsl(200 60% 93%) 80%, hsl(270 50% 92%) 100%)',
         }}
@@ -1022,7 +1022,7 @@ const Auth = () => {
             </a>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Modal de Política de Privacidade */}
       <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
