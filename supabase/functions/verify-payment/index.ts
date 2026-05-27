@@ -18,6 +18,10 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const authResult = await requireAuth(req, corsHeaders);
+  if (authResult instanceof Response) return authResult;
+  const callerId = authResult.userId;
+
   try {
     logStep("Function started");
 
