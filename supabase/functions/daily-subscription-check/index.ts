@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@13.11.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { requireSystemAdmin } from '../_shared/auth.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +17,14 @@ const logStep = (step: string, details?: any) => {
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Allow either system-admin caller OR a cron call with shared secret
+  const cronSecret = Deno.env.get('CRON_SECRET');
+  const providedSecret = req.headers.get('x-cron-secret');
+  if (!(cronSecret && providedSecret && providedSecret === cronSecret)) {
+    const authResult = await requireSystemAdmin(req, corsHeaders);
+    if (authResult instanceof Response) return authResult;
   }
 
   try {

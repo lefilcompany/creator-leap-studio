@@ -39,6 +39,9 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const authResult = await requireAuth(req, corsHeaders);
+  if (authResult instanceof Response) return authResult;
+
   try {
     const rdApiKey = Deno.env.get('RD_STATION_API_KEY');
     

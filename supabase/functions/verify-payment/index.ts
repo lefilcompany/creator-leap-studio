@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@13.11.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { requireAuth } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +17,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const authResult = await requireAuth(req, corsHeaders);
+  if (authResult instanceof Response) return authResult;
+  const callerId = authResult.userId;
 
   try {
     logStep("Function started");
@@ -73,6 +78,12 @@ serve(async (req) => {
     const { user_id, purchase_type, plan_id, package_id, credits: customCredits, team_id } = session.metadata || {};
     if (!user_id || !purchase_type) {
       throw new Error("Invalid session metadata");
+    }
+    if (user_id !== callerId) {
+      return new Response(JSON.stringify({ error: 'Forbidden: session does not belong to caller' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
     logStep("Metadata extracted", { user_id, purchase_type, plan_id, package_id, customCredits, team_id });
     
