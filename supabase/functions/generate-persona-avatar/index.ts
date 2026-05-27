@@ -42,6 +42,10 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const authResult = await requireSystemAdmin(req, corsHeaders);
+  if (authResult instanceof Response) return authResult;
+
+
   try {
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
