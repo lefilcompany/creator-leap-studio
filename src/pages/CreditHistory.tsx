@@ -21,7 +21,7 @@ export default function CreditHistory() {
       IMAGE_REVIEW: "Revisão de Imagem",
       CAPTION_REVIEW: "Revisão de Legenda",
       TEXT_REVIEW: "Revisão de Texto",
-      CONTENT_PLAN: "Novo calendário",
+      CONTENT_PLAN: "Calendário de Conteúdo",
       VIDEO_GENERATION: "Geração de Vídeo",
       CREATE_BRAND: "Criar Marca",
       CREATE_PERSONA: "Criar Persona",

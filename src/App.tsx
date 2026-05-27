@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
-import { WorkspaceProvider } from "./contexts/WorkspaceContext";
 import { OnboardingProvider } from "./components/onboarding/OnboardingProvider";
 import { EventTrackingProvider } from "./components/EventTrackingProvider";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
@@ -45,7 +44,6 @@ const CreateImage = lazy(() => import("./pages/CreateImage"));
 const CreateVideo = lazy(() => import("./pages/CreateVideo"));
 const AnimateImage = lazy(() => import("./pages/AnimateImage"));
 const ContentCreationSelector = lazy(() => import("./pages/ContentCreationSelector"));
-const CreateContentWorkflow = lazy(() => import("./pages/CreateContentWorkflow"));
 const MarketplaceContent = lazy(() => import("./pages/MarketplaceContent"));
 const ContentResult = lazy(() => import("./pages/ContentResult"));
 const VideoResult = lazy(() => import("./pages/VideoResult"));
@@ -55,7 +53,6 @@ const PlanContent = lazy(() => import("./pages/PlanContent"));
 const PlanResult = lazy(() => import("./pages/PlanResult"));
 const QuickContent = lazy(() => import("./pages/QuickContent"));
 const QuickContentResult = lazy(() => import("./pages/QuickContentResult"));
-const TextEditor = lazy(() => import("./pages/TextEditor"));
 const Credits = lazy(() => import("./pages/Credits"));
 const Team = lazy(() => import("./pages/Team"));
 const TeamDashboard = lazy(() => import("./pages/TeamDashboard"));
@@ -68,22 +65,16 @@ const ActionView = lazy(() => import("./pages/ActionView"));
 const Categories = lazy(() => import("./pages/Categories"));
 const CategoryView = lazy(() => import("./pages/CategoryView"));
 const Trash = lazy(() => import("./pages/Trash"));
-const CalendarNew = lazy(() => import("./pages/CalendarNew"));
-const CalendarView = lazy(() => import("./pages/CalendarView"));
-const WorkspacePage = lazy(() => import("./pages/Workspace"));
-const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 
 // Lazy loaded pages - System
 const System = lazy(() => import("./pages/System"));
 const SystemTeams = lazy(() => import("./pages/system/SystemTeams"));
-const SystemWorkspaces = lazy(() => import("./pages/system/SystemWorkspaces"));
 const SystemUsers = lazy(() => import("./pages/system/SystemUsers"));
 const SystemLogs = lazy(() => import("./pages/system/SystemLogs"));
 const SystemPlans = lazy(() => import("./pages/system/SystemPlans"));
 const SystemSettings = lazy(() => import("./pages/system/SystemSettings"));
 const SystemCoupons = lazy(() => import("./pages/system/SystemCoupons"));
 const SystemReports = lazy(() => import("./pages/system/SystemReports"));
-const SystemAgents = lazy(() => import("./pages/system/SystemAgents"));
 
 // Optimized QueryClient configuration
 const queryClient = new QueryClient({
@@ -120,7 +111,6 @@ const App = () => (
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <LanguageProvider>
           <AuthProvider>
-            <WorkspaceProvider>
             <OnboardingProvider>
               <TooltipProvider>
                 <Toaster />
@@ -144,7 +134,6 @@ const App = () => (
                       <Route path="/onboarding/canceled" element={<SuspenseRoute><OnboardingCanceled /></SuspenseRoute>} />
                       <Route path="/payment-success" element={<SuspenseRoute><PaymentSuccess /></SuspenseRoute>} />
                       <Route path="/contact" element={<SuspenseRoute><Contact /></SuspenseRoute>} />
-                      <Route path="/invite/:token" element={<SuspenseRoute><AcceptInvite /></SuspenseRoute>} />
                       
                       {/* Dashboard routes with sidebar layout */}
                       <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
@@ -158,7 +147,6 @@ const App = () => (
                         <Route path="personas/:personaId" element={<SuspenseRoute><PersonaView /></SuspenseRoute>} />
                         <Route path="history" element={<SuspenseRoute><History /></SuspenseRoute>} />
                         <Route path="create" element={<SuspenseRoute><ContentCreationSelector /></SuspenseRoute>} />
-                        <Route path="create/workflow" element={<SuspenseRoute><CreateContentWorkflow /></SuspenseRoute>} />
                         <Route path="create/quick" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
                         <Route path="create/image" element={<SuspenseRoute><CreateImage /></SuspenseRoute>} />
                         <Route path="create/video" element={<SuspenseRoute><CreateVideo /></SuspenseRoute>} />
@@ -172,10 +160,8 @@ const App = () => (
                         <Route path="plan-result" element={<SuspenseRoute><PlanResult /></SuspenseRoute>} />
                         <Route path="quick-content" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
                         <Route path="quick-content-result" element={<SuspenseRoute><QuickContentResult /></SuspenseRoute>} />
-                        <Route path="text-editor" element={<SuspenseRoute><TextEditor /></SuspenseRoute>} />
                         <Route path="credits" element={<SuspenseRoute><Credits /></SuspenseRoute>} />
                         <Route path="team" element={<SuspenseRoute><Team /></SuspenseRoute>} />
-                        <Route path="workspace" element={<SuspenseRoute><WorkspacePage /></SuspenseRoute>} />
                         <Route path="team-dashboard" element={<SuspenseRoute><TeamDashboard /></SuspenseRoute>} />
                         <Route path="profile" element={<SuspenseRoute><Profile /></SuspenseRoute>} />
                         <Route path="profile/:userId" element={<SuspenseRoute><PublicProfile /></SuspenseRoute>} />
@@ -185,8 +171,6 @@ const App = () => (
                         <Route path="categories" element={<SuspenseRoute><Categories /></SuspenseRoute>} />
                         <Route path="categories/:categoryId" element={<SuspenseRoute><CategoryView /></SuspenseRoute>} />
                         <Route path="trash" element={<SuspenseRoute><Trash /></SuspenseRoute>} />
-                        <Route path="novo-calendario" element={<SuspenseRoute><CalendarNew /></SuspenseRoute>} />
-                        <Route path="calendar/:calendarId" element={<SuspenseRoute><CalendarView /></SuspenseRoute>} />
                       </Route>
                       
                       {/* System admin routes with separate layout */}
@@ -195,11 +179,9 @@ const App = () => (
                         <Route path="users" element={<SuspenseRoute><SystemUsers /></SuspenseRoute>} />
                         <Route path="plans" element={<SuspenseRoute><SystemPlans /></SuspenseRoute>} />
                         <Route path="teams" element={<SuspenseRoute><SystemTeams /></SuspenseRoute>} />
-                        <Route path="workspaces" element={<SuspenseRoute><SystemWorkspaces /></SuspenseRoute>} />
                         <Route path="logs" element={<SuspenseRoute><SystemLogs /></SuspenseRoute>} />
                         <Route path="coupons" element={<SuspenseRoute><SystemCoupons /></SuspenseRoute>} />
                         <Route path="reports" element={<SuspenseRoute><SystemReports /></SuspenseRoute>} />
-                        <Route path="agents" element={<SuspenseRoute><SystemAgents /></SuspenseRoute>} />
                         <Route path="settings" element={<SuspenseRoute><SystemSettings /></SuspenseRoute>} />
                       </Route>
                       
@@ -211,7 +193,6 @@ const App = () => (
                 </BrowserRouter>
               </TooltipProvider>
             </OnboardingProvider>
-            </WorkspaceProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>

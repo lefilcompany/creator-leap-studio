@@ -19,14 +19,11 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { personasSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import personasBanner from '@/assets/personas-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
-import { useWorkspace } from '@/contexts/WorkspaceContext';
 
 type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function PersonasPage() {
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
-  const { hasPermission, currentWorkspace } = useWorkspace();
-  const canCreate = hasPermission('personas.create');
   const location = useLocation();
   const navigate = useNavigate();
   const initialViewMode = (location.state as any)?.viewMode || 'grid';
@@ -48,13 +45,10 @@ export default function PersonasPage() {
       if (!user?.id) return;
       setIsLoadingBrands(true);
       try {
-        let q = supabase
+        const { data, error } = await supabase
           .from('brands')
           .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
           .order('name', { ascending: true });
-        if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
-        else q = q.eq('user_id', user.id);
-        const { data, error } = await q;
 
         if (error) throw error;
 
@@ -85,20 +79,17 @@ export default function PersonasPage() {
       }
     };
     loadBrands();
-  }, [user?.id, currentWorkspace?.id]);
+  }, [user?.id]);
 
   const loadPersonas = useCallback(async () => {
     if (!user?.id) return;
     setIsLoadingPersonas(true);
     try {
-      let q = supabase
+      const { data, error } = await supabase
         .from('personas')
         .select('id, brand_id, name, created_at')
         .order('created_at', { ascending: false })
         .limit(ITEMS_PER_PAGE);
-      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
-      else q = q.eq('user_id', user.id);
-      const { data, error } = await q;
 
       if (error) throw error;
 
@@ -116,7 +107,7 @@ export default function PersonasPage() {
     } finally {
       setIsLoadingPersonas(false);
     }
-  }, [user?.id, currentWorkspace?.id]);
+  }, [user?.id]);
 
   useEffect(() => {
     loadPersonas();
@@ -192,7 +183,6 @@ export default function PersonasPage() {
           .insert({
             team_id: user.teamId || null,
             user_id: user.id,
-            workspace_id: currentWorkspace?.id ?? null,
             brand_id: formData.brandId,
             name: formData.name,
             age: formData.age,
@@ -267,7 +257,7 @@ export default function PersonasPage() {
     }
   }, [personaToEdit, user, team, refreshTeamData, refreshUserCredits]);
 
-  const isButtonDisabled = !user || (user.credits || 0) < 1 || !canCreate;
+  const isButtonDisabled = !user || (user.credits || 0) < 1;
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
@@ -348,7 +338,7 @@ export default function PersonasPage() {
               onClick={() => handleOpenDialog()}
               disabled={isButtonDisabled}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
-              title={!user ? 'Carregando...' : (!canCreate ? 'Sem permissão para criar nesta área do workspace' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined))}
+              title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
             >
               <Plus className="mr-2 h-4 w-4" />
               Nova persona

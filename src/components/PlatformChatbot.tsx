@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from 'sonner';
 
 import { supabase } from "@/integrations/supabase/client";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 
 type Message = {
@@ -68,7 +68,6 @@ const MessageContent = ({ content, onUsePrompt }: { content: string; onUsePrompt
 
 export const PlatformChatbot = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -231,14 +230,6 @@ export const PlatformChatbot = () => {
     setInput("");
     setReplyingTo(null);
   };
-
-  // Ocultar chatbot no fluxo de criação/visualização de calendário
-  const hideChatbot =
-    location.pathname.startsWith("/calendar/") ||
-    location.pathname.startsWith("/calendars/new") ||
-    location.pathname === "/novo-calendario";
-
-  if (hideChatbot) return null;
 
   return (
     <>

@@ -2,24 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, Heart, Users, Lightbulb, Target, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logoCreatorPreta from '@/assets/logoCreatorPreta.png';
-import { SeoHead } from '@/components/SeoHead';
 
 export default function About() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
-      <SeoHead
-        title="Sobre o Creator AI | Plataforma de IA para Conteúdo"
-        description="Conheça a missão e os valores do Creator AI: democratizar a criação de conteúdo de marca com inteligência artificial."
-        path="/about"
-        jsonLd={{
-          '@context': 'https://schema.org',
-          '@type': 'Organization',
-          name: 'Creator AI',
-          url: 'https://pla.creator.lefil.com.br',
-          logo: 'https://pla.creator.lefil.com.br/favicon.ico',
-          description: 'Plataforma de criação de conteúdo com inteligência artificial para marcas e empresas.',
-        }}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -50,10 +36,10 @@ export default function About() {
         {/* Missão */}
         <Card className="mb-8 border-2 border-primary/20 shadow-lg">
           <CardHeader>
-            <h2 className="flex items-center gap-3 text-2xl font-semibold leading-none tracking-tight">
+            <CardTitle className="flex items-center gap-3 text-2xl">
               <Target className="h-8 w-8 text-primary" />
               Nossa Missão
-            </h2>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-lg text-muted-foreground leading-relaxed">
@@ -130,7 +116,7 @@ export default function About() {
         {/* O que fazemos */}
         <Card className="mb-8 border-2 border-secondary/20 shadow-lg">
           <CardHeader>
-            <h2 className="text-2xl font-semibold leading-none tracking-tight">O que fazemos</h2>
+            <CardTitle className="text-2xl">O que fazemos</CardTitle>
             <CardDescription className="text-lg">
               Transformamos ideias em conteúdo de impacto
             </CardDescription>
@@ -184,6 +170,6 @@ export default function About() {
           </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

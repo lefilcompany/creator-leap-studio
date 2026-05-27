@@ -15,7 +15,6 @@ import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
 import creatorSymbol from "@/assets/creator-symbol.png";
 import { SidebarTaskIndicator } from "@/components/SidebarTaskIndicator";
-import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 
 function NavItem({
   id,
@@ -145,7 +144,7 @@ function ActionButton({
       to={href}
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 px-[10px] py-[12px]",
+        "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 ease-in-out hover:scale-105",
         collapsed ? "justify-center" : "",
         isActive ? variantClasses[variant].active : variantClasses[variant].inactive
       )}
@@ -308,10 +307,13 @@ export function AppSidebar() {
     { id: "nav-history", href: "/history", icon: History, label: t.sidebar.history },
   ];
 
-  const postCategoryLinks: Array<{ id: string; href: string; icon: React.ElementType; label: string }> = [];
+  const postCategoryLinks = [
+    { id: "nav-team", href: "/team", icon: UsersRound, label: t.sidebar.team },
+  ];
 
   const actionButtons = [
-    { id: "nav-plan-content", href: "/novo-calendario", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
+    { id: "nav-plan-content", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
+    { id: "nav-create-content", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
   ];
 
   const handleMobileNavigate = () => {
@@ -328,31 +330,12 @@ export function AppSidebar() {
           id="sidebar-logo"
           className="flex justify-center cursor-pointer hover:opacity-80 transition-opacity duration-300"
         >
-          <img
-            src={creatorSymbol}
-            alt="Creator Symbol"
-            fetchPriority="high"
-            decoding="sync"
-            loading="eager"
-            className={cn("h-10 w-10 object-contain", collapsed ? "block" : "hidden")}
-          />
-          <img
-            src={logo}
-            alt="Creator Logo"
-            fetchPriority="high"
-            decoding="sync"
-            loading="eager"
-            className={cn("h-8 w-auto", collapsed ? "hidden" : "block")}
-          />
-          {/* Preload the inactive variant to keep both cached */}
-          <img src={creatorSymbol} alt="" aria-hidden className="hidden" />
-          <img src={logo} alt="" aria-hidden className="hidden" />
+          {collapsed ? (
+            <img src={creatorSymbol} alt="Creator Symbol" className="h-10 w-10 object-contain" />
+          ) : (
+            <img src={logo} alt="Creator Logo" className="h-8 w-auto" />
+          )}
         </NavLink>
-      </div>
-
-      {/* Workspace Switcher */}
-      <div className={cn("mb-3", collapsed ? "px-2" : "px-3")}>
-        <WorkspaceSwitcher collapsed={collapsed} />
       </div>
 
       {/* Navigation */}

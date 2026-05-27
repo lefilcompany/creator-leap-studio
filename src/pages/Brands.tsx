@@ -18,7 +18,6 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { brandsSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import brandsBanner from '@/assets/brands-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
-import { useWorkspace } from '@/contexts/WorkspaceContext';
 
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
@@ -27,8 +26,6 @@ export default function MarcasPage() {
   const location = useLocation();
   const initialViewMode = (location.state as any)?.viewMode as string | undefined;
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
-  const { hasPermission, currentWorkspace } = useWorkspace();
-  const canCreate = hasPermission('brands.create');
   const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [brandToEdit, setBrandToEdit] = useState<Brand | null>(null);
@@ -40,19 +37,13 @@ export default function MarcasPage() {
 
   // Fetch ALL brands (used for grid view and as base for list pagination)
   const { data: allBrands = [], isLoading: isQueryLoading } = useQuery({
-    queryKey: ['brands', user?.id, currentWorkspace?.id],
+    queryKey: ['brands', user?.id],
     queryFn: async () => {
       if (!user?.id) return [] as BrandSummary[];
-      let q = supabase
+      const { data, error } = await supabase
         .from('brands')
         .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
         .order('name', { ascending: true });
-      if (currentWorkspace?.id) {
-        q = q.eq('workspace_id', currentWorkspace.id);
-      } else {
-        q = q.eq('user_id', user.id);
-      }
-      const { data, error } = await q;
 
       if (error) throw error;
 
@@ -153,7 +144,6 @@ export default function MarcasPage() {
           .insert({
             team_id: user.teamId || null,
             user_id: user.id,
-            workspace_id: currentWorkspace?.id ?? null,
             name: formData.name,
             responsible: formData.responsible,
             segment: formData.segment,
@@ -225,7 +215,7 @@ export default function MarcasPage() {
     }
   }, [brandToEdit, user, t]);
 
-  const isButtonDisabled = !user || (user.credits || 0) < 1 || !canCreate;
+  const isButtonDisabled = !user || (user.credits || 0) < 1;
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
@@ -291,7 +281,7 @@ export default function MarcasPage() {
             onClick={() => handleOpenDialog()} 
             disabled={isButtonDisabled}
             className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
-            title={!user ? 'Carregando...' : (!canCreate ? 'Sem permissão para criar marcas neste workspace' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined))}
+            title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
           >
             <Plus className="mr-2 h-4 w-4" />
             {t.brands.newBrand}

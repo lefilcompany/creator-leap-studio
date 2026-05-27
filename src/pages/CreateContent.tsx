@@ -1115,9 +1115,9 @@ export default function CreateContent() {
             throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
           }
 
-          const { imageUrl, attempt, complianceCheck, actionId: imageActionId } = await imageResponse.json();
+          const { imageUrl, attempt, complianceCheck } = await imageResponse.json();
 
-          // 2. Generate caption (merging into existing action to avoid duplicates in history)
+          // 2. Generate caption
           const captionResponse = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`,
             {
@@ -1131,8 +1131,7 @@ export default function CreateContent() {
                   ...capturedRequestData,
                   imageDescription: capturedRequestData.description,
                   audience: selectedPersona?.name || "",
-                },
-                actionId: imageActionId,
+                }
               }),
             }
           );
@@ -1179,28 +1178,23 @@ export default function CreateContent() {
 
           if (reloadUserData) await reloadUserData();
 
-          const contentData = {
-            type: "image" as const,
-            mediaUrl: imageUrl,
-            platform: capturedFormData.platform,
-            brand: selectedBrand?.name || capturedFormData.brand,
-            title: captionData.title,
-            body: captionData.body,
-            hashtags: captionData.hashtags,
-            originalFormData: { ...capturedRequestData, brandId: capturedFormData.brand },
-            actionId: imageActionId,
-            isLocalFallback,
-            categoryId: capturedCategoryId || undefined,
-            complianceCheck: complianceCheck || null,
-          };
-
           return {
-            route: "/text-editor",
+            route: "/result",
             state: {
-              imageUrl,
-              nextRoute: "/result",
-              nextStateKey: "contentData",
-              nextState: { contentData },
+              contentData: {
+                type: "image" as const,
+                mediaUrl: imageUrl,
+                platform: capturedFormData.platform,
+                brand: selectedBrand?.name || capturedFormData.brand,
+                title: captionData.title,
+                body: captionData.body,
+                hashtags: captionData.hashtags,
+                originalFormData: { ...capturedRequestData, brandId: capturedFormData.brand },
+                actionId: undefined,
+                isLocalFallback,
+                categoryId: capturedCategoryId || undefined,
+                complianceCheck: complianceCheck || null,
+              }
             }
           };
         },

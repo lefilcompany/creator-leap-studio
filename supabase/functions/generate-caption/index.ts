@@ -4,7 +4,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { extractJSON } from '../_shared/geminiClient.ts';
-import { buildAgentLearningBlock } from '../_shared/agentLearning.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -292,9 +291,7 @@ serve(async (req) => {
   }
 
   try {
-    const requestBody = await req.json();
-    const { formData } = requestBody;
-    const existingActionId: string | undefined = requestBody?.actionId;
+    const { formData } = await req.json();
     
     console.log("📝 [CAPTION] Dados recebidos:", {
       brand: formData?.brand,
@@ -403,12 +400,7 @@ serve(async (req) => {
       );
     }
 
-    const basePrompt = buildCaptionPrompt(formData);
-    const captionLearning = await buildAgentLearningBlock({
-      brandId: (formData as any).brandId || (formData as any).brand_id || null,
-      agentId: 'copy_caption',
-    });
-    const prompt = captionLearning ? `${captionLearning}\n\n${basePrompt}` : basePrompt;
+    const prompt = buildCaptionPrompt(formData);
 
     console.log("🔄 Chamando Gemini API...");
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
@@ -420,7 +412,7 @@ serve(async (req) => {
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 65536,
+          maxOutputTokens: 4096,
         },
       }),
     });
@@ -494,76 +486,41 @@ serve(async (req) => {
       throw new Error("Invalid response structure from AI");
     }
 
-    // If an existing actionId was provided (Pipeline v5: image first, caption after),
-    // we MERGE the caption into the existing action — no new row, no extra credit debit.
-
-    let actionData: { id: string } | null = null;
-    let actionError: any = null;
-
-    if (existingActionId) {
-      // Merge caption into the existing action's result JSON to avoid duplicates in history.
-      const { data: existing, error: fetchErr } = await supabase
-        .from('actions')
-        .select('id, result, user_id, team_id')
-        .eq('id', existingActionId)
-        .maybeSingle();
-
-      if (fetchErr || !existing) {
-        console.warn('[CAPTION] actionId provided but not found, falling back to insert', { existingActionId, fetchErr });
-      } else if (existing.user_id !== user.id) {
-        console.warn('[CAPTION] actionId belongs to another user, ignoring update', { existingActionId });
-      } else {
-        const mergedResult = {
-          ...(existing.result || {}),
-          title: parsedContent.title,
-          body: parsedContent.body,
-          hashtags: parsedContent.hashtags,
-        };
-        const { data: updated, error: updateErr } = await supabase
-          .from('actions')
-          .update({ result: mergedResult, updated_at: new Date().toISOString() })
-          .eq('id', existingActionId)
-          .select('id')
-          .single();
-        actionData = updated;
-        actionError = updateErr;
-      }
+    // Deduct credits after successful generation (individual)
+    const deductResult = await deductUserCredits(supabase, user.id, CREDIT_COSTS.COMPLETE_IMAGE);
+    
+    if (!deductResult.success) {
+      console.error('Error deducting credits:', deductResult.error);
     }
 
-    // No existing action (legacy callers) -> insert a new one + charge credits
-    if (!actionData) {
-      const deductResult = await deductUserCredits(supabase, user.id, CREDIT_COSTS.COMPLETE_IMAGE);
-      if (!deductResult.success) {
-        console.error('Error deducting credits:', deductResult.error);
-      }
+    // Record credit usage
+    await recordUserCreditUsage(supabase, {
+      userId: user.id,
+      teamId: authenticatedTeamId,
+      actionType: 'CAPTION_GENERATION',
+      creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
+      creditsBefore: creditCheck.currentCredits,
+      creditsAfter: deductResult.newCredits,
+      description: 'Geração de legenda',
+      metadata: { platform: formData.platform, brand: formData.brand }
+    });
 
-      await recordUserCreditUsage(supabase, {
-        userId: user.id,
-        teamId: authenticatedTeamId,
-        actionType: 'CAPTION_GENERATION',
-        creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
-        creditsBefore: creditCheck.currentCredits,
-        creditsAfter: deductResult.newCredits,
-        description: 'Geração de legenda',
-        metadata: { platform: formData.platform, brand: formData.brand }
-      });
-
-      const inserted = await supabase
-        .from('actions')
-        .insert({
-          user_id: user.id,
-          team_id: authenticatedTeamId || null,
-          type: 'CRIAR_CONTEUDO',
-          status: 'completed',
-          details: { formData, type: 'caption' },
-          result: parsedContent
-        })
-        .select()
-        .single();
-
-      actionData = inserted.data;
-      actionError = inserted.error;
-    }
+    // Save action to database
+    const { data: actionData, error: actionError } = await supabase
+      .from('actions')
+      .insert({
+        user_id: user.id,
+        team_id: authenticatedTeamId || null,
+        type: 'CRIAR_CONTEUDO',
+        status: 'completed',
+        details: {
+          formData,
+          type: 'caption'
+        },
+        result: parsedContent
+      })
+      .select()
+      .single();
 
     if (actionError) {
       console.error('Error saving action:', actionError);
@@ -575,7 +532,8 @@ serve(async (req) => {
       JSON.stringify({
         ...parsedContent,
         actionId: actionData?.id,
-        merged: !!existingActionId && !!actionData,
+        creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
+        creditsRemaining: deductResult.newCredits
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

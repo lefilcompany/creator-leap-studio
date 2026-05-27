@@ -1,67 +1,56 @@
-# Criar novo workspace — fluxo em etapas
-
 ## Problema
 
-Hoje o botão "Criar novo workspace" no `WorkspaceSwitcher` navega para `/workspace?action=create`, mas a página `Workspace.tsx` ignora o parâmetro `action`. Nada acontece. Não existe nenhuma UI de criação no projeto.
+Em produção, a equipe `LeFil Company` tem 21 membros no banco, mas a tela `/team` mostra apenas 1 (o próprio usuário). O mesmo ocorre em Test.
 
-## Solução
+## Causa raiz
 
-Criar um modal **full-screen** (estilo da referência da Lovable) que abre quando a URL tem `?action=create`, com etapas curtas, perguntas diretas e termos já usados no app (nada de "pool", manter "Individuais" / "Compartilhados", como já ajustado nas memórias).
+A view `public.teammate_profiles` foi criada com `security_invoker=true`. Isso faz com que a leitura respeite as RLS policies da tabela base `profiles`. As policies de SELECT em `profiles` em produção são apenas:
 
-## Etapas do wizard
+- `Users can view their own profile` — `auth.uid() = id`
+- `System admins can view all profiles` — `has_role(auth.uid(), 'system')`
 
-```
-[1 Identidade]  →  [2 Créditos]  →  [3 Revisão]
-```
+Não existe nenhuma policy que permita a um usuário enxergar os outros membros do seu próprio time. Resultado: ao consultar `teammate_profiles` filtrando por `team_id`, o usuário só recebe a própria linha.
 
-**Etapa 1 — Identidade do workspace**
-- Avatar (opcional, upload imediato após criar — pode ser pulado)
-- Nome do workspace (obrigatório, mín. 2 chars)
-- Frase curta de apoio: "Espaço para colaborar com sua equipe e organizar marcas, conteúdos e calendários."
-- Botões: `Cancelar` · `Continuar`
+Em Test há uma policy extra baseada em `workspace_members` (conceito antigo/diferente), que também não cobre o modelo atual de `team_id` em `profiles`, então o bug se reproduz em ambos os ambientes.
 
-**Etapa 2 — Modelo de créditos**  
-Dois cards lado a lado (mesma linguagem do `Workspace.tsx`):
-- **Individuais** (padrão / recomendado) — "Cada membro usa os próprios créditos. Sem transferências, sem limites a configurar."
-- **Compartilhados** — "Você disponibiliza créditos para o workspace e define quanto cada membro pode gastar por mês."
+Bônus: a view `teammate_profiles` também está sem `GRANT SELECT` explícito em produção (já existe em Test via migração, mas em produção a tabela `pg_class` mostra a view sem privilégios).
 
-Se escolher **Compartilhados**, mostra logo abaixo:
-- Input "Disponibilizar agora (opcional)" — quantidade a transferir do saldo pessoal (validar contra `user.credits`, permite 0)
-- Input "Limite mensal padrão por membro" (default `0` = não pode gastar; texto auxiliar reforça que membros começam com 0 conforme regra do app)
-- Texto: "Você pode ajustar tudo isso depois em Configurações do Workspace."
+## Correção
 
-Botões: `Voltar` · `Continuar`
+Migração única que:
 
-**Etapa 3 — Revisão e criar**
-- Resumo: nome, avatar, modo de créditos (e valor a transferir + limite padrão se compartilhado)
-- Botões: `Voltar` · `Criar workspace` (loading)
+1. Adiciona uma policy de SELECT em `public.profiles` permitindo que membros do mesmo time leiam as linhas uns dos outros, usando a função SECURITY DEFINER já existente `public.get_user_team_id(auth.uid())` para evitar recursão de RLS:
 
-## Lógica de submit (sequencial, com rollback simples)
+   ```sql
+   CREATE POLICY "Teammates can view co-members profiles"
+   ON public.profiles FOR SELECT
+   TO authenticated
+   USING (
+     team_id IS NOT NULL
+     AND team_id = public.get_user_team_id(auth.uid())
+   );
+   ```
 
-1. `INSERT public.workspaces { name, owner_id: user.id, is_personal: false, credit_mode }` → recebe `workspace_id`.
-2. `INSERT public.workspace_members { workspace_id, user_id, role: 'owner', status: 'active', joined_at: now() }`.
-3. Se avatar selecionado: upload em `workspace-avatars/{workspace_id}/...` e `UPDATE workspaces.avatar_url`.
-4. Se modo `shared` e valor > 0: `rpc('workspace_transfer_personal_to_shared', { p_workspace_id, p_amount })` (já existe).
-5. `UPDATE profiles.current_workspace_id = workspace_id` (entra no workspace recém-criado).
-6. `WorkspaceContext.reload()` + `refreshProfile()` + `navigate('/workspace')` (limpa `?action=create`).
-7. `toast.success("Workspace criado")`.
+2. Reafirma os GRANTs da view (idempotente, cobre o caso de produção sem grants):
 
-Erros em qualquer etapa: `toast.error` com mensagem; se já criou o workspace e a transferência falhar, manter o workspace e avisar que a transferência não ocorreu (usuário pode refazer em Configurações).
+   ```sql
+   GRANT SELECT ON public.teammate_profiles TO authenticated;
+   ```
+   (Sem grant para `anon` — leitura de teammates é auth-only.)
 
-## UI / arquivos
+3. Remove a policy obsoleta `Workspace members can view co-members profiles` em Test, que referencia a tabela antiga `workspace_members` e não tem efeito útil hoje.
 
-- **Novo:** `src/components/workspace/CreateWorkspaceWizard.tsx` — `Dialog` em modo full-screen (`max-w-none w-screen h-screen rounded-none p-0`) com header (logo + botão fechar X), conteúdo central com `max-w-xl` e indicador de passos no topo (1·2·3 com linha de progresso). Reutiliza `Button`, `Input`, `Label`, `Avatar`, `cn`, padrão floating board (`bg-card`, `rounded-2xl`).
-- **Editar:** `src/pages/Workspace.tsx`
-  - `useEffect` adicional: se `params.get('action') === 'create'` → abre o wizard e remove o param da URL.
-  - Renderiza `<CreateWorkspaceWizard open={...} onClose={...} onCreated={...} />`.
-- **Editar:** `src/components/WorkspaceSwitcher.tsx` — manter o `navigate('/workspace?action=create')` (já funciona, só passa a ter handler).
+## Por que essa policy é segura
 
-## Linguagem (memórias do projeto)
-- "Individuais" / "Compartilhados" (não "Pessoais", não "pool").
-- "Disponibilizar créditos para o workspace" (não "transferir para o pool").
-- Sem rótulo "(opcional)" — usar texto auxiliar quando precisar.
-- Breadcrumbs/back: usar botão `Voltar` entre etapas; botão `X` no canto fecha o wizard.
+- A view `teammate_profiles` já restringe colunas a campos não-sensíveis (id, name, email, avatar_url, banner_url, team_id, created_at, tutorial_completed, phone, city, state). Senhas/tokens não estão na tabela `profiles`.
+- A nova policy concede leitura apenas a linhas com o mesmo `team_id` do usuário autenticado. Usuários sem time (`team_id IS NULL`) continuam só vendo o próprio perfil.
+- A função `get_user_team_id` é SECURITY DEFINER, então não há recursão de RLS ao avaliar a policy.
 
-## Não-escopo
-- Seleção de plano: o app cobra créditos por usuário (`profiles.plan_id`, `profiles.credits`), não por workspace. Não faz sentido pedir plano na criação — fica fora.
-- Convites de membros: já existem em Configurações do Workspace; o wizard finaliza levando o usuário para lá caso queira convidar (link "Convidar membros agora" na tela de sucesso).
+## Verificação após publicar
+
+- Logar com um membro do LeFil Company em produção e abrir `/team` — deve listar os 21 membros.
+- Conferir que um usuário sem time continua enxergando só o próprio perfil em outras telas que usam `profiles`.
+
+## Sem mudanças de frontend
+
+`useTeamMembers` já consulta `teammate_profiles` filtrando por `team_id`; nenhuma alteração de código React é necessária.
