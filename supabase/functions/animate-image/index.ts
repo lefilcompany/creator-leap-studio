@@ -15,7 +15,11 @@ serve(async (req) => {
   }
 
   try {
-    const { imageData, animationPrompt, userId, teamId } = await req.json();
+    const authResult = await requireAuth(req, corsHeaders);
+    if (authResult instanceof Response) return authResult;
+    const userId = authResult.userId;
+
+    const { imageData, animationPrompt, teamId } = await req.json();
     
     console.log('Animate image request received:', {
       userId,
