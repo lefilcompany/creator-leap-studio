@@ -79,6 +79,12 @@ serve(async (req) => {
     if (!user_id || !purchase_type) {
       throw new Error("Invalid session metadata");
     }
+    if (user_id !== callerId) {
+      return new Response(JSON.stringify({ error: 'Forbidden: session does not belong to caller' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     logStep("Metadata extracted", { user_id, purchase_type, plan_id, package_id, customCredits, team_id });
     
     // Determinar quantidade de créditos
