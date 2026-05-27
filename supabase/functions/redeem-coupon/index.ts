@@ -356,29 +356,32 @@ serve(async (req) => {
       );
     }
 
-    // ============= CUPOM COM CHECKSUM =============
-    // upperCode already declared above
-    
-    // 1. Validar formato
+    // ============= LEGACY CHECKSUM COUPONS (DEPRECATED) =============
+    // The hardcoded-checksum coupon path has been removed for security reasons:
+    // the algorithm was deterministic with constants in source, allowing anyone
+    // with code access to mint unlimited valid codes. All coupons must now be
+    // created via the admin-managed `coupons` table.
+    console.log(`[redeem-coupon] Code not found in DB coupons table: ${upperCode}`);
+    return new Response(
+      JSON.stringify({ valid: false, error: 'Cupom inválido. Verifique o código e tente novamente.' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+    );
+    // eslint-disable-next-line no-unreachable
     const formatValidation = validateCouponFormat(upperCode);
     if (!formatValidation.valid) {
-      console.log(`[redeem-coupon] Invalid format: ${formatValidation.error}`);
       return new Response(
-        JSON.stringify({ valid: false, error: 'Cupom inválido. Verifique o código e tente novamente.' }),
+        JSON.stringify({ valid: false, error: 'Cupom inválido.' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
-
     const { prefix, randomPart, checksum } = formatValidation.parts!;
-
-    // 2. Validar checksum
     if (!validateChecksum(prefix, randomPart, checksum)) {
-      console.log(`[redeem-coupon] Invalid checksum for: ${upperCode}`);
       return new Response(
-        JSON.stringify({ valid: false, error: 'Cupom inválido. Verifique o código e tente novamente.' }),
+        JSON.stringify({ valid: false, error: 'Cupom inválido.' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
+
 
     console.log(`[redeem-coupon] Checksum valid for: ${upperCode}`);
 
