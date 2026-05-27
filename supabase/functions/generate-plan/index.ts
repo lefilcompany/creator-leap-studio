@@ -18,18 +18,13 @@ serve(async (req) => {
   try {
     // Log request details for debugging
     console.log('Generate plan request received');
-    
-    // Validate authorization header
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      console.error('No authorization header provided');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - No authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-    
-    const { brand, themes, platform, platforms, quantity, objective, additionalInfo, userId, teamId } = await req.json();
+
+    // Validate JWT and derive userId from token (never trust body)
+    const authResult = await requireAuth(req, corsHeaders);
+    if (authResult instanceof Response) return authResult;
+    const userId = authResult.userId;
+
+    const { brand, themes, platform, platforms, quantity, objective, additionalInfo, teamId } = await req.json();
     
     // Normalize platforms: accept both legacy `platform` (string) and new `platforms` (array)
     const platformList: string[] = Array.isArray(platforms)
