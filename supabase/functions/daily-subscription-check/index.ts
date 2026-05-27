@@ -19,6 +19,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Allow either system-admin caller OR a cron call with shared secret
+  const cronSecret = Deno.env.get('CRON_SECRET');
+  const providedSecret = req.headers.get('x-cron-secret');
+  if (!(cronSecret && providedSecret && providedSecret === cronSecret)) {
+    const authResult = await requireSystemAdmin(req, corsHeaders);
+    if (authResult instanceof Response) return authResult;
+  }
+
   try {
     logStep("Function started");
 
