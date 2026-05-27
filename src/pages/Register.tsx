@@ -198,25 +198,7 @@ const Register = () => {
             toast.warning('Não foi possível aplicar o cupom agora. Resgate-o depois no menu.');
           }
         }
-
-        // Aceitar invite de workspace, se houver
-        const inviteToken = searchParams.get('invite');
-        if (inviteToken) {
-          try {
-            const { error: invErr } = await supabase.functions.invoke('workspace-accept-invite', {
-              body: { token: inviteToken },
-            });
-            if (invErr) {
-              console.error('Erro ao aceitar invite:', invErr);
-              toast.warning('Não foi possível entrar no workspace agora. Tente pelo link novamente.');
-            } else {
-              toast.success('Você entrou no workspace!');
-            }
-          } catch (e) {
-            console.error('Erro invite:', e);
-          }
-        }
-
+        
         // Enviar evento para RD Station
         try {
           await supabase.functions.invoke('rd-station-integration', {

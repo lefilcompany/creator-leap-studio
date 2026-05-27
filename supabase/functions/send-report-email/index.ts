@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireAuth, escapeHtml } from "../_shared/auth.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,6 +12,9 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
+
+  const authResult = await requireAuth(req, corsHeaders);
+  if (authResult instanceof Response) return authResult;
 
   try {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -45,10 +49,14 @@ serve(async (req) => {
       other: 'Outro',
     };
 
-    const screenshotsHtml = (screenshotUrls && screenshotUrls.length > 0)
+    const safeUrls: string[] = Array.isArray(screenshotUrls)
+      ? screenshotUrls.filter((u: unknown) => typeof u === 'string' && /^https?:\/\//i.test(u as string))
+      : [];
+
+    const screenshotsHtml = safeUrls.length > 0
       ? `<h3 style="margin-top:20px;">Capturas de tela:</h3>
-         ${screenshotUrls.map((url: string, i: number) => 
-           `<p><a href="${url}" target="_blank">Screenshot ${i + 1}</a></p>`
+         ${safeUrls.map((url: string, i: number) =>
+           `<p><a href="${escapeHtml(url)}" target="_blank">Screenshot ${i + 1}</a></p>`
          ).join('')}`
       : '';
 
@@ -56,22 +64,22 @@ serve(async (req) => {
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #e74c3c;">🚨 Novo Report de Problema na Geração</h2>
         <hr style="border: 1px solid #eee; margin: 20px 0;" />
-        
+
         <h3>Informações do Usuário</h3>
-        <p><strong>Nome:</strong> ${userName || 'N/A'}</p>
-        <p><strong>Email:</strong> ${userEmail || 'N/A'}</p>
-        ${teamName ? `<p><strong>Equipe:</strong> ${teamName}</p>` : ''}
-        
+        <p><strong>Nome:</strong> ${escapeHtml(userName || 'N/A')}</p>
+        <p><strong>Email:</strong> ${escapeHtml(userEmail || 'N/A')}</p>
+        ${teamName ? `<p><strong>Equipe:</strong> ${escapeHtml(teamName)}</p>` : ''}
+
         <h3 style="margin-top: 20px;">Detalhes do Problema</h3>
-        <p><strong>Tipo:</strong> ${problemTypeLabels[problemType] || problemType}</p>
+        <p><strong>Tipo:</strong> ${escapeHtml(problemTypeLabels[problemType] || problemType)}</p>
         <p><strong>Descrição:</strong></p>
-        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; white-space: pre-wrap;">${description}</div>
-        
-        ${actionId ? `<p style="margin-top: 15px;"><strong>Action ID:</strong> ${actionId}</p>` : ''}
-        ${actionType ? `<p><strong>Tipo de Ação:</strong> ${actionType}</p>` : ''}
-        
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; white-space: pre-wrap;">${escapeHtml(description)}</div>
+
+        ${actionId ? `<p style="margin-top: 15px;"><strong>Action ID:</strong> ${escapeHtml(actionId)}</p>` : ''}
+        ${actionType ? `<p><strong>Tipo de Ação:</strong> ${escapeHtml(actionType)}</p>` : ''}
+
         ${screenshotsHtml}
-        
+
         <hr style="border: 1px solid #eee; margin: 20px 0;" />
         <p style="color: #888; font-size: 12px;">
           Enviado em: ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}

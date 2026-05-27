@@ -7,7 +7,6 @@ import { expandBriefing } from '../_shared/expandBriefing.ts';
 import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
 import { checkCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
 import { applyTextOverlay } from '../_shared/textOverlay.ts';
-import { createSnapshotContext, snapshot, snapshotSummary } from '../_shared/debugSnapshot.ts';
 import {
   cleanInput,
   normalizeImageArray,
@@ -21,7 +20,6 @@ import {
   buildFeedbackMessageParts,
   uint8ArrayToBase64,
 } from '../_shared/imagePromptBuilder.ts';
-import { buildAgentLearningBlock } from '../_shared/agentLearning.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -59,16 +57,6 @@ serve(async (req) => {
     const formData = await req.json();
     if (!formData.description || typeof formData.description !== 'string') {
       return new Response(JSON.stringify({ error: 'Descrição inválida' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
-    // ===== Debug snapshot context =====
-    const snap = createSnapshotContext({
-      supabase,
-      userId: authenticatedUserId,
-      enabledByClient: formData.debugSnapshots === true,
-    });
-    if (snap.enabled) {
-      console.log(`[Debug] 🔬 Snapshot pipeline ENABLED — runId=${snap.runId}`);
     }
 
     console.log('Generate Image Request:', {
@@ -119,10 +107,8 @@ serve(async (req) => {
     const briefingDocument = buildBriefingDocument(formData, brandData, themeData, personaData, stylePrefs);
     console.log('[Step 2] Briefing document:', briefingDocument.length, 'chars');
 
-    // 🚫 POLÍTICA: nenhuma tipografia gerada por IA. O texto só é aplicado
-    // pelo editor manual de overlay na página de resultado, nunca pelo modelo.
-    const includeText = false;
-    const textContent: string | undefined = undefined;
+    const includeText = formData.includeText ?? false;
+    const textContent = includeText ? cleanInput(formData.textContent) : undefined;
     const tones = Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : []);
 
     const briefingResult = await expandBriefing({
@@ -214,14 +200,13 @@ serve(async (req) => {
       textDesignStyle: formData.textDesignStyle || 'clean',
       preserveImagesCount: preserveImages.length,
       styleReferenceImagesCount: styleReferenceImages.length,
-      // 🚫 Zero tipografia gerada por IA — todos os campos textuais ficam vazios.
-      headline: '',
-      subtexto: '',
-      ctaText: '',
+      headline: briefingResult.headline,
+      subtexto: briefingResult.subtexto,
+      ctaText: cleanInput(formData.ctaText) || '',
       adProfessionalMode: formData.adMode === 'professional',
-      priceText: '',
+      priceText: cleanInput(formData.priceText) || '',
       includeBrandLogo: formData.includeBrandLogo || false,
-      disclaimerText: '',
+      disclaimerText: cleanInput(formData.disclaimerText) || '',
       disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
       aspectRatio: formData.aspectRatio || undefined,
       colorPalette: formData.colorPalette || 'auto',
@@ -253,11 +238,9 @@ serve(async (req) => {
 
     // Build negative prompt
     const userNegativePrompt = cleanInput(formData.negativePrompt);
-    const negativeComponents = [
-      styleSettings.negativePrompt,
-      'text, watermark, typography, letters, words, numbers, logo text, signature, caption, subtitle, headline, call-to-action'
-    ];
+    const negativeComponents = [styleSettings.negativePrompt];
     if (userNegativePrompt) negativeComponents.push(userNegativePrompt);
+    if (!includeText) negativeComponents.push('text, watermark, typography, letters, signature, words, labels');
     const finalNegativePrompt = negativeComponents.filter(Boolean).join(', ');
 
     // Resolve aspect ratio using shared utility
@@ -282,12 +265,7 @@ serve(async (req) => {
     });
 
     const dimensionPrefix = `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${aspectRatio} (${targetDims.width}x${targetDims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`;
-    const agentLearning = await buildAgentLearningBlock({
-      brandId: formData.brandId || null,
-      agentId: 'image_generation',
-    });
-    const learningPrefix = agentLearning ? `${agentLearning}\n\n` : '';
-    const finalPrompt = `${dimensionPrefix}${learningPrefix}${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${finalNegativePrompt}`;
+    const finalPrompt = `${dimensionPrefix}${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${finalNegativePrompt}`;
 
     console.log('[Step 3] Final prompt length:', finalPrompt.length, 'chars');
 
@@ -420,13 +398,6 @@ serve(async (req) => {
       binaryData = new Uint8Array(await imgResp.arrayBuffer());
     }
 
-    // 🔬 SNAPSHOT 1: Saída crua do MODELO BASE (Gemini)
-    // Se o texto extra aparecer aqui, o problema é PROMPT/MODELO (não overlay).
-    await snapshot(snap, 'A_model_base_raw', binaryData, {
-      provider: 'gemini',
-      model: usedImageModel,
-    });
-
     const postProcessResult = await postProcessImage(binaryData, aspectRatio, targetDims.width, targetDims.height);
 
     console.log('[Step 6] Post-process result:', {
@@ -441,35 +412,18 @@ serve(async (req) => {
     // =====================================
     let finalImageData = postProcessResult.processedData;
 
-    // 🔬 SNAPSHOT 2: Após pós-processo (resize/crop)
-    await snapshot(snap, 'B_after_postprocess', finalImageData, {
-      finalWidth: postProcessResult.finalWidth,
-      finalHeight: postProcessResult.finalHeight,
-      wasCropped: postProcessResult.wasCropped,
-      wasResized: postProcessResult.wasResized,
-    });
-
-    if (includeText && textContent && textContent.trim()) {
+    if (includeText && (briefingResult.headline || briefingResult.subtexto || formData.ctaText)) {
       console.log('[Step 6.5] Applying text overlay with typographic engine...');
-      // 🔬 SNAPSHOT 3a: ANTES do overlay
-      await snapshot(snap, 'C_before_overlay', finalImageData, {
-        headline: textContent.trim(),
-        ctaText: cleanInput(formData.ctaText) || '',
-        textPosition: cleanInput(formData.textPosition) || 'center',
-        fontFamily: formData.fontFamily || 'Montserrat',
-        fontSize: formData.fontSize,
-        textDesignStyle: formData.textDesignStyle || 'clean',
-      });
       try {
         const overlayResult = await applyTextOverlay(finalImageData, {
-          headline: textContent.trim(),
-          subtexto: '',
+          headline: briefingResult.headline,
+          subtexto: briefingResult.subtexto,
           ctaText: cleanInput(formData.ctaText) || '',
-          disclaimerText: '',
-          disclaimerStyle: 'bottom_horizontal',
-          textPosition: cleanInput(formData.textPosition) || 'center',
+          disclaimerText: cleanInput(formData.disclaimerText) || '',
+          disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
+          textPosition: cleanInput(formData.textPosition) || 'top',
           fontFamily: formData.fontFamily || 'Montserrat',
-          fontWeight: formData.fontWeight || '700',
+          fontWeight: formData.fontWeight || 'bold',
           fontItalic: formData.fontItalic || false,
           fontSize: formData.fontSize,
           textDesignStyle: formData.textDesignStyle || 'clean',
@@ -481,15 +435,9 @@ serve(async (req) => {
           finalImageData = overlayResult.processedData;
           console.log('[Step 6.5] Text overlay applied successfully');
         }
-        // 🔬 SNAPSHOT 3b: DEPOIS do overlay
-        await snapshot(snap, 'D_after_overlay', finalImageData, {
-          elementsApplied: overlayResult.elementsApplied,
-        });
       } catch (overlayError) {
         console.error('[Step 6.5] Text overlay failed, continuing without text:', overlayError);
       }
-    } else {
-      console.log('[Debug] Overlay desabilitado — pulando snapshots C/D');
     }
 
     // =====================================
@@ -667,13 +615,6 @@ serve(async (req) => {
 
     if (actionError) console.error('Error creating action:', actionError);
 
-    if (snap.enabled) {
-      console.log(`[Debug] 🔬 Pipeline snapshot summary (runId=${snap.runId}):`);
-      for (const u of snap.urls) {
-        console.log(`  step ${String(u.step).padStart(2, '0')} ${u.stage} → ${u.url}`);
-      }
-    }
-
     return new Response(JSON.stringify({
       imageUrl: finalPublicUrl,
       description: resultDescription,
@@ -687,7 +628,6 @@ serve(async (req) => {
       finalAspectRatio: postProcessResult.finalAspectRatio,
       requestedAspectRatio: postProcessResult.requestedAspectRatio,
       complianceCheck: complianceResult,
-      debugSnapshots: snapshotSummary(snap),
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {

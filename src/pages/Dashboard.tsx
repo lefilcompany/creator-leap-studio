@@ -10,15 +10,13 @@ import { useHistoryActions, useHistoryBrands } from "@/hooks/useHistoryActions";
 import { useBrands } from "@/hooks/useBrands";
 import { usePersonas } from "@/hooks/usePersonas";
 import { useThemes } from "@/hooks/useThemes";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 import { DashboardCreditsCard } from "@/components/dashboard/DashboardCreditsCard";
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
-import { DashboardCalendars } from "@/components/dashboard/DashboardCalendars";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfileBanner";
@@ -26,7 +24,6 @@ import { PostRegistrationPurchaseModal } from "@/components/PostRegistrationPurc
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
-  const { currentWorkspace } = useWorkspace();
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
   // Prefetch data so other pages open instantly from cache
@@ -97,24 +94,22 @@ const Dashboard = () => {
   });
 
   const { data: brandsCount = 0 } = useQuery({
-    queryKey: ['dashboard-brands-count', user?.id, currentWorkspace?.id],
+    queryKey: ['dashboard-brands-count', user?.teamId],
     queryFn: async () => {
-      let q = supabase.from('brands').select('id', { count: 'exact', head: true });
-      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
-      else if (user?.id) q = q.eq('user_id', user.id);
-      const { count } = await q;
+      const { count } = await supabase
+        .from('brands')
+        .select('id', { count: 'exact', head: true });
       return count || 0;
     },
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
   });
   const { data: personasCount = 0 } = useQuery({
-    queryKey: ['dashboard-personas-count', user?.id, currentWorkspace?.id],
+    queryKey: ['dashboard-personas-count', user?.id],
     queryFn: async () => {
-      let q = supabase.from('personas').select('id', { count: 'exact', head: true });
-      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
-      else if (user?.id) q = q.eq('user_id', user.id);
-      const { count } = await q;
+      const { count } = await supabase
+        .from('personas')
+        .select('id', { count: 'exact', head: true });
       return count || 0;
     },
     enabled: !!user?.id,
@@ -122,50 +117,11 @@ const Dashboard = () => {
   });
 
   const { data: themesCount = 0 } = useQuery({
-    queryKey: ['dashboard-themes-count', user?.id, currentWorkspace?.id],
+    queryKey: ['dashboard-themes-count', user?.id],
     queryFn: async () => {
-      let q = supabase.from('strategic_themes').select('id', { count: 'exact', head: true });
-      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
-      else if (user?.id) q = q.eq('user_id', user.id);
-      const { count } = await q;
-      return count || 0;
-    },
-    enabled: !!user?.id,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  // Operational KPIs: pending review + created this month (workspace-scoped)
-  const { data: pendingCount = 0 } = useQuery({
-    queryKey: ['dashboard-pending-count', user?.id, currentWorkspace?.id],
-    queryFn: async () => {
-      if (!user?.id) return 0;
-      let q = supabase
-        .from('actions')
-        .select('id', { count: 'exact', head: true })
-        .eq('approved', false);
-      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
-      else q = q.eq('user_id', user.id);
-      const { count } = await q;
-      return count || 0;
-    },
-    enabled: !!user?.id,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const { data: monthCount = 0 } = useQuery({
-    queryKey: ['dashboard-month-count', user?.id, currentWorkspace?.id],
-    queryFn: async () => {
-      if (!user?.id) return 0;
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-      let q = supabase
-        .from('actions')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', startOfMonth.toISOString());
-      if (currentWorkspace?.id) q = q.eq('workspace_id', currentWorkspace.id);
-      else q = q.eq('user_id', user.id);
-      const { count } = await q;
+      const { count } = await supabase
+        .from('strategic_themes')
+        .select('id', { count: 'exact', head: true });
       return count || 0;
     },
     enabled: !!user?.id,
@@ -266,23 +222,34 @@ const Dashboard = () => {
       <TrialBanner />
       <IncompleteProfileBanner />
 
-      {/* Header funcional */}
-      <DashboardHeader
-        userName={user.name}
-        hasTeam={!!user.teamId}
-        brandsCount={brandsCount}
-        pendingCount={pendingCount}
-        monthCount={monthCount}
-      />
+      {/* Banner */}
+      <DashboardBanner userName={user.name} />
 
-      {/* Quick Actions com hierarquia */}
+      {/* Quick Actions */}
       <div id="dashboard-quick-actions">
         <DashboardQuickActions />
       </div>
 
-      {/* Calendários de conteúdo */}
-      <DashboardCalendars />
+      {/* Credits Card */}
+      <DashboardCreditsCard
+        remainingCredits={remainingCredits}
+        totalCredits={totalCredits}
+        progressPercentage={progressPercentage}
+        creditsExpireAt={user.creditsExpireAt}
+      />
 
+      {/* Stats */}
+      <div id="dashboard-stats">
+        <DashboardStats actionsCount={actionsCount} brandsCount={brandsCount} personasCount={personasCount} themesCount={themesCount} hasTeam={!!user.teamId} />
+      </div>
+
+      {/* Recent Activity */}
+      <div id="dashboard-recent-actions">
+        <DashboardRecentActivity 
+          activities={recentActivities as any} 
+          isLoading={isLoadingActivities} 
+        />
+      </div>
     </div>
   );
 };

@@ -3,7 +3,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { checkVideoCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
-import { buildAgentLearningBlock } from '../_shared/agentLearning.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -412,54 +411,48 @@ serve(async (req) => {
 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     
-    // Veo 3.0 (Image-to-Video) — A imagem de referência é o SUJEITO/ELEMENTO
-    // que deve ser INSERIDO em uma cena cinematográfica descrita no briefing.
-    // Não é a cena inteira: é o produto/pessoa que aparece dentro da cena.
+    // Nova função para Veo 3.0 (Image-to-Video) - Imperativa e Focada
     function buildVeo30Prompt(
       basePrompt: string,
       preserveIdentity: boolean,
-      negativePrompt: string,
-      hasIncludeText: boolean
+      negativePrompt: string
     ): string {
-      // Resumo curto do briefing para evitar overflow do modelo
-      const briefSummary = (basePrompt || '').replace(/\s+/g, ' ').trim().slice(0, 700);
+      let prompt = '';
+      
+      if (preserveIdentity) {
+        prompt = `[CRITICAL - IDENTITY PRESERVATION MODE]
 
-      let prompt = `[ROLE OF THE REFERENCE IMAGE]
-The reference image shows the SUBJECT (a product, person, or object) that MUST appear INSIDE the video scene.
-- The image is NOT the full scene. It is the SUBJECT to be placed inside a new cinematic scene.
-- Preserve the subject's exact identity: shape, colors, textures, label/packaging, facial features, proportions.
-- Do NOT distort, recolor, restyle, or replace the subject.
-- The subject must be naturally integrated into the scene with correct lighting, shadows, perspective and scale.
+EXACT VISUAL REPLICATION:
+- COPY EXACTLY: All colors, textures, objects, people, clothing, backgrounds from the provided image
+- MAINTAIN PRECISELY: Facial features, body proportions, visual style, composition, lighting quality
+- DO NOT ALTER: Color schemes, visual elements, design aesthetic, or any identifying characteristics
 
-[SCENE TO BUILD AROUND THE SUBJECT — FROM BRIEFING]
-${briefSummary}
+ALLOWED CHANGES:
+- Add subtle motion/animation to existing elements
+- Create depth and dimension through movement
+- Animate existing objects (do not add new ones)
 
-[CINEMATOGRAPHY — HIGH QUALITY]
-- Photorealistic, high-end commercial production value (think premium brand TVC).
-- Smooth camera motion (gentle dolly-in, slow orbit, or subtle parallax). No jitter.
-- Cinematic lighting: soft key light, rim light, controlled shadows, accurate color.
-- Shallow depth of field, crisp focus on the subject, tasteful bokeh in background.
-- Natural physics: realistic motion, gravity, fabric/liquid behavior when applicable.
-- 1080p sharpness, clean grain, professional color grading.
+${basePrompt}
 
-[ANIMATION DIRECTIVES]
-- Animate the SCENE around the subject (camera move, environmental motion, lighting shifts).
-- Add subtle, life-like motion to the subject itself (breathing, micro-movements, steam, sparkle, gentle rotation if product).
-- Do NOT add new characters, logos, or objects not described in the briefing.
+FORBIDDEN:
+- Changing colors, styles, or visual identity
+- Adding new objects, people, or elements not in the original image
+- Modifying facial features, clothing, or backgrounds
+- Altering the artistic style or visual aesthetic`;
+      } else {
+        prompt = `ANIMATION BASED ON REFERENCE IMAGE:
 
-[ABSOLUTE NO-TEXT RULE]
-${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, letters, numbers, captions, subtitles, watermarks, signs, or written characters of any language.\n- If the reference image contains text/labels on the product packaging, keep ONLY that exact original text — never invent, modify, translate or add new text.'}
+Use the provided image as the starting point and animate it following these instructions:
 
-[FORBIDDEN]
-- Treating the reference image as the entire scene (do not just animate the flat image).
-- Generating any gibberish text, fake logos, or distorted typography.
-- Changing the subject's identity, colors, or design.
-- Static "Ken Burns" zoom on a 2D image — must be a real 3D scene.`;
+${basePrompt}
 
-      if (negativePrompt?.trim()) {
-        prompt += `\n\n[EXCLUDE]\n${negativePrompt}`;
+STYLE: Maintain the general aesthetic of the reference image while adding dynamic movement.`;
       }
-
+      
+      if (negativePrompt?.trim()) {
+        prompt += `\n\nEXCLUDE FROM VIDEO:\n${negativePrompt}`;
+      }
+      
       return prompt;
     }
 
@@ -563,10 +556,10 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
     let optimizedPrompt = '';
     
     if (generationType === 'image_to_video') {
-      // Veo 3.0: imagem é SUJEITO dentro da cena descrita pelo briefing
+      // Veo 3.0: Prompt focado em movimento com preservação exata
       const preserveIdentity = preserveImages && preserveImages.length > 0;
-      optimizedPrompt = buildVeo30Prompt(prompt, preserveIdentity, negativePrompt, includeText);
-      console.log('🎬 Using Veo 3.0 optimized prompt (Image-to-Video, subject-in-scene)');
+      optimizedPrompt = buildVeo30Prompt(prompt, preserveIdentity, negativePrompt);
+      console.log('🎬 Using Veo 3.0 optimized prompt (Image-to-Video)');
     } else {
       // Veo 3.1: Prompt estruturado com pesos e comandos imperativos
       const hasPreserveImages = preserveImages && preserveImages.length > 0;
@@ -586,19 +579,6 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
         negativePrompt
       );
       console.log('🎬 Using Veo 3.1 optimized prompt (Text-to-Video)');
-    }
-
-    // Injeta aprendizado por marca no início do prompt (se houver)
-    try {
-      const videoLearning = await buildAgentLearningBlock({
-        brandId: brand_id || null,
-        agentId: 'video_generation',
-      });
-      if (videoLearning) {
-        optimizedPrompt = `${videoLearning}\n\n${optimizedPrompt}`;
-      }
-    } catch (e) {
-      console.warn('agent learning (video) skipped:', e);
     }
 
     console.log('📏 Optimized prompt length:', optimizedPrompt.length);
@@ -657,12 +637,6 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
       validatedDuration = MAX_DURATION_VEO30;
     }
 
-    // Veo 3.1: 1080p exige obrigatoriamente 8 segundos. Coerge para evitar 400.
-    if (resolution === '1080p' && validatedDuration !== 8) {
-      console.warn(`⚠️ Resolução 1080p exige 8s — forçando duration de ${validatedDuration}s para 8s`);
-      validatedDuration = 8;
-    }
-
     if (generationType === 'image_to_video') {
       // ✅ VEO 3.0: Estrutura específica para image-to-video
       // Documentação: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/veo
@@ -694,13 +668,11 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
         }],
         parameters: {
           aspectRatio: aspectRatio,
-          resolution: resolution || '1080p',
           durationSeconds: validatedDuration
         }
       };
-
-      console.log(`🖼️ [Veo 3.0] Usando 1 imagem como SUJEITO da cena`);
-      console.log(`🖼️ [Veo 3.0] Duração: ${validatedDuration}s • Resolução: ${resolution || '1080p'}`);
+      
+      console.log(`🖼️ [Veo 3.0] Usando 1 imagem para image-to-video`);
       console.log(`🖼️ [Veo 3.0] Duração validada: ${validatedDuration}s`);
     } else {
       // ✅ VEO 3.1: Estrutura para text-to-video
@@ -711,7 +683,7 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
         parameters: {
           aspectRatio: aspectRatio,
           resolution: resolution,
-          durationSeconds: validatedDuration
+          durationSeconds: duration
         }
       };
       
@@ -752,24 +724,11 @@ ${hasIncludeText ? '' : '- The video MUST be 100% free of any text, words, lette
       }
     }
 
-    // Negative prompt: combina o do usuário + auto anti-texto-quebrado/baixa qualidade
-    const autoNegatives: string[] = [
-      'low quality', 'blurry', 'pixelated', 'low resolution', 'compression artifacts',
-      'distorted faces', 'extra limbs', 'warped anatomy',
-      'shaky camera', 'jittery motion', 'choppy animation',
-      'flat 2D animation of a static image', 'ken burns effect on a photo',
-    ];
-    if (!includeText) {
-      autoNegatives.push(
-        'any text', 'words', 'letters', 'captions', 'subtitles', 'watermark',
-        'gibberish text', 'misspelled words', 'fake logos', 'distorted typography',
-        'unreadable writing', 'random characters'
-      );
+    // Adicionar prompt negativo se fornecido (vai em parameters)
+    if (negativePrompt && negativePrompt.trim()) {
+      requestBody.parameters.negativePrompt = negativePrompt;
+      console.log('⛔ Negative prompt:', negativePrompt);
     }
-    const userNeg = (negativePrompt || '').trim();
-    const finalNegative = [userNeg, autoNegatives.join(', ')].filter(Boolean).join(', ');
-    requestBody.parameters.negativePrompt = finalNegative;
-    console.log('⛔ Negative prompt:', finalNegative);
     
     console.log('📦 Request body preparado:', JSON.stringify(requestBody, null, 2));
 

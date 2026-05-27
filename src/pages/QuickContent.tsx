@@ -222,29 +222,21 @@ export default function QuickContent() {
 
           try { await refreshUserCredits(); } catch {}
 
-          const resultState = {
-            imageUrl: data.imageUrl, description: data.description, actionId: data.actionId,
-            prompt: formData.prompt, brandName: data.brandName, themeName: data.themeName,
-            personaName: data.personaName, platform: formData.platform,
-            headline: data.headline, legenda: data.legenda, cta: data.cta, hashtags: data.hashtags,
-            complianceCheck: data.complianceCheck || null,
-            // Pass full form data for reuse
-            brandId: formData.brandId, themeId: formData.themeId, personaId: formData.personaId,
-            aspectRatio: formData.aspectRatio, visualStyle: formData.visualStyle,
-            style: formData.style, quality: formData.quality,
-            colorPalette: formData.colorPalette, lighting: formData.lighting,
-            composition: formData.composition, cameraAngle: formData.cameraAngle,
-            mood: formData.mood, width: formData.width, height: formData.height,
-          };
-
           return {
-            route: "/text-editor",
+            route: "/quick-content-result",
             state: {
-              imageUrl: data.imageUrl,
-              actionId: data.actionId,
-              nextRoute: "/quick-content-result",
-              nextStateKey: "imageUrl",
-              nextState: resultState,
+              imageUrl: data.imageUrl, description: data.description, actionId: data.actionId,
+              prompt: formData.prompt, brandName: data.brandName, themeName: data.themeName,
+              personaName: data.personaName, platform: formData.platform,
+              headline: data.headline, legenda: data.legenda, cta: data.cta, hashtags: data.hashtags,
+              complianceCheck: data.complianceCheck || null,
+              // Pass full form data for reuse
+              brandId: formData.brandId, themeId: formData.themeId, personaId: formData.personaId,
+              aspectRatio: formData.aspectRatio, visualStyle: formData.visualStyle,
+              style: formData.style, quality: formData.quality,
+              colorPalette: formData.colorPalette, lighting: formData.lighting,
+              composition: formData.composition, cameraAngle: formData.cameraAngle,
+              mood: formData.mood, width: formData.width, height: formData.height,
             },
           };
         },

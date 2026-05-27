@@ -47,21 +47,6 @@ const AdminUsers = () => {
   
   const [pageSize, setPageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loginStats, setLoginStats] = useState<{
-    internal_7d: number; external_7d: number;
-    internal_30d: number; external_30d: number;
-    internal_total: number; external_total: number;
-  } | null>(null);
-
-  useEffect(() => {
-    supabase.functions.invoke("admin-login-stats").then(({ data, error }) => {
-      if (error) {
-        console.error("admin-login-stats", error);
-        return;
-      }
-      setLoginStats(data);
-    });
-  }, []);
 
   useEffect(() => {
     fetchData();
@@ -213,22 +198,6 @@ const AdminUsers = () => {
         <p className="text-muted-foreground">
           Gerencie todos os usuários da plataforma — créditos individuais
         </p>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { label: "Logados 7d · Externos", value: loginStats?.external_7d, accent: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
-          { label: "Logados 7d · Internos", value: loginStats?.internal_7d, accent: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
-          { label: "Logados 30d · Externos", value: loginStats?.external_30d, accent: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
-          { label: "Logados 30d · Internos", value: loginStats?.internal_30d, accent: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
-        ].map((s) => (
-          <div key={s.label} className={`rounded-2xl border p-4 ${s.bg}`}>
-            <p className="text-xs text-muted-foreground mb-1">{s.label}</p>
-            <p className={`text-2xl font-bold ${s.accent}`}>
-              {loginStats === null ? "—" : s.value ?? 0}
-            </p>
-          </div>
-        ))}
       </div>
 
       <Card className="border-0 shadow-xl bg-gradient-to-br from-background to-muted/10">

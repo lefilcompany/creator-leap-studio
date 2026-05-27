@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
 import type { Tables, TablesUpdate } from "@/integrations/supabase/types";
 
 export type ActionRow = Tables<'actions'>;
@@ -19,34 +18,39 @@ interface UseActionsOptions {
 }
 
 export const useActions = (options: UseActionsOptions = {}) => {
-  const { user, team } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const { team } = useAuth();
   const { brandId, type, status, limit = 50 } = options;
 
   return useQuery({
-    queryKey: ['actions', currentWorkspace?.id, user?.id, brandId, type, status, limit],
+    queryKey: ['actions', team?.id, brandId, type, status, limit],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!team?.id) return [];
+      
       let query = supabase
         .from('actions')
         .select('*, brands(name)')
+        .eq('team_id', team.id)
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(limit);
-      if (currentWorkspace?.id) {
-        query = query.eq('workspace_id', currentWorkspace.id);
-      } else {
-        query = query.eq('user_id', user.id);
+      
+      if (brandId) {
+        query = query.eq('brand_id', brandId);
       }
-      if (brandId) query = query.eq('brand_id', brandId);
-      if (type) query = query.eq('type', type);
-      if (status) query = query.eq('status', status);
+      if (type) {
+        query = query.eq('type', type);
+      }
+      if (status) {
+        query = query.eq('status', status);
+      }
+      
       const { data, error } = await query;
+      
       if (error) throw error;
       return data as ActionWithBrand[];
     },
-    enabled: !!user?.id,
-    staleTime: 1000 * 60 * 1,
+    enabled: !!team?.id,
+    staleTime: 1000 * 60 * 1, // 1 minute - actions change more frequently
   });
 };
 

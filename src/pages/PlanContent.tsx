@@ -200,7 +200,7 @@ const PlanContent = () => {
       clearPersistedData();
 
       addTask(
-        "Novo calendário",
+        "Calendário de Conteúdo",
         "plan_content",
         async () => {
           const { data, error } = await supabase.functions.invoke("generate-plan", { body: payload });
@@ -257,7 +257,7 @@ const PlanContent = () => {
           {
             tourType: 'plan_content',
             steps: planContentSteps,
-            label: 'Tour do Novo calendário',
+            label: 'Tour do Calendário de Conteúdo',
             targetElement: '#plan-header'
           }
         ]}
@@ -267,12 +267,12 @@ const PlanContent = () => {
       {/* Banner */}
       <div className="relative w-full h-28 md:h-36 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
-          items={[{ label: "Novo calendário" }]}
+          items={[{ label: "Calendário de Conteúdo" }]}
           variant="overlay"
         />
         <img
           src={planBanner}
-          alt="Novo calendário"
+          alt="Calendário de Conteúdo"
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
@@ -290,7 +290,7 @@ const PlanContent = () => {
               <Calendar className="h-6 w-6 lg:h-7 lg:w-7" />
             </div>
             <div>
-              <h1 className="text-xl lg:text-2xl font-bold text-foreground">Novo calendário</h1>
+              <h1 className="text-xl lg:text-2xl font-bold text-foreground">Calendário de Conteúdo</h1>
               <p className="text-xs lg:text-sm text-muted-foreground">
                 Preencha os campos para gerar seu planejamento de posts
               </p>

@@ -1,1 +1,0 @@
-ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS archived_at timestamptz;

@@ -17,7 +17,6 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEmailRedirectUrl } from "@/lib/auth-urls";
-import { SeoHead } from "@/components/SeoHead";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -240,11 +239,6 @@ export default function Subscribe() {
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5">
-        <SeoHead
-          title="Assinar plano | Creator AI"
-          description="Crie sua conta no Creator AI e escolha o plano ideal para começar a produzir conteúdo com inteligência artificial."
-          path="/subscribe"
-        />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -586,11 +580,6 @@ export default function Subscribe() {
   // Caso 5: Usuário autenticado, tem equipe, é admin - mostrar seleção de planos
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <SeoHead
-        title="Assinar plano | Creator AI"
-        description="Escolha o plano ideal para sua equipe e desbloqueie todo o potencial de criação de conteúdo com IA do Creator AI."
-        path="/subscribe"
-      />
       <div className="container mx-auto py-12 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

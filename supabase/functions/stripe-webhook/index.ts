@@ -43,18 +43,18 @@ serve(async (req) => {
     
     let event: Stripe.Event;
     
-    // Verify webhook signature if secret is configured
-    if (webhookSecret) {
-      try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      } catch (err) {
-        logStep("Webhook signature verification failed", { error: err });
-        return new Response(JSON.stringify({ error: "Invalid signature" }), {
-          status: 400,
-        });
-      }
-    } else {
-      event = JSON.parse(body);
+    // Webhook signature is required — never accept unsigned events
+    if (!webhookSecret) {
+      logStep("STRIPE_WEBHOOK_SECRET not configured");
+      return new Response(JSON.stringify({ error: "Webhook secret not configured" }), { status: 500 });
+    }
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    } catch (err) {
+      logStep("Webhook signature verification failed", { error: err });
+      return new Response(JSON.stringify({ error: "Invalid signature" }), {
+        status: 400,
+      });
     }
 
     logStep("Event received", { type: event.type, id: event.id });

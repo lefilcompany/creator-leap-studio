@@ -1,7 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useWorkspace } from '@/contexts/WorkspaceContext';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import type { BrandSummary } from '@/types/brand';
@@ -21,22 +20,14 @@ interface HistoryPage {
 
 export function useHistoryBrands() {
   const { user } = useAuth();
-  const { currentWorkspace, loading: wsLoading } = useWorkspace();
 
   return useQuery({
-    queryKey: ['history-brands', currentWorkspace?.id ?? null, user?.id],
+    queryKey: ['history-brands', user?.id],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('brands')
         .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
         .order('name');
-      if (currentWorkspace?.id) {
-        query = query.eq('workspace_id', currentWorkspace.id);
-      } else {
-        // No workspace context — return empty to avoid leaking other workspaces
-        return [] as BrandSummary[];
-      }
-      const { data, error } = await query;
       if (error) throw error;
       return (data || []).map(brand => ({
         id: brand.id,
@@ -48,7 +39,7 @@ export function useHistoryBrands() {
         updatedAt: brand.updated_at
       })) as BrandSummary[];
     },
-    enabled: !!user?.id && !wsLoading,
+    enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
   });
@@ -56,18 +47,13 @@ export function useHistoryBrands() {
 
 export function useHistoryActions(filters: HistoryFilters) {
   const { user } = useAuth();
-  const { currentWorkspace, loading: wsLoading } = useWorkspace();
 
   return useInfiniteQuery<HistoryPage>({
-    queryKey: ['history-actions', currentWorkspace?.id ?? null, user?.id, filters.brandFilter, filters.typeFilter],
+    queryKey: ['history-actions', user?.id, filters.brandFilter, filters.typeFilter],
     queryFn: async ({ pageParam }) => {
       const cursor = pageParam as { createdAt: string; id: string } | undefined;
-
-      // Strict workspace isolation: never return cross-workspace data
-      if (!currentWorkspace?.id) {
-        return { actions: [], nextCursor: null, totalCount: 0 };
-      }
-
+      
+      // Resolve type filter to DB value
       let typeDbValue: string | null = null;
       if (filters.typeFilter !== 'all') {
         const entry = Object.entries(ACTION_TYPE_DISPLAY).find(
@@ -76,42 +62,84 @@ export function useHistoryActions(filters: HistoryFilters) {
         if (entry) typeDbValue = entry[0];
       }
 
-      let q = supabase
-        .from('actions')
-        .select('id, type, created_at, approved, brand_id, thumb_path, result, details, brands:brand_id(name)')
-        .is('deleted_at', null)
-        .is('parent_action_id', null)
-        .eq('workspace_id', currentWorkspace.id)
-        .order('created_at', { ascending: false })
-        .order('id', { ascending: false })
-        .limit(ITEMS_PER_PAGE);
+      const normalizeRowsFromActionsTable = (tableRows: any[]) => {
+        return tableRows.map((row) => {
+          const result = (row.result || {}) as Record<string, any>;
+          const details = (row.details || {}) as Record<string, any>;
+          const brand = Array.isArray(row.brands) ? row.brands[0] : row.brands;
 
-      if (filters.brandFilter !== 'all') q = q.eq('brand_id', filters.brandFilter);
-      if (typeDbValue) q = q.eq('type', typeDbValue);
-      if (cursor?.createdAt) q = q.lt('created_at', cursor.createdAt);
+          return {
+            id: row.id,
+            type: row.type,
+            created_at: row.created_at,
+            approved: row.approved,
+            brand_id: row.brand_id,
+            brand_name: brand?.name || null,
+            image_url: result.imageUrl || result.originalImage || null,
+            objective: details.objective || null,
+            platform: details.platform || null,
+            thumb_path: row.thumb_path || null,
+            title: result.title || result.description || null,
+            video_url: result.videoUrl || null,
+          };
+        });
+      };
 
-      const { data: rawRows, error } = await q;
-      if (error) throw error;
+      let rows: any[] = [];
+      let rpcError: any = null;
 
-      const rows = (rawRows || []).map((row: any) => {
-        const result = (row.result || {}) as Record<string, any>;
-        const details = (row.details || {}) as Record<string, any>;
-        const brand = Array.isArray(row.brands) ? row.brands[0] : row.brands;
-        return {
-          id: row.id,
-          type: row.type,
-          created_at: row.created_at,
-          approved: row.approved,
-          brand_id: row.brand_id,
-          brand_name: brand?.name || null,
-          image_url: result.imageUrl || result.originalImage || null,
-          objective: details.objective || null,
-          platform: details.platform || null,
-          thumb_path: row.thumb_path || null,
-          title: result.title || result.description || null,
-          video_url: result.videoUrl || null,
-        };
+      const { data, error } = await supabase.rpc('get_action_summaries', {
+        p_user_id: user!.id,
+        p_team_id: user?.teamId || null,
+        p_brand_filter: filters.brandFilter !== 'all' ? filters.brandFilter : null,
+        p_type_filter: typeDbValue,
+        p_limit: ITEMS_PER_PAGE,
+        p_offset: 0,
+        p_cursor_created_at: cursor?.createdAt || null,
+        p_cursor_id: cursor?.id || null,
       });
+
+      if (error) {
+        rpcError = error;
+      } else {
+        rows = data || [];
+      }
+
+      // Fallback robusto: se a RPC falhar ou voltar vazia indevidamente, busca direto na tabela
+      if (rpcError || rows.length === 0) {
+        let fallbackQuery = supabase
+          .from('actions')
+          .select('id, type, created_at, approved, brand_id, thumb_path, result, details, brands:brand_id(name)')
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+          .order('id', { ascending: false })
+          .limit(ITEMS_PER_PAGE);
+
+        if (user?.teamId) {
+          fallbackQuery = fallbackQuery.or(`user_id.eq.${user.id},team_id.eq.${user.teamId}`);
+        } else {
+          fallbackQuery = fallbackQuery.eq('user_id', user!.id);
+        }
+
+        if (filters.brandFilter !== 'all') {
+          fallbackQuery = fallbackQuery.eq('brand_id', filters.brandFilter);
+        }
+
+        if (typeDbValue) {
+          fallbackQuery = fallbackQuery.eq('type', typeDbValue);
+        }
+
+        if (cursor?.createdAt) {
+          fallbackQuery = fallbackQuery.lt('created_at', cursor.createdAt);
+        }
+
+        const { data: fallbackData, error: fallbackError } = await fallbackQuery;
+
+        if (fallbackError && rpcError) throw rpcError;
+        if (fallbackError) throw fallbackError;
+
+        rows = normalizeRowsFromActionsTable(fallbackData || []);
+      }
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
       const storageBase = supabaseUrl
@@ -171,8 +199,8 @@ export function useHistoryActions(filters: HistoryFilters) {
     },
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    enabled: !!user?.id && !wsLoading,
-    staleTime: 1000 * 60 * 2,
-    gcTime: 1000 * 60 * 15,
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 2, // 2 min cache — avoid re-fetching on every navigation
+    gcTime: 1000 * 60 * 15,   // keep in cache 15 min
   });
 }
