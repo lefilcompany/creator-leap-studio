@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { requireSystemAdmin } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,6 +41,10 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const authResult = await requireSystemAdmin(req, corsHeaders);
+  if (authResult instanceof Response) return authResult;
+
 
   try {
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");

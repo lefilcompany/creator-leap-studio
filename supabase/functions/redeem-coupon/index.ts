@@ -356,186 +356,25 @@ serve(async (req) => {
       );
     }
 
-    // ============= CUPOM COM CHECKSUM =============
-    // upperCode already declared above
-    
-    // 1. Validar formato
-    const formatValidation = validateCouponFormat(upperCode);
-    if (!formatValidation.valid) {
-      console.log(`[redeem-coupon] Invalid format: ${formatValidation.error}`);
-      return new Response(
-        JSON.stringify({ valid: false, error: 'Cupom inválido. Verifique o código e tente novamente.' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
-    }
-
-    const { prefix, randomPart, checksum } = formatValidation.parts!;
-
-    // 2. Validar checksum
-    if (!validateChecksum(prefix, randomPart, checksum)) {
-      console.log(`[redeem-coupon] Invalid checksum for: ${upperCode}`);
-      return new Response(
-        JSON.stringify({ valid: false, error: 'Cupom inválido. Verifique o código e tente novamente.' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
-    }
-
-    console.log(`[redeem-coupon] Checksum valid for: ${upperCode}`);
-
-    // 3. Obter informações do prêmio
-    const prizeInfo = getPrizeInfo(prefix);
-    console.log(`[redeem-coupon] Prize info:`, prizeInfo);
-
-    // 4. Aplicar benefícios
-    const creditsBefore = profile.credits || 0;
-    let creditsToAdd = 0;
-    let profileUpdate: any = {};
-
-    if (prizeInfo.type === 'days_basic') {
-      // B4: Upgrade para Basic por 14 dias
-      const newEnd = new Date();
-      newEnd.setDate(newEnd.getDate() + 14);
-      
-      // Buscar créditos do plano basic
-      const { data: basicPlan } = await supabaseAdmin
-        .from('plans')
-        .select('credits')
-        .eq('id', 'basic')
-        .single();
-      
-      creditsToAdd = basicPlan?.credits || 80;
-      
-      profileUpdate = {
-        plan_id: 'basic',
-        subscription_period_end: newEnd.toISOString(),
-        subscription_status: 'active',
-        credits: creditsBefore + creditsToAdd,
-        max_credits: Math.max(profile.max_credits ?? 0, creditsBefore + creditsToAdd),
-      };
-      
-      console.log(`[redeem-coupon] Upgrading to Basic until ${newEnd.toISOString()}`);
-      
-    } else if (prizeInfo.type === 'days_pro') {
-      // P7: Upgrade para Pro por 7 dias
-      const newEnd = new Date();
-      newEnd.setDate(newEnd.getDate() + 7);
-      
-      // Buscar créditos do plano pro
-      const { data: proPlan } = await supabaseAdmin
-        .from('plans')
-        .select('credits')
-        .eq('id', 'pro')
-        .single();
-      
-      creditsToAdd = proPlan?.credits || 160;
-      
-      profileUpdate = {
-        plan_id: 'pro',
-        subscription_period_end: newEnd.toISOString(),
-        subscription_status: 'active',
-        credits: creditsBefore + creditsToAdd,
-        max_credits: Math.max(profile.max_credits ?? 0, creditsBefore + creditsToAdd),
-      };
-      
-      console.log(`[redeem-coupon] Upgrading to Pro until ${newEnd.toISOString()}`);
-      
-    } else if (prizeInfo.type === 'credits') {
-      // Cupons de créditos: adicionar diretamente ao usuário
-      creditsToAdd = prizeInfo.value;
-      profileUpdate = {
-        credits: creditsBefore + creditsToAdd,
-        max_credits: Math.max(profile.max_credits ?? 0, creditsBefore + creditsToAdd),
-        credits_expire_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      };
-
-      console.log(`[redeem-coupon] Adding ${creditsToAdd} credits to user`);
-    }
-
-    console.log(`[redeem-coupon] Applying prize: ${JSON.stringify(profileUpdate)}`);
-
-    // 5. Registrar cupom PRIMEIRO (previne uso duplo)
-    console.log(`[redeem-coupon] Registering coupon in database...`);
-    const { error: insertError } = await supabaseAdmin
-      .from('coupons_used')
-      .insert({
-        team_id: profile.team_id || null,
-        coupon_code: upperCode,
-        coupon_prefix: prefix,
-        prize_type: prizeInfo.type,
-        prize_value: prizeInfo.value,
-        redeemed_by: user.id
-      });
-
-    if (insertError) {
-      console.error('[redeem-coupon] Error registering coupon:', insertError);
-      
-      // Se for erro de duplicidade (unique constraint)
-      if (insertError.code === '23505') {
-        return new Response(
-          JSON.stringify({ valid: false, error: 'Este cupom já foi utilizado.' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
-      }
-      
-      throw new Error('Erro ao registrar cupom. Tente novamente.');
-    }
-
-    console.log(`[redeem-coupon] Coupon registered. Applying benefits...`);
-
-    // 6. Aplicar benefícios ao PROFILE do usuário (não mais team)
-    const { data: updatedProfile, error: updateError } = await supabaseAdmin
-      .from('profiles')
-      .update(profileUpdate)
-      .eq('id', user.id)
-      .select('credits, max_credits, credits_expire_at, plan_id, subscription_status, subscription_period_end')
-      .single();
-
-    if (updateError) {
-      console.error('[redeem-coupon] Error updating profile:', updateError);
-      return new Response(
-        JSON.stringify({ 
-          valid: false, 
-          error: 'Cupom registrado, mas erro ao aplicar benefícios. Contate o suporte com o código: ' + upperCode 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      );
-    }
-
-    // 7. Registrar no histórico de créditos
-    await recordUserCreditUsage(supabaseAdmin, {
-      userId: user.id,
-      teamId: profile.team_id || undefined,
-      actionType: 'COUPON_REDEMPTION',
-      creditsUsed: -creditsToAdd, // Negativo porque é adição
-      creditsBefore: creditsBefore,
-      creditsAfter: creditsBefore + creditsToAdd,
-      description: `Cupom ${prizeInfo.description}`,
-      metadata: { 
-        coupon_code: upperCode, 
-        coupon_prefix: prefix,
-        prize_type: prizeInfo.type 
-      }
-    });
-
-    console.log(`[redeem-coupon] ✅ Coupon redeemed successfully: ${upperCode}`);
-
+    // ============= LEGACY CHECKSUM COUPONS (DEPRECATED) =============
+    // The hardcoded-checksum coupon path has been removed for security reasons:
+    // its algorithm was deterministic with constants in source, allowing anyone
+    // with code access to mint unlimited valid codes. All coupons must now be
+    // created via the admin-managed `coupons` table.
+    console.log(`[redeem-coupon] Code not found in DB coupons table: ${upperCode}`);
     return new Response(
-      JSON.stringify({
-        valid: true,
-        prize: prizeInfo,
-        profile: updatedProfile ? getProfileSyncPayload(updatedProfile) : undefined,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ valid: false, error: 'Cupom inválido. Verifique o código e tente novamente.' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     );
-
   } catch (error) {
     console.error('[redeem-coupon] Error:', error);
     return new Response(
-      JSON.stringify({ 
-        valid: false, 
-        error: error instanceof Error ? error.message : 'Erro interno' 
+      JSON.stringify({
+        valid: false,
+        error: error instanceof Error ? error.message : 'Erro interno'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
+
 });
