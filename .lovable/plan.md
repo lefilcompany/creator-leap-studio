@@ -1,67 +1,62 @@
-# Criar novo workspace — fluxo em etapas
 
-## Problema
 
-Hoje o botão "Criar novo workspace" no `WorkspaceSwitcher` navega para `/workspace?action=create`, mas a página `Workspace.tsx` ignora o parâmetro `action`. Nada acontece. Não existe nenhuma UI de criação no projeto.
+## Substituir "Temas Estratégicos" / "Temas" / "Tema" por "Editorias" / "Editoria"
 
-## Solução
+Vou trocar todos os rótulos voltados ao usuário (UI, traduções, tour de onboarding, breadcrumbs, mensagens, formulários) que fazem referência a "Temas Estratégicos", "Tema Estratégico", "Temas", "Tema", "Novo Tema", "Editar Tema", etc. por suas equivalências:
 
-Criar um modal **full-screen** (estilo da referência da Lovable) que abre quando a URL tem `?action=create`, com etapas curtas, perguntas diretas e termos já usados no app (nada de "pool", manter "Individuais" / "Compartilhados", como já ajustado nas memórias).
+- "Temas Estratégicos" → "Editorias"
+- "Tema Estratégico" / "Tema" → "Editoria"
+- "Novo Tema" → "Nova Editoria"
+- "Editar Tema" → "Editar Editoria"
+- "Criar Tema" → "Criar Editoria"
+- "tema(s) estratégico(s)" / "tema(s)" (em frases corridas voltadas ao usuário) → "editoria(s)"
+- "Macro-temas" / "Macro Temas" → "Macro-editorias" / "Macro Editorias"
 
-## Etapas do wizard
+### Arquivos que serão alterados (apenas strings visíveis ao usuário)
 
-```
-[1 Identidade]  →  [2 Créditos]  →  [3 Revisão]
-```
+**Navegação, traduções e tour**
+- `src/lib/translations.ts` — `sidebar.themes`, bloco `themes.*` (PT e ES)
+- `src/lib/formTranslations.ts` — bloco `forms.themes.*`, textos com "temas" em mensagens de exclusão/saída de equipe
+- `src/components/onboarding/tourSteps.ts` — passos referentes a `nav-themes`, `themes-create-button`, `plan-themes-field`, `select-theme`, `review-theme-field`
+- `src/components/onboarding/TourSelector.tsx` (se houver label) e `src/pages/Themes.tsx` (label do tour "Tour de Temas Estratégicos")
 
-**Etapa 1 — Identidade do workspace**
-- Avatar (opcional, upload imediato após criar — pode ser pulado)
-- Nome do workspace (obrigatório, mín. 2 chars)
-- Frase curta de apoio: "Espaço para colaborar com sua equipe e organizar marcas, conteúdos e calendários."
-- Botões: `Cancelar` · `Continuar`
+**Páginas**
+- `src/pages/Themes.tsx` — breadcrumb, título "Seus Temas Estratégicos", popover explicativo, botão "Novo tema", textos de erro/toast, dica dos 3 gratuitos
+- `src/pages/ThemeView.tsx` — breadcrumbs e textos
+- `src/pages/CreateContent.tsx` — label "Tema Estratégico", mensagens de validação/loader
+- `src/pages/CreateImage.tsx` — `CustomizationCardInline` title "Tema" e descrição
+- `src/pages/PlanContent.tsx` — label "Tema Estratégico" e placeholders
+- `src/pages/Brands.tsx` — bullet "Adicione personas e temas estratégicos à marca"
+- `src/pages/ActionView.tsx` — labels "Tema Estratégico" / "Temas Estratégicos"
+- `src/pages/CreditHistory.tsx` — `CREATE_THEME: "Criar Tema"` → "Criar Editoria"
 
-**Etapa 2 — Modelo de créditos**  
-Dois cards lado a lado (mesma linguagem do `Workspace.tsx`):
-- **Individuais** (padrão / recomendado) — "Cada membro usa os próprios créditos. Sem transferências, sem limites a configurar."
-- **Compartilhados** — "Você disponibiliza créditos para o workspace e define quanto cada membro pode gastar por mês."
+**Componentes**
+- `src/components/temas/ThemeDialog.tsx` — títulos, descrições e botão "Criar Tema"
+- `src/components/temas/ThemeDetails.tsx` — "Editar tema", "Macro Temas"
+- `src/components/temas/ThemeList.tsx` — empty state "Nenhum tema encontrado"
+- `src/components/quick-content/CustomizationCards.tsx` — title "Tema" / descrição
+- `src/components/dashboard/DashboardStats.tsx` — label "Temas Estratégicos"
+- `src/components/perfil/LeaveTeamDialog.tsx` — texto "marcas, temas e conteúdos"
+- `src/components/historico/ActionDetails.tsx` — label "Tema Estratégico"
+- `src/lib/creditCosts.ts` — `CREATE_THEME: "Criar tema"` → "Criar editoria"
 
-Se escolher **Compartilhados**, mostra logo abaixo:
-- Input "Disponibilizar agora (opcional)" — quantidade a transferir do saldo pessoal (validar contra `user.credits`, permite 0)
-- Input "Limite mensal padrão por membro" (default `0` = não pode gastar; texto auxiliar reforça que membros começam com 0 conforme regra do app)
-- Texto: "Você pode ajustar tudo isso depois em Configurações do Workspace."
+**Chatbot (texto exibido ao usuário)**
+- `supabase/functions/platform-chat/index.ts` — seção "🎯 Temas Estratégicos (/themes)" do conhecimento base, dicas e descrição geral
 
-Botões: `Voltar` · `Continuar`
+### O que NÃO será alterado (intencionalmente)
 
-**Etapa 3 — Revisão e criar**
-- Resumo: nome, avatar, modo de créditos (e valor a transferir + limite padrão se compartilhado)
-- Botões: `Voltar` · `Criar workspace` (loading)
+- Nomes de variáveis, tipos, hooks, rotas (`/themes`), IDs DOM (`nav-themes`, `themes-list`, etc.), tabelas e colunas do banco (`strategic_themes`, `theme_id`, `themeData`, etc.), props internas e arquivos de tipo (`src/types/theme.ts`).
+- Prompts internos enviados à IA em edge functions (`generate-plan`, `generate-quick-content`, `edit-image`, `review-image`, `imagePromptBuilder`) — esses textos ("TEMA ESTRATÉGICO:", "Tema Estratégico:") são instruções internas para o modelo e mantê-los preserva a qualidade da geração. Posso alterá-los também se preferir, mas o padrão é não tocar.
+- Migration SQL antiga (`20251001133719_*.sql`) — registros históricos de planos no banco; mudanças cosméticas não justificam nova migration.
+- `next-themes` / `useTheme` / `setTheme` (toggle de modo claro/escuro) — não é "tema estratégico".
+- Arquivos de documentação (`README.md`, guias `.md`) salvo se solicitado.
 
-## Lógica de submit (sequencial, com rollback simples)
+### Pergunta de escopo
 
-1. `INSERT public.workspaces { name, owner_id: user.id, is_personal: false, credit_mode }` → recebe `workspace_id`.
-2. `INSERT public.workspace_members { workspace_id, user_id, role: 'owner', status: 'active', joined_at: now() }`.
-3. Se avatar selecionado: upload em `workspace-avatars/{workspace_id}/...` e `UPDATE workspaces.avatar_url`.
-4. Se modo `shared` e valor > 0: `rpc('workspace_transfer_personal_to_shared', { p_workspace_id, p_amount })` (já existe).
-5. `UPDATE profiles.current_workspace_id = workspace_id` (entra no workspace recém-criado).
-6. `WorkspaceContext.reload()` + `refreshProfile()` + `navigate('/workspace')` (limpa `?action=create`).
-7. `toast.success("Workspace criado")`.
+Antes de aplicar, confirme:
 
-Erros em qualquer etapa: `toast.error` com mensagem; se já criou o workspace e a transferência falhar, manter o workspace e avisar que a transferência não ocorreu (usuário pode refazer em Configurações).
+1. **Prompts internos para a IA** (não visíveis ao usuário, mas afetam contexto enviado ao Gemini): manter como "Tema Estratégico" ou trocar para "Editoria"? Por padrão vou **manter** para preservar comportamento de geração.
+2. **Rota `/themes`** continua a mesma (não vou renomear para `/editorias` para evitar quebrar links existentes, favoritos e analytics). Confirme se está ok.
 
-## UI / arquivos
+Se concordar com esses dois pontos, aplico tudo de uma vez. Se quiser que eu também (a) traduza prompts internos e/ou (b) crie redirect `/themes` → `/editorias`, me avise antes de aprovar.
 
-- **Novo:** `src/components/workspace/CreateWorkspaceWizard.tsx` — `Dialog` em modo full-screen (`max-w-none w-screen h-screen rounded-none p-0`) com header (logo + botão fechar X), conteúdo central com `max-w-xl` e indicador de passos no topo (1·2·3 com linha de progresso). Reutiliza `Button`, `Input`, `Label`, `Avatar`, `cn`, padrão floating board (`bg-card`, `rounded-2xl`).
-- **Editar:** `src/pages/Workspace.tsx`
-  - `useEffect` adicional: se `params.get('action') === 'create'` → abre o wizard e remove o param da URL.
-  - Renderiza `<CreateWorkspaceWizard open={...} onClose={...} onCreated={...} />`.
-- **Editar:** `src/components/WorkspaceSwitcher.tsx` — manter o `navigate('/workspace?action=create')` (já funciona, só passa a ter handler).
-
-## Linguagem (memórias do projeto)
-- "Individuais" / "Compartilhados" (não "Pessoais", não "pool").
-- "Disponibilizar créditos para o workspace" (não "transferir para o pool").
-- Sem rótulo "(opcional)" — usar texto auxiliar quando precisar.
-- Breadcrumbs/back: usar botão `Voltar` entre etapas; botão `X` no canto fecha o wizard.
-
-## Não-escopo
-- Seleção de plano: o app cobra créditos por usuário (`profiles.plan_id`, `profiles.credits`), não por workspace. Não faz sentido pedir plano na criação — fica fora.
-- Convites de membros: já existem em Configurações do Workspace; o wizard finaliza levando o usuário para lá caso queira convidar (link "Convidar membros agora" na tela de sucesso).

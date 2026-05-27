@@ -243,7 +243,7 @@ Tema ${index + 1}:
         systemInstruction: { parts: [{ text: systemPrompt }] },
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 65536,
+          maxOutputTokens: 8000,
         },
       }),
     });

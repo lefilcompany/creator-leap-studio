@@ -10,8 +10,7 @@ import {
   CreditCard,
   Settings,
   Ticket,
-  MessageSquareWarning,
-  Bot
+  MessageSquareWarning
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -86,11 +85,9 @@ export function SystemSidebar() {
     { href: "/system/users", icon: Users, label: "Usuários" },
     { href: "/system/plans", icon: CreditCard, label: "Planos" },
     { href: "/system/teams", icon: Building2, label: "Equipes" },
-    { href: "/system/workspaces", icon: Building2, label: "Workspaces" },
     { href: "/system/logs", icon: ScrollText, label: "Logs" },
     { href: "/system/coupons", icon: Ticket, label: "Cupons" },
     { href: "/system/reports", icon: MessageSquareWarning, label: "Reports" },
-    { href: "/system/agents", icon: Bot, label: "Agente Revisor" },
     { href: "/system/settings", icon: Settings, label: "Configurações" },
   ];
 

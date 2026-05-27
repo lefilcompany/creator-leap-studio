@@ -25,7 +25,6 @@ export type Database = {
           updated_at: string | null
           user_id: string
           visibility: string
-          workspace_id: string | null
         }
         Insert: {
           color?: string | null
@@ -37,7 +36,6 @@ export type Database = {
           updated_at?: string | null
           user_id: string
           visibility?: string
-          workspace_id?: string | null
         }
         Update: {
           color?: string | null
@@ -49,7 +47,6 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           visibility?: string
-          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -140,7 +137,6 @@ export type Database = {
           scope: string
           team_id: string | null
           user_id: string
-          workspace_id: string | null
         }
         Insert: {
           action_id: string
@@ -149,7 +145,6 @@ export type Database = {
           scope?: string
           team_id?: string | null
           user_id: string
-          workspace_id?: string | null
         }
         Update: {
           action_id?: string
@@ -158,7 +153,6 @@ export type Database = {
           scope?: string
           team_id?: string | null
           user_id?: string
-          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -186,7 +180,6 @@ export type Database = {
           deleted_at: string | null
           details: Json | null
           id: string
-          parent_action_id: string | null
           result: Json | null
           revisions: number | null
           status: string
@@ -195,7 +188,6 @@ export type Database = {
           type: string
           updated_at: string | null
           user_id: string
-          workspace_id: string | null
         }
         Insert: {
           approved?: boolean | null
@@ -205,7 +197,6 @@ export type Database = {
           deleted_at?: string | null
           details?: Json | null
           id?: string
-          parent_action_id?: string | null
           result?: Json | null
           revisions?: number | null
           status?: string
@@ -214,7 +205,6 @@ export type Database = {
           type: string
           updated_at?: string | null
           user_id: string
-          workspace_id?: string | null
         }
         Update: {
           approved?: boolean | null
@@ -224,7 +214,6 @@ export type Database = {
           deleted_at?: string | null
           details?: Json | null
           id?: string
-          parent_action_id?: string | null
           result?: Json | null
           revisions?: number | null
           status?: string
@@ -233,7 +222,6 @@ export type Database = {
           type?: string
           updated_at?: string | null
           user_id?: string
-          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -241,13 +229,6 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "actions_parent_action_id_fkey"
-            columns: ["parent_action_id"]
-            isOneToOne: false
-            referencedRelation: "actions"
             referencedColumns: ["id"]
           },
           {
@@ -273,99 +254,6 @@ export type Database = {
           },
         ]
       }
-      agent_feedback: {
-        Row: {
-          agent_id: string
-          brand_id: string | null
-          comment: string | null
-          content_snapshot: Json | null
-          context: Json | null
-          created_at: string
-          id: string
-          rating: string
-          target_id: string | null
-          target_type: string
-          team_id: string | null
-          updated_at: string
-          user_id: string
-          workspace_id: string | null
-        }
-        Insert: {
-          agent_id: string
-          brand_id?: string | null
-          comment?: string | null
-          content_snapshot?: Json | null
-          context?: Json | null
-          created_at?: string
-          id?: string
-          rating: string
-          target_id?: string | null
-          target_type: string
-          team_id?: string | null
-          updated_at?: string
-          user_id: string
-          workspace_id?: string | null
-        }
-        Update: {
-          agent_id?: string
-          brand_id?: string | null
-          comment?: string | null
-          content_snapshot?: Json | null
-          context?: Json | null
-          created_at?: string
-          id?: string
-          rating?: string
-          target_id?: string | null
-          target_type?: string
-          team_id?: string | null
-          updated_at?: string
-          user_id?: string
-          workspace_id?: string | null
-        }
-        Relationships: []
-      }
-      agent_style_summaries: {
-        Row: {
-          agent_id: string
-          brand_id: string | null
-          created_at: string
-          feedbacks_processed: number
-          id: string
-          last_revised_at: string | null
-          manually_edited: boolean
-          negative_rules: Json
-          positive_rules: Json
-          style_summary: string | null
-          updated_at: string
-        }
-        Insert: {
-          agent_id: string
-          brand_id?: string | null
-          created_at?: string
-          feedbacks_processed?: number
-          id?: string
-          last_revised_at?: string | null
-          manually_edited?: boolean
-          negative_rules?: Json
-          positive_rules?: Json
-          style_summary?: string | null
-          updated_at?: string
-        }
-        Update: {
-          agent_id?: string
-          brand_id?: string | null
-          created_at?: string
-          feedbacks_processed?: number
-          id?: string
-          last_revised_at?: string | null
-          manually_edited?: boolean
-          negative_rules?: Json
-          positive_rules?: Json
-          style_summary?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       brand_style_preferences: {
         Row: {
           brand_id: string
@@ -380,7 +268,6 @@ export type Database = {
           total_positive: number | null
           updated_at: string
           user_id: string
-          workspace_id: string | null
         }
         Insert: {
           brand_id: string
@@ -395,7 +282,6 @@ export type Database = {
           total_positive?: number | null
           updated_at?: string
           user_id: string
-          workspace_id?: string | null
         }
         Update: {
           brand_id?: string
@@ -410,7 +296,6 @@ export type Database = {
           total_positive?: number | null
           updated_at?: string
           user_id?: string
-          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -450,7 +335,6 @@ export type Database = {
           updated_at: string | null
           user_id: string
           values: string | null
-          workspace_id: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -479,7 +363,6 @@ export type Database = {
           updated_at?: string | null
           user_id: string
           values?: string | null
-          workspace_id?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -508,7 +391,6 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           values?: string | null
-          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -519,215 +401,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      calendar_items: {
-        Row: {
-          briefing_approved: boolean
-          briefing_approved_at: string | null
-          briefing_approved_by: string | null
-          calendar_approved: boolean
-          calendar_id: string
-          created_at: string
-          design_action_id: string | null
-          design_approved: boolean
-          final_approved: boolean
-          id: string
-          image_briefing: string | null
-          metadata: Json | null
-          notes: string | null
-          position: number
-          scheduled_date: string | null
-          stage: string
-          team_id: string | null
-          text_briefing: string | null
-          theme: string | null
-          title: string
-          updated_at: string
-          user_id: string
-          workspace_id: string | null
-        }
-        Insert: {
-          briefing_approved?: boolean
-          briefing_approved_at?: string | null
-          briefing_approved_by?: string | null
-          calendar_approved?: boolean
-          calendar_id: string
-          created_at?: string
-          design_action_id?: string | null
-          design_approved?: boolean
-          final_approved?: boolean
-          id?: string
-          image_briefing?: string | null
-          metadata?: Json | null
-          notes?: string | null
-          position?: number
-          scheduled_date?: string | null
-          stage?: string
-          team_id?: string | null
-          text_briefing?: string | null
-          theme?: string | null
-          title: string
-          updated_at?: string
-          user_id: string
-          workspace_id?: string | null
-        }
-        Update: {
-          briefing_approved?: boolean
-          briefing_approved_at?: string | null
-          briefing_approved_by?: string | null
-          calendar_approved?: boolean
-          calendar_id?: string
-          created_at?: string
-          design_action_id?: string | null
-          design_approved?: boolean
-          final_approved?: boolean
-          id?: string
-          image_briefing?: string | null
-          metadata?: Json | null
-          notes?: string | null
-          position?: number
-          scheduled_date?: string | null
-          stage?: string
-          team_id?: string | null
-          text_briefing?: string | null
-          theme?: string | null
-          title?: string
-          updated_at?: string
-          user_id?: string
-          workspace_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "calendar_items_calendar_id_fkey"
-            columns: ["calendar_id"]
-            isOneToOne: false
-            referencedRelation: "content_calendars"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      content_briefings: {
-        Row: {
-          action_id: string | null
-          additional_notes: string | null
-          brand_id: string
-          content_type: string
-          created_at: string
-          edited_template: Json | null
-          id: string
-          idea: string
-          objective: string | null
-          persona_id: string | null
-          platform: string | null
-          selected_template_id: string | null
-          status: string
-          team_id: string | null
-          templates: Json
-          theme_id: string | null
-          tone: string[]
-          updated_at: string
-          user_id: string
-          workspace_id: string | null
-        }
-        Insert: {
-          action_id?: string | null
-          additional_notes?: string | null
-          brand_id: string
-          content_type?: string
-          created_at?: string
-          edited_template?: Json | null
-          id?: string
-          idea: string
-          objective?: string | null
-          persona_id?: string | null
-          platform?: string | null
-          selected_template_id?: string | null
-          status?: string
-          team_id?: string | null
-          templates?: Json
-          theme_id?: string | null
-          tone?: string[]
-          updated_at?: string
-          user_id: string
-          workspace_id?: string | null
-        }
-        Update: {
-          action_id?: string | null
-          additional_notes?: string | null
-          brand_id?: string
-          content_type?: string
-          created_at?: string
-          edited_template?: Json | null
-          id?: string
-          idea?: string
-          objective?: string | null
-          persona_id?: string | null
-          platform?: string | null
-          selected_template_id?: string | null
-          status?: string
-          team_id?: string | null
-          templates?: Json
-          theme_id?: string | null
-          tone?: string[]
-          updated_at?: string
-          user_id?: string
-          workspace_id?: string | null
-        }
-        Relationships: []
-      }
-      content_calendars: {
-        Row: {
-          ai_context: Json | null
-          brand_id: string | null
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-          persona_id: string | null
-          reference_month: string | null
-          status: string
-          team_id: string | null
-          theme_id: string | null
-          updated_at: string
-          user_id: string
-          user_input: string | null
-          workspace_id: string | null
-        }
-        Insert: {
-          ai_context?: Json | null
-          brand_id?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          persona_id?: string | null
-          reference_month?: string | null
-          status?: string
-          team_id?: string | null
-          theme_id?: string | null
-          updated_at?: string
-          user_id: string
-          user_input?: string | null
-          workspace_id?: string | null
-        }
-        Update: {
-          ai_context?: Json | null
-          brand_id?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          persona_id?: string | null
-          reference_month?: string | null
-          status?: string
-          team_id?: string | null
-          theme_id?: string | null
-          updated_at?: string
-          user_id?: string
-          user_input?: string | null
-          workspace_id?: string | null
-        }
-        Relationships: []
       }
       coupons: {
         Row: {
@@ -832,7 +505,6 @@ export type Database = {
           thumb_path: string | null
           updated_at: string
           user_id: string
-          workspace_id: string | null
         }
         Insert: {
           action_id: string
@@ -847,7 +519,6 @@ export type Database = {
           thumb_path?: string | null
           updated_at?: string
           user_id: string
-          workspace_id?: string | null
         }
         Update: {
           action_id?: string
@@ -862,7 +533,6 @@ export type Database = {
           thumb_path?: string | null
           updated_at?: string
           user_id?: string
-          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -893,7 +563,6 @@ export type Database = {
           metadata: Json | null
           team_id: string | null
           user_id: string
-          workspace_id: string | null
         }
         Insert: {
           action_type: string
@@ -906,7 +575,6 @@ export type Database = {
           metadata?: Json | null
           team_id?: string | null
           user_id: string
-          workspace_id?: string | null
         }
         Update: {
           action_type?: string
@@ -919,7 +587,6 @@ export type Database = {
           metadata?: Json | null
           team_id?: string | null
           user_id?: string
-          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -960,7 +627,6 @@ export type Database = {
           stripe_payment_intent_id: string | null
           team_id: string | null
           user_id: string
-          workspace_id: string | null
         }
         Insert: {
           amount_paid: number
@@ -976,7 +642,6 @@ export type Database = {
           stripe_payment_intent_id?: string | null
           team_id?: string | null
           user_id: string
-          workspace_id?: string | null
         }
         Update: {
           amount_paid?: number
@@ -992,7 +657,6 @@ export type Database = {
           stripe_payment_intent_id?: string | null
           team_id?: string | null
           user_id?: string
-          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -1003,51 +667,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      custom_fonts: {
-        Row: {
-          created_at: string
-          display_name: string
-          family_name: string
-          file_size: number
-          file_url: string
-          format: string
-          id: string
-          storage_path: string
-          team_id: string | null
-          updated_at: string
-          user_id: string
-          workspace_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          display_name: string
-          family_name: string
-          file_size?: number
-          file_url: string
-          format: string
-          id?: string
-          storage_path: string
-          team_id?: string | null
-          updated_at?: string
-          user_id: string
-          workspace_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          display_name?: string
-          family_name?: string
-          file_size?: number
-          file_url?: string
-          format?: string
-          id?: string
-          storage_path?: string
-          team_id?: string | null
-          updated_at?: string
-          user_id?: string
-          workspace_id?: string | null
-        }
-        Relationships: []
       }
       generation_reports: {
         Row: {
@@ -1109,7 +728,6 @@ export type Database = {
           type: string
           updated_at: string | null
           user_id: string
-          workspace_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -1122,7 +740,6 @@ export type Database = {
           type: string
           updated_at?: string | null
           user_id: string
-          workspace_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -1135,7 +752,6 @@ export type Database = {
           type?: string
           updated_at?: string | null
           user_id?: string
-          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -1240,7 +856,6 @@ export type Database = {
           team_id: string | null
           updated_at: string | null
           user_id: string
-          workspace_id: string | null
         }
         Insert: {
           age: string
@@ -1262,7 +877,6 @@ export type Database = {
           team_id?: string | null
           updated_at?: string | null
           user_id: string
-          workspace_id?: string | null
         }
         Update: {
           age?: string
@@ -1284,7 +898,6 @@ export type Database = {
           team_id?: string | null
           updated_at?: string | null
           user_id?: string
-          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -1377,7 +990,6 @@ export type Database = {
           created_at: string | null
           credits: number | null
           credits_expire_at: string | null
-          current_workspace_id: string | null
           email: string
           force_password_change: boolean | null
           id: string
@@ -1417,7 +1029,6 @@ export type Database = {
           created_at?: string | null
           credits?: number | null
           credits_expire_at?: string | null
-          current_workspace_id?: string | null
           email: string
           force_password_change?: boolean | null
           id: string
@@ -1457,7 +1068,6 @@ export type Database = {
           created_at?: string | null
           credits?: number | null
           credits_expire_at?: string | null
-          current_workspace_id?: string | null
           email?: string
           force_password_change?: boolean | null
           id?: string
@@ -1513,7 +1123,6 @@ export type Database = {
           tone_of_voice: string
           updated_at: string | null
           user_id: string
-          workspace_id: string | null
         }
         Insert: {
           additional_info?: string | null
@@ -1535,7 +1144,6 @@ export type Database = {
           tone_of_voice: string
           updated_at?: string | null
           user_id: string
-          workspace_id?: string | null
         }
         Update: {
           additional_info?: string | null
@@ -1557,7 +1165,6 @@ export type Database = {
           tone_of_voice?: string
           updated_at?: string | null
           user_id?: string
-          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -1758,48 +1365,6 @@ export type Database = {
           },
         ]
       }
-      text_style_templates: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          is_shared: boolean
-          layers: Json
-          name: string
-          team_id: string | null
-          thumbnail_url: string | null
-          updated_at: string
-          user_id: string
-          workspace_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_shared?: boolean
-          layers?: Json
-          name: string
-          team_id?: string | null
-          thumbnail_url?: string | null
-          updated_at?: string
-          user_id: string
-          workspace_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_shared?: boolean
-          layers?: Json
-          name?: string
-          team_id?: string | null
-          thumbnail_url?: string | null
-          updated_at?: string
-          user_id?: string
-          workspace_id?: string | null
-        }
-        Relationships: []
-      }
       user_events: {
         Row: {
           created_at: string
@@ -1906,160 +1471,6 @@ export type Database = {
         }
         Relationships: []
       }
-      workspace_invites: {
-        Row: {
-          accepted_at: string | null
-          created_at: string
-          email: string
-          expires_at: string
-          id: string
-          invited_by: string
-          monthly_credit_limit: number | null
-          permissions: Json
-          role: string
-          token: string
-          workspace_id: string
-        }
-        Insert: {
-          accepted_at?: string | null
-          created_at?: string
-          email: string
-          expires_at?: string
-          id?: string
-          invited_by: string
-          monthly_credit_limit?: number | null
-          permissions?: Json
-          role?: string
-          token?: string
-          workspace_id: string
-        }
-        Update: {
-          accepted_at?: string | null
-          created_at?: string
-          email?: string
-          expires_at?: string
-          id?: string
-          invited_by?: string
-          monthly_credit_limit?: number | null
-          permissions?: Json
-          role?: string
-          token?: string
-          workspace_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "workspace_invites_workspace_id_fkey"
-            columns: ["workspace_id"]
-            isOneToOne: false
-            referencedRelation: "workspaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      workspace_members: {
-        Row: {
-          created_at: string
-          credits_used_this_month: number
-          email: string | null
-          id: string
-          invited_at: string | null
-          invited_by: string | null
-          joined_at: string | null
-          last_credit_reset_at: string
-          monthly_credit_limit: number | null
-          permissions: Json
-          role: string
-          status: string
-          user_id: string | null
-          workspace_id: string
-        }
-        Insert: {
-          created_at?: string
-          credits_used_this_month?: number
-          email?: string | null
-          id?: string
-          invited_at?: string | null
-          invited_by?: string | null
-          joined_at?: string | null
-          last_credit_reset_at?: string
-          monthly_credit_limit?: number | null
-          permissions?: Json
-          role?: string
-          status?: string
-          user_id?: string | null
-          workspace_id: string
-        }
-        Update: {
-          created_at?: string
-          credits_used_this_month?: number
-          email?: string | null
-          id?: string
-          invited_at?: string | null
-          invited_by?: string | null
-          joined_at?: string | null
-          last_credit_reset_at?: string
-          monthly_credit_limit?: number | null
-          permissions?: Json
-          role?: string
-          status?: string
-          user_id?: string | null
-          workspace_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "workspace_members_workspace_id_fkey"
-            columns: ["workspace_id"]
-            isOneToOne: false
-            referencedRelation: "workspaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      workspaces: {
-        Row: {
-          archived_at: string | null
-          avatar_url: string | null
-          created_at: string
-          credit_mode: string
-          id: string
-          is_personal: boolean
-          legacy_team_id: string | null
-          name: string
-          owner_id: string
-          shared_credits: number
-          slug: string | null
-          updated_at: string
-        }
-        Insert: {
-          archived_at?: string | null
-          avatar_url?: string | null
-          created_at?: string
-          credit_mode?: string
-          id?: string
-          is_personal?: boolean
-          legacy_team_id?: string | null
-          name: string
-          owner_id: string
-          shared_credits?: number
-          slug?: string | null
-          updated_at?: string
-        }
-        Update: {
-          archived_at?: string | null
-          avatar_url?: string | null
-          created_at?: string
-          credit_mode?: string
-          id?: string
-          is_personal?: boolean
-          legacy_team_id?: string | null
-          name?: string
-          owner_id?: string
-          shared_credits?: number
-          slug?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       teammate_profiles: {
@@ -2120,32 +1531,8 @@ export type Database = {
         Args: { resource_team_id: string; resource_user_id: string }
         Returns: boolean
       }
-      can_access_workspace_resource: {
-        Args: {
-          resource_team_id?: string
-          resource_user_id: string
-          resource_workspace_id: string
-        }
-        Returns: boolean
-      }
       can_edit_category: { Args: { p_category_id: string }; Returns: boolean }
       check_team_access: { Args: { p_team_id: string }; Returns: boolean }
-      consume_workspace_credits: {
-        Args: {
-          p_action_type: string
-          p_amount: number
-          p_metadata?: Json
-          p_reference_id?: string
-          p_user_id: string
-          p_workspace_id: string
-        }
-        Returns: {
-          credit_mode: string
-          error: string
-          new_balance: number
-          success: boolean
-        }[]
-      }
       create_team_for_user: {
         Args: {
           p_plan_id?: string
@@ -2159,60 +1546,33 @@ export type Database = {
           team_name: string
         }[]
       }
-      get_action_summaries:
-        | {
-            Args: {
-              p_brand_filter?: string
-              p_cursor_created_at?: string
-              p_cursor_id?: string
-              p_limit?: number
-              p_offset?: number
-              p_team_id?: string
-              p_type_filter?: string
-              p_user_id?: string
-            }
-            Returns: {
-              approved: boolean
-              brand_id: string
-              brand_name: string
-              created_at: string
-              id: string
-              image_url: string
-              objective: string
-              platform: string
-              thumb_path: string
-              title: string
-              total_count: number
-              type: string
-              video_url: string
-            }[]
-          }
-        | {
-            Args: {
-              p_brand_filter?: string
-              p_cursor_created_at?: string
-              p_cursor_id?: string
-              p_limit?: number
-              p_offset?: number
-              p_team_id: string
-              p_type_filter?: string
-            }
-            Returns: {
-              approved: boolean
-              brand_id: string
-              brand_name: string
-              created_at: string
-              id: string
-              image_url: string
-              objective: string
-              platform: string
-              thumb_path: string
-              title: string
-              total_count: number
-              type: string
-              video_url: string
-            }[]
-          }
+      get_action_summaries: {
+        Args: {
+          p_brand_filter?: string
+          p_cursor_created_at?: string
+          p_cursor_id?: string
+          p_limit?: number
+          p_offset?: number
+          p_team_id?: string
+          p_type_filter?: string
+          p_user_id?: string
+        }
+        Returns: {
+          approved: boolean
+          brand_id: string
+          brand_name: string
+          created_at: string
+          id: string
+          image_url: string
+          objective: string
+          platform: string
+          thumb_path: string
+          title: string
+          total_count: number
+          type: string
+          video_url: string
+        }[]
+      }
       get_all_teams_admin: {
         Args: never
         Returns: {
@@ -2243,15 +1603,7 @@ export type Database = {
         }[]
       }
       get_team_id_by_code: { Args: { p_team_code: string }; Returns: string }
-      get_user_active_workspace_id: {
-        Args: { p_user_id: string }
-        Returns: string
-      }
       get_user_team_id: { Args: { p_user_id: string }; Returns: string }
-      get_workspace_role: {
-        Args: { _user_id: string; _workspace_id: string }
-        Returns: string
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2259,35 +1611,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_workspace_member: {
-        Args: { _user_id: string; _workspace_id: string }
-        Returns: boolean
-      }
-      is_workspace_owner: {
-        Args: { _user_id: string; _workspace_id: string }
-        Returns: boolean
-      }
       remove_team_member: {
         Args: { p_member_id: string; p_team_id: string }
         Returns: undefined
-      }
-      workspace_has_permission: {
-        Args: { _path: string; _user_id: string; _workspace_id: string }
-        Returns: boolean
-      }
-      workspace_transfer_personal_to_shared: {
-        Args: { p_amount: number; p_workspace_id: string }
-        Returns: {
-          new_personal_credits: number
-          new_shared_credits: number
-        }[]
-      }
-      workspace_transfer_shared_to_personal: {
-        Args: { p_amount: number; p_workspace_id: string }
-        Returns: {
-          new_personal_credits: number
-          new_shared_credits: number
-        }[]
       }
     }
     Enums: {

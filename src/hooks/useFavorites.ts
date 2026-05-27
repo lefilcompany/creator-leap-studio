@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useWorkspace } from '@/contexts/WorkspaceContext';
 
 export type FavoriteScope = 'personal' | 'team';
 
@@ -14,23 +13,20 @@ interface FavoriteEntry {
 
 export function useFavorites() {
   const { user, team } = useAuth();
-  const { currentWorkspace, loading: wsLoading } = useWorkspace();
   const queryClient = useQueryClient();
 
   const { data: favorites = [], isLoading } = useQuery({
-    queryKey: ['action-favorites', user?.id, currentWorkspace?.id ?? null],
+    queryKey: ['action-favorites', user?.id, team?.id],
     queryFn: async () => {
-      if (!currentWorkspace?.id) return [] as FavoriteEntry[];
       const { data, error } = await supabase
         .from('action_favorites')
-        .select('action_id, scope, team_id, user_id')
-        .eq('workspace_id', currentWorkspace.id);
+        .select('action_id, scope, team_id, user_id');
       if (error) throw error;
       return (data || []) as FavoriteEntry[];
     },
-    enabled: !!user?.id && !wsLoading,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5, // 5 min — favorites change rarely
+    gcTime: 1000 * 60 * 30,   // keep in cache 30 min
   });
 
   const personalFavoriteIds = favorites
@@ -38,7 +34,7 @@ export function useFavorites() {
     .map(f => f.action_id);
 
   const teamFavoriteIds = favorites
-    .filter(f => f.scope === 'team')
+    .filter(f => f.scope === 'team' && f.team_id === team?.id)
     .map(f => f.action_id);
 
   const allFavoriteIds = [...new Set([...personalFavoriteIds, ...teamFavoriteIds])];
@@ -61,7 +57,6 @@ export function useFavorites() {
           user_id: user!.id,
           action_id: actionId,
           scope,
-          workspace_id: currentWorkspace?.id ?? null,
         };
         if (scope === 'team' && team?.id) {
           insert.team_id = team.id;

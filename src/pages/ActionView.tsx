@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput, Users, Globe, X, ZoomIn, FolderOpen, Lightbulb, Target, Hash, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput, Users, Globe, X, ZoomIn, FolderOpen, Lightbulb, Target, Hash } from 'lucide-react';
 import { ComplianceAlert, type ComplianceData } from '@/components/ComplianceAlert';
 import type { Action } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
@@ -65,30 +65,6 @@ const DetailField = ({ label, children }: { label: string; children: React.React
     <div className="mt-1.5">{children}</div>
   </div>
 );
-
-// ── ExpandableText ───────────────────────────────────────────
-const ExpandableText = ({ text, charLimit = 220 }: { text: string; charLimit?: number }) => {
-  const [expanded, setExpanded] = useState(false);
-  const isLong = text.length > charLimit;
-  if (!isLong) {
-    return <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{text}</p>;
-  }
-  return (
-    <div>
-      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-        {expanded ? text : `${text.slice(0, charLimit).trimEnd()}…`}
-      </p>
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        className="mt-1.5 text-xs font-medium text-primary hover:underline"
-      >
-        {expanded ? 'Ver menos' : 'Ver mais'}
-      </button>
-    </div>
-  );
-};
-
 
 // ── PlatformIcon ─────────────────────────────────────────────
 function PlatformIcon({ platform, className = "h-4 w-4" }: { platform: string; className?: string }) {
@@ -303,7 +279,7 @@ const parsePlanText = (raw: string): ParsedPlan => {
   }
 
   if (currentBlock) result.contents.push(currentBlock);
-  if (!result.title) result.title = 'Novo calendário';
+  if (!result.title) result.title = 'Calendário de Conteúdo';
   return result;
 };
 
@@ -429,27 +405,6 @@ export default function ActionView() {
   const [copying, setCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-  const [lightboxGallery, setLightboxGallery] = useState<string[]>([]);
-  const openLightbox = (url: string, gallery?: string[]) => {
-    const list = gallery && gallery.length > 0 ? gallery.filter(Boolean) : [url];
-    setLightboxGallery(list);
-    setLightboxImage(url);
-  };
-  const lightboxIndex = lightboxImage ? Math.max(0, lightboxGallery.indexOf(lightboxImage)) : -1;
-  const goLightbox = (dir: -1 | 1) => {
-    if (lightboxGallery.length < 2 || lightboxIndex < 0) return;
-    const next = (lightboxIndex + dir + lightboxGallery.length) % lightboxGallery.length;
-    setLightboxImage(lightboxGallery[next]);
-  };
-  useEffect(() => {
-    if (!lightboxImage) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') goLightbox(-1);
-      else if (e.key === 'ArrowRight') goLightbox(1);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [lightboxImage, lightboxGallery]);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const [showFullPlan, setShowFullPlan] = useState(false);
   const { data: actionCats = [] } = useActionCategories(actionId);
@@ -766,6 +721,14 @@ export default function ActionView() {
               </p>
               {/* Status + Category badges */}
               <div className="flex flex-wrap items-center gap-2 mt-3">
+                <Badge className={cn(
+                  action.approved
+                    ? 'bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10'
+                    : 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20 hover:bg-yellow-500/10',
+                  "cursor-default"
+                )}>
+                  {action.approved ? 'Aprovado' : 'Pendente'}
+                </Badge>
                 {(action.revisions ?? 0) > 0 && (
                   <Badge variant="outline">{action.revisions} {action.revisions === 1 ? 'revisão' : 'revisões'}</Badge>
                 )}
@@ -840,65 +803,8 @@ export default function ActionView() {
               {/* Row: Image + Details & Info side by side */}
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Image */}
-                {Array.isArray((action.result as any)?.slides) && (action.result as any).slides.length > 0 ? (
-                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
-                    <SectionCard
-                      title={`Carrossel — ${(action.result as any).slides.length} slides`}
-                      icon={<LayoutGrid className="h-4 w-4" />}
-                      accentColor={accentColor}
-                      headerRight={
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={async () => {
-                            const slides = (action.result as any).slides as Array<{ index: number; image_url: string | null }>;
-                            for (const s of slides) {
-                              if (s.image_url) await handleDownloadImage(s.image_url, `slide-${s.index}-${action.id}`);
-                            }
-                          }}
-                        >
-                          <Download className="mr-2 h-4 w-4" />Baixar todos
-                        </Button>
-                      }
-                    >
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {((action.result as any).slides as Array<{ index: number; role?: string; headline?: string; image_url: string | null }>)
-                          .slice()
-                          .sort((a, b) => a.index - b.index)
-                          .map((s) => (
-                            <div key={s.index} className="space-y-1.5">
-                              <div
-                                className="relative group rounded-lg overflow-hidden border border-border/10 shadow-sm cursor-pointer aspect-[4/5] bg-muted"
-                                onClick={() => {
-                                  if (!s.image_url) return;
-                                  const gallery = ((action.result as any).slides as Array<{ index: number; image_url: string | null }>)
-                                    .slice()
-                                    .sort((a, b) => a.index - b.index)
-                                    .map((x) => x.image_url)
-                                    .filter((u): u is string => !!u);
-                                  openLightbox(s.image_url, gallery);
-                                }}
-                              >
-                                {s.image_url ? (
-                                  <>
-                                    <img src={s.image_url} alt={`Slide ${s.index}`} className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                      <ZoomIn className="text-white h-6 w-6" />
-                                    </div>
-                                    <Badge className="absolute top-1.5 left-1.5 text-[10px] bg-black/60 text-white border-0">#{s.index}</Badge>
-                                  </>
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">Slide {s.index}</div>
-                                )}
-                              </div>
-                              {s.headline && <p className="text-[11px] text-muted-foreground line-clamp-2">{s.headline}</p>}
-                            </div>
-                          ))}
-                      </div>
-                    </SectionCard>
-                  </div>
-                ) : action.result?.imageUrl && (
-                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
+                {action.result?.imageUrl && (
+                  <div className="lg:w-1/2">
                     <SectionCard title="Imagem Gerada" icon={<Image className="h-4 w-4" />} accentColor={accentColor}
                       headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                     >
@@ -921,13 +827,13 @@ export default function ActionView() {
                     <div className="space-y-5">
                       {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
                       {action.details?.platform && renderPlatformField(action.details.platform)}
-                      {action.details?.description && <DetailField label="Descrição"><ExpandableText text={action.details.description} /></DetailField>}
+                      {action.details?.description && <DetailField label="Descrição"><p className="text-sm text-foreground leading-relaxed">{action.details.description}</p></DetailField>}
                       {action.details?.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
                         <DetailField label="Tom de Voz">
                           <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
                         </DetailField>
                       )}
-                      {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
+                      {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
                       <Separator className="bg-border/10" />
                       <div className="grid grid-cols-2 gap-4">
                         <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
@@ -983,7 +889,7 @@ export default function ActionView() {
               <div className="flex flex-col lg:flex-row lg:items-stretch gap-6">
                 {/* Image */}
                 {action.result?.imageUrl && (
-                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
+                  <div className="lg:w-1/2">
                     <SectionCard title="Imagem Gerada" icon={<Image className="h-4 w-4" />} accentColor={accentColor}
                       headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                     >
@@ -1039,7 +945,7 @@ export default function ActionView() {
                       <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
                     </DetailField>
                   )}
-                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
+                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
                   {action.details?.isVideoMode && (
                     <div className="grid grid-cols-2 gap-4">
                       <DetailField label="Modo de Geração"><Badge variant="secondary">Vídeo</Badge></DetailField>
@@ -1064,7 +970,7 @@ export default function ActionView() {
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Video */}
               {action.result?.videoUrl && (
-                <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
+                <div className="lg:w-1/2">
                   <SectionCard title="Vídeo Gerado" icon={<Video className="h-4 w-4" />} accentColor={accentColor}
                     headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadVideo(action.result!.videoUrl!, `video-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                   >
@@ -1094,7 +1000,7 @@ export default function ActionView() {
                       </DetailField>
                     )}
                     {action.details?.aspectRatio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.aspectRatio}</p></DetailField>}
-                    {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
+                    {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
                     <Separator className="bg-border/10" />
                     <div className="grid grid-cols-2 gap-4">
                       <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
@@ -1114,7 +1020,7 @@ export default function ActionView() {
               {/* Row: Original image (if image review) + Details & Info */}
               <div className="flex flex-col lg:flex-row gap-6">
                 {action.result?.originalImage && (
-                  <div className="lg:w-1/2 lg:sticky lg:top-4 lg:self-start">
+                  <div className="lg:w-1/2">
                     <SectionCard title="Imagem Original" icon={<Image className="h-4 w-4" />} accentColor={accentColor}>
                       <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm cursor-pointer" onClick={() => setLightboxImage(action.result!.originalImage!)}>
                         <img src={action.result.originalImage} alt="Imagem original" className="w-full h-auto" />
@@ -1199,7 +1105,7 @@ export default function ActionView() {
                     </DetailField>
                   )}
                   {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
-                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><ExpandableText text={action.details.additionalInfo} /></DetailField>}
+                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
                   <Separator className="bg-border/10" />
                   <div className="grid grid-cols-2 gap-4">
                     <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
@@ -1212,7 +1118,7 @@ export default function ActionView() {
               {/* Plan result below */}
               {(action.result?.plan || (Array.isArray((action.result as any)?.posts) && (action.result as any).posts.length > 0)) && (
                 <SectionCard
-                  title="Novo calendário"
+                  title="Calendário de Conteúdo"
                   icon={<FileOutput className="h-4 w-4" />}
                   accentColor={accentColor}
                   headerRight={
@@ -1231,7 +1137,7 @@ export default function ActionView() {
                       {action.result?.plan && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Baixar planejamento"><Download className="h-4 w-4" /><span className="sr-only">Baixar planejamento</span></Button>
+                            <Button variant="outline" size="icon" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-card z-50">
                             <DropdownMenuItem onClick={() => handleDownloadDocx(action.result!.plan!)} className="cursor-pointer"><FileText className="mr-2 h-4 w-4" />Download DOCX</DropdownMenuItem>
@@ -1298,7 +1204,7 @@ export default function ActionView() {
       </div>
 
       {/* ═══ Image Lightbox Dialog ═══ */}
-      <Dialog open={!!lightboxImage} onOpenChange={(o) => { if (!o) { setLightboxImage(null); setLightboxGallery([]); } }}>
+      <Dialog open={!!lightboxImage} onOpenChange={() => setLightboxImage(null)}>
         <DialogContent className="max-w-[90vw] max-h-[90vh] p-2 bg-black/95 border-none">
           <div className="relative flex items-center justify-center w-full h-full">
             {lightboxImage && (
@@ -1308,67 +1214,7 @@ export default function ActionView() {
                 className="max-w-full max-h-[85vh] object-contain rounded-lg"
               />
             )}
-            {lightboxGallery.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  aria-label="Imagem anterior"
-                  onClick={(e) => { e.stopPropagation(); goLightbox(-1); }}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Próxima imagem"
-                  onClick={(e) => { e.stopPropagation(); goLightbox(1); }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-black/60 text-white text-xs font-medium">
-                  {lightboxIndex + 1} / {lightboxGallery.length}
-                </div>
-              </>
-            )}
             <div className="absolute bottom-4 right-4 flex gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={async () => {
-                  if (!lightboxImage) return;
-                  try {
-                    const res = await fetch(lightboxImage, { mode: "cors" });
-                    const blob = await res.blob();
-                    if (navigator.clipboard && (window as any).ClipboardItem) {
-                      // Convert to PNG if needed (clipboard requires png)
-                      let toCopy = blob;
-                      if (!blob.type.includes("png")) {
-                        const bitmap = await createImageBitmap(blob);
-                        const canvas = document.createElement("canvas");
-                        canvas.width = bitmap.width;
-                        canvas.height = bitmap.height;
-                        const ctx = canvas.getContext("2d");
-                        ctx?.drawImage(bitmap, 0, 0);
-                        toCopy = await new Promise<Blob>((resolve, reject) =>
-                          canvas.toBlob((b) => (b ? resolve(b) : reject()), "image/png")!,
-                        );
-                      }
-                      await navigator.clipboard.write([
-                        new (window as any).ClipboardItem({ "image/png": toCopy }),
-                      ]);
-                      toast.success("Imagem copiada");
-                    } else {
-                      throw new Error("Clipboard API indisponível");
-                    }
-                  } catch (e: any) {
-                    toast.error(e?.message || "Falha ao copiar imagem");
-                  }
-                }}
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                Copiar
-              </Button>
               <Button
                 variant="secondary"
                 size="sm"
