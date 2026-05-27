@@ -366,14 +366,15 @@ serve(async (req) => {
       JSON.stringify({ valid: false, error: 'Cupom inválido. Verifique o código e tente novamente.' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     );
-
+  } catch (error) {
     console.error('[redeem-coupon] Error:', error);
     return new Response(
-      JSON.stringify({ 
-        valid: false, 
-        error: error instanceof Error ? error.message : 'Erro interno' 
+      JSON.stringify({
+        valid: false,
+        error: error instanceof Error ? error.message : 'Erro interno'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
+
 });
