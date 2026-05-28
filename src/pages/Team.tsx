@@ -258,7 +258,7 @@ const TeamMembersSection = memo(({
                       transition={{ duration: 0.15 }}
                       className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
                     >
-                      {members.map((member) => (
+                      {displayedMembers.map((member) => (
                         <Card key={member.id} className="group relative border-0 shadow-md hover:shadow-lg transition-all">
                           <CardContent className="p-4 flex flex-col items-center text-center">
                             <Avatar className="h-16 w-16 mb-3">
