@@ -176,7 +176,14 @@ const TeamMembersSection = memo(({
   }, [members.length]);
 
   const displayedMembers = useMemo(() => {
-    const sorted = [...members].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    const collator = new Intl.Collator('pt-BR', { sensitivity: 'base', ignorePunctuation: true });
+    const sorted = [...members].sort((a, b) => {
+      if (teamAdminId) {
+        if (a.id === teamAdminId) return -1;
+        if (b.id === teamAdminId) return 1;
+      }
+      return collator.compare((a.name || '').trim(), (b.name || '').trim());
+    });
 
     if (viewMode === 'grid') {
       return sorted;
@@ -184,7 +191,7 @@ const TeamMembersSection = memo(({
 
     const start = (currentPage - 1) * membersPerPage;
     return sorted.slice(start, start + membersPerPage);
-  }, [members, viewMode, currentPage]);
+  }, [members, viewMode, currentPage, teamAdminId]);
 
   const totalPages = Math.ceil(members.length / membersPerPage);
 
