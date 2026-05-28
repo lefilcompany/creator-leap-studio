@@ -248,6 +248,7 @@ const Login = () => {
           </a>
         </div>
       </form>
+      </div>
     ),
     [
       email,
