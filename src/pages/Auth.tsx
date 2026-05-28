@@ -398,12 +398,10 @@ const Auth = () => {
   // Formulário de login
   const loginFormContent = (
     <div className="space-y-5">
-      <div className="space-y-2">
-        <GoogleSignInButton label="Entrar com Google" />
-        <p className="text-[11px] text-center text-muted-foreground">
-          Acesso rápido — sem precisar lembrar de senha.
-        </p>
-      </div>
+      <GoogleSignInButton label="Entrar com Google" />
+      <p className="text-[11px] text-center text-muted-foreground">
+        Acesso rápido — sem precisar lembrar de senha.
+      </p>
       <div className="relative">
         <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
         <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou entre com e-mail</span></div>
