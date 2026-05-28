@@ -1013,7 +1013,7 @@ const Auth = () => {
           </motion.div>
 
           {/* Links de Política de Privacidade e Contato */}
-          <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mt-0">
+          <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground flex-shrink-0 pb-2">
             <a href="/privacy" className="hover:text-primary transition-colors underline underline-offset-2">
               Política de Privacidade
             </a>
