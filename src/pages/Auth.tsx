@@ -398,6 +398,14 @@ const Auth = () => {
   // Formulário de login
   const loginFormContent = (
     <form ref={loginFormRef} onSubmit={handleLogin} className="space-y-5">
+      <div className="space-y-3">
+        <GoogleSignInButton label="Entrar com Google" />
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+          <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou entre com e-mail</span></div>
+        </div>
+      </div>
+
 
       <div className="space-y-2">
         <div className="relative">
@@ -480,6 +488,14 @@ const Auth = () => {
   // Formulário de registro
   const registerFormContent = (
     <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-4">
+      <div className="space-y-3">
+        <GoogleSignInButton label="Cadastrar com Google" />
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+          <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou preencha os dados</span></div>
+        </div>
+      </div>
+
 
       {/* Grupo 1: Informações Pessoais */}
       <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
