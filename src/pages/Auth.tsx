@@ -786,7 +786,7 @@ const Auth = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto p-4 sm:p-6"
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 gap-3"
         style={{
           background: 'linear-gradient(135deg, hsl(330 70% 92%) 0%, hsl(310 50% 93%) 20%, hsl(280 55% 94%) 40%, hsl(330 60% 95%) 60%, hsl(200 60% 93%) 80%, hsl(270 50% 92%) 100%)',
         }}
@@ -976,7 +976,7 @@ const Auth = () => {
               </div>
 
               {/* Formulário com scroll para cadastro */}
-              <div className={`flex-1 min-h-0 -mx-1 px-1 ${!isLoginMode ? 'max-h-[50vh] overflow-y-auto' : ''}`}>
+              <div className={`flex-1 min-h-0 -mx-1 px-1 ${!isLoginMode ? 'max-h-[42vh] sm:max-h-[50vh] overflow-y-auto' : ''}`}>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={isLoginMode ? "login" : "register"}
@@ -1013,7 +1013,7 @@ const Auth = () => {
           </motion.div>
 
           {/* Links de Política de Privacidade e Contato */}
-          <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mt-0">
+          <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground flex-shrink-0 pb-2">
             <a href="/privacy" className="hover:text-primary transition-colors underline underline-offset-2">
               Política de Privacidade
             </a>
