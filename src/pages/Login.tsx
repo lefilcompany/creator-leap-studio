@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { validateReturnUrl } from "@/lib/auth-urls";
 import { motion } from "framer-motion";
 import decorativeElement from "@/assets/decorative-element.png";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 const Login = () => {
   const { t } = useTranslation();
@@ -133,6 +134,23 @@ const Login = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const loginForm = useMemo(
     () => (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <GoogleSignInButton label="Entrar com Google" />
+          <p className="text-[11px] text-center text-muted-foreground">
+            Acesso rápido com sua conta Google — sem precisar lembrar de senha.
+          </p>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">ou entre com e-mail</span>
+          </div>
+        </div>
+
       <form onSubmit={handleLogin} className="space-y-4">
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -230,6 +248,7 @@ const Login = () => {
           </a>
         </div>
       </form>
+      </div>
     ),
     [
       email,
