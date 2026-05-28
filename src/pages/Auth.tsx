@@ -786,7 +786,7 @@ const Auth = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto p-4 sm:p-6"
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 gap-3"
         style={{
           background: 'linear-gradient(135deg, hsl(330 70% 92%) 0%, hsl(310 50% 93%) 20%, hsl(280 55% 94%) 40%, hsl(330 60% 95%) 60%, hsl(200 60% 93%) 80%, hsl(270 50% 92%) 100%)',
         }}
