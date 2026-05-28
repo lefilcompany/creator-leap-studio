@@ -27,6 +27,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
 import { getEmailRedirectUrl } from "@/lib/auth-urls";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 import decorativeElement from "@/assets/decorative-element.png";
 
@@ -396,7 +397,18 @@ const Auth = () => {
 
   // Formulário de login
   const loginFormContent = (
-    <form ref={loginFormRef} onSubmit={handleLogin} className="space-y-5">
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <GoogleSignInButton label="Entrar com Google" />
+        <p className="text-[11px] text-center text-muted-foreground">
+          Acesso rápido — sem precisar lembrar de senha.
+        </p>
+      </div>
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+        <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou entre com e-mail</span></div>
+      </div>
+      <form ref={loginFormRef} onSubmit={handleLogin} className="space-y-5">
       <div className="space-y-2">
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -473,11 +485,23 @@ const Auth = () => {
       </div>
 
     </form>
+    </div>
   );
 
   // Formulário de registro
   const registerFormContent = (
-    <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-4">
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <GoogleSignInButton label="Cadastrar com Google" />
+        <p className="text-[11px] text-center text-muted-foreground">
+          Crie sua conta em segundos com seu Google.
+        </p>
+      </div>
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+        <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou preencha os dados</span></div>
+      </div>
+      <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-4">
       {/* Grupo 1: Informações Pessoais */}
       <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -731,6 +755,7 @@ const Auth = () => {
         </div>
       </div>
     </form>
+    </div>
   );
 
 
