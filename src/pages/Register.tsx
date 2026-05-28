@@ -510,6 +510,7 @@ const Register = () => {
           </a>
         </div>
       </form>
+      </div>
     ),
     [
       formData,
