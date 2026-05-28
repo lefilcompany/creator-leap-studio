@@ -976,7 +976,7 @@ const Auth = () => {
               </div>
 
               {/* Formulário com scroll para cadastro */}
-              <div className={`flex-1 min-h-0 -mx-1 px-1 ${!isLoginMode ? 'max-h-[50vh] overflow-y-auto' : ''}`}>
+              <div className={`flex-1 min-h-0 -mx-1 px-1 ${!isLoginMode ? 'max-h-[42vh] sm:max-h-[50vh] overflow-y-auto' : ''}`}>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={isLoginMode ? "login" : "register"}
