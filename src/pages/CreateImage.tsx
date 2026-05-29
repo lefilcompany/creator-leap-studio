@@ -597,6 +597,108 @@ export default function CreateImage() {
     scrollPageToTop();
     setLoading(true);
 
+    // ═══ Carrossel: fluxo paralelo (uma thread por slide) ═══
+    if (isCarousel) {
+      try {
+        if (availableCredits < totalCarouselCost) {
+          toast.error("Créditos insuficientes", {
+            description: `Carrossel de ${slides.length} slides custa ${totalCarouselCost} créditos. Você tem ${availableCredits}.`,
+          });
+          setLoading(false);
+          return;
+        }
+
+        const selectedBrand = brands.find(b => b.id === formData.brand);
+        const selectedTheme = themes.find(t => t.id === formData.theme);
+        const selectedPersona = personas.find(p => p.id === formData.persona);
+
+        // Cria action pai
+        const initialSlides = slides.map((s, i) => ({ ...s, index: i, status: "pending" as const }));
+        const { data: actionRow, error: insertErr } = await supabase
+          .from("actions")
+          .insert({
+            user_id: user.id,
+            team_id: user.teamId ?? null,
+            type: "CRIAR_CONTEUDO",
+            brand_id: formData.brand,
+            details: {
+              platform: "Carrossel",
+              contentType,
+              tone: formData.tone,
+              brandName: selectedBrand?.name,
+              themeName: selectedTheme?.title,
+              personaName: selectedPersona?.name,
+              slidesCount: slides.length,
+              isCarousel: true,
+            },
+            result: {
+              carousel: {
+                slidesCount: slides.length,
+                slides: initialSlides,
+                brandId: formData.brand,
+                themeId: formData.theme || null,
+                personaId: formData.persona || null,
+                platform: "Carrossel",
+                contentType,
+                tone: formData.tone,
+              },
+            },
+          })
+          .select("id")
+          .single();
+
+        if (insertErr || !actionRow) {
+          console.error("Erro ao criar action carrossel:", insertErr);
+          toast.error("Erro ao iniciar carrossel", { description: insertErr?.message });
+          setLoading(false);
+          return;
+        }
+
+        // Dispara orquestrador (fire-and-forget)
+        const { error: invokeErr } = await supabase.functions.invoke("generate-carousel-images", {
+          body: {
+            actionId: actionRow.id,
+            slidesCount: slides.length,
+            slides: initialSlides.map(s => ({
+              index: s.index,
+              prompt: s.prompt,
+              visualStyle: s.visualStyle,
+              cameraAngle: s.cameraAngle,
+              lighting: s.lighting,
+              composition: s.composition,
+              mood: s.mood,
+              referenceImageUrl: s.referenceImageUrl,
+            })),
+            brandId: formData.brand,
+            themeId: formData.theme || undefined,
+            personaId: formData.persona || undefined,
+            platform: "Carrossel",
+            contentType,
+            tone: formData.tone,
+          },
+        });
+
+        if (invokeErr) {
+          console.error("Erro ao invocar generate-carousel-images:", invokeErr);
+          toast.error("Erro ao iniciar geração", { description: invokeErr.message });
+          setLoading(false);
+          return;
+        }
+
+        clearPersistedData();
+        toast.success("Carrossel em produção", {
+          description: `${slides.length} slides serão gerados em paralelo.`,
+        });
+        navigate(`/result?actionId=${actionRow.id}`);
+        return;
+      } catch (err: any) {
+        console.error("Erro carrossel:", err);
+        toast.error("Erro ao gerar carrossel", { description: err.message });
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       // Compress images (this is the only blocking step)
       const compressImage = async (file: File): Promise<string> => {
