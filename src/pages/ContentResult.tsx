@@ -82,6 +82,31 @@ export default function ContentResult() {
     user,
     refreshUserCredits
   } = useAuth();
+
+  // ═══ Carousel short-circuit ═══════════════════════════
+  // Quando navegamos via /result?actionId=... e a action é um carrossel,
+  // renderizamos uma view dedicada (CarouselResultView) e ignoramos o fluxo legado.
+  const carouselActionId = (() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("actionId") ?? undefined;
+  })();
+  const { data: carouselProbe, isLoading: probeLoading } = useQuery({
+    queryKey: ["carousel-probe", carouselActionId],
+    enabled: !!carouselActionId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("actions")
+        .select("result, details")
+        .eq("id", carouselActionId!)
+        .single();
+      const isCarousel =
+        !!(data?.result as any)?.carousel ||
+        !!(data?.details as any)?.isCarousel;
+      return { isCarousel };
+    },
+  });
+
+
   const [copied, setCopied] = useState(false);
   const [isImageCopied, setIsImageCopied] = useState(false);
   const [contentData, setContentData] = useState<ContentResultData | null>(null);
