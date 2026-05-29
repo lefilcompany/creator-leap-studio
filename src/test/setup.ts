@@ -25,8 +25,8 @@ class ResizeObserverMock {
   unobserve() {}
   disconnect() {}
 }
-// @ts-expect-error jsdom polyfill
-global.ResizeObserver = ResizeObserverMock;
+(globalThis as unknown as { ResizeObserver: typeof ResizeObserverMock }).ResizeObserver =
+  ResizeObserverMock;
 
 class IntersectionObserverMock {
   observe() {}
@@ -39,5 +39,6 @@ class IntersectionObserverMock {
   rootMargin = "";
   thresholds = [];
 }
-// @ts-expect-error jsdom polyfill
-global.IntersectionObserver = IntersectionObserverMock;
+(globalThis as unknown as {
+  IntersectionObserver: typeof IntersectionObserverMock;
+}).IntersectionObserver = IntersectionObserverMock;
