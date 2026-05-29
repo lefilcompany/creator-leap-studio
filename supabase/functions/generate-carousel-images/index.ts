@@ -125,6 +125,104 @@ async function callGenerateImageForSlide(
   }
 }
 
+async function generateCarouselCaption(
+  admin: ReturnType<typeof createClient>,
+  actionId: string,
+) {
+  try {
+    const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!geminiApiKey) {
+      console.warn("[carousel-caption] sem GEMINI_API_KEY");
+      return;
+    }
+    const { data: actionRow } = await admin
+      .from("actions")
+      .select("result, details")
+      .eq("id", actionId)
+      .single();
+    const result = (actionRow?.result as any) ?? {};
+    const details = (actionRow?.details as any) ?? {};
+    const carousel = result.carousel ?? {};
+    const slides: any[] = Array.isArray(carousel.slides) ? carousel.slides : [];
+    const promptsJoined = slides
+      .map((s, i) => `Slide ${i + 1}: ${s?.prompt ?? ""}`)
+      .filter(Boolean)
+      .join("\n");
+
+    const brandName = details.brandName ?? "";
+    const personaName = details.personaName ?? "";
+    const themeName = details.themeName ?? "";
+    const tone = Array.isArray(details.tone) ? details.tone.join(", ") : "";
+
+    const prompt = `Você é um copywriter especialista em carrosséis para Instagram.
+Crie UMA legenda única para o carrossel abaixo. Retorne SOMENTE JSON válido no formato:
+{"title":"...", "body":"...", "hashtags":["tag1","tag2","tag3","tag4","tag5"]}
+
+Regras:
+- title: gancho magnético de 45-60 caracteres
+- body: 600-1100 caracteres, com quebras de linha, máximo 5 emojis sutis, com CTA no final
+- hashtags: 5 a 8 hashtags estratégicas (sem o caractere #), mix nicho + médio alcance
+- Não invente dados; apóie-se nos slides
+
+Contexto da marca: ${brandName}
+Persona: ${personaName}
+Editoria/Tema: ${themeName}
+Tom de voz: ${tone}
+
+Slides do carrossel:
+${promptsJoined}`;
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048, responseMimeType: "application/json" },
+        }),
+      },
+    );
+    if (!res.ok) {
+      console.error("[carousel-caption] gemini err", res.status, await res.text());
+      return;
+    }
+    const json: any = await res.json();
+    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    let caption: any = null;
+    try { caption = JSON.parse(text); } catch {
+      const m = text.match(/\{[\s\S]*\}/);
+      if (m) { try { caption = JSON.parse(m[0]); } catch { /* noop */ } }
+    }
+    if (!caption?.title || !caption?.body || !Array.isArray(caption?.hashtags)) {
+      console.warn("[carousel-caption] resposta inválida", text?.slice(0, 200));
+      return;
+    }
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data: cur } = await admin
+        .from("actions")
+        .select("result")
+        .eq("id", actionId)
+        .single();
+      const curResult = (cur?.result as Record<string, any>) ?? {};
+      const car = curResult.carousel ?? {};
+      const next = {
+        ...curResult,
+        carousel: {
+          ...car,
+          caption: { title: caption.title, body: caption.body, hashtags: caption.hashtags },
+        },
+      };
+      const { error } = await admin.from("actions").update({ result: next }).eq("id", actionId);
+      if (!error) return;
+      console.warn("[carousel-caption] retry update", attempt, error);
+    }
+  } catch (err) {
+    console.error("[carousel-caption] fatal", err);
+  }
+}
+
 async function processCarousel(authHeader: string, body: Body) {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
@@ -159,7 +257,6 @@ async function processCarousel(authHeader: string, body: Body) {
       return;
     }
 
-    // Initialize all slides as pending in one shot (preserve any prior state for missing fields)
     for (const s of body.slides) {
       await patchSlide(admin, body.actionId, s.index, {
         ...s,
@@ -171,12 +268,25 @@ async function processCarousel(authHeader: string, body: Body) {
     const sorted = [...body.slides].sort((a, b) => a.index - b.index);
     if (sorted.length === 0) return;
 
-    // Slide 0 sequencial primeiro
     await run(sorted[0]);
-    // 1..N-1 em paralelo
     const rest = sorted.slice(1);
     if (rest.length > 0) {
       await Promise.all(rest.map(run));
+    }
+
+    // Auto-gera legenda quando todos os slides estiverem prontos
+    const { data: finalRow } = await admin
+      .from("actions")
+      .select("result")
+      .eq("id", body.actionId)
+      .single();
+    const finalCarousel = (finalRow?.result as any)?.carousel;
+    const finalSlides: any[] = Array.isArray(finalCarousel?.slides) ? finalCarousel.slides : [];
+    const allDone =
+      finalSlides.length === body.slidesCount &&
+      finalSlides.every((s) => s?.status === "done" && s?.imageUrl);
+    if (allDone && !finalCarousel?.caption) {
+      await generateCarouselCaption(admin, body.actionId);
     }
   } catch (err) {
     console.error("processCarousel fatal", err);
