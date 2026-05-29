@@ -551,15 +551,15 @@ export default function CreateImage() {
   const isFormValid = useMemo(() => {
     const hasPlatformOrFormat = !!(formData.platform || formData.aspectRatio);
     const promptValid = !!formData.prompt;
-    const referencesValid = isCarousel ? true : referenceFiles.length > 0;
+    const referencesValid = referenceFiles.length > 0;
     return formData.brand && promptValid && hasPlatformOrFormat && formData.tone.length > 0 && referencesValid;
-  }, [formData.brand, formData.prompt, formData.platform, formData.aspectRatio, formData.tone.length, referenceFiles.length, isCarousel]);
+  }, [formData.brand, formData.prompt, formData.platform, formData.aspectRatio, formData.tone.length, referenceFiles.length]);
 
   const validateForm = () => {
     const missing: string[] = [];
     if (!formData.brand) missing.push('brand');
     if (!formData.prompt) missing.push('prompt');
-    if (!isCarousel && referenceFiles.length === 0) missing.push('referenceFiles');
+    if (referenceFiles.length === 0) missing.push('referenceFiles');
     if (!formData.platform && !formData.aspectRatio) missing.push('platform');
     if (formData.tone.length === 0) missing.push('tone');
     setMissingFields(missing);
