@@ -621,10 +621,30 @@ export default function CreateImage() {
           });
         };
 
-        const carouselReferenceImages: string[] = [];
+        const referenceImagesBase64: string[] = [];
         for (let i = 0; i < referenceFiles.length; i++) {
-          carouselReferenceImages.push(await compressImage(referenceFiles[i]));
+          referenceImagesBase64.push(await compressImage(referenceFiles[i]));
         }
+
+        // Mesma lógica de priorização do fluxo de imagem única
+        const maxTotalImages = 5;
+        const safePreserveIndices = preserveImageIndices
+          .filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < referenceImagesBase64.length);
+
+        const userImageEntries = referenceImagesBase64.map((image, index) => ({
+          image,
+          preserve: safePreserveIndices.includes(index),
+        }));
+
+        const finalBrandImages = brandImages.slice(0, 3);
+        const availableUserSlots = Math.max(0, maxTotalImages - finalBrandImages.length);
+        const prioritizedUserEntries = [...userImageEntries].sort((a, b) => Number(b.preserve) - Number(a.preserve));
+        const limitedUserEntries = prioritizedUserEntries.slice(0, availableUserSlots);
+
+        const finalPreservedUserImages = limitedUserEntries.filter(e => e.preserve).map(e => e.image);
+        const finalStyleUserImages = limitedUserEntries.filter(e => !e.preserve).map(e => e.image);
+        const finalUserImages = [...finalPreservedUserImages, ...finalStyleUserImages];
+        const finalPreserveImages = [...finalBrandImages, ...finalPreservedUserImages];
 
         const selectedBrand = brands.find(b => b.id === formData.brand);
         const selectedTheme = themes.find(t => t.id === formData.theme);
@@ -667,6 +687,8 @@ export default function CreateImage() {
               basePrompt,
               aspectRatio: formData.aspectRatio,
               visualStyle: formData.visualStyle,
+              preserveImagesCount: finalPreserveImages.length,
+              styleReferenceImagesCount: finalStyleUserImages.length,
             },
             result: {
               carousel: {
@@ -713,7 +735,14 @@ export default function CreateImage() {
             aspectRatio: formData.aspectRatio,
             width: dims?.width,
             height: dims?.height,
-            referenceImages: carouselReferenceImages,
+            // Mesmo contrato de referências usado em generate-image (imagem única)
+            preserveImages: finalPreserveImages,
+            styleReferenceImages: finalStyleUserImages,
+            brandReferenceImages: finalBrandImages,
+            userReferenceImages: finalUserImages,
+            preserveImageIndices: safePreserveIndices,
+            // Fallback legado
+            referenceImages: referenceImagesBase64,
           },
         });
 
