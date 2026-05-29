@@ -305,8 +305,13 @@ export default function CreateImage() {
   const [showStyles, setShowStyles] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [textModalOpen, setTextModalOpen] = useState(false);
-
-  const teamId = user?.teamId;
+  const [slides, setSlides] = useState<SlideBriefing[]>([
+    { index: 0, prompt: "" },
+    { index: 1, prompt: "" },
+    { index: 2, prompt: "" },
+    { index: 3, prompt: "" },
+  ]);
+  const isCarousel = formData.platform === "Carrossel";
   const userId = user?.id;
 
   // Load Google Fonts
