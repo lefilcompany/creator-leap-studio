@@ -1,43 +1,60 @@
-## Problemas
+## Diagnóstico atual
 
-1. **Imagens de referência ignoradas no carrossel**: no fluxo `isCarousel`, `validateForm` pula `referenceFiles` e a invocação de `generate-carousel-images` não envia nenhuma referência. Resultado: as latas da marca não são respeitadas, ao contrário da geração única.
-2. **Tela de resultado diferente da padrão**: `ContentResult` faz um short‑circuit para `CarouselResultView`, que tem layout próprio (galeria + bloco de legenda separado) bem diferente da tela usada para uma imagem só.
-3. **Legenda não gerada**: confirmei no banco que a action `a9275571…` tem os 4 slides com `status:done` mas `caption` continua `null`. A função `generateCarouselCaption` é disparada *depois* do `Promise.all` dos slides, sem `EdgeRuntime.waitUntil` cobrindo essa etapa final em todos os cenários, então ela morre quando a invocação inicial responde antes — daí o "Gerando legenda do carrossel…" infinito.
+Hoje existem dois fluxos diferentes:
 
-## Mudanças
+1. **Imagem única** chama `generate-image` diretamente.
+   - Comprime as imagens enviadas.
+   - Separa imagens marcadas como **Preservar** das imagens de estilo.
+   - Envia para o backend os campos `preserveImages`, `styleReferenceImages`, `brandReferenceImages`, `userReferenceImages` e `preserveImageIndices`.
+   - O backend monta um prompt forte dizendo que imagens preservadas são intocáveis e anexa essas imagens ao modelo antes de gerar.
 
-### 1. Referências obrigatórias no carrossel (frontend)
-`src/pages/CreateImage.tsx`
-- Remover a exceção `isCarousel ? true : referenceFiles.length > 0` em `validateForm` e em `missingFields` — carrossel passa a exigir as mesmas referências da imagem única.
-- No branch `if (isCarousel)`, comprimir `referenceFiles` para base64 (mesma função `compressImage` que o fluxo single usa) **antes** de chamar a edge function, e enviar no body como `referenceImages: string[]` (array compartilhado por todos os slides).
+2. **Carrossel** chama `generate-carousel-images`.
+   - Ele comprime as imagens enviadas, mas envia tudo em um campo genérico `referenceImages`.
+   - Não envia `preserveImageIndices`, `preserveImages`, `styleReferenceImages`, `brandReferenceImages` nem `userReferenceImages`.
+   - Dentro de `generate-carousel-images`, cada slide chama `generate-image`, mas passa essas imagens genéricas como `referenceImages`.
+   - Só que `generate-image` não usa `referenceImages` no pipeline principal; ele espera os campos do fluxo de imagem única. Resultado: no carrossel, a referência marcada para preservar não entra com a mesma força e pode nem entrar no prompt final como preservação.
 
-### 2. Propagar referências por slide (backend)
-`supabase/functions/generate-carousel-images/index.ts`
-- Adicionar ao `BodySchema`: `referenceImages: z.array(z.string()).max(5).optional()`.
-- Em `callGenerateImageForSlide`, montar o payload de `generate-image` com `referenceImages: body.referenceImages ?? (slide.referenceImageUrl ? [slide.referenceImageUrl] : undefined)` — assim cada slide recebe exatamente o mesmo array de referências que o fluxo single envia.
+Além disso, o carrossel já tenta gerar em paralelo: gera o primeiro slide para definir a thumbnail e depois dispara os demais em `Promise.all`. Mas a chamada para cada slide não está reaproveitando corretamente o mesmo contrato de dados da imagem única.
 
-### 3. Garantir geração de legenda
-`supabase/functions/generate-carousel-images/index.ts`
-- Mover o disparo de `generateCarouselCaption` para um caminho garantido: executar `await generateCarouselCaption(...)` ao final de `processCarousel` mesmo se algum slide falhar (basta haver ≥1 `done` e ainda não existir caption), e envolver todo o `processCarousel` em `EdgeRuntime.waitUntil` (já feito) — confirmar que a chamada de caption está dentro desse mesmo `waitUntil` (está, mas adicionar try/catch + log para diagnóstico).
-- Trocar a checagem `allDone` para `hasAnyDone` (`finalSlides.some(s => s.status === 'done' && s.imageUrl)`) para não bloquear a legenda quando 1 slide falha.
+## Ajuste proposto
 
-### 4. Tela de resultado no padrão da imagem única
-`src/components/create-content/carousel/CarouselResultView.tsx`
-- Reescrever para reusar o **mesmo layout/visual** da `ContentResult` de imagem única:
-  - Mesmo header (breadcrumb + título + ações Salvar/Compartilhar/Baixar).
-  - Mesmo card de mídia (rounded-2xl bg-card shadow-xl, sem o badge "X/Y prontos" no topo) — para carrossel, substituir a `<img>` única por um Embla `Carousel` (componente `@/components/ui/carousel`) ocupando o mesmo slot da imagem, com indicadores de slide e setas; mantém a mesma proporção 4:5.
-  - Mesmo bloco de **Legenda sugerida** abaixo do card, idêntico ao da imagem única (Título / Corpo / Hashtags + botão Copiar + ações de revisão), em vez do bloco simplificado atual.
-- `CarouselResultView` continua sendo chamado pelo short‑circuit em `ContentResult.tsx`, mas agora visualmente é a "tela de resultado padrão" com um carrossel de imagens no lugar da imagem única.
+1. **Unificar o contrato de referências do carrossel com o da imagem única**
+   - No frontend (`CreateImage.tsx`), montar para carrossel os mesmos arrays usados na imagem única:
+     - `preserveImages`
+     - `styleReferenceImages`
+     - `brandReferenceImages`
+     - `userReferenceImages`
+     - `preserveImageIndices`
+   - Respeitar a mesma lógica de priorização: imagens preservadas entram antes; imagens de marca contam como preservação; limite total de referências continua controlado.
 
-## Detalhes técnicos
+2. **Atualizar `generate-carousel-images` para aceitar e repassar esses campos**
+   - Expandir o schema da função para aceitar os campos do pipeline premium.
+   - Em cada chamada interna para `generate-image`, enviar exatamente esses campos, não apenas `referenceImages`.
+   - Manter compatibilidade com `referenceImages` como fallback para carrosséis antigos ou chamadas antigas.
 
-- Limite de referências mantido em 5 (igual single).
-- `referenceImages` no carrossel são compartilhadas por todos os slides (não há UI para referência por slide hoje); o backend ignora `slide.referenceImageUrl` quando `body.referenceImages` está presente.
-- Nenhuma migração de banco necessária; estrutura `result.carousel` permanece igual.
-- Custo continua `slidesCount * COMPLETE_IMAGE` — sem mudança.
+3. **Manter geração paralela com preservação correta**
+   - Continuar chamando `generate-image` para cada slide.
+   - Cada slide terá seu prompt próprio, mas receberá as mesmas referências preservadas e de estilo do fluxo de imagem única.
+   - Ajustar para que, quando `onlyIndex` for usado na regeneração individual, a mesma estrutura de referências continue funcionando.
 
-## Arquivos tocados
+4. **Salvar metadados úteis no histórico**
+   - Registrar no `details/result.carousel` quantas imagens preservadas e de estilo foram usadas.
+   - Isso ajuda a auditar quando uma geração não respeitar referência.
 
-- `src/pages/CreateImage.tsx` — validação + upload de referências no carrossel.
-- `supabase/functions/generate-carousel-images/index.ts` — schema, propagação de referências, robustez da legenda.
-- `src/components/create-content/carousel/CarouselResultView.tsx` — reescrita para casar com o padrão de imagem única.
+## Arquivos a alterar
+
+- `src/pages/CreateImage.tsx`
+  - Reaproveitar a lógica de imagens da imagem única no bloco do carrossel.
+  - Enviar os campos corretos para `generate-carousel-images`.
+
+- `supabase/functions/generate-carousel-images/index.ts`
+  - Atualizar schema.
+  - Repassar o payload completo para `generate-image`.
+  - Manter fallback com `referenceImages`.
+
+- Possivelmente `src/components/create-content/carousel/types.ts`
+  - Só se for necessário refletir metadados de referência no estado do carrossel.
+
+## Resultado esperado
+
+Depois do ajuste, o carrossel passa a usar a mesma função de imagem única por slide, em paralelo, mas com as referências preservadas no formato correto. A imagem/produto enviado e marcado como **Preservar** deve aparecer com muito mais fidelidade nos slides, igual ao comportamento da criação de imagem única.
