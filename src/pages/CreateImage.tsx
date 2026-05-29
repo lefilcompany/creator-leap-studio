@@ -551,15 +551,15 @@ export default function CreateImage() {
   const isFormValid = useMemo(() => {
     const hasPlatformOrFormat = !!(formData.platform || formData.aspectRatio);
     const promptValid = !!formData.prompt;
-    const referencesValid = isCarousel ? true : referenceFiles.length > 0;
+    const referencesValid = referenceFiles.length > 0;
     return formData.brand && promptValid && hasPlatformOrFormat && formData.tone.length > 0 && referencesValid;
-  }, [formData.brand, formData.prompt, formData.platform, formData.aspectRatio, formData.tone.length, referenceFiles.length, isCarousel]);
+  }, [formData.brand, formData.prompt, formData.platform, formData.aspectRatio, formData.tone.length, referenceFiles.length]);
 
   const validateForm = () => {
     const missing: string[] = [];
     if (!formData.brand) missing.push('brand');
     if (!formData.prompt) missing.push('prompt');
-    if (!isCarousel && referenceFiles.length === 0) missing.push('referenceFiles');
+    if (referenceFiles.length === 0) missing.push('referenceFiles');
     if (!formData.platform && !formData.aspectRatio) missing.push('platform');
     if (formData.tone.length === 0) missing.push('tone');
     setMissingFields(missing);
@@ -594,6 +594,36 @@ export default function CreateImage() {
           });
           setLoading(false);
           return;
+        }
+
+        // Comprime imagens de referência (mesma lógica do fluxo single)
+        const compressImage = async (file: File): Promise<string> => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = new Image();
+              img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d')!;
+                const MAX_WIDTH = 1024; const MAX_HEIGHT = 1024;
+                let width = img.width; let height = img.height;
+                if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
+                else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+                canvas.width = width; canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', 0.8));
+              };
+              img.onerror = reject;
+              img.src = e.target?.result as string;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        };
+
+        const carouselReferenceImages: string[] = [];
+        for (let i = 0; i < referenceFiles.length; i++) {
+          carouselReferenceImages.push(await compressImage(referenceFiles[i]));
         }
 
         const selectedBrand = brands.find(b => b.id === formData.brand);
@@ -683,6 +713,7 @@ export default function CreateImage() {
             aspectRatio: formData.aspectRatio,
             width: dims?.width,
             height: dims?.height,
+            referenceImages: carouselReferenceImages,
           },
         });
 
@@ -706,6 +737,7 @@ export default function CreateImage() {
         return;
       }
     }
+
 
     try {
       // Compress images (this is the only blocking step)

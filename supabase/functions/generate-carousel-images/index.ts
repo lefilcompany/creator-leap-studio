@@ -33,6 +33,7 @@ const BodySchema = z.object({
   aspectRatio: z.string().optional(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
+  referenceImages: z.array(z.string()).max(5).optional(),
 });
 
 type Body = z.infer<typeof BodySchema>;
@@ -99,7 +100,12 @@ async function callGenerateImageForSlide(
       includeText: false,
       tone: body.tone ?? [],
       parentActionId: body.actionId,
-      referenceImages: slide.referenceImageUrl ? [slide.referenceImageUrl] : undefined,
+      referenceImages:
+        body.referenceImages && body.referenceImages.length > 0
+          ? body.referenceImages
+          : slide.referenceImageUrl
+            ? [slide.referenceImageUrl]
+            : undefined,
     };
 
     const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-image`, {
@@ -277,19 +283,22 @@ async function processCarousel(authHeader: string, body: Body) {
       await Promise.all(rest.map(run));
     }
 
-    // Auto-gera legenda quando todos os slides estiverem prontos
-    const { data: finalRow } = await admin
-      .from("actions")
-      .select("result")
-      .eq("id", body.actionId)
-      .single();
-    const finalCarousel = (finalRow?.result as any)?.carousel;
-    const finalSlides: any[] = Array.isArray(finalCarousel?.slides) ? finalCarousel.slides : [];
-    const allDone =
-      finalSlides.length === body.slidesCount &&
-      finalSlides.every((s) => s?.status === "done" && s?.imageUrl);
-    if (allDone && !finalCarousel?.caption) {
-      await generateCarouselCaption(admin, body.actionId);
+    // Auto-gera legenda do carrossel — basta ter ao menos 1 slide pronto
+    try {
+      const { data: finalRow } = await admin
+        .from("actions")
+        .select("result")
+        .eq("id", body.actionId)
+        .single();
+      const finalCarousel = (finalRow?.result as any)?.carousel;
+      const finalSlides: any[] = Array.isArray(finalCarousel?.slides) ? finalCarousel.slides : [];
+      const hasAnyDone = finalSlides.some((s) => s?.status === "done" && s?.imageUrl);
+      console.log("[carousel-caption] hasAnyDone=", hasAnyDone, "hasCaption=", !!finalCarousel?.caption);
+      if (hasAnyDone && !finalCarousel?.caption) {
+        await generateCarouselCaption(admin, body.actionId);
+      }
+    } catch (capErr) {
+      console.error("[carousel-caption] erro ao disparar legenda", capErr);
     }
   } catch (err) {
     console.error("processCarousel fatal", err);
