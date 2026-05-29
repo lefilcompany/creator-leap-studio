@@ -650,7 +650,6 @@ export default function CreateImage() {
         const selectedTheme = themes.find(t => t.id === formData.theme);
         const selectedPersona = personas.find(p => p.id === formData.persona);
 
-        // Build N slides sharing the same prompt + visual settings, com hint de variação.
         const basePrompt = formData.prompt.trim();
         const sharedSlideFields = {
           visualStyle: formData.visualStyle,
@@ -668,96 +667,103 @@ export default function CreateImage() {
 
         const dims = formData.aspectRatio ? ASPECT_RATIO_DIMENSIONS[formData.aspectRatio] : undefined;
 
-        const { data: actionRow, error: insertErr } = await supabase
-          .from("actions")
-          .insert({
-            user_id: user.id,
-            team_id: user.teamId ?? null,
-            type: "CRIAR_CONTEUDO",
-            brand_id: formData.brand,
-            details: {
-              platform: "Carrossel",
-              contentType,
-              tone: formData.tone,
-              brandName: selectedBrand?.name,
-              themeName: selectedTheme?.title,
-              personaName: selectedPersona?.name,
-              slidesCount,
-              isCarousel: true,
-              basePrompt,
-              aspectRatio: formData.aspectRatio,
-              visualStyle: formData.visualStyle,
-              preserveImagesCount: finalPreserveImages.length,
-              styleReferenceImagesCount: finalStyleUserImages.length,
-            },
-            result: {
-              carousel: {
+        clearPersistedData();
+
+        // Executa a criação dentro de uma background task para reutilizar
+        // a mesma tela de "Gerando..." do fluxo de imagem única.
+        const newTaskId = addTask(
+          `Criando Carrossel (${slidesCount} slides)`,
+          "create_carousel",
+          async () => {
+            const { data: actionRow, error: insertErr } = await supabase
+              .from("actions")
+              .insert({
+                user_id: user.id,
+                team_id: user.teamId ?? null,
+                type: "CRIAR_CONTEUDO",
+                brand_id: formData.brand,
+                details: {
+                  platform: "Carrossel",
+                  contentType,
+                  tone: formData.tone,
+                  brandName: selectedBrand?.name,
+                  themeName: selectedTheme?.title,
+                  personaName: selectedPersona?.name,
+                  slidesCount,
+                  isCarousel: true,
+                  basePrompt,
+                  aspectRatio: formData.aspectRatio,
+                  visualStyle: formData.visualStyle,
+                  preserveImagesCount: finalPreserveImages.length,
+                  styleReferenceImagesCount: finalStyleUserImages.length,
+                },
+                result: {
+                  carousel: {
+                    slidesCount,
+                    slides: initialSlides,
+                    brandId: formData.brand,
+                    themeId: formData.theme || null,
+                    personaId: formData.persona || null,
+                    platform: "Carrossel",
+                    contentType,
+                    tone: formData.tone,
+                  },
+                },
+              })
+              .select("id")
+              .single();
+
+            if (insertErr || !actionRow) {
+              throw new Error(insertErr?.message || "Erro ao criar carrossel");
+            }
+
+            const { error: invokeErr } = await supabase.functions.invoke("generate-carousel-images", {
+              body: {
+                actionId: actionRow.id,
                 slidesCount,
-                slides: initialSlides,
+                slides: initialSlides.map(s => ({
+                  index: s.index,
+                  prompt: s.prompt,
+                  visualStyle: s.visualStyle,
+                  cameraAngle: s.cameraAngle,
+                  lighting: s.lighting,
+                  composition: s.composition,
+                  mood: s.mood,
+                })),
                 brandId: formData.brand,
-                themeId: formData.theme || null,
-                personaId: formData.persona || null,
+                themeId: formData.theme || undefined,
+                personaId: formData.persona || undefined,
                 platform: "Carrossel",
                 contentType,
                 tone: formData.tone,
+                aspectRatio: formData.aspectRatio,
+                width: dims?.width,
+                height: dims?.height,
+                preserveImages: finalPreserveImages,
+                styleReferenceImages: finalStyleUserImages,
+                brandReferenceImages: finalBrandImages,
+                userReferenceImages: finalUserImages,
+                preserveImageIndices: safePreserveIndices,
+                referenceImages: referenceImagesBase64,
               },
-            },
-          })
-          .select("id")
-          .single();
+            });
 
-        if (insertErr || !actionRow) {
-          console.error("Erro ao criar action carrossel:", insertErr);
-          toast.error("Erro ao iniciar carrossel", { description: insertErr?.message });
-          setLoading(false);
-          return;
-        }
+            if (invokeErr) {
+              throw new Error(invokeErr.message || "Erro ao iniciar geração do carrossel");
+            }
 
-        const { error: invokeErr } = await supabase.functions.invoke("generate-carousel-images", {
-          body: {
-            actionId: actionRow.id,
-            slidesCount,
-            slides: initialSlides.map(s => ({
-              index: s.index,
-              prompt: s.prompt,
-              visualStyle: s.visualStyle,
-              cameraAngle: s.cameraAngle,
-              lighting: s.lighting,
-              composition: s.composition,
-              mood: s.mood,
-            })),
-            brandId: formData.brand,
-            themeId: formData.theme || undefined,
-            personaId: formData.persona || undefined,
-            platform: "Carrossel",
-            contentType,
-            tone: formData.tone,
-            aspectRatio: formData.aspectRatio,
-            width: dims?.width,
-            height: dims?.height,
-            // Mesmo contrato de referências usado em generate-image (imagem única)
-            preserveImages: finalPreserveImages,
-            styleReferenceImages: finalStyleUserImages,
-            brandReferenceImages: finalBrandImages,
-            userReferenceImages: finalUserImages,
-            preserveImageIndices: safePreserveIndices,
-            // Fallback legado
-            referenceImages: referenceImagesBase64,
+            if (refreshUserCredits) await refreshUserCredits();
+
+            return {
+              route: `/result?actionId=${actionRow.id}`,
+              state: {},
+            };
           },
-        });
+          () => refreshUserCredits?.()
+        );
 
-        if (invokeErr) {
-          console.error("Erro ao invocar generate-carousel-images:", invokeErr);
-          toast.error("Erro ao iniciar geração", { description: invokeErr.message });
-          setLoading(false);
-          return;
-        }
-
-        clearPersistedData();
-        toast.success("Carrossel em produção", {
-          description: `${slidesCount} slides serão gerados em paralelo.`,
-        });
-        navigate(`/result?actionId=${actionRow.id}`);
+        setGeneratingTaskId(newTaskId);
+        requestAnimationFrame(() => scrollPageToTop());
         return;
       } catch (err: any) {
         console.error("Erro carrossel:", err);
@@ -766,6 +772,8 @@ export default function CreateImage() {
         return;
       }
     }
+
+
 
 
     try {
