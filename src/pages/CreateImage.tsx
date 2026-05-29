@@ -1174,7 +1174,6 @@ export default function CreateImage() {
                   <p className="text-xs text-destructive font-medium">Adicione ao menos 1 imagem de referência</p>
                 )}
               </div>
-              )}
 
               {/* 2. Personalizações (sem card, flex lado a lado) */}
               <div className="space-y-2.5">
