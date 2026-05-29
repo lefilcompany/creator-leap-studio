@@ -984,7 +984,7 @@ export default function CreateImage() {
   const selectedStyleLabel = VISUAL_STYLES.find(s => s.value === formData.visualStyle);
 
   // --- Loading view (same pattern as QuickContent) ---
-  const isGenerating = tasks.some(t => t.type === "create_image" && t.status === "running");
+  const isGenerating = tasks.some(t => (t.type === "create_image" || t.type === "create_carousel") && t.status === "running");
   const generatingTask = generatingTaskId ? tasks.find(t => t.id === generatingTaskId) : null;
   const isTaskComplete = generatingTask?.status === "complete";
 
