@@ -30,6 +30,9 @@ const BodySchema = z.object({
   contentType: z.enum(["organic", "ads"]).default("organic"),
   tone: z.array(z.string()).optional(),
   onlyIndex: z.number().int().min(0).max(9).optional(),
+  aspectRatio: z.string().optional(),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
 });
 
 type Body = z.infer<typeof BodySchema>;
