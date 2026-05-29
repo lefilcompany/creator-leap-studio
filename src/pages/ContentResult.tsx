@@ -361,7 +361,7 @@ export default function ContentResult() {
       }
     };
     loadContent();
-  }, [location.state, navigate]);
+  }, [location.state, navigate, carouselActionId]);
 
   const handleCopyCaption = async () => {
     if (!contentData) return;
