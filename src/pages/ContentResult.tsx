@@ -142,14 +142,58 @@ export default function ContentResult() {
   // Auto-save to history (like QuickContentResult)
   const autoSaveToHistoryRef = useRef<((data: ContentResultData) => Promise<void>) | null>(null);
   autoSaveToHistoryRef.current = async (data: ContentResultData) => {
-    if (!user || data.actionId || isSavedToHistory) return;
-    
+    if (!user || isSavedToHistory) return;
+
     try {
       const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
-      
+
       let brandId = null;
       if (saved.originalFormData?.brandId || data.originalFormData?.brandId) {
         brandId = saved.originalFormData?.brandId || data.originalFormData?.brandId;
+      }
+
+      // Se a action já existe (foi criada pela edge function generate-image),
+      // apenas complementamos com os dados da legenda em vez de criar uma 2ª linha no histórico.
+      if (data.actionId) {
+        const { data: existing } = await supabase
+          .from("actions")
+          .select("result")
+          .eq("id", data.actionId)
+          .maybeSingle();
+        const prevResult = (existing?.result as any) || {};
+        const { error: updateError } = await supabase.from("actions").update({
+          result: {
+            ...prevResult,
+            imageUrl: data.mediaUrl || prevResult.imageUrl,
+            title: data.title,
+            body: data.body || data.caption,
+            hashtags: data.hashtags,
+          },
+          updated_at: new Date().toISOString(),
+        }).eq("id", data.actionId);
+
+        if (updateError) {
+          console.error("Erro ao complementar histórico:", updateError);
+          return;
+        }
+
+        setIsSavedToHistory(true);
+        const updatedSaved = { ...saved, actionId: data.actionId, savedToHistory: true };
+        localStorage.setItem("currentContent", JSON.stringify(updatedSaved));
+
+        const categoryId = data.categoryId || saved.categoryId;
+        if (categoryId) {
+          try {
+            await supabase.from('action_category_items').insert({
+              category_id: categoryId,
+              action_id: data.actionId,
+              added_by: user.id,
+            });
+          } catch (e) {
+            console.error("Erro ao atribuir categoria:", e);
+          }
+        }
+        return;
       }
 
       let actionType: "CRIAR_CONTEUDO" | "CRIAR_CONTEUDO_RAPIDO" | "GERAR_VIDEO" = "CRIAR_CONTEUDO_RAPIDO";

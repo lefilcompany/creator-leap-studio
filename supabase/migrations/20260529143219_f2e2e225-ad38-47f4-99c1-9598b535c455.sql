@@ -1,0 +1,1 @@
+UPDATE public.actions SET deleted_at = now() WHERE id = 'd3fc2224-33c5-4188-9c0a-1a491e672629' AND deleted_at IS NULL;
