@@ -33,7 +33,14 @@ const BodySchema = z.object({
   aspectRatio: z.string().optional(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
+  // Legacy fallback
   referenceImages: z.array(z.string()).max(5).optional(),
+  // Mesmo contrato do generate-image (imagem única)
+  preserveImages: z.array(z.string()).max(5).optional(),
+  styleReferenceImages: z.array(z.string()).max(5).optional(),
+  brandReferenceImages: z.array(z.string()).max(5).optional(),
+  userReferenceImages: z.array(z.string()).max(5).optional(),
+  preserveImageIndices: z.array(z.number().int().min(0)).optional(),
 });
 
 type Body = z.infer<typeof BodySchema>;
