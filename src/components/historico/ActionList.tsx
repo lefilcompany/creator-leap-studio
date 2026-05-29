@@ -191,7 +191,9 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
     >
       {/* Image/Video area */}
       <div className="aspect-video w-full relative overflow-hidden bg-muted">
-        {action.imageUrl ? (
+        {action.carouselImages && action.carouselImages.length > 1 ? (
+          <CarouselThumb images={action.carouselImages} alt={action.title || displayType} />
+        ) : action.imageUrl ? (
           <img
             src={action.imageUrl}
             alt={action.title || displayType}
