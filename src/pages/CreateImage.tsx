@@ -1066,7 +1066,7 @@ export default function CreateImage() {
                 <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                   {[
                     { value: false, title: "Imagem única", desc: "1 imagem", Icon: ImageIcon },
-                    { value: true, title: "Carrossel", desc: "Várias variações", Icon: Layers },
+                    { value: true, title: "Carrossel", desc: "Sequência de imagens\n", Icon: Layers },
                   ].map(({ value, title, desc, Icon }) => {
                     const active = isCarousel === value;
                     return (
