@@ -946,7 +946,7 @@ export default function CreateImage() {
                 brand: selectedBrand?.name || formData.brand,
                 title: captionData.title, body: captionData.body, hashtags: captionData.hashtags,
                 originalFormData: { ...requestData, brandId: formData.brand },
-                actionId: undefined, isLocalFallback,
+                actionId: generatedActionId, isLocalFallback,
                 categoryId: selectedCategoryId || undefined,
                 complianceCheck: complianceCheck || null,
               }
