@@ -111,6 +111,7 @@ export function useHistoryActions(filters: HistoryFilters) {
           .from('actions')
           .select('id, type, created_at, approved, brand_id, thumb_path, result, details, brands:brand_id(name)')
           .is('deleted_at', null)
+          .is('parent_action_id', null)
           .order('created_at', { ascending: false })
           .order('id', { ascending: false })
           .limit(ITEMS_PER_PAGE);
