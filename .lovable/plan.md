@@ -1,77 +1,122 @@
-# Plano — Carrossel dentro de "Criar Conteúdo"
+## Objetivo
 
-Implementação fiel ao `prompt-carrossel-em-criar-conteudo.md`: o carrossel **não é uma rota nova**, é apenas mais um formato no `FormatPreview` do fluxo `/create/image`. Cada slide é uma thread independente que dispara a edge `generate-image` já existente (que já carrega contexto de marca/editoria/persona e cobra créditos por slide), com **slide 0 sequencial → 1..N-1 em `Promise.all`**.
+Configurar CI no GitHub que rode em **Pull Requests** e em **push direto na `main`**, executando:
 
-Vou entregar em 4 fases, cada uma com um arquivo `.md` em `/mnt/documents/` descrevendo exatamente o que será feito antes do código. Isso permite validar fase por fase.
-
----
-
-## Fase 1 — Edge function `generate-carousel-images` (orquestrador)
-
-Arquivo: `/mnt/documents/fase-1-edge-function.md` + implementação.
-
-- Nova função `supabase/functions/generate-carousel-images/index.ts`.
-- Auth: valida JWT via `getClaims()` (Authorization header obrigatório).
-- Input validado por Zod: `actionId`, `slidesCount (2-10)`, `slides[]` (index, prompt, visualStyle?, cameraAngle?, lighting?, composition?, mood?, referenceImageUrl?), `brandId`, `themeId?`, `personaId?`, `platform: "Carrossel"`, `contentType`, opcional `onlyIndex` (para regerar 1 slide).
-- Cliente Supabase com `SUPABASE_SERVICE_ROLE_KEY` para `PATCH` granular em `actions.result.carousel.slides[i]` (merge via leitura+escrita do JSON, sem sobrescrever outros campos).
-- Para cada slide: chama `generate-image` (fetch interno com Authorization do user, para preservar cobrança individual por slide), com `aspectRatio:"4:5"`, `width:1080`, `height:1350`, `imageIncludeText:false`, passando `brandId/themeId/personaId/contentType` + campos visuais.
-- Compliance: nada de bypass — o `generate-image` chamado já executa `_shared/complianceCheck.ts`.
-- Fluxo: marca slide 0 como `generating` → chama → atualiza para `done`/`error`; depois `Promise.all` para 1..N-1 com a mesma lógica.
-- Resposta 202 imediata (`{ ok: true, actionId }`); o trabalho continua em background usando `EdgeRuntime.waitUntil`.
-- CORS via `npm:@supabase/supabase-js@2/cors`.
-- Sem `verify_jwt` custom em `supabase/config.toml`.
-
-## Fase 2 — `FormatPreview` + componentes do painel do carrossel
-
-Arquivo: `/mnt/documents/fase-2-ui-painel.md` + implementação.
-
-- Em `src/components/quick-content/FormatPreview.tsx`: inserir `{ platform: "Carrossel", label: "Carrossel (4:5)", width: 1080, height: 1350, aspectRatio: "4:5" }` logo após o "Quadrado". Mapear ícone (reaproveitar `ImageIcon`/Layers).
-- Criar `src/components/create-content/carousel/SlideImageSettingsForm.tsx` — config visual por slide (visualStyle, cameraAngle, lighting, composition, mood) + upload opcional de referência no bucket `content-images` (path `carousel-refs/{userId}/{actionId}/{slideIndex}.{ext}`).
-- Criar `src/components/create-content/carousel/CarouselPanel.tsx`:
-  - Seletor `Quantidade de slides (1–10)` (default 3).
-  - Lista de cartões por slide: `prompt` curto + `SlideImageSettingsForm` colapsável.
-  - Botões `+ Adicionar slide` / `Remover` (clamp 1..10).
-  - Estado controlado: `slides: SlideBriefing[]`, `onChange`.
-- Criar `src/components/create-content/carousel/CarouselGallery.tsx` (read-only): grid de slides com status (skeleton/blur enquanto `pending|generating`, imagem quando `done`, retry quando `error`), botão **Regerar slide** por card e download.
-- Criar hook `src/hooks/useCarouselSlides.ts`: `useQuery` em `actions` por `actionId`, `refetchInterval: 3000` enquanto algum slide estiver `pending|generating`.
-
-## Fase 3 — Integrar no `CreateImage.tsx` (modo carrossel)
-
-Arquivo: `/mnt/documents/fase-3-create-image.md` + implementação.
-
-- `const isCarousel = formData.platform === "Carrossel";`
-- Estado novo: `const [slides, setSlides] = useState<SlideBriefing[]>([{index:0, prompt:""},{index:1, prompt:""},{index:2, prompt:""}])`.
-- Quando `isCarousel`: ocultar `UnifiedPromptBox` e renderizar `<CarouselPanel slides={slides} onChange={setSlides} />`. Manter marca/tema/persona/tom/categoria/contentType intactos.
-- Custo: `displayedCost = isCarousel ? slides.length * CREDIT_COSTS.COMPLETE_IMAGE : CREDIT_COSTS.COMPLETE_IMAGE` (validar saldo antes de submeter; bloquear se algum slide com `prompt` vazio).
-- No submit (`isCarousel`):
-  1. `insert` em `actions` (`type:'CRIAR_CONTEUDO'`, `details: {...formData, slidesCount}`, `result: { carousel: { slidesCount, slides: slides.map(s => ({...s, status:'pending'})) } }`), `.select('id').single()`.
-  2. Uploads de referência (se houver) → atualizar `slides[i].referenceImageUrl`.
-  3. `supabase.functions.invoke('generate-carousel-images', { body: { actionId, slidesCount, slides, brandId, themeId, personaId, platform:'Carrossel', contentType } })` — fire-and-forget.
-  4. Navegar para `/result?actionId=...` (mesma rota usada hoje pelo fluxo padrão).
-- Não tocar no caminho não-carrossel.
-
-## Fase 4 — Resultado, legenda única e regeneração
-
-Arquivo: `/mnt/documents/fase-4-resultado-legenda.md` + implementação.
-
-- Em `src/pages/ContentResult.tsx`: detectar `action.result?.carousel` → renderizar `<CarouselGallery />` com polling via `useCarouselSlides`. Manter UI atual para imagem única.
-- Botão "Regerar slide" chama `generate-carousel-images` com `onlyIndex: i` (a edge re-executa apenas aquele índice e re-faz o `PATCH`).
-- Legenda única do carrossel: quando todos os slides estiverem `done`, disparar **uma vez** `generate-caption` passando `prompts.join("\n\n")` como contexto + marca/persona/tema; salvar `title/body/hashtags` no `action.result` (merge). Pode ser feito pela própria edge `generate-carousel-images` no final do `Promise.all` para evitar lógica no front.
-- Acompanhar logs via `supabase--edge_function_logs` e validar 1 ciclo end-to-end (3 slides) antes de fechar.
+1. **Lint** (ESLint — já existe `npm run lint`)
+2. **Build** (garante que o projeto compila)
+3. **Testes unitários** (Vitest + Testing Library)
+4. **Testes E2E** (Playwright — já está instalado)
+5. **Testes de integração** (Selenium WebDriver)
 
 ---
 
-## Detalhes técnicos críticos
+## 1. Setup de testes unitários (Vitest)
 
-- **Cobrança**: 100% delegada ao `generate-image` (já cobra `COMPLETE_IMAGE` por chamada). Se um slide falhar por créditos, é marcado `error` e os demais continuam; o usuário vê e pode regerar depois de comprar créditos.
-- **Service role só na edge** para fazer o `PATCH` no `actions.result` (RLS bloquearia merge granular vindo do user).
-- **Contexto de marca/editoria/persona em cada thread**: garantido porque cada chamada de `generate-image` recebe `brandId/themeId/personaId` no body — a função já injeta o contexto no prompt do modelo.
-- **API key**: o `generate-image` já usa as chaves configuradas (`GEMINI_API_KEY`/`LOVABLE_API_KEY`). Nada novo a configurar.
-- **Sem migrações de banco**, sem mexer em `types.ts`/`client.ts`, sem novo card no `ContentCreationSelector`.
+Adicionar infraestrutura que ainda não existe no projeto:
 
-## Riscos / pontos a checar antes de cada fase
+- Dev deps: `vitest`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`, `jsdom`, `@vitest/coverage-v8`
+- `vitest.config.ts` na raiz (ambiente jsdom, alias `@`, setup file)
+- `src/test/setup.ts` com `@testing-library/jest-dom` e mock de `matchMedia`
+- Scripts no `package.json`: `test`, `test:watch`, `test:coverage`
+- Testes iniciais cobrindo módulos críticos:
+  - `src/lib/utils.test.ts`
+  - `src/components/create-content/carousel/types.test.ts` (validação de tipos/helpers)
+  - `src/hooks/useCarouselSlides.test.ts` (com mock do supabase client)
+  - 2–3 smoke tests de componentes UI puros
 
-- Verificar o body exato aceito por `generate-image` (campos opcionais, formato de `referenceImageUrl`) — leitura rápida no início da Fase 1.
-- Verificar como `ContentResult.tsx` carrega a action hoje, para encaixar o branch do carrossel sem regredir o caso imagem única — leitura no início da Fase 4.
+Cobertura inicial alvo: módulos `lib/`, `hooks/`, e helpers. **Não** vamos perseguir cobertura de toda a UI nesta fase — apenas garantir o pipeline verde com uma base sólida.
 
-Quando você aprovar, começo pela Fase 1 (arquivo .md + edge function).
+## 2. Setup de testes E2E (Playwright)
+
+`@playwright/test` e `playwright.config.ts` já existem. Falta:
+
+- Criar pasta `e2e/` com specs cobrindo as principais funcionalidades:
+  - `auth.spec.ts` — login/cadastro (happy path)
+  - `create-content.spec.ts` — fluxo de criação de imagem única
+  - `carousel.spec.ts` — fluxo de criação de carrossel (seleção formato Carrossel 4:5, painel de slides, geração)
+  - `dashboard.spec.ts` — carregamento do dashboard e Recent Activity
+  - `trash.spec.ts` — soft delete e restauração
+- Usuário de teste dedicado via secrets (`E2E_USER_EMAIL`, `E2E_USER_PASSWORD`) apontando para o ambiente **Test** (regra do projeto: Live DB não é tocado por automação).
+- Scripts: `test:e2e`, `test:e2e:ui`.
+
+## 3. Setup de testes de integração (Selenium)
+
+Conforme solicitado, em paralelo ao Playwright:
+
+- Dev deps: `selenium-webdriver`, `@types/selenium-webdriver`, `chromedriver`, `mocha`, `chai`, `ts-node`
+- Pasta `selenium/` com:
+  - `selenium/config.ts` — driver headless Chrome, baseURL configurável
+  - `selenium/auth.test.ts` — login E2E real via WebDriver
+  - `selenium/carousel-integration.test.ts` — abre criar conteúdo, escolhe Carrossel 4:5, valida que o `CarouselPanel` aparece com 4 slides default
+  - `selenium/dashboard-integration.test.ts` — navega para dashboard logado e valida elementos chave
+- Script: `test:integration` (mocha rodando os `*.test.ts` da pasta `selenium/`).
+
+> Nota: Playwright já cobre E2E moderno; Selenium é mantido em paralelo apenas porque foi explicitamente pedido. Os dois rodam jobs separados no CI para não duplicar tempo de fila.
+
+## 4. GitHub Actions
+
+Criar `.github/workflows/ci.yml` com triggers:
+
+```yaml
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main]
+```
+
+Jobs (todos em `ubuntu-latest`, Node 20, cache de Bun/npm):
+
+| Job | Comando | Depende de |
+|---|---|---|
+| `lint` | `npm run lint` | — |
+| `build` | `npm run build` | — |
+| `unit` | `npm run test -- --run --coverage` | — |
+| `e2e` | `npx playwright install --with-deps && npm run test:e2e` | `build` |
+| `selenium` | `npm run test:integration` (usa Chrome do runner) | `build` |
+
+- Todos os jobs rodam em paralelo quando possível.
+- Upload de artefatos: relatório de cobertura (unit) e `playwright-report/` (e2e).
+- **Branch protection (instrução para o usuário)**: pedir que ative no GitHub a regra exigindo `lint`, `unit`, `build`, `e2e`, `selenium` como checks obrigatórios antes de merge na `main`.
+
+### Secrets necessárias no repositório GitHub
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `E2E_USER_EMAIL`
+- `E2E_USER_PASSWORD`
+- `E2E_BASE_URL` (default: preview do Lovable)
+
+O usuário precisará adicioná-las em **Settings → Secrets and variables → Actions** (não consigo fazer isso pelo Lovable).
+
+## 5. Documentação
+
+- `TESTING.md` na raiz com:
+  - Como rodar cada tipo de teste localmente
+  - Como escrever novos testes em cada framework
+  - Como configurar as secrets no GitHub
+
+---
+
+## Arquivos a criar/editar
+
+**Criar:**
+- `.github/workflows/ci.yml`
+- `vitest.config.ts`
+- `src/test/setup.ts`
+- `src/lib/utils.test.ts`, `src/hooks/useCarouselSlides.test.ts` (+ outros unit tests iniciais)
+- `e2e/auth.spec.ts`, `e2e/create-content.spec.ts`, `e2e/carousel.spec.ts`, `e2e/dashboard.spec.ts`, `e2e/trash.spec.ts`
+- `selenium/config.ts`, `selenium/auth.test.ts`, `selenium/carousel-integration.test.ts`, `selenium/dashboard-integration.test.ts`
+- `TESTING.md`
+
+**Editar:**
+- `package.json` — novas devDeps e scripts (`test`, `test:watch`, `test:coverage`, `test:e2e`, `test:integration`)
+- `tsconfig.app.json` — `"types": ["vitest/globals"]`
+
+---
+
+## Pontos a confirmar antes de implementar
+
+1. **Cobertura inicial dos testes**: ok começar com base mínima (utils, hooks de carrossel, 1 smoke por fluxo principal no Playwright + Selenium) e expandir depois? Cobrir "todas as funcionalidades" de cara geraria dezenas de specs frágeis.
+2. **Selenium em paralelo ao Playwright**: confirmas que queres manter os dois? Playwright já é mais moderno e cobre o mesmo escopo — Selenium tipicamente é só pedido por restrição corporativa.
+3. **Branch para PRs**: rodar CI em PRs para `main` e `dev`, ou só `main`?
