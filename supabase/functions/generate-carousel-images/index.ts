@@ -33,6 +33,7 @@ const BodySchema = z.object({
   aspectRatio: z.string().optional(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
+  referenceImages: z.array(z.string()).max(5).optional(),
 });
 
 type Body = z.infer<typeof BodySchema>;
