@@ -26,6 +26,7 @@ export const DashboardCreditsCard = ({
   const isExpired = creditsExpireAt ? new Date(creditsExpireAt) < new Date() : false;
   const effectiveCredits = isExpired ? 0 : remainingCredits;
   const effectiveProgress = isExpired ? 0 : progressPercentage;
+  const usedPercentage = isExpired ? 100 : Math.max(0, Math.min(100, 100 - progressPercentage));
   
   const expirationLabel = creditsExpireAt 
     ? format(new Date(creditsExpireAt), "dd 'de' MMMM", { locale: ptBR })
@@ -85,7 +86,7 @@ export const DashboardCreditsCard = ({
 
           <div className="space-y-2">
             <Progress
-              value={effectiveProgress}
+              value={usedPercentage}
               className={`h-2.5 ${(isLow || isExpired) ? 'bg-destructive/20' : isMedium ? 'bg-chart-1/20' : 'bg-primary/15'}`}
             />
             <div className="flex items-center justify-between">
@@ -94,7 +95,7 @@ export const DashboardCreditsCard = ({
                   ? "⚠️ Créditos expirados — adquira um novo pacote"
                   : isLow
                     ? "⚠️ Créditos baixos — considere recarregar"
-                    : `${Math.round(effectiveProgress)}% do seu saldo disponível`}
+                    : `${Math.round(usedPercentage)}% do seu saldo utilizado`}
               </p>
               {expirationLabel && !isExpired && effectiveCredits > 0 && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
