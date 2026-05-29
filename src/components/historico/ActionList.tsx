@@ -201,10 +201,6 @@ function CarouselThumb({ images, alt }: { images: string[]; alt: string }) {
           />
         ))}
       </div>
-      {/* Carousel badge */}
-      <div className="absolute top-2 right-2 z-10 rounded-full bg-background/85 backdrop-blur px-2 py-0.5 text-[10px] font-bold pointer-events-none">
-        {images.length} slides
-      </div>
     </>
   );
 }
