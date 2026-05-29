@@ -100,7 +100,12 @@ async function callGenerateImageForSlide(
       includeText: false,
       tone: body.tone ?? [],
       parentActionId: body.actionId,
-      referenceImages: slide.referenceImageUrl ? [slide.referenceImageUrl] : undefined,
+      referenceImages:
+        body.referenceImages && body.referenceImages.length > 0
+          ? body.referenceImages
+          : slide.referenceImageUrl
+            ? [slide.referenceImageUrl]
+            : undefined,
     };
 
     const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-image`, {
