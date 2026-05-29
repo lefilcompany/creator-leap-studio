@@ -1046,7 +1046,11 @@ export default function CreateImage() {
             {/* ═══ Left Column ═══ */}
             <div className="space-y-5">
 
-              {/* 1. Prompt + References (unified card) */}
+              {/* 1. Carrossel OU Prompt + References (unified card) */}
+              {isCarousel && (
+                <CarouselPanel slides={slides} onChange={setSlides} />
+              )}
+              {!isCarousel && (
               <div className="space-y-2.5">
                 <div>
                   <Label htmlFor="prompt" className="text-base font-bold text-foreground">
