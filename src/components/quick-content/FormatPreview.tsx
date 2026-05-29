@@ -37,7 +37,6 @@ interface FormatOption {
 function buildFormatOptions(): FormatOption[] {
   const options: FormatOption[] = [
     { platform: "Personalizado", label: "Quadrado (1:1)", width: 1080, height: 1080, aspectRatio: "1:1" },
-    { platform: "Carrossel", label: "Carrossel (4:5)", width: 1080, height: 1350, aspectRatio: "4:5" },
   ];
   for (const [key, spec] of Object.entries(platformSpecs)) {
     for (const dim of spec.organic.image.dimensions) {
