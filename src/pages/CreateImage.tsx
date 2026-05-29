@@ -35,8 +35,6 @@ import { CameraAngleGrid } from "@/components/quick-content/CameraAngleGrid";
 import { CategorySelector } from "@/components/CategorySelector";
 import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import { QuickContentLoading } from "@/components/quick-content/QuickContentLoading";
-import { CarouselPanel } from "@/components/create-content/carousel/CarouselPanel";
-import type { SlideBriefing } from "@/components/create-content/carousel/types";
 import createBanner from "@/assets/create-banner.jpg";
 
 enum GenerationStep {
