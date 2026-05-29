@@ -24,6 +24,7 @@ import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { cn } from '@/lib/utils';
 import { useActionCategories, useCategories } from '@/hooks/useCategories';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CarouselResultView } from '@/components/create-content/carousel/CarouselResultView';
 
 // ── SectionCard ──────────────────────────────────────────────
 interface SectionCardProps {
