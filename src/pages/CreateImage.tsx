@@ -35,6 +35,8 @@ import { CameraAngleGrid } from "@/components/quick-content/CameraAngleGrid";
 import { CategorySelector } from "@/components/CategorySelector";
 import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import { QuickContentLoading } from "@/components/quick-content/QuickContentLoading";
+import { CarouselPanel } from "@/components/create-content/carousel/CarouselPanel";
+import type { SlideBriefing } from "@/components/create-content/carousel/types";
 import createBanner from "@/assets/create-banner.jpg";
 
 enum GenerationStep {
@@ -303,7 +305,13 @@ export default function CreateImage() {
   const [showStyles, setShowStyles] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [textModalOpen, setTextModalOpen] = useState(false);
-
+  const [slides, setSlides] = useState<SlideBriefing[]>([
+    { index: 0, prompt: "" },
+    { index: 1, prompt: "" },
+    { index: 2, prompt: "" },
+    { index: 3, prompt: "" },
+  ]);
+  const isCarousel = formData.platform === "Carrossel";
   const teamId = user?.teamId;
   const userId = user?.id;
 
@@ -544,18 +552,28 @@ export default function CreateImage() {
     setFormData(prev => ({ ...prev, tone: prev.tone.filter(t => t !== toneToRemove) }));
   };
 
+  const allSlidesFilled = slides.every(s => s.prompt.trim().length > 0);
+  const totalCarouselCost = slides.length * CREDIT_COSTS.COMPLETE_IMAGE;
+  const displayedCost = isCarousel ? totalCarouselCost : CREDIT_COSTS.COMPLETE_IMAGE;
+
   const isFormValid = useMemo(() => {
     const hasPlatformOrFormat = !!(formData.platform || formData.aspectRatio);
-    return formData.brand && formData.prompt && hasPlatformOrFormat && formData.tone.length > 0 && referenceFiles.length > 0;
-  }, [formData.brand, formData.prompt, formData.platform, formData.aspectRatio, formData.tone.length, referenceFiles.length]);
+    const promptValid = isCarousel ? allSlidesFilled : !!formData.prompt;
+    const referencesValid = isCarousel ? true : referenceFiles.length > 0;
+    return formData.brand && promptValid && hasPlatformOrFormat && formData.tone.length > 0 && referencesValid;
+  }, [formData.brand, formData.prompt, formData.platform, formData.aspectRatio, formData.tone.length, referenceFiles.length, isCarousel, allSlidesFilled]);
 
   const validateForm = () => {
     const missing: string[] = [];
     if (!formData.brand) missing.push('brand');
-    if (!formData.prompt) missing.push('prompt');
+    if (isCarousel) {
+      if (!allSlidesFilled) missing.push('slides');
+    } else {
+      if (!formData.prompt) missing.push('prompt');
+      if (referenceFiles.length === 0) missing.push('referenceFiles');
+    }
     if (!formData.platform && !formData.aspectRatio) missing.push('platform');
     if (formData.tone.length === 0) missing.push('tone');
-    if (referenceFiles.length === 0) missing.push('referenceFiles');
     setMissingFields(missing);
     return missing.length === 0;
   };
@@ -578,6 +596,108 @@ export default function CreateImage() {
 
     scrollPageToTop();
     setLoading(true);
+
+    // ═══ Carrossel: fluxo paralelo (uma thread por slide) ═══
+    if (isCarousel) {
+      try {
+        if (availableCredits < totalCarouselCost) {
+          toast.error("Créditos insuficientes", {
+            description: `Carrossel de ${slides.length} slides custa ${totalCarouselCost} créditos. Você tem ${availableCredits}.`,
+          });
+          setLoading(false);
+          return;
+        }
+
+        const selectedBrand = brands.find(b => b.id === formData.brand);
+        const selectedTheme = themes.find(t => t.id === formData.theme);
+        const selectedPersona = personas.find(p => p.id === formData.persona);
+
+        // Cria action pai
+        const initialSlides = slides.map((s, i) => ({ ...s, index: i, status: "pending" as const }));
+        const { data: actionRow, error: insertErr } = await supabase
+          .from("actions")
+          .insert({
+            user_id: user.id,
+            team_id: user.teamId ?? null,
+            type: "CRIAR_CONTEUDO",
+            brand_id: formData.brand,
+            details: {
+              platform: "Carrossel",
+              contentType,
+              tone: formData.tone,
+              brandName: selectedBrand?.name,
+              themeName: selectedTheme?.title,
+              personaName: selectedPersona?.name,
+              slidesCount: slides.length,
+              isCarousel: true,
+            },
+            result: {
+              carousel: {
+                slidesCount: slides.length,
+                slides: initialSlides,
+                brandId: formData.brand,
+                themeId: formData.theme || null,
+                personaId: formData.persona || null,
+                platform: "Carrossel",
+                contentType,
+                tone: formData.tone,
+              },
+            },
+          })
+          .select("id")
+          .single();
+
+        if (insertErr || !actionRow) {
+          console.error("Erro ao criar action carrossel:", insertErr);
+          toast.error("Erro ao iniciar carrossel", { description: insertErr?.message });
+          setLoading(false);
+          return;
+        }
+
+        // Dispara orquestrador (fire-and-forget)
+        const { error: invokeErr } = await supabase.functions.invoke("generate-carousel-images", {
+          body: {
+            actionId: actionRow.id,
+            slidesCount: slides.length,
+            slides: initialSlides.map(s => ({
+              index: s.index,
+              prompt: s.prompt,
+              visualStyle: s.visualStyle,
+              cameraAngle: s.cameraAngle,
+              lighting: s.lighting,
+              composition: s.composition,
+              mood: s.mood,
+              referenceImageUrl: s.referenceImageUrl,
+            })),
+            brandId: formData.brand,
+            themeId: formData.theme || undefined,
+            personaId: formData.persona || undefined,
+            platform: "Carrossel",
+            contentType,
+            tone: formData.tone,
+          },
+        });
+
+        if (invokeErr) {
+          console.error("Erro ao invocar generate-carousel-images:", invokeErr);
+          toast.error("Erro ao iniciar geração", { description: invokeErr.message });
+          setLoading(false);
+          return;
+        }
+
+        clearPersistedData();
+        toast.success("Carrossel em produção", {
+          description: `${slides.length} slides serão gerados em paralelo.`,
+        });
+        navigate(`/result?actionId=${actionRow.id}`);
+        return;
+      } catch (err: any) {
+        console.error("Erro carrossel:", err);
+        toast.error("Erro ao gerar carrossel", { description: err.message });
+        setLoading(false);
+        return;
+      }
+    }
 
     try {
       // Compress images (this is the only blocking step)
@@ -926,7 +1046,11 @@ export default function CreateImage() {
             {/* ═══ Left Column ═══ */}
             <div className="space-y-5">
 
-              {/* 1. Prompt + References (unified card) */}
+              {/* 1. Carrossel OU Prompt + References (unified card) */}
+              {isCarousel && (
+                <CarouselPanel slides={slides} onChange={setSlides} />
+              )}
+              {!isCarousel && (
               <div className="space-y-2.5">
                 <div>
                   <Label htmlFor="prompt" className="text-base font-bold text-foreground">
@@ -1018,6 +1142,7 @@ export default function CreateImage() {
                   <p className="text-xs text-destructive font-medium">Adicione ao menos 1 imagem de referência</p>
                 )}
               </div>
+              )}
 
               {/* 2. Personalizações (sem card, flex lado a lado) */}
               <div className="space-y-2.5">
@@ -1819,8 +1944,8 @@ export default function CreateImage() {
               {loading ? (<><Loader2 className="h-4 w-4 animate-spin" />Gerando...</>) : (
                 <>
                   <Sparkles className="h-4 w-4" />
-                  Gerar Imagem
-                  <span className="text-primary-foreground/60 text-xs font-normal">· {CREDIT_COSTS.COMPLETE_IMAGE} créditos</span>
+                  {isCarousel ? `Gerar Carrossel (${slides.length} slides)` : "Gerar Imagem"}
+                  <span className="text-primary-foreground/60 text-xs font-normal">· {displayedCost} créditos</span>
                 </>
               )}
             </Button>
