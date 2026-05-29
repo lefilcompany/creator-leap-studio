@@ -649,6 +649,15 @@ export default function ActionView() {
     );
   }
 
+  // ── Carousel short-circuit: render dedicated view ────────
+  const isCarouselAction =
+    !!(action.result as any)?.carousel ||
+    !!(action.details as any)?.isCarousel;
+  if (isCarouselAction && actionId) {
+    return <CarouselResultView actionId={actionId} />;
+  }
+
+
   // ── Derived data ─────────────────────────────────────────
   const TypeIcon = getTypeIcon(action.type);
   const displayType = ACTION_TYPE_DISPLAY[action.type];
