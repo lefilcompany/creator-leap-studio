@@ -1,122 +1,43 @@
-## Objetivo
+## Problemas
 
-Configurar CI no GitHub que rode em **Pull Requests** e em **push direto na `main`**, executando:
+1. **Imagens de referência ignoradas no carrossel**: no fluxo `isCarousel`, `validateForm` pula `referenceFiles` e a invocação de `generate-carousel-images` não envia nenhuma referência. Resultado: as latas da marca não são respeitadas, ao contrário da geração única.
+2. **Tela de resultado diferente da padrão**: `ContentResult` faz um short‑circuit para `CarouselResultView`, que tem layout próprio (galeria + bloco de legenda separado) bem diferente da tela usada para uma imagem só.
+3. **Legenda não gerada**: confirmei no banco que a action `a9275571…` tem os 4 slides com `status:done` mas `caption` continua `null`. A função `generateCarouselCaption` é disparada *depois* do `Promise.all` dos slides, sem `EdgeRuntime.waitUntil` cobrindo essa etapa final em todos os cenários, então ela morre quando a invocação inicial responde antes — daí o "Gerando legenda do carrossel…" infinito.
 
-1. **Lint** (ESLint — já existe `npm run lint`)
-2. **Build** (garante que o projeto compila)
-3. **Testes unitários** (Vitest + Testing Library)
-4. **Testes E2E** (Playwright — já está instalado)
-5. **Testes de integração** (Selenium WebDriver)
+## Mudanças
 
----
+### 1. Referências obrigatórias no carrossel (frontend)
+`src/pages/CreateImage.tsx`
+- Remover a exceção `isCarousel ? true : referenceFiles.length > 0` em `validateForm` e em `missingFields` — carrossel passa a exigir as mesmas referências da imagem única.
+- No branch `if (isCarousel)`, comprimir `referenceFiles` para base64 (mesma função `compressImage` que o fluxo single usa) **antes** de chamar a edge function, e enviar no body como `referenceImages: string[]` (array compartilhado por todos os slides).
 
-## 1. Setup de testes unitários (Vitest)
+### 2. Propagar referências por slide (backend)
+`supabase/functions/generate-carousel-images/index.ts`
+- Adicionar ao `BodySchema`: `referenceImages: z.array(z.string()).max(5).optional()`.
+- Em `callGenerateImageForSlide`, montar o payload de `generate-image` com `referenceImages: body.referenceImages ?? (slide.referenceImageUrl ? [slide.referenceImageUrl] : undefined)` — assim cada slide recebe exatamente o mesmo array de referências que o fluxo single envia.
 
-Adicionar infraestrutura que ainda não existe no projeto:
+### 3. Garantir geração de legenda
+`supabase/functions/generate-carousel-images/index.ts`
+- Mover o disparo de `generateCarouselCaption` para um caminho garantido: executar `await generateCarouselCaption(...)` ao final de `processCarousel` mesmo se algum slide falhar (basta haver ≥1 `done` e ainda não existir caption), e envolver todo o `processCarousel` em `EdgeRuntime.waitUntil` (já feito) — confirmar que a chamada de caption está dentro desse mesmo `waitUntil` (está, mas adicionar try/catch + log para diagnóstico).
+- Trocar a checagem `allDone` para `hasAnyDone` (`finalSlides.some(s => s.status === 'done' && s.imageUrl)`) para não bloquear a legenda quando 1 slide falha.
 
-- Dev deps: `vitest`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`, `jsdom`, `@vitest/coverage-v8`
-- `vitest.config.ts` na raiz (ambiente jsdom, alias `@`, setup file)
-- `src/test/setup.ts` com `@testing-library/jest-dom` e mock de `matchMedia`
-- Scripts no `package.json`: `test`, `test:watch`, `test:coverage`
-- Testes iniciais cobrindo módulos críticos:
-  - `src/lib/utils.test.ts`
-  - `src/components/create-content/carousel/types.test.ts` (validação de tipos/helpers)
-  - `src/hooks/useCarouselSlides.test.ts` (com mock do supabase client)
-  - 2–3 smoke tests de componentes UI puros
+### 4. Tela de resultado no padrão da imagem única
+`src/components/create-content/carousel/CarouselResultView.tsx`
+- Reescrever para reusar o **mesmo layout/visual** da `ContentResult` de imagem única:
+  - Mesmo header (breadcrumb + título + ações Salvar/Compartilhar/Baixar).
+  - Mesmo card de mídia (rounded-2xl bg-card shadow-xl, sem o badge "X/Y prontos" no topo) — para carrossel, substituir a `<img>` única por um Embla `Carousel` (componente `@/components/ui/carousel`) ocupando o mesmo slot da imagem, com indicadores de slide e setas; mantém a mesma proporção 4:5.
+  - Mesmo bloco de **Legenda sugerida** abaixo do card, idêntico ao da imagem única (Título / Corpo / Hashtags + botão Copiar + ações de revisão), em vez do bloco simplificado atual.
+- `CarouselResultView` continua sendo chamado pelo short‑circuit em `ContentResult.tsx`, mas agora visualmente é a "tela de resultado padrão" com um carrossel de imagens no lugar da imagem única.
 
-Cobertura inicial alvo: módulos `lib/`, `hooks/`, e helpers. **Não** vamos perseguir cobertura de toda a UI nesta fase — apenas garantir o pipeline verde com uma base sólida.
+## Detalhes técnicos
 
-## 2. Setup de testes E2E (Playwright)
+- Limite de referências mantido em 5 (igual single).
+- `referenceImages` no carrossel são compartilhadas por todos os slides (não há UI para referência por slide hoje); o backend ignora `slide.referenceImageUrl` quando `body.referenceImages` está presente.
+- Nenhuma migração de banco necessária; estrutura `result.carousel` permanece igual.
+- Custo continua `slidesCount * COMPLETE_IMAGE` — sem mudança.
 
-`@playwright/test` e `playwright.config.ts` já existem. Falta:
+## Arquivos tocados
 
-- Criar pasta `e2e/` com specs cobrindo as principais funcionalidades:
-  - `auth.spec.ts` — login/cadastro (happy path)
-  - `create-content.spec.ts` — fluxo de criação de imagem única
-  - `carousel.spec.ts` — fluxo de criação de carrossel (seleção formato Carrossel 4:5, painel de slides, geração)
-  - `dashboard.spec.ts` — carregamento do dashboard e Recent Activity
-  - `trash.spec.ts` — soft delete e restauração
-- Usuário de teste dedicado via secrets (`E2E_USER_EMAIL`, `E2E_USER_PASSWORD`) apontando para o ambiente **Test** (regra do projeto: Live DB não é tocado por automação).
-- Scripts: `test:e2e`, `test:e2e:ui`.
-
-## 3. Setup de testes de integração (Selenium)
-
-Conforme solicitado, em paralelo ao Playwright:
-
-- Dev deps: `selenium-webdriver`, `@types/selenium-webdriver`, `chromedriver`, `mocha`, `chai`, `ts-node`
-- Pasta `selenium/` com:
-  - `selenium/config.ts` — driver headless Chrome, baseURL configurável
-  - `selenium/auth.test.ts` — login E2E real via WebDriver
-  - `selenium/carousel-integration.test.ts` — abre criar conteúdo, escolhe Carrossel 4:5, valida que o `CarouselPanel` aparece com 4 slides default
-  - `selenium/dashboard-integration.test.ts` — navega para dashboard logado e valida elementos chave
-- Script: `test:integration` (mocha rodando os `*.test.ts` da pasta `selenium/`).
-
-> Nota: Playwright já cobre E2E moderno; Selenium é mantido em paralelo apenas porque foi explicitamente pedido. Os dois rodam jobs separados no CI para não duplicar tempo de fila.
-
-## 4. GitHub Actions
-
-Criar `.github/workflows/ci.yml` com triggers:
-
-```yaml
-on:
-  pull_request:
-    branches: [main, dev]
-  push:
-    branches: [main]
-```
-
-Jobs (todos em `ubuntu-latest`, Node 20, cache de Bun/npm):
-
-| Job | Comando | Depende de |
-|---|---|---|
-| `lint` | `npm run lint` | — |
-| `build` | `npm run build` | — |
-| `unit` | `npm run test -- --run --coverage` | — |
-| `e2e` | `npx playwright install --with-deps && npm run test:e2e` | `build` |
-| `selenium` | `npm run test:integration` (usa Chrome do runner) | `build` |
-
-- Todos os jobs rodam em paralelo quando possível.
-- Upload de artefatos: relatório de cobertura (unit) e `playwright-report/` (e2e).
-- **Branch protection (instrução para o usuário)**: pedir que ative no GitHub a regra exigindo `lint`, `unit`, `build`, `e2e`, `selenium` como checks obrigatórios antes de merge na `main`.
-
-### Secrets necessárias no repositório GitHub
-
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `E2E_USER_EMAIL`
-- `E2E_USER_PASSWORD`
-- `E2E_BASE_URL` (default: preview do Lovable)
-
-O usuário precisará adicioná-las em **Settings → Secrets and variables → Actions** (não consigo fazer isso pelo Lovable).
-
-## 5. Documentação
-
-- `TESTING.md` na raiz com:
-  - Como rodar cada tipo de teste localmente
-  - Como escrever novos testes em cada framework
-  - Como configurar as secrets no GitHub
-
----
-
-## Arquivos a criar/editar
-
-**Criar:**
-- `.github/workflows/ci.yml`
-- `vitest.config.ts`
-- `src/test/setup.ts`
-- `src/lib/utils.test.ts`, `src/hooks/useCarouselSlides.test.ts` (+ outros unit tests iniciais)
-- `e2e/auth.spec.ts`, `e2e/create-content.spec.ts`, `e2e/carousel.spec.ts`, `e2e/dashboard.spec.ts`, `e2e/trash.spec.ts`
-- `selenium/config.ts`, `selenium/auth.test.ts`, `selenium/carousel-integration.test.ts`, `selenium/dashboard-integration.test.ts`
-- `TESTING.md`
-
-**Editar:**
-- `package.json` — novas devDeps e scripts (`test`, `test:watch`, `test:coverage`, `test:e2e`, `test:integration`)
-- `tsconfig.app.json` — `"types": ["vitest/globals"]`
-
----
-
-## Pontos a confirmar antes de implementar
-
-1. **Cobertura inicial dos testes**: ok começar com base mínima (utils, hooks de carrossel, 1 smoke por fluxo principal no Playwright + Selenium) e expandir depois? Cobrir "todas as funcionalidades" de cara geraria dezenas de specs frágeis.
-2. **Selenium em paralelo ao Playwright**: confirmas que queres manter os dois? Playwright já é mais moderno e cobre o mesmo escopo — Selenium tipicamente é só pedido por restrição corporativa.
-3. **Branch para PRs**: rodar CI em PRs para `main` e `dev`, ou só `main`?
+- `src/pages/CreateImage.tsx` — validação + upload de referências no carrossel.
+- `supabase/functions/generate-carousel-images/index.ts` — schema, propagação de referências, robustez da legenda.
+- `src/components/create-content/carousel/CarouselResultView.tsx` — reescrita para casar com o padrão de imagem única.
