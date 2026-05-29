@@ -714,9 +714,18 @@ export default function ContentResult() {
     toast.warning("Se você usou imagens de referência, lembre-se de anexá-las novamente.", { duration: 6000 });
   };
 
+  // Short-circuit: carrossel tem view própria
+  if (carouselActionId && (probeLoading || carouselProbe?.isCarousel)) {
+    if (carouselProbe?.isCarousel) {
+      return <CarouselResultView actionId={carouselActionId} />;
+    }
+    return <ContentResultSkeleton />;
+  }
+
   if (isLoading || !contentData) {
     return <ContentResultSkeleton />;
   }
+
 
   const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
   const originalFormData = saved.originalFormData || {};
