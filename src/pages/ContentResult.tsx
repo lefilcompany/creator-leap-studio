@@ -220,6 +220,11 @@ export default function ContentResult() {
   };
 
   useEffect(() => {
+    // Em modo carrossel não usamos a pipeline legada de conteúdo
+    if (carouselActionId) {
+      setIsLoading(false);
+      return;
+    }
     const loadContent = async () => {
       try {
         // Clean old sessionStorage images
