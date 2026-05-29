@@ -304,7 +304,7 @@ export default function CreateImage() {
   const [showSettings, setShowSettings] = useState(false);
   const [textModalOpen, setTextModalOpen] = useState(false);
   const [slidesCount, setSlidesCount] = useState<number>(4);
-  const isCarousel = formData.platform === "Carrossel";
+  const [isCarousel, setIsCarousel] = useState<boolean>(false);
   const teamId = user?.teamId;
   const userId = user?.id;
 
