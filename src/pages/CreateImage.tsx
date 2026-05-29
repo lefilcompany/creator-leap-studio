@@ -312,6 +312,7 @@ export default function CreateImage() {
     { index: 3, prompt: "" },
   ]);
   const isCarousel = formData.platform === "Carrossel";
+  const teamId = user?.teamId;
   const userId = user?.id;
 
   // Load Google Fonts
