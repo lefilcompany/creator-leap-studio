@@ -140,7 +140,7 @@ export function UpdateBanner() {
               disabled={updating}
               className="group relative w-full inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-wait overflow-hidden"
             >
-              <span className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary bg-[length:200%_100%] animate-[shimmer_3s_linear_infinite] group-hover:bg-[position:100%_0]" />
+              <span className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary opacity-100 transition-transform duration-500 group-hover:scale-105" />
               <span className="relative flex items-center gap-2">
                 <RefreshCw
                   className={`h-4 w-4 ${updating ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500"}`}
