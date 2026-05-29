@@ -191,14 +191,14 @@ export function useHistoryActions(filters: HistoryFilters) {
         };
       });
 
-      // Enriquecimento: para ações sem imageUrl que sejam carrosséis,
+      // Enriquecimento: para TODA ação que seja um carrossel (mesmo que já tenha thumb),
       // busca as URLs dos slides para exibir o carrossel rotativo no card.
-      const missingIds = actions.filter((a) => !a.imageUrl).map((a) => a.id);
-      if (missingIds.length > 0) {
+      const allIds = actions.map((a) => a.id);
+      if (allIds.length > 0) {
         const { data: extraRows } = await supabase
           .from('actions')
           .select('id, result')
-          .in('id', missingIds);
+          .in('id', allIds);
         if (extraRows) {
           const byId = new Map(extraRows.map((r: any) => [r.id, r.result]));
           for (const a of actions) {
@@ -216,6 +216,7 @@ export function useHistoryActions(filters: HistoryFilters) {
           }
         }
       }
+
 
       const lastAction = actions[actions.length - 1];
       const nextCursor = actions.length === ITEMS_PER_PAGE && lastAction
