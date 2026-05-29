@@ -1,0 +1,1 @@
+UPDATE public.actions AS child SET parent_action_id = 'a9275571-ed92-4a5b-af20-c904b7b7452d'::uuid WHERE child.id IN ('b27c7c08-1b23-40d2-8b18-8ccd18c6a623','e20679ed-71f0-4f56-a770-b96f62830611','44f2c25a-e148-4b8c-ad79-a75c3b51a1bc','3fc98dd8-113a-4f6e-b909-eb0456da939b') AND child.parent_action_id IS NULL;
