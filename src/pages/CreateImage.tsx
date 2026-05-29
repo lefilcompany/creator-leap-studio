@@ -1054,6 +1054,38 @@ export default function CreateImage() {
             {/* ═══ Left Column ═══ */}
             <div className="space-y-5">
 
+              {/* Toggle: imagem única ou carrossel */}
+              <div className="rounded-2xl bg-card shadow-sm border border-border/40 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-foreground">Quantas imagens gerar?</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Escolha entre uma imagem única ou um carrossel com várias variações relacionadas.
+                    </p>
+                  </div>
+                  <div className="inline-flex rounded-xl bg-muted p-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsCarousel(false)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        !isCarousel ? "bg-card text-foreground shadow" : "text-muted-foreground"
+                      }`}
+                    >
+                      Imagem única
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsCarousel(true)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        isCarousel ? "bg-card text-foreground shadow" : "text-muted-foreground"
+                      }`}
+                    >
+                      Carrossel
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* 1. Prompt + References */}
               {isCarousel && (
                 <div className="rounded-2xl bg-card shadow-sm border border-border/40 p-4 space-y-2">
