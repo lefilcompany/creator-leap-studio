@@ -1,7 +1,11 @@
-import { Loader2, RefreshCw, AlertCircle, Download } from "lucide-react";
+import { useEffect, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import { Loader2, RefreshCw, AlertCircle, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+import { CreationFeedback } from "@/components/CreationFeedback";
 import type { CarouselResult, SlideState } from "./types";
 
 interface Props {
@@ -14,19 +18,19 @@ function StatusOverlay({ slide }: { slide: SlideState }) {
   if (slide.status === "done") return null;
   if (slide.status === "error") {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-destructive/10 backdrop-blur-sm rounded-2xl gap-1 p-3 text-center">
-        <AlertCircle className="h-6 w-6 text-destructive" />
-        <p className="text-xs font-medium text-destructive">Falha ao gerar</p>
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-destructive/10 backdrop-blur-sm rounded-2xl gap-2 p-4 text-center">
+        <AlertCircle className="h-8 w-8 text-destructive" />
+        <p className="text-sm font-medium text-destructive">Falha ao gerar</p>
         {slide.error && (
-          <p className="text-[10px] text-muted-foreground line-clamp-2">{slide.error}</p>
+          <p className="text-xs text-muted-foreground line-clamp-3 max-w-xs">{slide.error}</p>
         )}
       </div>
     );
   }
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/60 backdrop-blur-sm rounded-2xl gap-2">
-      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      <p className="text-xs font-medium text-muted-foreground">
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/60 backdrop-blur-sm rounded-2xl gap-3">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <p className="text-sm font-medium text-muted-foreground">
         {slide.status === "generating" ? "Gerando..." : "Aguardando..."}
       </p>
     </div>
@@ -51,12 +55,27 @@ async function downloadImage(url: string, filename: string) {
 }
 
 export function CarouselGallery({ actionId, carousel, onRegenerate }: Props) {
+  const slides = carousel?.slides ?? [];
+  const brandId = (carousel as any).brandId as string | undefined;
+
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: "center" });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap());
+    emblaApi.on("select", onSelect);
+    onSelect();
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi]);
+
   const handleRegenerate = async (slide: SlideState) => {
     if (onRegenerate) {
       onRegenerate(slide.index);
       return;
     }
-    // Default: chama generate-carousel-images com onlyIndex
     const body = {
       actionId,
       slidesCount: carousel.slidesCount,
@@ -82,60 +101,116 @@ export function CarouselGallery({ actionId, carousel, onRegenerate }: Props) {
     else toast.success(`Slide ${slide.index + 1} entrou na fila`);
   };
 
-  const slides = carousel?.slides ?? [];
+  const currentSlide = slides[selectedIndex];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-bold">Carrossel ({slides.length} slides)</h3>
+        <h3 className="text-base font-bold">
+          Slide {selectedIndex + 1} de {slides.length}
+        </h3>
+        <div className="flex items-center gap-1.5">
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            className="h-8 w-8 rounded-full"
+            onClick={() => emblaApi?.scrollPrev()}
+            disabled={selectedIndex === 0}
+            aria-label="Slide anterior"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            className="h-8 w-8 rounded-full"
+            onClick={() => emblaApi?.scrollNext()}
+            disabled={selectedIndex >= slides.length - 1}
+            aria-label="Próximo slide"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {slides.map((slide) => (
-          <div key={slide.index} className="rounded-2xl bg-card shadow-md border border-border/40 overflow-hidden">
-            <div className="relative aspect-[4/5] bg-muted/40">
-              {slide.imageUrl && slide.status === "done" ? (
-                <img
-                  src={slide.imageUrl}
-                  alt={`Slide ${slide.index + 1}`}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              ) : null}
-              <StatusOverlay slide={slide} />
-              <div className="absolute top-2 left-2 rounded-full bg-background/80 backdrop-blur px-2 py-0.5 text-[10px] font-bold">
-                {slide.index + 1}
+      <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
+        <div className="flex">
+          {slides.map((slide) => (
+            <div key={slide.index} className="min-w-0 flex-[0_0_100%]">
+              <div className="relative aspect-[4/5] bg-muted/40 rounded-2xl overflow-hidden border border-border/40">
+                {slide.imageUrl && slide.status === "done" ? (
+                  <img
+                    src={slide.imageUrl}
+                    alt={`Slide ${slide.index + 1}`}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : null}
+                <StatusOverlay slide={slide} />
+                <div className="absolute top-3 left-3 rounded-full bg-background/85 backdrop-blur px-2.5 py-1 text-xs font-bold">
+                  {slide.index + 1}/{slides.length}
+                </div>
               </div>
             </div>
-            <div className="p-2.5 space-y-2">
-              <p className="text-xs text-muted-foreground line-clamp-2">{slide.prompt}</p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="h-7 flex-1 text-xs"
-                  onClick={() => handleRegenerate(slide)}
-                  disabled={slide.status === "generating" || slide.status === "pending"}
-                >
-                  <RefreshCw className="h-3 w-3 mr-1" />
-                  Regerar
-                </Button>
-                {slide.imageUrl && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 px-2"
-                    onClick={() => downloadImage(slide.imageUrl!, `slide-${slide.index + 1}.png`)}
-                  >
-                    <Download className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Dots */}
+      <div className="flex items-center justify-center gap-1.5">
+        {slides.map((s, i) => (
+          <button
+            key={s.index}
+            type="button"
+            onClick={() => emblaApi?.scrollTo(i)}
+            aria-label={`Ir para slide ${i + 1}`}
+            className={cn(
+              "h-2 rounded-full transition-all",
+              i === selectedIndex ? "w-6 bg-primary" : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+            )}
+          />
         ))}
       </div>
+
+      {/* Ações do slide atual */}
+      {currentSlide && (
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-9 gap-1.5"
+              onClick={() => handleRegenerate(currentSlide)}
+              disabled={currentSlide.status === "generating" || currentSlide.status === "pending"}
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5", currentSlide.status === "generating" && "animate-spin")} />
+              Regerar este slide
+            </Button>
+            {currentSlide.imageUrl && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-9 gap-1.5"
+                onClick={() => downloadImage(currentSlide.imageUrl!, `slide-${currentSlide.index + 1}.png`)}
+              >
+                <Download className="h-3.5 w-3.5" />
+                Baixar
+              </Button>
+            )}
+          </div>
+
+          {currentSlide.status === "done" && currentSlide.childActionId && (
+            <CreationFeedback
+              actionId={currentSlide.childActionId}
+              brandId={brandId}
+              imageUrl={currentSlide.imageUrl}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
