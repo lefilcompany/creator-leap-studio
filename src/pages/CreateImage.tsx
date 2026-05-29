@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TagSelect } from "@/components/ui/tag-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic, ClipboardPaste, Type, Building2, UserRound, Newspaper } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic, ClipboardPaste, Type, Building2, UserRound, Newspaper, Layers, Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1055,57 +1055,73 @@ export default function CreateImage() {
             <div className="space-y-5">
 
               {/* Toggle: imagem única ou carrossel */}
-              <div className="rounded-2xl bg-card shadow-sm border border-border/40 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-bold text-foreground">Quantas imagens gerar?</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Escolha entre uma imagem única ou um carrossel com várias variações relacionadas.
-                    </p>
-                  </div>
-                  <div className="inline-flex rounded-xl bg-muted p-1">
-                    <button
-                      type="button"
-                      onClick={() => setIsCarousel(false)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                        !isCarousel ? "bg-card text-foreground shadow" : "text-muted-foreground"
-                      }`}
-                    >
-                      Imagem única
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsCarousel(true)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                        isCarousel ? "bg-card text-foreground shadow" : "text-muted-foreground"
-                      }`}
-                    >
-                      Carrossel
-                    </button>
-                  </div>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-base font-bold text-foreground">Quantas imagens gerar?</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Uma imagem única ou um carrossel com variações relacionadas a partir do mesmo prompt.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                  {[
+                    { value: false, title: "Imagem única", desc: "1 imagem", Icon: ImageIcon },
+                    { value: true, title: "Carrossel", desc: "Várias variações", Icon: Layers },
+                  ].map(({ value, title, desc, Icon }) => {
+                    const active = isCarousel === value;
+                    return (
+                      <button
+                        key={String(value)}
+                        type="button"
+                        onClick={() => setIsCarousel(value)}
+                        className={`group relative text-left rounded-2xl border p-3 sm:p-4 transition-all active:scale-[0.98] ${
+                          active
+                            ? "border-primary/60 bg-primary/5 shadow-md ring-2 ring-primary/20"
+                            : "border-border/50 bg-card shadow-sm hover:shadow-md hover:border-border"
+                        }`}
+                      >
+                        {active && (
+                          <span className="absolute top-2 right-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                            <Check className="h-3 w-3" />
+                          </span>
+                        )}
+                        <div className="flex items-center gap-2.5 sm:gap-3">
+                          <div className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                            active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                          }`}>
+                            <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-foreground leading-tight">{title}</p>
+                            <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">{desc}</p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* 1. Prompt + References */}
+              {/* Quantos slides — somente para carrossel */}
               {isCarousel && (
-                <div className="rounded-2xl bg-card shadow-sm border border-border/40 p-4 space-y-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-bold text-foreground">Quantos slides no carrossel?</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Geramos {slidesCount} variações relacionadas a partir da mesma descrição, formato e estilo.
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1">
+                <div className="rounded-2xl bg-card shadow-sm border border-border/40 p-4 space-y-3">
+                  <div>
+                    <p className="text-sm font-bold text-foreground">Quantos slides?</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {slidesCount} variações relacionadas, no mesmo formato e estilo.
+                    </p>
+                  </div>
+                  <div className="-mx-1 px-1 overflow-x-auto sm:overflow-visible">
+                    <div className="flex items-center gap-1.5 min-w-max sm:min-w-0 sm:flex-wrap">
                       {[3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                         <button
                           key={n}
                           type="button"
                           onClick={() => setSlidesCount(n)}
-                          className={`h-8 w-8 rounded-full text-xs font-semibold transition-all ${
+                          className={`h-9 w-9 shrink-0 rounded-full text-sm font-semibold transition-all active:scale-95 ${
                             slidesCount === n
-                              ? "bg-primary text-primary-foreground shadow"
-                              : "bg-muted text-muted-foreground hover:bg-muted/70"
+                              ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20"
+                              : "bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                           }`}
                         >
                           {n}
