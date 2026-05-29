@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/collapsible";
 import createBanner from "@/assets/create-banner.jpg";
 import { ComplianceAlert, type ComplianceData } from "@/components/ComplianceAlert";
+import { CarouselResultView } from "@/components/create-content/carousel/CarouselResultView";
+import { useQuery } from "@tanstack/react-query";
 
 function PlatformIcon({ platform, className = "h-3.5 w-3.5" }: { platform: string; className?: string }) {
   switch (platform) {
@@ -80,6 +82,31 @@ export default function ContentResult() {
     user,
     refreshUserCredits
   } = useAuth();
+
+  // ═══ Carousel short-circuit ═══════════════════════════
+  // Quando navegamos via /result?actionId=... e a action é um carrossel,
+  // renderizamos uma view dedicada (CarouselResultView) e ignoramos o fluxo legado.
+  const carouselActionId = (() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("actionId") ?? undefined;
+  })();
+  const { data: carouselProbe, isLoading: probeLoading } = useQuery({
+    queryKey: ["carousel-probe", carouselActionId],
+    enabled: !!carouselActionId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("actions")
+        .select("result, details")
+        .eq("id", carouselActionId!)
+        .single();
+      const isCarousel =
+        !!(data?.result as any)?.carousel ||
+        !!(data?.details as any)?.isCarousel;
+      return { isCarousel };
+    },
+  });
+
+
   const [copied, setCopied] = useState(false);
   const [isImageCopied, setIsImageCopied] = useState(false);
   const [contentData, setContentData] = useState<ContentResultData | null>(null);
@@ -193,6 +220,11 @@ export default function ContentResult() {
   };
 
   useEffect(() => {
+    // Em modo carrossel não usamos a pipeline legada de conteúdo
+    if (carouselActionId) {
+      setIsLoading(false);
+      return;
+    }
     const loadContent = async () => {
       try {
         // Clean old sessionStorage images
@@ -329,7 +361,7 @@ export default function ContentResult() {
       }
     };
     loadContent();
-  }, [location.state, navigate]);
+  }, [location.state, navigate, carouselActionId]);
 
   const handleCopyCaption = async () => {
     if (!contentData) return;
@@ -687,9 +719,18 @@ export default function ContentResult() {
     toast.warning("Se você usou imagens de referência, lembre-se de anexá-las novamente.", { duration: 6000 });
   };
 
+  // Short-circuit: carrossel tem view própria
+  if (carouselActionId && (probeLoading || carouselProbe?.isCarousel)) {
+    if (carouselProbe?.isCarousel) {
+      return <CarouselResultView actionId={carouselActionId} />;
+    }
+    return <ContentResultSkeleton />;
+  }
+
   if (isLoading || !contentData) {
     return <ContentResultSkeleton />;
   }
+
 
   const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
   const originalFormData = saved.originalFormData || {};
