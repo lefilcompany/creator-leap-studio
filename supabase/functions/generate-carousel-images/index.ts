@@ -337,11 +337,8 @@ async function processCarousel(authHeader: string, body: Body) {
     const sorted = [...body.slides].sort((a, b) => a.index - b.index);
     if (sorted.length === 0) return;
 
-    await run(sorted[0]);
-    const rest = sorted.slice(1);
-    if (rest.length > 0) {
-      await Promise.all(rest.map(run));
-    }
+    // Todos os slides em paralelo (mesma função do fluxo de imagem única, executada N vezes simultaneamente)
+    await Promise.all(sorted.map(run));
 
     // Auto-gera legenda do carrossel — basta ter ao menos 1 slide pronto
     try {
