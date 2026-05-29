@@ -201,10 +201,6 @@ function CarouselThumb({ images, alt }: { images: string[]; alt: string }) {
           />
         ))}
       </div>
-      {/* Carousel badge */}
-      <div className="absolute top-2 right-2 z-10 rounded-full bg-background/85 backdrop-blur px-2 py-0.5 text-[10px] font-bold pointer-events-none">
-        {images.length} slides
-      </div>
     </>
   );
 }
@@ -312,6 +308,11 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
           <Badge className="text-[10px] px-2 py-0.5 h-5 font-medium border-0 bg-primary/20 text-primary hover:bg-primary/20">
             {displayType}
           </Badge>
+          {action.carouselImages && action.carouselImages.length > 1 && (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 h-5 font-medium">
+              {action.carouselImages.length} slides
+            </Badge>
+          )}
           {action.platform && (
             <PlatformIcon platform={action.platform} className="h-4 w-4" />
           )}
