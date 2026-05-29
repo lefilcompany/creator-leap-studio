@@ -581,6 +581,7 @@ serve(async (req) => {
       brand_id: formData.brandId || null,
       status: 'Aprovado',
       approved: true,
+      parent_action_id: formData.parentActionId || null,
       asset_path: !uploadError ? fileName : null,
       thumb_path: !uploadError ? fileName : null,
       details: {

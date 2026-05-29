@@ -24,6 +24,7 @@ import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { cn } from '@/lib/utils';
 import { useActionCategories, useCategories } from '@/hooks/useCategories';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CarouselResultView } from '@/components/create-content/carousel/CarouselResultView';
 
 // ── SectionCard ──────────────────────────────────────────────
 interface SectionCardProps {
@@ -648,6 +649,15 @@ export default function ActionView() {
       </div>
     );
   }
+
+  // ── Carousel short-circuit: render dedicated view ────────
+  const isCarouselAction =
+    !!(action.result as any)?.carousel ||
+    !!(action.details as any)?.isCarousel;
+  if (isCarouselAction && actionId) {
+    return <CarouselResultView actionId={actionId} />;
+  }
+
 
   // ── Derived data ─────────────────────────────────────────
   const TypeIcon = getTypeIcon(action.type);
