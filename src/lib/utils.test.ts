@@ -11,7 +11,8 @@ describe("cn", () => {
   });
 
   it("ignores falsy values", () => {
-    expect(cn("a", false && "b", null, undefined, "c")).toBe("a c");
+    const flag = false as boolean;
+    expect(cn("a", flag && "b", null, undefined, "c")).toBe("a c");
   });
 
   it("supports conditional objects", () => {
