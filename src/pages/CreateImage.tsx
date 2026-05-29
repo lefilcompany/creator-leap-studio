@@ -1944,8 +1944,8 @@ export default function CreateImage() {
               {loading ? (<><Loader2 className="h-4 w-4 animate-spin" />Gerando...</>) : (
                 <>
                   <Sparkles className="h-4 w-4" />
-                  Gerar Imagem
-                  <span className="text-primary-foreground/60 text-xs font-normal">· {CREDIT_COSTS.COMPLETE_IMAGE} créditos</span>
+                  {isCarousel ? `Gerar Carrossel (${slides.length} slides)` : "Gerar Imagem"}
+                  <span className="text-primary-foreground/60 text-xs font-normal">· {displayedCost} créditos</span>
                 </>
               )}
             </Button>
