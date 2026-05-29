@@ -1054,11 +1054,35 @@ export default function CreateImage() {
             {/* ═══ Left Column ═══ */}
             <div className="space-y-5">
 
-              {/* 1. Carrossel OU Prompt + References (unified card) */}
+              {/* 1. Prompt + References */}
               {isCarousel && (
-                <CarouselPanel slides={slides} onChange={setSlides} />
+                <div className="rounded-2xl bg-card shadow-sm border border-border/40 p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-foreground">Quantos slides no carrossel?</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Geramos {slidesCount} variações relacionadas a partir da mesma descrição, formato e estilo.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {[3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setSlidesCount(n)}
+                          className={`h-8 w-8 rounded-full text-xs font-semibold transition-all ${
+                            slidesCount === n
+                              ? "bg-primary text-primary-foreground shadow"
+                              : "bg-muted text-muted-foreground hover:bg-muted/70"
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               )}
-              {!isCarousel && (
               <div className="space-y-2.5">
                 <div>
                   <Label htmlFor="prompt" className="text-base font-bold text-foreground">
