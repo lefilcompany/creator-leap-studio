@@ -35,8 +35,6 @@ import { CameraAngleGrid } from "@/components/quick-content/CameraAngleGrid";
 import { CategorySelector } from "@/components/CategorySelector";
 import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import { QuickContentLoading } from "@/components/quick-content/QuickContentLoading";
-import { CarouselPanel } from "@/components/create-content/carousel/CarouselPanel";
-import type { SlideBriefing } from "@/components/create-content/carousel/types";
 import createBanner from "@/assets/create-banner.jpg";
 
 enum GenerationStep {
@@ -305,12 +303,7 @@ export default function CreateImage() {
   const [showStyles, setShowStyles] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [textModalOpen, setTextModalOpen] = useState(false);
-  const [slides, setSlides] = useState<SlideBriefing[]>([
-    { index: 0, prompt: "" },
-    { index: 1, prompt: "" },
-    { index: 2, prompt: "" },
-    { index: 3, prompt: "" },
-  ]);
+  const [slidesCount, setSlidesCount] = useState<number>(4);
   const isCarousel = formData.platform === "Carrossel";
   const teamId = user?.teamId;
   const userId = user?.id;
@@ -552,26 +545,21 @@ export default function CreateImage() {
     setFormData(prev => ({ ...prev, tone: prev.tone.filter(t => t !== toneToRemove) }));
   };
 
-  const allSlidesFilled = slides.every(s => s.prompt.trim().length > 0);
-  const totalCarouselCost = slides.length * CREDIT_COSTS.COMPLETE_IMAGE;
+  const totalCarouselCost = slidesCount * CREDIT_COSTS.COMPLETE_IMAGE;
   const displayedCost = isCarousel ? totalCarouselCost : CREDIT_COSTS.COMPLETE_IMAGE;
 
   const isFormValid = useMemo(() => {
     const hasPlatformOrFormat = !!(formData.platform || formData.aspectRatio);
-    const promptValid = isCarousel ? allSlidesFilled : !!formData.prompt;
+    const promptValid = !!formData.prompt;
     const referencesValid = isCarousel ? true : referenceFiles.length > 0;
     return formData.brand && promptValid && hasPlatformOrFormat && formData.tone.length > 0 && referencesValid;
-  }, [formData.brand, formData.prompt, formData.platform, formData.aspectRatio, formData.tone.length, referenceFiles.length, isCarousel, allSlidesFilled]);
+  }, [formData.brand, formData.prompt, formData.platform, formData.aspectRatio, formData.tone.length, referenceFiles.length, isCarousel]);
 
   const validateForm = () => {
     const missing: string[] = [];
     if (!formData.brand) missing.push('brand');
-    if (isCarousel) {
-      if (!allSlidesFilled) missing.push('slides');
-    } else {
-      if (!formData.prompt) missing.push('prompt');
-      if (referenceFiles.length === 0) missing.push('referenceFiles');
-    }
+    if (!formData.prompt) missing.push('prompt');
+    if (!isCarousel && referenceFiles.length === 0) missing.push('referenceFiles');
     if (!formData.platform && !formData.aspectRatio) missing.push('platform');
     if (formData.tone.length === 0) missing.push('tone');
     setMissingFields(missing);
@@ -602,7 +590,7 @@ export default function CreateImage() {
       try {
         if (availableCredits < totalCarouselCost) {
           toast.error("Créditos insuficientes", {
-            description: `Carrossel de ${slides.length} slides custa ${totalCarouselCost} créditos. Você tem ${availableCredits}.`,
+            description: `Carrossel de ${slidesCount} slides custa ${totalCarouselCost} créditos. Você tem ${availableCredits}.`,
           });
           setLoading(false);
           return;
@@ -612,8 +600,24 @@ export default function CreateImage() {
         const selectedTheme = themes.find(t => t.id === formData.theme);
         const selectedPersona = personas.find(p => p.id === formData.persona);
 
-        // Cria action pai
-        const initialSlides = slides.map((s, i) => ({ ...s, index: i, status: "pending" as const }));
+        // Build N slides sharing the same prompt + visual settings, com hint de variação.
+        const basePrompt = formData.prompt.trim();
+        const sharedSlideFields = {
+          visualStyle: formData.visualStyle,
+          cameraAngle: formData.cameraAngle,
+          lighting: formData.lighting,
+          composition: formData.composition,
+          mood: formData.mood,
+        };
+        const initialSlides = Array.from({ length: slidesCount }, (_, i) => ({
+          index: i,
+          prompt: `${basePrompt}\n\n(Variação ${i + 1} de ${slidesCount} do carrossel — mantenha coerência visual com as demais imagens da sequência.)`,
+          ...sharedSlideFields,
+          status: "pending" as const,
+        }));
+
+        const dims = formData.aspectRatio ? ASPECT_RATIO_DIMENSIONS[formData.aspectRatio] : undefined;
+
         const { data: actionRow, error: insertErr } = await supabase
           .from("actions")
           .insert({
@@ -628,12 +632,15 @@ export default function CreateImage() {
               brandName: selectedBrand?.name,
               themeName: selectedTheme?.title,
               personaName: selectedPersona?.name,
-              slidesCount: slides.length,
+              slidesCount,
               isCarousel: true,
+              basePrompt,
+              aspectRatio: formData.aspectRatio,
+              visualStyle: formData.visualStyle,
             },
             result: {
               carousel: {
-                slidesCount: slides.length,
+                slidesCount,
                 slides: initialSlides,
                 brandId: formData.brand,
                 themeId: formData.theme || null,
@@ -654,11 +661,10 @@ export default function CreateImage() {
           return;
         }
 
-        // Dispara orquestrador (fire-and-forget)
         const { error: invokeErr } = await supabase.functions.invoke("generate-carousel-images", {
           body: {
             actionId: actionRow.id,
-            slidesCount: slides.length,
+            slidesCount,
             slides: initialSlides.map(s => ({
               index: s.index,
               prompt: s.prompt,
@@ -667,7 +673,6 @@ export default function CreateImage() {
               lighting: s.lighting,
               composition: s.composition,
               mood: s.mood,
-              referenceImageUrl: s.referenceImageUrl,
             })),
             brandId: formData.brand,
             themeId: formData.theme || undefined,
@@ -675,6 +680,9 @@ export default function CreateImage() {
             platform: "Carrossel",
             contentType,
             tone: formData.tone,
+            aspectRatio: formData.aspectRatio,
+            width: dims?.width,
+            height: dims?.height,
           },
         });
 
@@ -687,7 +695,7 @@ export default function CreateImage() {
 
         clearPersistedData();
         toast.success("Carrossel em produção", {
-          description: `${slides.length} slides serão gerados em paralelo.`,
+          description: `${slidesCount} slides serão gerados em paralelo.`,
         });
         navigate(`/result?actionId=${actionRow.id}`);
         return;
@@ -1046,11 +1054,35 @@ export default function CreateImage() {
             {/* ═══ Left Column ═══ */}
             <div className="space-y-5">
 
-              {/* 1. Carrossel OU Prompt + References (unified card) */}
+              {/* 1. Prompt + References */}
               {isCarousel && (
-                <CarouselPanel slides={slides} onChange={setSlides} />
+                <div className="rounded-2xl bg-card shadow-sm border border-border/40 p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-foreground">Quantos slides no carrossel?</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Geramos {slidesCount} variações relacionadas a partir da mesma descrição, formato e estilo.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {[3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setSlidesCount(n)}
+                          className={`h-8 w-8 rounded-full text-xs font-semibold transition-all ${
+                            slidesCount === n
+                              ? "bg-primary text-primary-foreground shadow"
+                              : "bg-muted text-muted-foreground hover:bg-muted/70"
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               )}
-              {!isCarousel && (
               <div className="space-y-2.5">
                 <div>
                   <Label htmlFor="prompt" className="text-base font-bold text-foreground">
@@ -1142,7 +1174,6 @@ export default function CreateImage() {
                   <p className="text-xs text-destructive font-medium">Adicione ao menos 1 imagem de referência</p>
                 )}
               </div>
-              )}
 
               {/* 2. Personalizações (sem card, flex lado a lado) */}
               <div className="space-y-2.5">
@@ -1944,7 +1975,7 @@ export default function CreateImage() {
               {loading ? (<><Loader2 className="h-4 w-4 animate-spin" />Gerando...</>) : (
                 <>
                   <Sparkles className="h-4 w-4" />
-                  {isCarousel ? `Gerar Carrossel (${slides.length} slides)` : "Gerar Imagem"}
+                  {isCarousel ? `Gerar Carrossel (${slidesCount} slides)` : "Gerar Imagem"}
                   <span className="text-primary-foreground/60 text-xs font-normal">· {displayedCost} créditos</span>
                 </>
               )}

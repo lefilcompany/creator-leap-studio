@@ -30,6 +30,9 @@ const BodySchema = z.object({
   contentType: z.enum(["organic", "ads"]).default("organic"),
   tone: z.array(z.string()).optional(),
   onlyIndex: z.number().int().min(0).max(9).optional(),
+  aspectRatio: z.string().optional(),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
 });
 
 type Body = z.infer<typeof BodySchema>;
@@ -85,9 +88,9 @@ async function callGenerateImageForSlide(
       personaId: body.personaId ?? undefined,
       platform: "Carrossel",
       contentType: body.contentType,
-      aspectRatio: "4:5",
-      width: 1080,
-      height: 1350,
+      aspectRatio: body.aspectRatio ?? "4:5",
+      width: body.width ?? 1080,
+      height: body.height ?? 1350,
       visualStyle: slide.visualStyle ?? "realistic",
       cameraAngle: slide.cameraAngle,
       lighting: slide.lighting,
