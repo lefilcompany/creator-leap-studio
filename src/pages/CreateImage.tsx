@@ -1093,7 +1093,7 @@ export default function CreateImage() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-foreground leading-tight">{title}</p>
-                            <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">{desc}</p>
+                            <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 whitespace-pre-line">{desc}</p>
                           </div>
                         </div>
                       </button>
