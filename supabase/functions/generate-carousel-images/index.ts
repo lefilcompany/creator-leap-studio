@@ -89,6 +89,24 @@ async function callGenerateImageForSlide(
   slide: Slide,
 ): Promise<{ imageUrl?: string; childActionId?: string; error?: string }> {
   try {
+    // Mescla referência específica do slide (se houver) no pool de preserve
+    const slideRef = slide.referenceImageUrl ? [slide.referenceImageUrl] : [];
+    const preserveImages = [
+      ...(body.preserveImages ?? []),
+      ...slideRef,
+    ].slice(0, 5);
+    const styleReferenceImages = (body.styleReferenceImages ?? []).slice(0, 5);
+    const brandReferenceImages = (body.brandReferenceImages ?? []).slice(0, 3);
+    const userReferenceImages = (body.userReferenceImages ?? []).slice(0, 5);
+    const preserveImageIndices = body.preserveImageIndices ?? [];
+
+    // Fallback legado: nada marcado explicitamente → usa referenceImages como preserve
+    const legacyReferences = body.referenceImages ?? [];
+    const finalPreserve =
+      preserveImages.length === 0 && styleReferenceImages.length === 0 && legacyReferences.length > 0
+        ? legacyReferences.slice(0, 5)
+        : preserveImages;
+
     const payload: Record<string, unknown> = {
       description: slide.prompt,
       brandId: body.brandId,
@@ -107,12 +125,12 @@ async function callGenerateImageForSlide(
       includeText: false,
       tone: body.tone ?? [],
       parentActionId: body.actionId,
-      referenceImages:
-        body.referenceImages && body.referenceImages.length > 0
-          ? body.referenceImages
-          : slide.referenceImageUrl
-            ? [slide.referenceImageUrl]
-            : undefined,
+      // Mesmo contrato de referências do fluxo de imagem única
+      preserveImages: finalPreserve,
+      styleReferenceImages,
+      brandReferenceImages,
+      userReferenceImages,
+      preserveImageIndices,
     };
 
     const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-image`, {
