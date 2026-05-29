@@ -552,18 +552,28 @@ export default function CreateImage() {
     setFormData(prev => ({ ...prev, tone: prev.tone.filter(t => t !== toneToRemove) }));
   };
 
+  const allSlidesFilled = slides.every(s => s.prompt.trim().length > 0);
+  const totalCarouselCost = slides.length * CREDIT_COSTS.COMPLETE_IMAGE;
+  const displayedCost = isCarousel ? totalCarouselCost : CREDIT_COSTS.COMPLETE_IMAGE;
+
   const isFormValid = useMemo(() => {
     const hasPlatformOrFormat = !!(formData.platform || formData.aspectRatio);
-    return formData.brand && formData.prompt && hasPlatformOrFormat && formData.tone.length > 0 && referenceFiles.length > 0;
-  }, [formData.brand, formData.prompt, formData.platform, formData.aspectRatio, formData.tone.length, referenceFiles.length]);
+    const promptValid = isCarousel ? allSlidesFilled : !!formData.prompt;
+    const referencesValid = isCarousel ? true : referenceFiles.length > 0;
+    return formData.brand && promptValid && hasPlatformOrFormat && formData.tone.length > 0 && referencesValid;
+  }, [formData.brand, formData.prompt, formData.platform, formData.aspectRatio, formData.tone.length, referenceFiles.length, isCarousel, allSlidesFilled]);
 
   const validateForm = () => {
     const missing: string[] = [];
     if (!formData.brand) missing.push('brand');
-    if (!formData.prompt) missing.push('prompt');
+    if (isCarousel) {
+      if (!allSlidesFilled) missing.push('slides');
+    } else {
+      if (!formData.prompt) missing.push('prompt');
+      if (referenceFiles.length === 0) missing.push('referenceFiles');
+    }
     if (!formData.platform && !formData.aspectRatio) missing.push('platform');
     if (formData.tone.length === 0) missing.push('tone');
-    if (referenceFiles.length === 0) missing.push('referenceFiles');
     setMissingFields(missing);
     return missing.length === 0;
   };
