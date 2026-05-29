@@ -600,6 +600,10 @@ serve(async (req) => {
       },
       result: {
         imageUrl: finalPublicUrl,
+        title: (briefingResult.headline && String(briefingResult.headline).trim())
+          || (briefingResult.legenda ? String(briefingResult.legenda).split('\n').map((l: string) => l.trim()).find((l: string) => l.length > 0) : null)
+          || (formData.description ? String(formData.description).slice(0, 80) : null)
+          || resultDescription,
         description: resultDescription,
         headline: briefingResult.headline || null,
         subtexto: briefingResult.subtexto || null,
@@ -612,6 +616,7 @@ serve(async (req) => {
         wasResized: postProcessResult.wasResized,
         complianceCheck: complianceResult,
       }
+
     }).select().single();
 
     if (actionError) console.error('Error creating action:', actionError);

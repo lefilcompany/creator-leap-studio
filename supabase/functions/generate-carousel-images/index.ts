@@ -252,11 +252,13 @@ ${promptsJoined}`;
       const car = curResult.carousel ?? {};
       const next = {
         ...curResult,
+        title: caption.title || curResult.title || null,
         carousel: {
           ...car,
           caption: { title: caption.title, body: caption.body, hashtags: caption.hashtags },
         },
       };
+
       const { error } = await admin.from("actions").update({ result: next }).eq("id", actionId);
       if (!error) return;
       console.warn("[carousel-caption] retry update", attempt, error);

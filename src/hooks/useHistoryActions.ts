@@ -79,7 +79,17 @@ export function useHistoryActions(filters: HistoryFilters) {
             objective: details.objective || null,
             platform: details.platform || null,
             thumb_path: row.thumb_path || null,
-            title: result.title || result.description || null,
+            title: result.title
+              || result?.carousel?.caption?.title
+              || result?.headline
+              || (typeof result?.legenda === 'string'
+                ? result.legenda.split('\n').map((l: string) => l.trim()).find((l: string) => l.length > 0)
+                : null)
+              || (typeof result?.description === 'string' && result.description !== 'Imagem gerada com sucesso'
+                ? result.description
+                : null)
+              || (typeof details?.description === 'string' ? details.description.slice(0, 80) : null)
+              || null,
             video_url: result.videoUrl || null,
           };
         });
