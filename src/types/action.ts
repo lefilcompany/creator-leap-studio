@@ -99,4 +99,5 @@ export type ActionSummary = {
   platform?: string;
   objective?: string;
   extraDetails?: Record<string, any>;
+  carouselImages?: string[];
 };

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Star, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users, Loader2, MoreHorizontal, Check, Square } from 'lucide-react';
@@ -165,6 +165,50 @@ const LoadingRows = () => (
   </>
 );
 
+// Auto-rotating thumbnail for carousel actions
+function CarouselThumb({ images, alt }: { images: string[]; alt: string }) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const id = setInterval(() => {
+      setIndex((i) => (i + 1) % images.length);
+    }, 1500);
+    return () => clearInterval(id);
+  }, [images.length]);
+  return (
+    <>
+      {images.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt={alt}
+          loading="lazy"
+          className={cn(
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-500",
+            i === index ? "opacity-100" : "opacity-0"
+          )}
+        />
+      ))}
+      {/* Carousel indicator dots */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+        {images.map((_, i) => (
+          <span
+            key={i}
+            className={cn(
+              "h-1.5 rounded-full transition-all duration-300 bg-white/90 shadow",
+              i === index ? "w-4" : "w-1.5 bg-white/60"
+            )}
+          />
+        ))}
+      </div>
+      {/* Carousel badge */}
+      <div className="absolute top-2 right-2 z-10 rounded-full bg-background/85 backdrop-blur px-2 py-0.5 text-[10px] font-bold pointer-events-none">
+        {images.length} slides
+      </div>
+    </>
+  );
+}
+
 // Grid card
 function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeamFavorite, hasTeam, onToggleFavorite, actionCategories, selectionMode, isBulkSelected, onToggleBulkSelect, onToggleSelectionMode, onDelete }: {
   action: ActionSummary; isSelected: boolean; onNavigate: () => void;
@@ -191,7 +235,9 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
     >
       {/* Image/Video area */}
       <div className="aspect-video w-full relative overflow-hidden bg-muted">
-        {action.imageUrl ? (
+        {action.carouselImages && action.carouselImages.length > 1 ? (
+          <CarouselThumb images={action.carouselImages} alt={action.title || displayType} />
+        ) : action.imageUrl ? (
           <img
             src={action.imageUrl}
             alt={action.title || displayType}

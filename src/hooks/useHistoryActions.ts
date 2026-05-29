@@ -191,6 +191,32 @@ export function useHistoryActions(filters: HistoryFilters) {
         };
       });
 
+      // Enriquecimento: para ações sem imageUrl que sejam carrosséis,
+      // busca as URLs dos slides para exibir o carrossel rotativo no card.
+      const missingIds = actions.filter((a) => !a.imageUrl).map((a) => a.id);
+      if (missingIds.length > 0) {
+        const { data: extraRows } = await supabase
+          .from('actions')
+          .select('id, result')
+          .in('id', missingIds);
+        if (extraRows) {
+          const byId = new Map(extraRows.map((r: any) => [r.id, r.result]));
+          for (const a of actions) {
+            const result = byId.get(a.id) as any;
+            const slides = result?.carousel?.slides;
+            if (Array.isArray(slides)) {
+              const urls = slides
+                .map((s: any) => s?.imageUrl)
+                .filter((u: any): u is string => typeof u === 'string' && u.length > 0);
+              if (urls.length > 0) {
+                a.carouselImages = urls;
+                if (!a.imageUrl) a.imageUrl = urls[0];
+              }
+            }
+          }
+        }
+      }
+
       const lastAction = actions[actions.length - 1];
       const nextCursor = actions.length === ITEMS_PER_PAGE && lastAction
         ? { createdAt: lastAction.createdAt, id: lastAction.id }
