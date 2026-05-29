@@ -1,0 +1,8 @@
+{
+  "extensions": ["ts"],
+  "spec": "selenium/**/*.test.ts",
+  "loader": "tsx",
+  "timeout": 120000,
+  "reporter": "spec",
+  "exit": true
+}
