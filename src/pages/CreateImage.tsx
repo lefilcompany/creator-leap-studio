@@ -590,7 +590,7 @@ export default function CreateImage() {
       try {
         if (availableCredits < totalCarouselCost) {
           toast.error("Créditos insuficientes", {
-            description: `Carrossel de ${slides.length} slides custa ${totalCarouselCost} créditos. Você tem ${availableCredits}.`,
+            description: `Carrossel de ${slidesCount} slides custa ${totalCarouselCost} créditos. Você tem ${availableCredits}.`,
           });
           setLoading(false);
           return;
@@ -600,8 +600,24 @@ export default function CreateImage() {
         const selectedTheme = themes.find(t => t.id === formData.theme);
         const selectedPersona = personas.find(p => p.id === formData.persona);
 
-        // Cria action pai
-        const initialSlides = slides.map((s, i) => ({ ...s, index: i, status: "pending" as const }));
+        // Build N slides sharing the same prompt + visual settings, com hint de variação.
+        const basePrompt = formData.prompt.trim();
+        const sharedSlideFields = {
+          visualStyle: formData.visualStyle,
+          cameraAngle: formData.cameraAngle,
+          lighting: formData.lighting,
+          composition: formData.composition,
+          mood: formData.mood,
+        };
+        const initialSlides = Array.from({ length: slidesCount }, (_, i) => ({
+          index: i,
+          prompt: `${basePrompt}\n\n(Variação ${i + 1} de ${slidesCount} do carrossel — mantenha coerência visual com as demais imagens da sequência.)`,
+          ...sharedSlideFields,
+          status: "pending" as const,
+        }));
+
+        const dims = formData.aspectRatio ? ASPECT_RATIO_DIMENSIONS[formData.aspectRatio] : undefined;
+
         const { data: actionRow, error: insertErr } = await supabase
           .from("actions")
           .insert({
@@ -616,12 +632,15 @@ export default function CreateImage() {
               brandName: selectedBrand?.name,
               themeName: selectedTheme?.title,
               personaName: selectedPersona?.name,
-              slidesCount: slides.length,
+              slidesCount,
               isCarousel: true,
+              basePrompt,
+              aspectRatio: formData.aspectRatio,
+              visualStyle: formData.visualStyle,
             },
             result: {
               carousel: {
-                slidesCount: slides.length,
+                slidesCount,
                 slides: initialSlides,
                 brandId: formData.brand,
                 themeId: formData.theme || null,
@@ -642,11 +661,10 @@ export default function CreateImage() {
           return;
         }
 
-        // Dispara orquestrador (fire-and-forget)
         const { error: invokeErr } = await supabase.functions.invoke("generate-carousel-images", {
           body: {
             actionId: actionRow.id,
-            slidesCount: slides.length,
+            slidesCount,
             slides: initialSlides.map(s => ({
               index: s.index,
               prompt: s.prompt,
@@ -655,7 +673,6 @@ export default function CreateImage() {
               lighting: s.lighting,
               composition: s.composition,
               mood: s.mood,
-              referenceImageUrl: s.referenceImageUrl,
             })),
             brandId: formData.brand,
             themeId: formData.theme || undefined,
@@ -663,6 +680,9 @@ export default function CreateImage() {
             platform: "Carrossel",
             contentType,
             tone: formData.tone,
+            aspectRatio: formData.aspectRatio,
+            width: dims?.width,
+            height: dims?.height,
           },
         });
 
@@ -675,7 +695,7 @@ export default function CreateImage() {
 
         clearPersistedData();
         toast.success("Carrossel em produção", {
-          description: `${slides.length} slides serão gerados em paralelo.`,
+          description: `${slidesCount} slides serão gerados em paralelo.`,
         });
         navigate(`/result?actionId=${actionRow.id}`);
         return;
