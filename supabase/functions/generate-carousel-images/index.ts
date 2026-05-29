@@ -265,6 +265,32 @@ async function processCarousel(authHeader: string, body: Body) {
         childActionId: result.childActionId,
         error: null,
       }, body.slidesCount);
+
+      // Define o thumb_path da action pai com a primeira imagem pronta,
+      // para que o carrossel apareça com miniatura no histórico.
+      try {
+        const { data: parent } = await admin
+          .from("actions")
+          .select("thumb_path")
+          .eq("id", body.actionId)
+          .single();
+        if (parent && !parent.thumb_path && result.imageUrl) {
+          // Extrai object path do storage public URL
+          const marker = "/storage/v1/object/public/content-images/";
+          const idx = result.imageUrl.indexOf(marker);
+          const objectPath = idx >= 0
+            ? result.imageUrl.slice(idx + marker.length).split("?")[0]
+            : null;
+          if (objectPath) {
+            await admin
+              .from("actions")
+              .update({ thumb_path: objectPath, asset_path: objectPath })
+              .eq("id", body.actionId);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to set parent thumb_path", err);
+      }
     }
   };
 
