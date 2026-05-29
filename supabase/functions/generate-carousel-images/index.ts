@@ -181,6 +181,7 @@ Tom de voz: ${tone}
 Slides do carrossel:
 ${promptsJoined}`;
 
+    console.log("[carousel-caption] chamando Gemini, prompt chars=", prompt.length);
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
       {
@@ -188,7 +189,12 @@ ${promptsJoined}`;
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048, responseMimeType: "application/json" },
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 8192,
+            responseMimeType: "application/json",
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       },
     );
@@ -197,16 +203,19 @@ ${promptsJoined}`;
       return;
     }
     const json: any = await res.json();
+    const finishReason = json?.candidates?.[0]?.finishReason;
     const text = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    console.log("[carousel-caption] finishReason=", finishReason, "textLen=", text.length);
     let caption: any = null;
     try { caption = JSON.parse(text); } catch {
       const m = text.match(/\{[\s\S]*\}/);
       if (m) { try { caption = JSON.parse(m[0]); } catch { /* noop */ } }
     }
     if (!caption?.title || !caption?.body || !Array.isArray(caption?.hashtags)) {
-      console.warn("[carousel-caption] resposta inválida", text?.slice(0, 200));
+      console.warn("[carousel-caption] resposta inválida finishReason=", finishReason, "text=", text?.slice(0, 500));
       return;
     }
+    console.log("[carousel-caption] legenda gerada com sucesso");
 
     for (let attempt = 0; attempt < 3; attempt++) {
       const { data: cur } = await admin
