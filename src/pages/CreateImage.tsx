@@ -733,6 +733,7 @@ export default function CreateImage() {
                   lighting: s.lighting,
                   composition: s.composition,
                   mood: s.mood,
+                  includeText: contentType === "ads" && slidesWithText.includes(s.index),
                 })),
                 brandId: formData.brand,
                 themeId: formData.theme || undefined,
