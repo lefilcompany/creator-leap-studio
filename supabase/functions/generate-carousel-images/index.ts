@@ -17,6 +17,7 @@ const SlideSchema = z.object({
   composition: z.string().optional(),
   mood: z.string().optional(),
   referenceImageUrl: z.string().url().optional(),
+  includeText: z.boolean().optional(),
 });
 
 const BodySchema = z.object({
