@@ -78,7 +78,9 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
     toast.info("Geração iniciada!", { description: `${label} — sua imagem está sendo gerada em segundo plano.`, duration: 4000 });
 
     // Run async work
-    asyncFn()
+    asyncFn((msg) => {
+      setTasks(prev => prev.map(t => (t.id === id ? { ...t, progressMessage: msg } : t)));
+    })
       .then(({ route, state }) => {
         setTasks(prev =>
           prev.map(t =>
