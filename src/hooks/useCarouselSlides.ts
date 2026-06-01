@@ -12,7 +12,10 @@ export function useCarouselSlides(actionId?: string) {
       const hasPending = data.slides.some(
         (s) => s?.status === "pending" || s?.status === "generating"
       );
-      return hasPending ? 3000 : false;
+      const hasAnyDone = data.slides.some((s) => s?.status === "done");
+      const captionMissing = hasAnyDone && !data.caption;
+      if (hasPending || captionMissing) return 3000;
+      return false;
     },
     queryFn: async (): Promise<CarouselResult | null> => {
       if (!actionId) return null;
