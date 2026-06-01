@@ -10,6 +10,7 @@ export interface BackgroundTask {
   resultRoute: string;
   resultState?: any;
   errorMessage?: string;
+  progressMessage?: string;
   createdAt: number;
 }
 
@@ -18,11 +19,12 @@ interface BackgroundTaskContextType {
   addTask: (
     label: string,
     type: string,
-    asyncFn: () => Promise<{ route: string; state: any }>,
+    asyncFn: (onProgress: (msg: string) => void) => Promise<{ route: string; state: any }>,
     onComplete?: () => void
   ) => string;
   removeTask: (id: string) => void;
   navigateToResult: (taskId: string) => void;
+  updateTaskProgress: (id: string, message: string) => void;
 }
 
 const BackgroundTaskContext = createContext<BackgroundTaskContextType | null>(null);
