@@ -674,7 +674,8 @@ export default function CreateImage() {
         const newTaskId = addTask(
           `Criando Carrossel (${slidesCount} slides)`,
           "create_carousel",
-          async () => {
+          async (onProgress) => {
+            onProgress("Preparando carrossel...");
             const { data: actionRow, error: insertErr } = await supabase
               .from("actions")
               .insert({
@@ -717,6 +718,7 @@ export default function CreateImage() {
               throw new Error(insertErr?.message || "Erro ao criar carrossel");
             }
 
+            onProgress("Iniciando geração dos slides...");
             const { error: invokeErr } = await supabase.functions.invoke("generate-carousel-images", {
               body: {
                 actionId: actionRow.id,
@@ -750,6 +752,42 @@ export default function CreateImage() {
 
             if (invokeErr) {
               throw new Error(invokeErr.message || "Erro ao iniciar geração do carrossel");
+            }
+
+            // Polling: aguarda todos os slides + legenda ficarem prontos
+            const startedAt = Date.now();
+            const TIMEOUT_MS = 6 * 60 * 1000; // 6 min
+            while (true) {
+              await new Promise(r => setTimeout(r, 2000));
+              if (Date.now() - startedAt > TIMEOUT_MS) {
+                throw new Error("Tempo esgotado aguardando a geração do carrossel.");
+              }
+              const { data: cur } = await supabase
+                .from("actions")
+                .select("result")
+                .eq("id", actionRow.id)
+                .single();
+              const car: any = (cur?.result as any)?.carousel;
+              const slides: any[] = Array.isArray(car?.slides) ? car.slides : [];
+              const total = car?.slidesCount ?? slides.length;
+              const doneCount = slides.filter((s: any) => s?.status === "done").length;
+              const errorCount = slides.filter((s: any) => s?.status === "error").length;
+
+              if (total > 0 && errorCount === total) {
+                throw new Error("Falha ao gerar os slides do carrossel.");
+              }
+
+              if (doneCount < total) {
+                const current = Math.min(doneCount + 1, total);
+                onProgress(`Gerando slide ${current} de ${total}...`);
+                continue;
+              }
+              if (!car?.caption) {
+                onProgress("Slides prontos. Gerando legenda...");
+                continue;
+              }
+              onProgress("Finalizando...");
+              break;
             }
 
             if (refreshUserCredits) await refreshUserCredits();
