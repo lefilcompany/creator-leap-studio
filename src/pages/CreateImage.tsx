@@ -305,6 +305,8 @@ export default function CreateImage() {
   const [textModalOpen, setTextModalOpen] = useState(false);
   const [slidesCount, setSlidesCount] = useState<number>(4);
   const [isCarousel, setIsCarousel] = useState<boolean>(false);
+  // Quais slides do carrossel devem ter texto na imagem (modo Tráfego). Default: apenas capa.
+  const [slidesWithText, setSlidesWithText] = useState<number[]>([0]);
   const teamId = user?.teamId;
   const userId = user?.id;
 
