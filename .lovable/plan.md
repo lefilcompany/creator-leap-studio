@@ -1,60 +1,79 @@
-## Diagnóstico atual
+## Problema
 
-Hoje existem dois fluxos diferentes:
+No fluxo do carrossel, a `asyncFn` da background task resolve assim que a edge function `generate-carousel-images` retorna do `invoke` (apenas dispara a geração). Resultado: o overlay de "Gerando..." vira "Concluído" em segundos, e ao ir para `/result` os slides e a legenda ainda estão sendo gerados em background.
 
-1. **Imagem única** chama `generate-image` diretamente.
-   - Comprime as imagens enviadas.
-   - Separa imagens marcadas como **Preservar** das imagens de estilo.
-   - Envia para o backend os campos `preserveImages`, `styleReferenceImages`, `brandReferenceImages`, `userReferenceImages` e `preserveImageIndices`.
-   - O backend monta um prompt forte dizendo que imagens preservadas são intocáveis e anexa essas imagens ao modelo antes de gerar.
+Para imagem única o overlay funciona corretamente porque o `asyncFn` só resolve quando imagem + legenda estão prontas.
 
-2. **Carrossel** chama `generate-carousel-images`.
-   - Ele comprime as imagens enviadas, mas envia tudo em um campo genérico `referenceImages`.
-   - Não envia `preserveImageIndices`, `preserveImages`, `styleReferenceImages`, `brandReferenceImages` nem `userReferenceImages`.
-   - Dentro de `generate-carousel-images`, cada slide chama `generate-image`, mas passa essas imagens genéricas como `referenceImages`.
-   - Só que `generate-image` não usa `referenceImages` no pipeline principal; ele espera os campos do fluxo de imagem única. Resultado: no carrossel, a referência marcada para preservar não entra com a mesma força e pode nem entrar no prompt final como preservação.
+## Objetivo
 
-Além disso, o carrossel já tenta gerar em paralelo: gera o primeiro slide para definir a thumbnail e depois dispara os demais em `Promise.all`. Mas a chamada para cada slide não está reaproveitando corretamente o mesmo contrato de dados da imagem única.
+1. O overlay de geração deve permanecer aberto até **todos os slides + a legenda do carrossel** estarem prontos.
+2. Exibir uma linha discreta de status que vai sendo substituída conforme avança ("Preparando...", "Gerando slide 2 de 4...", "Gerando legenda...", "Finalizando...").
+3. Aplicar a mesma linha discreta de status também ao fluxo de imagem única (passos: gerando imagem → gerando legenda → finalizando).
 
-## Ajuste proposto
+## Mudanças
 
-1. **Unificar o contrato de referências do carrossel com o da imagem única**
-   - No frontend (`CreateImage.tsx`), montar para carrossel os mesmos arrays usados na imagem única:
-     - `preserveImages`
-     - `styleReferenceImages`
-     - `brandReferenceImages`
-     - `userReferenceImages`
-     - `preserveImageIndices`
-   - Respeitar a mesma lógica de priorização: imagens preservadas entram antes; imagens de marca contam como preservação; limite total de referências continua controlado.
+### 1. `src/contexts/BackgroundTaskContext.tsx`
+- Adicionar campo opcional `progressMessage?: string` em `BackgroundTask`.
+- Expor `updateTaskProgress(id, message)` no contexto.
+- A função `asyncFn` recebe um segundo parâmetro `onProgress(message)` que chama `updateTaskProgress` internamente. Assinatura nova:
+  ```ts
+  asyncFn: (onProgress: (msg: string) => void) => Promise<{ route; state }>
+  ```
 
-2. **Atualizar `generate-carousel-images` para aceitar e repassar esses campos**
-   - Expandir o schema da função para aceitar os campos do pipeline premium.
-   - Em cada chamada interna para `generate-image`, enviar exatamente esses campos, não apenas `referenceImages`.
-   - Manter compatibilidade com `referenceImages` como fallback para carrosséis antigos ou chamadas antigas.
+### 2. `src/components/GeneratingOverlay.tsx`
+- Abaixo do título "Gerando seu conteúdo...", renderizar uma única linha:
+  ```tsx
+  <p className="text-xs text-muted-foreground/80 text-center min-h-[1rem] transition-opacity">
+    {task.progressMessage ?? "Preparando..."}
+  </p>
+  ```
+- Usar `AnimatePresence`/`motion` com `key={progressMessage}` para fade-in/fade-out suave ao trocar a mensagem (linha única que é substituída).
 
-3. **Manter geração paralela com preservação correta**
-   - Continuar chamando `generate-image` para cada slide.
-   - Cada slide terá seu prompt próprio, mas receberá as mesmas referências preservadas e de estilo do fluxo de imagem única.
-   - Ajustar para que, quando `onlyIndex` for usado na regeneração individual, a mesma estrutura de referências continue funcionando.
+### 3. `src/pages/CreateImage.tsx` — fluxo do carrossel (linhas ~674-763)
+- Após `supabase.functions.invoke("generate-carousel-images", ...)`, **não retornar imediatamente**. Iniciar um loop de polling em `actions.result.carousel`:
+  ```ts
+  while (true) {
+    await sleep(2000);
+    const { data } = await supabase.from("actions").select("result").eq("id", actionRow.id).single();
+    const car = data?.result?.carousel;
+    const slides = car?.slides ?? [];
+    const done = slides.filter(s => s.status === "done").length;
+    const errored = slides.filter(s => s.status === "error").length;
+    
+    if (errored === slides.length && slides.length > 0) throw new Error("Falha ao gerar slides");
+    
+    if (done < slides.length) {
+      onProgress(`Gerando slide ${Math.min(done + 1, slides.length)} de ${slides.length}...`);
+      continue;
+    }
+    if (!car?.caption) {
+      onProgress("Slides prontos. Gerando legenda...");
+      continue;
+    }
+    onProgress("Finalizando...");
+    break;
+  }
+  ```
+- Timeout de segurança (~5 min) — após isso resolver com aviso ou rejeitar.
+- Só então retornar `{ route: "/result?actionId=...", state: {} }`.
 
-4. **Salvar metadados úteis no histórico**
-   - Registrar no `details/result.carousel` quantas imagens preservadas e de estilo foram usadas.
-   - Isso ajuda a auditar quando uma geração não respeitar referência.
+### 4. `src/pages/CreateImage.tsx` — fluxo de imagem única (linhas ~897-965)
+- Encaixar chamadas a `onProgress` nos pontos chave:
+  - Antes do fetch `generate-image`: `onProgress("Gerando imagem...")`
+  - Antes do fetch `generate-caption` (quando aplicável): `onProgress("Gerando legenda...")`
+  - Antes do `return`: `onProgress("Finalizando...")`
 
-## Arquivos a alterar
+### 5. (Opcional, escopo coerente) Outros fluxos que usam `addTask`
+- Apenas atualizar a assinatura para receber `onProgress` (sem usá-lo se não precisarem) — necessário para compilar TypeScript. Identificar via `rg "addTask\("`.
 
-- `src/pages/CreateImage.tsx`
-  - Reaproveitar a lógica de imagens da imagem única no bloco do carrossel.
-  - Enviar os campos corretos para `generate-carousel-images`.
+## O que NÃO muda
 
-- `supabase/functions/generate-carousel-images/index.ts`
-  - Atualizar schema.
-  - Repassar o payload completo para `generate-image`.
-  - Manter fallback com `referenceImages`.
-
-- Possivelmente `src/components/create-content/carousel/types.ts`
-  - Só se for necessário refletir metadados de referência no estado do carrossel.
+- Edge function `generate-carousel-images` permanece igual (continua gerando em background com fire-and-forget interno). O polling é só no cliente, lendo a tabela `actions`.
+- `useCarouselSlides` e a tela `/result` ficam como estão — quando o usuário chegar lá, tudo já estará pronto.
+- Sem novas tabelas, sem migrações.
 
 ## Resultado esperado
 
-Depois do ajuste, o carrossel passa a usar a mesma função de imagem única por slide, em paralelo, mas com as referências preservadas no formato correto. A imagem/produto enviado e marcado como **Preservar** deve aparecer com muito mais fidelidade nos slides, igual ao comportamento da criação de imagem única.
+- Ao clicar "Gerar Carrossel", o overlay com logo do Creator fica visível durante toda a geração (~30-60s), mostrando uma linha discreta atualizando os passos.
+- O botão "Ver resultado" só aparece quando carrossel + legenda estão completos.
+- Mesma experiência consistente para imagem única.

@@ -10,6 +10,7 @@ export interface BackgroundTask {
   resultRoute: string;
   resultState?: any;
   errorMessage?: string;
+  progressMessage?: string;
   createdAt: number;
 }
 
@@ -18,11 +19,12 @@ interface BackgroundTaskContextType {
   addTask: (
     label: string,
     type: string,
-    asyncFn: () => Promise<{ route: string; state: any }>,
+    asyncFn: (onProgress: (msg: string) => void) => Promise<{ route: string; state: any }>,
     onComplete?: () => void
   ) => string;
   removeTask: (id: string) => void;
   navigateToResult: (taskId: string) => void;
+  updateTaskProgress: (id: string, message: string) => void;
 }
 
 const BackgroundTaskContext = createContext<BackgroundTaskContextType | null>(null);
@@ -38,10 +40,14 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
   const navigate = useNavigate();
   const autoRemoveTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
+  const updateTaskProgress = useCallback((id: string, message: string) => {
+    setTasks(prev => prev.map(t => (t.id === id ? { ...t, progressMessage: message } : t)));
+  }, []);
+
   const addTask = useCallback((
     label: string,
     type: string,
-    asyncFn: () => Promise<{ route: string; state: any }>,
+    asyncFn: (onProgress: (msg: string) => void) => Promise<{ route: string; state: any }>,
     onComplete?: () => void
   ) => {
     // Check for existing running task of same type
@@ -72,7 +78,9 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
     toast.info("Geração iniciada!", { description: `${label} — sua imagem está sendo gerada em segundo plano.`, duration: 4000 });
 
     // Run async work
-    asyncFn()
+    asyncFn((msg) => {
+      setTasks(prev => prev.map(t => (t.id === id ? { ...t, progressMessage: msg } : t)));
+    })
       .then(({ route, state }) => {
         setTasks(prev =>
           prev.map(t =>
@@ -144,7 +152,7 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
   }, [tasks, navigate, removeTask]);
 
   return (
-    <BackgroundTaskContext.Provider value={{ tasks, addTask, removeTask, navigateToResult }}>
+    <BackgroundTaskContext.Provider value={{ tasks, addTask, removeTask, navigateToResult, updateTaskProgress }}>
       {children}
     </BackgroundTaskContext.Provider>
   );
