@@ -58,6 +58,20 @@ export function GeneratingOverlay({ taskId, onReset }: GeneratingOverlayProps) {
                 <p className="text-sm text-muted-foreground text-center">
                   Isso pode levar alguns segundos. Você pode sair desta tela — a geração continuará em segundo plano.
                 </p>
+                <div className="min-h-[1.25rem] w-full flex items-center justify-center">
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key={task.progressMessage || "preparing"}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.25 }}
+                      className="text-xs text-muted-foreground/80 text-center"
+                    >
+                      {task.progressMessage || "Preparando..."}
+                    </motion.p>
+                  </AnimatePresence>
+                </div>
                 {/* Indeterminate progress */}
                 <div className="w-full h-1.5 rounded-full bg-primary/20 overflow-hidden mt-2">
                   <div className="h-full bg-primary rounded-full animate-progress-indeterminate" />
