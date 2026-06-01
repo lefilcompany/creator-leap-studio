@@ -40,10 +40,14 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
   const navigate = useNavigate();
   const autoRemoveTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
+  const updateTaskProgress = useCallback((id: string, message: string) => {
+    setTasks(prev => prev.map(t => (t.id === id ? { ...t, progressMessage: message } : t)));
+  }, []);
+
   const addTask = useCallback((
     label: string,
     type: string,
-    asyncFn: () => Promise<{ route: string; state: any }>,
+    asyncFn: (onProgress: (msg: string) => void) => Promise<{ route: string; state: any }>,
     onComplete?: () => void
   ) => {
     // Check for existing running task of same type
