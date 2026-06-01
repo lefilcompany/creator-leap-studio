@@ -935,7 +935,8 @@ export default function CreateImage() {
       const newTaskId = addTask(
         "Criando Imagem",
         "create_image",
-        async () => {
+        async (onProgress) => {
+          onProgress("Gerando imagem...");
           // Generate image
           const imageResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`, {
             method: "POST",
