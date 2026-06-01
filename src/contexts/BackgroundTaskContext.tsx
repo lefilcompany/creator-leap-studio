@@ -152,7 +152,7 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
   }, [tasks, navigate, removeTask]);
 
   return (
-    <BackgroundTaskContext.Provider value={{ tasks, addTask, removeTask, navigateToResult }}>
+    <BackgroundTaskContext.Provider value={{ tasks, addTask, removeTask, navigateToResult, updateTaskProgress }}>
       {children}
     </BackgroundTaskContext.Provider>
   );
