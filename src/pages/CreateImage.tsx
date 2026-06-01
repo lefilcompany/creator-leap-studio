@@ -984,6 +984,7 @@ export default function CreateImage() {
 
           if (!imageUrl || !captionData?.title || !captionData?.body) throw new Error("Dados incompletos");
 
+          onProgress("Finalizando...");
           if (refreshUserCredits) await refreshUserCredits();
 
           return {
