@@ -315,6 +315,14 @@ export default function CreateImage() {
     GOOGLE_FONT_PRESETS.forEach(f => loadGoogleFont(f.value));
   }, []);
 
+  // Mantém slidesWithText dentro do range atual de slides
+  useEffect(() => {
+    setSlidesWithText(prev => {
+      const filtered = prev.filter(i => i < slidesCount);
+      return filtered.length === prev.length ? prev : filtered;
+    });
+  }, [slidesCount]);
+
   // Sync preset to fontFamily/weight/italic
   const applyTypographyPreset = (presetValue: string) => {
     const preset = TYPOGRAPHY_PRESETS.find(p => p.value === presetValue);
