@@ -17,6 +17,7 @@ const SlideSchema = z.object({
   composition: z.string().optional(),
   mood: z.string().optional(),
   referenceImageUrl: z.string().url().optional(),
+  includeText: z.boolean().optional(),
 });
 
 const BodySchema = z.object({
@@ -107,13 +108,21 @@ async function callGenerateImageForSlide(
         ? legacyReferences.slice(0, 5)
         : preserveImages;
 
+    // Permite controle por slide do texto na imagem.
+    // Quando o slide não tem includeText=true e o conteúdo é "ads",
+    // forçamos contentType "organic" só para este slide, para que o
+    // imagePromptBuilder não injete headline/CTA automáticos do modo anúncio.
+    const slideIncludeText = slide.includeText === true;
+    const effectiveContentType =
+      body.contentType === "ads" && !slideIncludeText ? "organic" : body.contentType;
+
     const payload: Record<string, unknown> = {
       description: slide.prompt,
       brandId: body.brandId,
       themeId: body.themeId ?? undefined,
       personaId: body.personaId ?? undefined,
       platform: "Carrossel",
-      contentType: body.contentType,
+      contentType: effectiveContentType,
       aspectRatio: body.aspectRatio ?? "4:5",
       width: body.width ?? 1080,
       height: body.height ?? 1350,
@@ -122,7 +131,7 @@ async function callGenerateImageForSlide(
       lighting: slide.lighting,
       composition: slide.composition,
       mood: slide.mood,
-      includeText: false,
+      includeText: slideIncludeText,
       tone: body.tone ?? [],
       parentActionId: body.actionId,
       // Mesmo contrato de referências do fluxo de imagem única

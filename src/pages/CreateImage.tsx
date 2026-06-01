@@ -305,6 +305,8 @@ export default function CreateImage() {
   const [textModalOpen, setTextModalOpen] = useState(false);
   const [slidesCount, setSlidesCount] = useState<number>(4);
   const [isCarousel, setIsCarousel] = useState<boolean>(false);
+  // Quais slides do carrossel devem ter texto na imagem (modo Tráfego). Default: apenas capa.
+  const [slidesWithText, setSlidesWithText] = useState<number[]>([0]);
   const teamId = user?.teamId;
   const userId = user?.id;
 
@@ -312,6 +314,14 @@ export default function CreateImage() {
   useEffect(() => {
     GOOGLE_FONT_PRESETS.forEach(f => loadGoogleFont(f.value));
   }, []);
+
+  // Mantém slidesWithText dentro do range atual de slides
+  useEffect(() => {
+    setSlidesWithText(prev => {
+      const filtered = prev.filter(i => i < slidesCount);
+      return filtered.length === prev.length ? prev : filtered;
+    });
+  }, [slidesCount]);
 
   // Sync preset to fontFamily/weight/italic
   const applyTypographyPreset = (presetValue: string) => {
@@ -731,6 +741,7 @@ export default function CreateImage() {
                   lighting: s.lighting,
                   composition: s.composition,
                   mood: s.mood,
+                  includeText: contentType === "ads" && slidesWithText.includes(s.index),
                 })),
                 brandId: formData.brand,
                 themeId: formData.theme || undefined,
@@ -1239,6 +1250,43 @@ export default function CreateImage() {
                       ))}
                     </div>
                   </div>
+
+                  {contentType === "ads" && (
+                    <div className="pt-3 border-t border-border/40 space-y-2">
+                      <div>
+                        <p className="text-sm font-bold text-foreground">Texto na imagem em quais slides?</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Selecione os slides que devem trazer headline/CTA. Os demais ficarão só com a imagem.
+                        </p>
+                      </div>
+                      <div className="-mx-1 px-1 overflow-x-auto sm:overflow-visible">
+                        <div className="flex items-center gap-1.5 min-w-max sm:min-w-0 sm:flex-wrap">
+                          {Array.from({ length: slidesCount }, (_, i) => i).map(i => {
+                            const active = slidesWithText.includes(i);
+                            return (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() =>
+                                  setSlidesWithText(prev =>
+                                    prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i].sort((a, b) => a - b)
+                                  )
+                                }
+                                className={`h-9 min-w-9 px-2 shrink-0 rounded-full text-xs font-semibold transition-all active:scale-95 ${
+                                  active
+                                    ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20"
+                                    : "bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                                }`}
+                                title={i === 0 ? "Capa" : `Slide ${i + 1}`}
+                              >
+                                {i === 0 ? "Capa" : i + 1}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               <div className="space-y-2.5">
