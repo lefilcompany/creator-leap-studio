@@ -958,6 +958,7 @@ export default function CreateImage() {
             const lines = legendaBody.split('\n').filter((l: string) => l.trim());
             captionData = { title: lines[0] || '', body: lines.slice(1).join('\n').trim() || legendaBody, hashtags };
           } else {
+            onProgress("Gerando legenda...");
             const captionResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`, {
               method: "POST",
               headers: { "Content-Type": "application/json", Authorization: `Bearer ${capturedSession?.access_token}` },
