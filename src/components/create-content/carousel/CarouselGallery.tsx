@@ -3,9 +3,9 @@ import useEmblaCarousel from "embla-carousel-react";
 import { Loader2, RefreshCw, AlertCircle, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { CreationFeedback } from "@/components/CreationFeedback";
+import { RegenerateImageDialog } from "@/components/create-content/regenerate/RegenerateImageDialog";
 import type { CarouselResult, SlideState } from "./types";
 
 interface Props {
