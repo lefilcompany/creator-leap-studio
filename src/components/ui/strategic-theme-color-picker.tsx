@@ -90,7 +90,7 @@ export function StrategicThemeColorPicker({
   };
 
   const handleManualHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/[^0-9A-Fa-f]/g, "").slice(0, 6);
+    const value = e.target.value.replace(/[^0-9A-Fa-f]/g, "").slice(0, 6);
     setHexInput(value);
     if (value.length === 6) {
       setCurrentColor("#" + value);
@@ -106,7 +106,7 @@ export function StrategicThemeColorPicker({
   };
 
   const handleManualRgbChange = (key: "r" | "g" | "b", value: string) => {
-    let num = Math.max(0, Math.min(255, Number(value)));
+    const num = Math.max(0, Math.min(255, Number(value)));
     const newRgb = { ...currentRgb, [key]: num };
     setCurrentRgb(newRgb);
     const hex = rgbToHex(newRgb);

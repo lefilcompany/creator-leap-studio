@@ -750,7 +750,7 @@ export default function CreateContent() {
       const brandImagesCount = brandImages.length;
       const userImagesCount = referenceImagesBase64.length;
       
-      let finalBrandImages = brandImages;
+      const finalBrandImages = brandImages;
       let finalUserImages = referenceImagesBase64;
       
       // Se o total ultrapassar o limite, ajustar imagens do usuário
@@ -927,8 +927,8 @@ export default function CreateContent() {
         }
 
         // Preparar imagens de referência - SEPARAR EM DOIS ARRAYS
-        let preserveImagesBase64: string[] = [];
-        let styleImagesBase64: string[] = [];
+        const preserveImagesBase64: string[] = [];
+        const styleImagesBase64: string[] = [];
         
         if (formData.videoGenerationType === 'image_to_video') {
           // Veo 3.0: Requer pelo menos 1 imagem marcada com "Manter Identidade"
