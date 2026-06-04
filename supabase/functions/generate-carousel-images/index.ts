@@ -42,6 +42,11 @@ const BodySchema = z.object({
   brandReferenceImages: z.array(z.string()).max(5).optional(),
   userReferenceImages: z.array(z.string()).max(5).optional(),
   preserveImageIndices: z.array(z.number().int().min(0)).optional(),
+  // ===== Regeração guiada (requer onlyIndex) =====
+  regenerationInstructions: z.string().max(2000).optional(),
+  regenerationReferenceImages: z.array(z.string().url()).max(3).optional(),
+  avoid: z.string().max(500).optional(),
+  keepOriginalPrompt: z.boolean().optional().default(true),
 });
 
 type Body = z.infer<typeof BodySchema>;
