@@ -144,7 +144,7 @@ function CarouselGalleryBase({ actionId, carousel, onRegenerate }: Props) {
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                 ) : null}
-                <StatusOverlay slide={slide} onRegenerate={() => handleRegenerate(slide)} />
+                <StatusOverlay slide={slide} onRegenerate={() => openRegenerate(slide)} />
                 <div className="absolute top-3 left-3 rounded-full bg-background/85 backdrop-blur px-2.5 py-1 text-xs font-bold">
                   {slide.index + 1}/{slides.length}
                 </div>
