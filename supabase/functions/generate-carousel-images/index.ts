@@ -423,6 +423,21 @@ async function processCarousel(authHeader: string, body: Body, userId: string) {
         error: null,
       }, body.slidesCount);
 
+      // Se foi uma regeração guiada deste slide, aplica refund parcial e incrementa contador
+      const isRegen =
+        typeof body.onlyIndex === "number" &&
+        body.onlyIndex === slide.index &&
+        !!(body.regenerationInstructions && body.regenerationInstructions.trim());
+      if (isRegen) {
+        await applyRegenerationRefundAndIncrement(
+          admin,
+          userId,
+          body.actionId,
+          slide.index,
+          body.slidesCount,
+        );
+      }
+
       // Define o thumb_path da action pai com a primeira imagem pronta,
       // para que o carrossel apareça com miniatura no histórico.
       try {
@@ -432,7 +447,6 @@ async function processCarousel(authHeader: string, body: Body, userId: string) {
           .eq("id", body.actionId)
           .single();
         if (parent && !parent.thumb_path && result.imageUrl) {
-          // Extrai object path do storage public URL
           const marker = "/storage/v1/object/public/content-images/";
           const idx = result.imageUrl.indexOf(marker);
           const objectPath = idx >= 0
