@@ -348,8 +348,21 @@ async function processCarousel(authHeader: string, body: Body) {
     const sorted = [...body.slides].sort((a, b) => a.index - b.index);
     if (sorted.length === 0) return;
 
-    // Todos os slides em paralelo (mesma função do fluxo de imagem única, executada N vezes simultaneamente)
-    await Promise.all(sorted.map(run));
+    // Pool de concorrência: máximo 3 slides simultâneos para evitar rate limit
+    // do Gemini e contenção no patchSlide (read-modify-write em actions.result).
+    const CONCURRENCY = 3;
+    const queue = [...sorted];
+    const workers = Array.from(
+      { length: Math.min(CONCURRENCY, queue.length) },
+      async () => {
+        while (queue.length) {
+          const next = queue.shift();
+          if (!next) break;
+          await run(next);
+        }
+      },
+    );
+    await Promise.all(workers);
 
     // Auto-gera legenda do carrossel — basta ter ao menos 1 slide pronto
     try {
