@@ -42,6 +42,11 @@ const BodySchema = z.object({
   brandReferenceImages: z.array(z.string()).max(5).optional(),
   userReferenceImages: z.array(z.string()).max(5).optional(),
   preserveImageIndices: z.array(z.number().int().min(0)).optional(),
+  // ===== Regeração guiada (requer onlyIndex) =====
+  regenerationInstructions: z.string().max(2000).optional(),
+  regenerationReferenceImages: z.array(z.string().url()).max(3).optional(),
+  avoid: z.string().max(500).optional(),
+  keepOriginalPrompt: z.boolean().optional().default(true),
 });
 
 type Body = z.infer<typeof BodySchema>;
@@ -90,12 +95,36 @@ async function callGenerateImageForSlide(
   slide: Slide,
 ): Promise<{ imageUrl?: string; childActionId?: string; error?: string }> {
   try {
-    // Mescla referência específica do slide (se houver) no pool de preserve
+    const isRegenForThisSlide =
+      typeof body.onlyIndex === "number" &&
+      body.onlyIndex === slide.index &&
+      !!(body.regenerationInstructions && body.regenerationInstructions.trim());
+
+    // Monta a descrição (prompt) final
+    let description = slide.prompt;
+    if (isRegenForThisSlide) {
+      const keep = body.keepOriginalPrompt !== false;
+      const instr = body.regenerationInstructions!.trim();
+      if (keep) {
+        description = `${slide.prompt}\n\nAJUSTES SOLICITADOS PELO USUÁRIO (prioritários):\n${instr}`;
+      } else {
+        description = instr;
+      }
+      if (body.avoid && body.avoid.trim()) {
+        description += `\n\nEVITAR ABSOLUTAMENTE: ${body.avoid.trim()}`;
+      }
+    }
+
+    // Mescla referência específica do slide (se houver) no pool de preserve.
+    // Quando há regeração com referências enviadas, elas substituem as refs do slide.
     const slideRef = slide.referenceImageUrl ? [slide.referenceImageUrl] : [];
-    const preserveImages = [
-      ...(body.preserveImages ?? []),
-      ...slideRef,
-    ].slice(0, 5);
+    const regenRefs = isRegenForThisSlide
+      ? (body.regenerationReferenceImages ?? [])
+      : [];
+    const preserveImagesBase = isRegenForThisSlide && regenRefs.length > 0
+      ? regenRefs
+      : [...(body.preserveImages ?? []), ...slideRef];
+    const preserveImages = preserveImagesBase.slice(0, 5);
     const styleReferenceImages = (body.styleReferenceImages ?? []).slice(0, 5);
     const brandReferenceImages = (body.brandReferenceImages ?? []).slice(0, 3);
     const userReferenceImages = (body.userReferenceImages ?? []).slice(0, 5);
@@ -117,7 +146,7 @@ async function callGenerateImageForSlide(
       body.contentType === "ads" && !slideIncludeText ? "organic" : body.contentType;
 
     const payload: Record<string, unknown> = {
-      description: slide.prompt,
+      description,
       brandId: body.brandId,
       themeId: body.themeId ?? undefined,
       personaId: body.personaId ?? undefined,
@@ -182,6 +211,81 @@ async function callGenerateImageForSlide(
     return { imageUrl: json.imageUrl, childActionId: json.actionId };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+// Política de custo das regerações de slide:
+// - 1ª regeração de um mesmo slide: grátis (refund total dos 8 créditos cobrados por generate-image)
+// - Da 2ª em diante: 4 créditos (refund de 4 do total cobrado)
+const FULL_IMAGE_COST = 8;
+const REGEN_FREE_LIMIT = 1;
+const REGEN_PAID_COST = 4;
+
+async function applyRegenerationRefundAndIncrement(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  actionId: string,
+  slideIndex: number,
+  slidesCount: number,
+) {
+  try {
+    // Lê o regenerationCount atual do slide
+    const { data: row } = await admin
+      .from("actions")
+      .select("result, team_id")
+      .eq("id", actionId)
+      .single();
+    const result = (row?.result as any) ?? {};
+    const carousel = result.carousel ?? {};
+    const slides: any[] = Array.isArray(carousel.slides) ? [...carousel.slides] : [];
+    while (slides.length < slidesCount) slides.push({ status: "pending" });
+    const currentCount = Number(slides[slideIndex]?.regenerationCount ?? 0);
+    const targetCost = currentCount < REGEN_FREE_LIMIT ? 0 : REGEN_PAID_COST;
+    const refund = Math.max(0, FULL_IMAGE_COST - targetCost);
+
+    // Aplica refund (se necessário) diretamente em profiles.credits
+    if (refund > 0) {
+      const { data: prof } = await admin
+        .from("profiles")
+        .select("credits")
+        .eq("id", userId)
+        .single();
+      const before = Number(prof?.credits ?? 0);
+      const after = before + refund;
+      await admin.from("profiles").update({ credits: after }).eq("id", userId);
+      await admin.from("credit_history").insert({
+        user_id: userId,
+        team_id: row?.team_id ?? null,
+        action_type: "CAROUSEL_SLIDE_REGENERATE_REFUND",
+        credits_used: -refund,
+        credits_before: before,
+        credits_after: after,
+        description: `Reembolso parcial de regeração de slide (custo final ${targetCost})`,
+        metadata: { actionId, slideIndex, regenerationCount: currentCount + 1, targetCost },
+      });
+    }
+
+    // Incrementa regenerationCount no slide
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data: cur } = await admin
+        .from("actions")
+        .select("result")
+        .eq("id", actionId)
+        .single();
+      const curResult = (cur?.result as Record<string, any>) ?? {};
+      const car = curResult.carousel ?? { slidesCount, slides: [] };
+      const newSlides = Array.isArray(car.slides) ? [...car.slides] : [];
+      while (newSlides.length < slidesCount) newSlides.push({ status: "pending" });
+      newSlides[slideIndex] = {
+        ...(newSlides[slideIndex] ?? {}),
+        regenerationCount: currentCount + 1,
+      };
+      const next = { ...curResult, carousel: { ...car, slidesCount, slides: newSlides } };
+      const { error } = await admin.from("actions").update({ result: next }).eq("id", actionId);
+      if (!error) break;
+    }
+  } catch (err) {
+    console.error("applyRegenerationRefundAndIncrement error", err);
   }
 }
 
@@ -294,7 +398,7 @@ ${promptsJoined}`;
   }
 }
 
-async function processCarousel(authHeader: string, body: Body) {
+async function processCarousel(authHeader: string, body: Body, userId: string) {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
   const run = async (slide: Slide) => {
@@ -319,6 +423,21 @@ async function processCarousel(authHeader: string, body: Body) {
         error: null,
       }, body.slidesCount);
 
+      // Se foi uma regeração guiada deste slide, aplica refund parcial e incrementa contador
+      const isRegen =
+        typeof body.onlyIndex === "number" &&
+        body.onlyIndex === slide.index &&
+        !!(body.regenerationInstructions && body.regenerationInstructions.trim());
+      if (isRegen) {
+        await applyRegenerationRefundAndIncrement(
+          admin,
+          userId,
+          body.actionId,
+          slide.index,
+          body.slidesCount,
+        );
+      }
+
       // Define o thumb_path da action pai com a primeira imagem pronta,
       // para que o carrossel apareça com miniatura no histórico.
       try {
@@ -328,7 +447,6 @@ async function processCarousel(authHeader: string, body: Body) {
           .eq("id", body.actionId)
           .single();
         if (parent && !parent.thumb_path && result.imageUrl) {
-          // Extrai object path do storage public URL
           const marker = "/storage/v1/object/public/content-images/";
           const idx = result.imageUrl.indexOf(marker);
           const objectPath = idx >= 0
@@ -464,10 +582,10 @@ serve(async (req) => {
     // @ts-ignore EdgeRuntime is provided by Supabase Edge Runtime
     if (typeof EdgeRuntime !== "undefined" && EdgeRuntime?.waitUntil) {
       // @ts-ignore
-      EdgeRuntime.waitUntil(processCarousel(authHeader, body));
+      EdgeRuntime.waitUntil(processCarousel(authHeader, body, userId));
     } else {
       // Fallback: fire-and-forget
-      processCarousel(authHeader, body).catch((e) => console.error("bg error", e));
+      processCarousel(authHeader, body, userId).catch((e) => console.error("bg error", e));
     }
 
     return new Response(

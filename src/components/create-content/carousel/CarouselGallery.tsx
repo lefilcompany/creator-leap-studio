@@ -3,9 +3,9 @@ import useEmblaCarousel from "embla-carousel-react";
 import { Loader2, RefreshCw, AlertCircle, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { CreationFeedback } from "@/components/CreationFeedback";
+import { RegenerateImageDialog } from "@/components/create-content/regenerate/RegenerateImageDialog";
 import type { CarouselResult, SlideState } from "./types";
 
 interface Props {
@@ -88,34 +88,14 @@ function CarouselGalleryBase({ actionId, carousel, onRegenerate }: Props) {
     };
   }, [emblaApi]);
 
-  const handleRegenerate = async (slide: SlideState) => {
+  const [regenSlide, setRegenSlide] = useState<SlideState | null>(null);
+
+  const openRegenerate = (slide: SlideState) => {
     if (onRegenerate) {
       onRegenerate(slide.index);
       return;
     }
-    const body = {
-      actionId,
-      slidesCount: carousel.slidesCount,
-      slides: carousel.slides.map((s) => ({
-        index: s.index,
-        prompt: s.prompt,
-        visualStyle: s.visualStyle,
-        cameraAngle: s.cameraAngle,
-        lighting: s.lighting,
-        composition: s.composition,
-        mood: s.mood,
-        referenceImageUrl: s.referenceImageUrl,
-      })),
-      brandId: (carousel as any).brandId,
-      themeId: (carousel as any).themeId,
-      personaId: (carousel as any).personaId,
-      platform: "Carrossel",
-      contentType: (carousel as any).contentType ?? "organic",
-      onlyIndex: slide.index,
-    };
-    const { error } = await supabase.functions.invoke("generate-carousel-images", { body });
-    if (error) toast.error("Erro ao regerar slide", { description: error.message });
-    else toast.success(`Slide ${slide.index + 1} entrou na fila`);
+    setRegenSlide(slide);
   };
 
   const currentSlide = slides[selectedIndex];
@@ -164,7 +144,7 @@ function CarouselGalleryBase({ actionId, carousel, onRegenerate }: Props) {
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                 ) : null}
-                <StatusOverlay slide={slide} onRegenerate={() => handleRegenerate(slide)} />
+                <StatusOverlay slide={slide} onRegenerate={() => openRegenerate(slide)} />
                 <div className="absolute top-3 left-3 rounded-full bg-background/85 backdrop-blur px-2.5 py-1 text-xs font-bold">
                   {slide.index + 1}/{slides.length}
                 </div>
@@ -199,7 +179,7 @@ function CarouselGalleryBase({ actionId, carousel, onRegenerate }: Props) {
               size="sm"
               variant="outline"
               className="h-9 gap-1.5"
-              onClick={() => handleRegenerate(currentSlide)}
+              onClick={() => openRegenerate(currentSlide)}
               disabled={currentSlide.status === "generating" || currentSlide.status === "pending"}
             >
               <RefreshCw className={cn("h-3.5 w-3.5", currentSlide.status === "generating" && "animate-spin")} />
@@ -228,6 +208,14 @@ function CarouselGalleryBase({ actionId, carousel, onRegenerate }: Props) {
           )}
         </div>
       )}
+
+      <RegenerateImageDialog
+        open={!!regenSlide}
+        onOpenChange={(o) => { if (!o) setRegenSlide(null); }}
+        actionId={actionId}
+        carousel={carousel}
+        slide={regenSlide}
+      />
     </div>
   );
 }
