@@ -209,8 +209,8 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
           }));
         }
         // Bullet lists (- Item or * Item) - MUST have space after - or *
-        else if (trimmedLine.match(/^(\-|\*)\s+/)) {
-          const text = trimmedLine.replace(/^(\-|\*)\s+/, '');
+        else if (trimmedLine.match(/^(-|\*)\s+/)) {
+          const text = trimmedLine.replace(/^(-|\*)\s+/, '');
           paragraphs.push(new Paragraph({
             children: processInlineMarkdown(text),
             bullet: {

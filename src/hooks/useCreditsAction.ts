@@ -24,28 +24,23 @@ export function useCreditsAction() {
       return null;
     }
 
-    try {
-      // Executar ação
-      const result = await actionFn();
-      
-      // Atualizar créditos do usuário
-      await refreshUserCredits();
-      
-      // Feedback opcional
-      if (options?.showCreditUpdate && user) {
-        const newCredits = userCredits - CREDIT_COSTS[actionType];
-        toast.info(`Créditos atualizados`, {
-          description: `${newCredits} créditos restantes`,
-          duration: 2000
-        });
-      }
-      
-      options?.onSuccess?.();
-      return result;
-      
-    } catch (error) {
-      throw error;
+    // Executar ação
+    const result = await actionFn();
+
+    // Atualizar créditos do usuário
+    await refreshUserCredits();
+
+    // Feedback opcional
+    if (options?.showCreditUpdate && user) {
+      const newCredits = userCredits - CREDIT_COSTS[actionType];
+      toast.info(`Créditos atualizados`, {
+        description: `${newCredits} créditos restantes`,
+        duration: 2000
+      });
     }
+
+    options?.onSuccess?.();
+    return result;
   };
 
   return { 

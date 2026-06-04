@@ -291,7 +291,7 @@ const ReviewContent = () => {
             }
           }
 
-          try { await refreshUserCredits(); } catch {}
+          try { await refreshUserCredits(); } catch { /* best-effort refresh */ }
 
           return {
             route: "/review-result",

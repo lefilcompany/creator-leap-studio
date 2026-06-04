@@ -217,7 +217,7 @@ const PlanContent = () => {
             throw new Error(data.error);
           }
 
-          try { await refreshTeamCredits(); } catch {}
+          try { await refreshTeamCredits(); } catch { /* best-effort refresh */ }
 
           return {
             route: "/plan-result",

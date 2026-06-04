@@ -54,7 +54,7 @@ export default function VideoResult() {
 
         // Se o vídeo está sendo processado, monitorar o status
         if (data.isProcessing && data.actionId) {
-          let intervalId: NodeJS.Timeout;
+          const intervalId: NodeJS.Timeout = undefined as unknown as NodeJS.Timeout;
           
           const checkVideoStatus = async () => {
             try {
