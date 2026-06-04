@@ -71,7 +71,7 @@ async function downloadImage(url: string, filename: string) {
   }
 }
 
-export function CarouselGallery({ actionId, carousel, onRegenerate }: Props) {
+function CarouselGalleryBase({ actionId, carousel, onRegenerate }: Props) {
   const slides = carousel?.slides ?? [];
   const brandId = (carousel as any).brandId as string | undefined;
 
