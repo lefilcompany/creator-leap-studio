@@ -21,6 +21,12 @@ export default defineConfig({
         "src/integrations/supabase/**",
         "src/main.tsx",
       ],
+      thresholds: {
+        lines: 60,
+        statements: 60,
+        functions: 60,
+        branches: 50,
+      },
     },
   },
   resolve: {
