@@ -36,6 +36,7 @@ import { CategorySelector } from "@/components/CategorySelector";
 import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import { QuickContentLoading } from "@/components/quick-content/QuickContentLoading";
 import createBanner from "@/assets/create-banner.jpg";
+import { CarouselSlidesCountWarning } from "@/components/create-content/carousel/CarouselSlidesCountWarning";
 
 enum GenerationStep {
   IDLE = "IDLE",
