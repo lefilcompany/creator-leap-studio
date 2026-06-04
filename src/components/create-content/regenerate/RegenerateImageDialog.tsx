@@ -142,7 +142,7 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
 
       // Garante que o polling volte a rodar mesmo se já estava parado
       await queryClient.invalidateQueries({ queryKey: ["carousel-slides", actionId] });
-      if (typeof refreshCredits === "function") refreshCredits();
+      if (typeof refreshUserCredits === "function") refreshUserCredits();
 
       onOpenChange(false);
     } catch (err: any) {
