@@ -6,9 +6,9 @@ import React from "react";
 import type { CarouselResult } from "@/components/create-content/carousel/types";
 
 // --- Mocks ---
-const invokeMock = vi.fn();
-const uploadMock = vi.fn();
-const getPublicUrlMock = vi.fn(() => ({ data: { publicUrl: "https://cdn/x.png" } }));
+const invokeMock = vi.fn<(name: string, opts: any) => any>();
+const uploadMock = vi.fn<(path: string, file: any, opts: any) => any>();
+const getPublicUrlMock = vi.fn<(path: string) => any>(() => ({ data: { publicUrl: "https://cdn/x.png" } }));
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
