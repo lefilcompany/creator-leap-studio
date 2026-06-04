@@ -12,11 +12,11 @@ const getPublicUrlMock = vi.fn(() => ({ data: { publicUrl: "https://cdn/x.png" }
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    functions: { invoke: (...args: any[]) => invokeMock(...args) },
+    functions: { invoke: (name: string, opts: any) => invokeMock(name, opts) },
     storage: {
       from: () => ({
-        upload: (...args: any[]) => uploadMock(...args),
-        getPublicUrl: (...args: any[]) => getPublicUrlMock(...args),
+        upload: (path: string, file: any, opts: any) => uploadMock(path, file, opts),
+        getPublicUrl: (path: string) => getPublicUrlMock(path),
       }),
     },
   },
