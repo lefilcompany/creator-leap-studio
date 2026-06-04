@@ -142,14 +142,31 @@ async function callGenerateImageForSlide(
       preserveImageIndices,
     };
 
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-image`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authHeader,
-      },
-      body: JSON.stringify(payload),
-    });
+    // Timeout duro para evitar workers presos (ex.: loop de compliance
+    // no generate-image bloqueando o pool indefinidamente).
+    const SLIDE_TIMEOUT_MS = 4 * 60 * 1000; // 4 min
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), SLIDE_TIMEOUT_MS);
+
+    let res: Response;
+    try {
+      res = await fetch(`${SUPABASE_URL}/functions/v1/generate-image`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authHeader,
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if ((err as any)?.name === "AbortError") {
+        return { error: "Tempo esgotado ao gerar este slide (possível loop de compliance). Tente regerar." };
+      }
+      return { error: err instanceof Error ? err.message : String(err) };
+    }
+    clearTimeout(timeoutId);
 
     const text = await res.text();
     let json: any = {};
