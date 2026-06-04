@@ -398,7 +398,7 @@ ${promptsJoined}`;
   }
 }
 
-async function processCarousel(authHeader: string, body: Body) {
+async function processCarousel(authHeader: string, body: Body, userId: string) {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
   const run = async (slide: Slide) => {
