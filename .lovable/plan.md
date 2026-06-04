@@ -1,79 +1,102 @@
-## Problema
-
-No fluxo do carrossel, a `asyncFn` da background task resolve assim que a edge function `generate-carousel-images` retorna do `invoke` (apenas dispara a geração). Resultado: o overlay de "Gerando..." vira "Concluído" em segundos, e ao ir para `/result` os slides e a legenda ainda estão sendo gerados em background.
-
-Para imagem única o overlay funciona corretamente porque o `asyncFn` só resolve quando imagem + legenda estão prontas.
-
 ## Objetivo
 
-1. O overlay de geração deve permanecer aberto até **todos os slides + a legenda do carrossel** estarem prontos.
-2. Exibir uma linha discreta de status que vai sendo substituída conforme avança ("Preparando...", "Gerando slide 2 de 4...", "Gerando legenda...", "Finalizando...").
-3. Aplicar a mesma linha discreta de status também ao fluxo de imagem única (passos: gerando imagem → gerando legenda → finalizando).
+Eliminar o erro "Tempo esgotado" em carrosséis grandes (6-10 slides) limitando a concorrência no servidor, tolerar falhas parciais no polling do overlay e deixar o botão de **regerar slide individual** bem visível na tela de resultado (a infra de `onlyIndex` já existe).
 
-## Mudanças
+## 1. Limitar concorrência no servidor — `supabase/functions/generate-carousel-images/index.ts`
 
-### 1. `src/contexts/BackgroundTaskContext.tsx`
-- Adicionar campo opcional `progressMessage?: string` em `BackgroundTask`.
-- Expor `updateTaskProgress(id, message)` no contexto.
-- A função `asyncFn` recebe um segundo parâmetro `onProgress(message)` que chama `updateTaskProgress` internamente. Assinatura nova:
-  ```ts
-  asyncFn: (onProgress: (msg: string) => void) => Promise<{ route; state }>
-  ```
+Trocar o `Promise.all(sorted.map(run))` por um **pool de concorrência fixo = 3**.
 
-### 2. `src/components/GeneratingOverlay.tsx`
-- Abaixo do título "Gerando seu conteúdo...", renderizar uma única linha:
-  ```tsx
-  <p className="text-xs text-muted-foreground/80 text-center min-h-[1rem] transition-opacity">
-    {task.progressMessage ?? "Preparando..."}
-  </p>
-  ```
-- Usar `AnimatePresence`/`motion` com `key={progressMessage}` para fade-in/fade-out suave ao trocar a mensagem (linha única que é substituída).
-
-### 3. `src/pages/CreateImage.tsx` — fluxo do carrossel (linhas ~674-763)
-- Após `supabase.functions.invoke("generate-carousel-images", ...)`, **não retornar imediatamente**. Iniciar um loop de polling em `actions.result.carousel`:
-  ```ts
-  while (true) {
-    await sleep(2000);
-    const { data } = await supabase.from("actions").select("result").eq("id", actionRow.id).single();
-    const car = data?.result?.carousel;
-    const slides = car?.slides ?? [];
-    const done = slides.filter(s => s.status === "done").length;
-    const errored = slides.filter(s => s.status === "error").length;
-    
-    if (errored === slides.length && slides.length > 0) throw new Error("Falha ao gerar slides");
-    
-    if (done < slides.length) {
-      onProgress(`Gerando slide ${Math.min(done + 1, slides.length)} de ${slides.length}...`);
-      continue;
+```ts
+const CONCURRENCY = 3;
+async function runWithPool<T>(items: T[], worker: (item: T) => Promise<void>) {
+  const queue = [...items];
+  const workers = Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
+    while (queue.length) {
+      const next = queue.shift();
+      if (!next) break;
+      await worker(next);
     }
-    if (!car?.caption) {
-      onProgress("Slides prontos. Gerando legenda...");
-      continue;
-    }
-    onProgress("Finalizando...");
-    break;
-  }
-  ```
-- Timeout de segurança (~5 min) — após isso resolver com aviso ou rejeitar.
-- Só então retornar `{ route: "/result?actionId=...", state: {} }`.
+  });
+  await Promise.all(workers);
+}
+// uso:
+await runWithPool(sorted, run);
+```
 
-### 4. `src/pages/CreateImage.tsx` — fluxo de imagem única (linhas ~897-965)
-- Encaixar chamadas a `onProgress` nos pontos chave:
-  - Antes do fetch `generate-image`: `onProgress("Gerando imagem...")`
-  - Antes do fetch `generate-caption` (quando aplicável): `onProgress("Gerando legenda...")`
-  - Antes do `return`: `onProgress("Finalizando...")`
+Efeitos:
+- Máximo 3 chamadas simultâneas ao `generate-image` → some o rate limit do Gemini.
+- Reduz contenção no `patchSlide` (read-modify-write em `actions.result`).
+- 8 slides: ~3 lotes ≈ 60-90s (antes: paralelo travava em rate limit).
 
-### 5. (Opcional, escopo coerente) Outros fluxos que usam `addTask`
-- Apenas atualizar a assinatura para receber `onProgress` (sem usá-lo se não precisarem) — necessário para compilar TypeScript. Identificar via `rg "addTask\("`.
+Não muda nada para `onlyIndex` (regeneração single) — continua disparando 1 slide direto.
+
+## 2. Polling tolerante a falhas parciais — `src/pages/CreateImage.tsx` (linhas ~768-802)
+
+Hoje: timeout estoura → exception → toast "Erro na geração" (mesmo com 6/8 prontos).
+
+Novo comportamento:
+- **Timeout: 6 min → 10 min** (margem para 10 slides em lotes de 3).
+- **Considera "pronto" quando** `done + error === total` **E** `caption` existe (ou expirou esperando legenda por 60s).
+- Se houver `done >= 1` ao final, **resolve com sucesso** e redireciona para `/result` (usuário vê os que deram certo + botão regerar nos que falharam).
+- Só lança exception se `errorCount === total` (todos falharam) ou timeout total com 0 prontos.
+- Mensagens de progresso continuam iguais, mas adiciona "X de Y slides prontos..." quando há mistura.
+
+```ts
+const TIMEOUT_MS = 10 * 60 * 1000;
+const CAPTION_WAIT_MS = 60 * 1000;
+let allSlidesReadyAt: number | null = null;
+// ... no loop:
+const settled = doneCount + errorCount;
+if (settled >= total) {
+  if (car?.caption) { onProgress("Finalizando..."); break; }
+  allSlidesReadyAt ??= Date.now();
+  if (Date.now() - allSlidesReadyAt > CAPTION_WAIT_MS) break; // segue sem legenda
+  onProgress("Slides prontos. Gerando legenda...");
+  continue;
+}
+if (Date.now() - startedAt > TIMEOUT_MS) {
+  if (doneCount === 0) throw new Error("Falha ao gerar o carrossel.");
+  break; // resolve parcial
+}
+onProgress(`Gerando slide ${Math.min(doneCount + 1, total)} de ${total}...`);
+```
+
+## 3. Realçar regeneração por slide — `src/components/create-content/carousel/CarouselGallery.tsx`
+
+A função `handleRegenerate` + `onlyIndex` **já existe** (linhas 74-102). Ajustes só de UX:
+
+- Quando um slide tem `status === "error"`, exibir overlay claro sobre a imagem: ícone de alerta, texto "Falha ao gerar este slide" + botão **"Regerar slide"** primário.
+- Quando `status === "generating"` (após clicar regerar), trocar o botão por spinner + "Gerando...".
+- Adicionar botão discreto "Regerar" no menu de ações de todos os slides (mesmo os bem-sucedidos), para o caso do usuário não gostar do resultado.
+- Toast de sucesso já existe; manter o `useCarouselSlides` polling que já recarrega o slide quando o status muda.
+
+Nenhuma mudança no contrato do edge — só consumimos `onlyIndex` que já é suportado.
+
+## 4. (Opcional, mas recomendado) Limite na UI
+
+No formulário de carrossel (`CarouselPanel`), avisar discretamente quando o usuário escolhe **>6 slides**:
+> "Carrosséis com muitos slides podem demorar 1-2 minutos. Slides que falharem podem ser regerados individualmente."
+
+Só copy, sem bloquear.
+
+## Resumo dos arquivos tocados
+
+| Arquivo | Mudança |
+|---|---|
+| `supabase/functions/generate-carousel-images/index.ts` | Pool de concorrência 3 no lugar de `Promise.all` |
+| `src/pages/CreateImage.tsx` | Polling tolerante, timeout 10min, resolve parcial |
+| `src/components/create-content/carousel/CarouselGallery.tsx` | Overlay de erro com botão "Regerar" destacado |
+| `src/components/create-content/carousel/CarouselPanel.tsx` | (Opcional) aviso para >6 slides |
 
 ## O que NÃO muda
 
-- Edge function `generate-carousel-images` permanece igual (continua gerando em background com fire-and-forget interno). O polling é só no cliente, lendo a tabela `actions`.
-- `useCarouselSlides` e a tela `/result` ficam como estão — quando o usuário chegar lá, tudo já estará pronto.
-- Sem novas tabelas, sem migrações.
+- Schema do edge function (`onlyIndex`, payload). Sem migração.
+- Hook `useCarouselSlides` (polling do `/result` continua igual).
+- Geração de legenda e custo de créditos.
+- Fluxo de imagem única.
 
 ## Resultado esperado
 
-- Ao clicar "Gerar Carrossel", o overlay com logo do Creator fica visível durante toda a geração (~30-60s), mostrando uma linha discreta atualizando os passos.
-- O botão "Ver resultado" só aparece quando carrossel + legenda estão completos.
-- Mesma experiência consistente para imagem única.
+- 8 slides geram sem erro de timeout (lotes de 3, ~60-90s total).
+- Se 1-2 slides falharem, usuário cai no `/result` com os prontos + botão claro para regerar os que faltaram (cada regen consome 1 chamada e ~15s).
+- Overlay de "Gerando..." continua mostrando progresso passo a passo.
