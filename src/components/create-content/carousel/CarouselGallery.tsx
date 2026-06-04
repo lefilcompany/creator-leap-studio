@@ -231,3 +231,27 @@ function CarouselGalleryBase({ actionId, carousel, onRegenerate }: Props) {
     </div>
   );
 }
+
+/**
+ * Memoiza a galeria: só re-renderiza quando algo relevante muda
+ * (status/imageUrl/error de algum slide ou actionId). Evita o re-init
+ * do Embla a cada poll, que causava o flicker percebido na coluna de texto.
+ */
+export const CarouselGallery = memo(CarouselGalleryBase, (prev, next) => {
+  if (prev.actionId !== next.actionId) return false;
+  if (prev.onRegenerate !== next.onRegenerate) return false;
+  const a = prev.carousel?.slides ?? [];
+  const b = next.carousel?.slides ?? [];
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (
+      a[i]?.status !== b[i]?.status ||
+      a[i]?.imageUrl !== b[i]?.imageUrl ||
+      a[i]?.error !== b[i]?.error ||
+      a[i]?.childActionId !== b[i]?.childActionId
+    ) {
+      return false;
+    }
+  }
+  return true;
+});
