@@ -582,10 +582,10 @@ serve(async (req) => {
     // @ts-ignore EdgeRuntime is provided by Supabase Edge Runtime
     if (typeof EdgeRuntime !== "undefined" && EdgeRuntime?.waitUntil) {
       // @ts-ignore
-      EdgeRuntime.waitUntil(processCarousel(authHeader, body));
+      EdgeRuntime.waitUntil(processCarousel(authHeader, body, userId));
     } else {
       // Fallback: fire-and-forget
-      processCarousel(authHeader, body).catch((e) => console.error("bg error", e));
+      processCarousel(authHeader, body, userId).catch((e) => console.error("bg error", e));
     }
 
     return new Response(
