@@ -1,87 +1,106 @@
-# Modal de "Regerar imagem"
 
-Hoje o botão "Regerar slide" só dispara o pipeline silenciosamente. Quando o status sai do polling, parece que "nada acontece" e não há como dizer o que precisa mudar. Vamos transformar a ação em um modal guiado.
+## Objetivo
 
-## O que o usuário verá
+Aplicar TDD (skill `tdd` — fatias verticais red→green) para cobrir o fluxo de carrossel com testes unitários e E2E, e endurecer o CI no GitHub Actions (lint estrito, cobertura mínima, typecheck, e2e/selenium obrigatórios).
 
-Ao clicar em "Regerar slide" (no carrossel) ou "Regerar imagem" (em imagem única), abre um modal com:
+## Fatos / Riscos a confirmar antes de codar
 
-1. **Pré-visualização** da imagem atual (miniatura) + bloco "O que deu errado nesta imagem?" (textarea curta, opcional).
-2. **Instruções de ajuste** (textarea principal, obrigatória): "Descreva o que quer mudar nesta imagem". Placeholder com exemplos ("Trocar o fundo para um ambiente externo", "Remover o copo da mesa", "Aproximar o produto").
-3. **Imagens de referência** (até 3, opcional): mesmo componente de upload já usado em CreateImage (preserveImages). Hint: "Use para mostrar estilo, enquadramento ou elementos a manter".
-4. **Ajustes finos** (collapsible "Mais opções"): manter prompt original? (toggle), tom/mood override (input livre opcional), evitar (textarea opcional → vira "negative prompt").
-5. **Aviso de custo** dinâmico:
-   - "Esta é sua **regeração gratuita** desta imagem."
-   - A partir da 2ª: "Esta regeração custa **4 créditos** (metade de uma imagem nova)."
-6. Botões: "Cancelar" e "Regerar imagem (X créditos)".
+1. **E2E "geração completa" consome créditos reais a cada execução de CI.** Como você optou por usar o usuário real do Test com créditos, cada PR vai gastar pelo menos `slidesCount * custo_imagem` créditos por run. Recomendo confirmar:
+   - Qual `slidesCount` usar no teste pesado? (sugestão: 2, mínimo válido, para reduzir custo).
+   - Pode haver poluição de histórico no usuário. OK?
+2. **Tornar e2e/selenium "obrigatórios sem skip silencioso"** exige que `E2E_BASE_URL`, `E2E_USER_EMAIL`, `E2E_USER_PASSWORD` estejam **sempre** disponíveis como secrets nos workflows. Hoje os testes pulam se faltarem. Confirmar que os secrets já existem em `Settings → Secrets`.
+3. **Forks/Dependabot** não recebem secrets — o job E2E vai falhar nesses PRs. Sugestão: condicionar o job a `github.event.pull_request.head.repo.full_name == github.repository`. Confirmar abordagem.
+4. **Cobertura mínima**: você marcou "rodar com cobertura mínima" mas não definiu o número. Sugestão inicial: `lines/statements: 60%`, `branches: 50%`, `functions: 60%`, subindo gradualmente. Confirmar threshold.
+5. **`bun run lint --max-warnings=0`**: vai falhar agora se houver qualquer warning existente. Posso rodar o lint antes para listar warnings e decidir se corrigimos junto ou ajustamos regras. Confirmar.
+6. **Mock do supabase-js em unit tests**: `RegenerateImageDialog` chama `supabase.storage.from(...).upload(...)`, `supabase.functions.invoke(...)` e usa `useAuth`. Vou mockar `@/integrations/supabase/client` e `@/hooks/useAuth` via `vi.mock` (compatível com a política de não tocar em `client.ts`). Confirmar que está OK.
 
-Mobile: bottom-sheet em vez de modal centralizado, mesmo padrão dos outros formulários.
+## O que será implementado (após confirmação dos pontos acima)
 
-## Regra de custo
+### A. Testes unitários (Vitest + RTL), via TDD vertical
 
-- 1ª regeração de uma mesma imagem (slide ou single): **gratuita**.
-- 2ª em diante: **4 créditos** (metade do custo padrão de imagem única).
-- Contador é por imagem (slide individual ou actionId de imagem única), não por sessão.
+Cada item abaixo segue 1 teste → 1 mudança/asserção, em ciclos RED→GREEN. Não escrevo todos os testes de uma vez.
 
-## Comportamento depois do envio
+1. **`src/hooks/useCarouselSlides.test.ts`** (novo)
+   - `carouselSignature` (exportar a função para teste, ou testar via comportamento de `structuralSharing`):
+     - mesma assinatura → preserva referência;
+     - mudança de `status`/`imageUrl`/`error` → troca referência;
+     - mudança em `caption` → troca referência.
+   - `refetchInterval`:
+     - sem dados → 3000;
+     - pendentes/generating → 5000;
+     - todos `done` + caption presente → `false`;
+     - todos `done` mas sem caption → 5000.
+   - Mock de `supabase.from(...).select(...).eq(...).single()`.
 
-- Modal fecha, toast "Regeração iniciada".
-- Card do slide/imagem volta para estado "generating" com overlay (já existe `StatusOverlay`).
-- Polling é **forçado a reiniciar** mesmo se o carrossel já estava 100% concluído (hoje o `refetchInterval` para quando tudo está done e não retoma — bug que faz o usuário achar que nada acontece).
+2. **`src/components/create-content/carousel/CarouselGallery.test.tsx`** (novo)
+   - Renderiza header `Slide 1 de N`.
+   - Overlay `Gerando...` quando `status==="generating"`.
+   - Overlay de erro com botão `Regerar slide` quando `status==="error"`.
+   - Dots: a quantidade certa, o ativo recebe largura `w-6`.
+   - Botões `Próximo`/`Anterior` desabilitam nos extremos.
+   - Clique em `Regerar este slide` abre o `RegenerateImageDialog` (mockado) com o slide certo.
+   - Memoização: re-render com mesmos dados não muda referências relevantes (smoke).
 
-## Detalhes técnicos
+3. **`src/components/create-content/regenerate/RegenerateImageDialog.test.tsx`** (novo)
+   - Mocks: `@/hooks/useAuth` (`{ user: { id, credits } }`), `@/integrations/supabase/client` (`storage.from().upload()`, `storage.from().getPublicUrl()`, `functions.invoke`), `sonner`.
+   - **Custo dinâmico**:
+     - `regenerationCount=0` → mostra "regeração gratuita" + botão "Regerar (grátis)";
+     - `regenerationCount=1` → mostra "4 créditos" + botão "Regerar (4 cr)";
+     - `credits=0` e custo=4 → exibe aviso "Créditos insuficientes" e botão desabilitado.
+   - **Validação**: submit desabilitado sem instruções; com instruções e créditos, habilita.
+   - **Upload**: simular `change` no input file → chama `storage.upload` no path `regenerate-refs/<userId>/...` → ref aparece no grid (até 3); 4ª tentativa mostra toast de erro.
+   - **Submit**: chama `supabase.functions.invoke("generate-carousel-images", { body })` com `onlyIndex`, `regenerationInstructions` compostas (concat de `whatWentWrong + instructions`), `regenerationReferenceImages`, `avoid`, `keepOriginalPrompt`; toast de sucesso; `onOpenChange(false)`.
+   - **Reset**: reabrir com outro `slide.index` limpa os campos.
 
-### Frontend
+4. **`src/pages/CreateImage.test.tsx`** (apenas o sub-fluxo do warning)
+   - Render isolado da seção carrossel com `slidesCount=7` → sem alerta; `slidesCount=8/9/10` → alerta `AlertTriangle` visível com texto sobre perda de qualidade.
+   - Se o componente for grande demais para montar isolado, extraio um pequeno componente `CarouselSlidesCountWarning` e testo esse. **Confirmar se posso extrair**.
 
-Novo componente `src/components/create-content/regenerate/RegenerateImageDialog.tsx`:
+### B. Testes E2E (Playwright)
 
-- Props: `open`, `onOpenChange`, `mode: "carousel-slide" | "single-image"`, `actionId`, `slideIndex?`, `currentImageUrl`, `regenerationCount`, `onSubmitted()`.
-- Upload de refs: reutiliza `ImageUploader`/`uploadImage` helper já usado em `CreateImage.tsx` (bucket `content-images`), retorna URLs públicas.
-- Custo: `cost = regenerationCount === 0 ? 0 : 4`.
-- Submit → chama edge function correspondente com payload novo (ver abaixo).
+`e2e/carousel.spec.ts` ganha specs novas (mantendo a existente):
 
-Integrações:
+1. **Aviso de 8–10 slides** (`/criar/imagem`):
+   - Seleciona Carrossel → ajusta `slidesCount` para 8 → asserta presença do texto do alerta amber. Repete para 9 e 10. Para 7 → asserta ausência.
+2. **Modal de regerar slide**:
+   - Pré-requisito: ação de carrossel já criada (criar via UI mínima, 2 slides) **ou** navegar diretamente para uma URL de resultado conhecida via storage state. **Confirmar** se você prefere criar fluxo completo (gasta créditos) ou seedar via API/route.
+   - Abre `Regerar este slide` → asserta título do modal, label de custo gratuito, validação ("Descreva o que quer ajustar"), preenche instruções e clica → asserta toast de sucesso.
+3. **Geração completa (caminho feliz)**:
+   - Cria carrossel de 2 slides (mínimo) → aguarda polling até todos os slides aparecerem como `done` (timeout 5 min, intervalo de 5s) → valida que a legenda aparece. **Custo real de créditos a cada run** — depende da confirmação do ponto 1 dos Fatos.
+4. **Seleção + painel de slides**: já existe, mantida.
 
-- `src/components/create-content/carousel/CarouselGallery.tsx`: substitui o `handleRegenerate` direto pela abertura do dialog. Remove o caminho que invoca `generate-carousel-images` direto sem instruções (mantém apenas via dialog).
-- `src/pages/ContentResult.tsx` (ou o componente equivalente para imagem única — confirmar onde está o botão "Regerar" hoje; se ainda não existe, o dialog já fica disponível e adicionamos o botão no header de ações da imagem única, padrão `ContentResultLayout`).
-- `src/hooks/useCarouselSlides.ts`: ajustar `refetchInterval` para também voltar a fazer polling quando algum slide volta para `generating`/`pending` depois de já ter ficado done (compara última versão conhecida; se algum status regrediu, retoma intervalo de 5s).
-- Persistir contador de regeração: campo novo `regenerationCount` por slide dentro de `result.carousel.slides[i]` (já é um JSONB em `actions.result`), e `result.regenerationCount` para imagem única. Edge function incrementa.
+Espelhar a spec do warning (item 1) também no Selenium (`selenium/carousel-integration.test.ts`) para consistência com o que já existe.
 
-### Edge functions
+### C. CI no GitHub Actions (`.github/workflows/ci.yml`)
 
-`supabase/functions/generate-carousel-images/index.ts`:
+1. **Lint estrito**: trocar `bun run lint` por `bun run lint -- --max-warnings=0` (após corrigir warnings pendentes).
+2. **Typecheck**: novo job `typecheck` rodando `bunx tsc -p tsconfig.app.json --noEmit` e `bunx tsc -p tsconfig.node.json --noEmit`.
+3. **Cobertura mínima**: adicionar `thresholds` em `vitest.config.ts` (`coverage.thresholds.lines/statements/branches/functions`). O job `unit` já roda `test:ci` com `--coverage`; vai falhar se ficar abaixo do mínimo.
+4. **E2E/Selenium obrigatórios**:
+   - Remover o `test.skip(!USER...)` (ou mantê-lo só para execução local) e exigir que o job falhe sem secrets.
+   - Adicionar `if` para excluir PRs de fork (ver Fato 3).
+5. **Branch protection**: documentar em `TESTING.md` que `Typecheck`, `Lint`, `Unit tests`, `Build`, `E2E`, `Selenium` devem ser checks obrigatórios. (Configuração real é feita no GitHub UI pelo dono do repo.)
+6. **Cache**: adicionar `cache: bun` via `oven-sh/setup-bun` para acelerar (já é o caso, sem mudança).
 
-- Estender schema do body para aceitar, quando `onlyIndex` está presente:
-  - `regenerationInstructions: string`
-  - `referenceImages: string[]` (até 3)
-  - `avoid?: string`
-  - `keepOriginalPrompt: boolean` (default true)
-  - `costOverride?: number` (frontend já validou custo; edge revalida via `consume_workspace_credits` com `p_amount = costOverride`).
-- Antes de chamar `callGenerateImageForSlide`, monta o prompt final:
-  - Se `keepOriginalPrompt`: `prompt = slide.prompt + "\n\nAJUSTES SOLICITADOS:\n" + instructions`.
-  - Se `avoid`: anexa `"\n\nEVITAR: " + avoid`.
-  - `preserveImages` recebidas substituem (ou se somam, configurável) as refs originais do slide.
-- Incrementa `result.carousel.slides[onlyIndex].regenerationCount` ao final.
-- Mantém o `AbortController` de 4 min já existente.
+## Ordem de execução (TDD vertical)
 
-`supabase/functions/generate-image/index.ts` (imagem única):
+```text
+1. useCarouselSlides           → 1 teste por vez (signature, intervals)
+2. CarouselGallery             → header → overlays → dots → integração modal
+3. RegenerateImageDialog       → custo → validação → upload → submit → reset
+4. CarouselSlidesCountWarning  → unit + extração se necessária
+5. E2E warning 8–10            → adicionar e rodar local
+6. E2E modal de regerar        → adicionar
+7. E2E geração completa        → adicionar (somente se confirmar custo)
+8. CI: typecheck → cobertura → lint estrito → obrigatoriedade dos e2e/selenium
+```
 
-- Mesmo padrão: aceita `regenerationInstructions`, `referenceImages`, `avoid`, `costOverride`, `parentActionId`. Incrementa `result.regenerationCount` no `actions` registro.
+Cada passo: escrevo o teste, rodo (RED), implemento o mínimo (GREEN), refatoro se houver duplicação, sigo. Sem horizontal slicing.
 
-### Cobrança
+## Fora de escopo
 
-- Frontend mostra custo informativo, mas a fonte da verdade é a edge function: ela lê `regenerationCount` atual do `actions.result`, calcula `0` ou `4`, e chama `consume_workspace_credits` (já existe). Se o frontend pediu valor diferente, prevalece o do servidor (defesa contra adulteração).
+- Alterar `client.ts`, `types.ts`, `.env` (proibido).
+- Alterar a lógica de negócio de cobrança ou da edge function `generate-carousel-images` (apenas testes a cobrem; sem mudanças funcionais).
+- Configurar branch protection no GitHub (só documentar).
 
-## Fora do escopo
-
-- Histórico de versões antigas da imagem (mantemos só a mais recente; pode virar outra entrega).
-- Regeração em lote (vários slides ao mesmo tempo com as mesmas instruções).
-
-## Arquivos afetados
-
-- `src/components/create-content/regenerate/RegenerateImageDialog.tsx` (novo)
-- `src/components/create-content/carousel/CarouselGallery.tsx`
-- `src/pages/ContentResult.tsx` (ou local equivalente do botão de regerar imagem única — confirmo na implementação)
-- `src/hooks/useCarouselSlides.ts`
-- `supabase/functions/generate-carousel-images/index.ts`
-- `supabase/functions/generate-image/index.ts`
+## Aguardando sua resposta nos 6 pontos da seção "Fatos / Riscos" antes de implementar.
