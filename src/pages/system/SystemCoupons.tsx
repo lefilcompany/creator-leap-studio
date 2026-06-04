@@ -400,7 +400,7 @@ function CouponCard({ coupon, onCopy, onToggle }: {
               <CalendarDays className="h-3.5 w-3.5" />
               {coupon.expires_at
                 ? format(new Date(coupon.expires_at), "dd/MM/yy")
-                : <Infinity className="h-3.5 w-3.5" />
+                : <InfinityIcon className="h-3.5 w-3.5" />
               }
             </div>
             <div className="flex items-center gap-2">
