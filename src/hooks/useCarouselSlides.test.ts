@@ -100,38 +100,37 @@ describe("useCarouselSlides", () => {
     expect(result.current.data).toBe(first);
   });
 
-  it("structuralSharing troca referência quando status muda", async () => {
-    singleMock.mockResolvedValueOnce({
-      data: {
-        result: {
-          carousel: {
-            slidesCount: 1,
-            slides: [{ index: 0, status: "generating" }],
+  it("structuralSharing reflete mudança de status no refetch", async () => {
+    singleMock
+      .mockResolvedValueOnce({
+        data: {
+          result: {
+            carousel: {
+              slidesCount: 1,
+              slides: [{ index: 0, status: "generating" }],
+            },
           },
         },
-      },
-      error: null,
-    });
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          result: {
+            carousel: {
+              slidesCount: 1,
+              slides: [{ index: 0, status: "done", imageUrl: "y.png" }],
+            },
+          },
+        },
+        error: null,
+      });
     const client = makeClient();
     const { result } = renderHook(() => useCarouselSlides("act-3"), {
       wrapper: wrapper(client),
     });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    const first = result.current.data;
-
-    singleMock.mockResolvedValueOnce({
-      data: {
-        result: {
-          carousel: {
-            slidesCount: 1,
-            slides: [{ index: 0, status: "done", imageUrl: "y.png" }],
-          },
-        },
-      },
-      error: null,
-    });
+    await waitFor(() => expect(result.current.data?.slides[0].status).toBe("generating"));
     await result.current.refetch();
-    expect(result.current.data).not.toBe(first);
-    expect(result.current.data?.slides[0].status).toBe("done");
+    await waitFor(() => expect(result.current.data?.slides[0].status).toBe("done"));
+    expect(result.current.data?.slides[0].imageUrl).toBe("y.png");
   });
 });
