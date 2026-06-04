@@ -765,14 +765,13 @@ export default function CreateImage() {
               throw new Error(invokeErr.message || "Erro ao iniciar geração do carrossel");
             }
 
-            // Polling: aguarda todos os slides + legenda ficarem prontos
+            // Polling tolerante: aguarda slides + legenda, mas aceita resultado parcial
             const startedAt = Date.now();
-            const TIMEOUT_MS = 6 * 60 * 1000; // 6 min
+            const TIMEOUT_MS = 10 * 60 * 1000; // 10 min (lotes de 3 → margem para 10 slides)
+            const CAPTION_WAIT_MS = 60 * 1000; // após slides settled, espera até 60s pela legenda
+            let allSettledAt: number | null = null;
             while (true) {
               await new Promise(r => setTimeout(r, 2000));
-              if (Date.now() - startedAt > TIMEOUT_MS) {
-                throw new Error("Tempo esgotado aguardando a geração do carrossel.");
-              }
               const { data: cur } = await supabase
                 .from("actions")
                 .select("result")
@@ -783,22 +782,41 @@ export default function CreateImage() {
               const total = car?.slidesCount ?? slides.length;
               const doneCount = slides.filter((s: any) => s?.status === "done").length;
               const errorCount = slides.filter((s: any) => s?.status === "error").length;
+              const settled = doneCount + errorCount;
 
-              if (total > 0 && errorCount === total) {
-                throw new Error("Falha ao gerar os slides do carrossel.");
-              }
-
-              if (doneCount < total) {
-                const current = Math.min(doneCount + 1, total);
-                onProgress(`Gerando slide ${current} de ${total}...`);
+              if (total > 0 && settled >= total) {
+                // Todos os slides terminaram (sucesso ou erro)
+                if (car?.caption) {
+                  onProgress("Finalizando...");
+                  break;
+                }
+                allSettledAt ??= Date.now();
+                if (Date.now() - allSettledAt > CAPTION_WAIT_MS) {
+                  // legenda demorou demais — segue sem ela (usuário pode regerar legenda no /result)
+                  break;
+                }
+                onProgress(
+                  errorCount > 0
+                    ? `${doneCount} de ${total} slides prontos. Gerando legenda...`
+                    : "Slides prontos. Gerando legenda...",
+                );
                 continue;
               }
-              if (!car?.caption) {
-                onProgress("Slides prontos. Gerando legenda...");
-                continue;
+
+              if (Date.now() - startedAt > TIMEOUT_MS) {
+                if (doneCount === 0) {
+                  throw new Error("Falha ao gerar o carrossel. Tente novamente.");
+                }
+                // resolve parcial: usuário verá os prontos + botão regerar nos que faltaram
+                break;
               }
-              onProgress("Finalizando...");
-              break;
+
+              const current = Math.min(doneCount + 1, total);
+              onProgress(
+                errorCount > 0
+                  ? `Gerando slide ${current} de ${total} (${errorCount} falhou)...`
+                  : `Gerando slide ${current} de ${total}...`,
+              );
             }
 
             if (refreshUserCredits) await refreshUserCredits();
