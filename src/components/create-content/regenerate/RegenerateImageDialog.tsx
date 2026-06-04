@@ -24,7 +24,7 @@ const REGEN_PAID_COST = 4; // créditos a partir da 2ª
 const MAX_REFS = 3;
 
 export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, slide }: Props) {
-  const { user, refreshCredits } = useAuth() as any;
+  const { user, refreshUserCredits } = useAuth() as any;
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
 
