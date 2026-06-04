@@ -61,8 +61,8 @@ export function useCategories() {
 
       // Get item counts
       const categoryIds = allCategories.map(c => c.id);
-      let countMap: Record<string, number> = {};
-      let memberCountMap: Record<string, number> = {};
+      const countMap: Record<string, number> = {};
+      const memberCountMap: Record<string, number> = {};
       if (categoryIds.length > 0) {
         const { data: items, error: itemsError } = await supabase
           .from('action_category_items')

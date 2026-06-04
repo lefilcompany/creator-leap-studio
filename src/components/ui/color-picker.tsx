@@ -129,7 +129,7 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10, compact = 
 
     const handleManualHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         // Permite apenas caracteres hexadecimais e limita a 6 dígitos
-        let value = e.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6);
+        const value = e.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6);
         setHexInput(value);
         if (value.length === 6) {
             setCurrentColor('#' + value);
