@@ -208,6 +208,14 @@ function CarouselGalleryBase({ actionId, carousel, onRegenerate }: Props) {
           )}
         </div>
       )}
+
+      <RegenerateImageDialog
+        open={!!regenSlide}
+        onOpenChange={(o) => { if (!o) setRegenSlide(null); }}
+        actionId={actionId}
+        carousel={carousel}
+        slide={regenSlide}
+      />
     </div>
   );
 }
