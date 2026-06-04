@@ -463,8 +463,10 @@ export default function CreateImage() {
       window.history.replaceState({}, document.title);
       return;
     }
-    const persisted = loadPersistedData();
-    if (persisted) setFormData(prev => ({ ...prev, ...persisted }));
+    // Não restaura o formulário automaticamente. A persistência só é aplicada
+    // quando o usuário escolhe "criar outro" em /result (location.state.prefillData).
+    // Limpa qualquer rascunho anterior para evitar reaproveitamento indesejado.
+    clearPersistedData();
   }, []);
 
   const handlePaste = (e: React.ClipboardEvent) => {
