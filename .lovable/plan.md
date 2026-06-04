@@ -1,102 +1,87 @@
-## Objetivo
+# Modal de "Regerar imagem"
 
-Eliminar o erro "Tempo esgotado" em carrosséis grandes (6-10 slides) limitando a concorrência no servidor, tolerar falhas parciais no polling do overlay e deixar o botão de **regerar slide individual** bem visível na tela de resultado (a infra de `onlyIndex` já existe).
+Hoje o botão "Regerar slide" só dispara o pipeline silenciosamente. Quando o status sai do polling, parece que "nada acontece" e não há como dizer o que precisa mudar. Vamos transformar a ação em um modal guiado.
 
-## 1. Limitar concorrência no servidor — `supabase/functions/generate-carousel-images/index.ts`
+## O que o usuário verá
 
-Trocar o `Promise.all(sorted.map(run))` por um **pool de concorrência fixo = 3**.
+Ao clicar em "Regerar slide" (no carrossel) ou "Regerar imagem" (em imagem única), abre um modal com:
 
-```ts
-const CONCURRENCY = 3;
-async function runWithPool<T>(items: T[], worker: (item: T) => Promise<void>) {
-  const queue = [...items];
-  const workers = Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
-    while (queue.length) {
-      const next = queue.shift();
-      if (!next) break;
-      await worker(next);
-    }
-  });
-  await Promise.all(workers);
-}
-// uso:
-await runWithPool(sorted, run);
-```
+1. **Pré-visualização** da imagem atual (miniatura) + bloco "O que deu errado nesta imagem?" (textarea curta, opcional).
+2. **Instruções de ajuste** (textarea principal, obrigatória): "Descreva o que quer mudar nesta imagem". Placeholder com exemplos ("Trocar o fundo para um ambiente externo", "Remover o copo da mesa", "Aproximar o produto").
+3. **Imagens de referência** (até 3, opcional): mesmo componente de upload já usado em CreateImage (preserveImages). Hint: "Use para mostrar estilo, enquadramento ou elementos a manter".
+4. **Ajustes finos** (collapsible "Mais opções"): manter prompt original? (toggle), tom/mood override (input livre opcional), evitar (textarea opcional → vira "negative prompt").
+5. **Aviso de custo** dinâmico:
+   - "Esta é sua **regeração gratuita** desta imagem."
+   - A partir da 2ª: "Esta regeração custa **4 créditos** (metade de uma imagem nova)."
+6. Botões: "Cancelar" e "Regerar imagem (X créditos)".
 
-Efeitos:
-- Máximo 3 chamadas simultâneas ao `generate-image` → some o rate limit do Gemini.
-- Reduz contenção no `patchSlide` (read-modify-write em `actions.result`).
-- 8 slides: ~3 lotes ≈ 60-90s (antes: paralelo travava em rate limit).
+Mobile: bottom-sheet em vez de modal centralizado, mesmo padrão dos outros formulários.
 
-Não muda nada para `onlyIndex` (regeneração single) — continua disparando 1 slide direto.
+## Regra de custo
 
-## 2. Polling tolerante a falhas parciais — `src/pages/CreateImage.tsx` (linhas ~768-802)
+- 1ª regeração de uma mesma imagem (slide ou single): **gratuita**.
+- 2ª em diante: **4 créditos** (metade do custo padrão de imagem única).
+- Contador é por imagem (slide individual ou actionId de imagem única), não por sessão.
 
-Hoje: timeout estoura → exception → toast "Erro na geração" (mesmo com 6/8 prontos).
+## Comportamento depois do envio
 
-Novo comportamento:
-- **Timeout: 6 min → 10 min** (margem para 10 slides em lotes de 3).
-- **Considera "pronto" quando** `done + error === total` **E** `caption` existe (ou expirou esperando legenda por 60s).
-- Se houver `done >= 1` ao final, **resolve com sucesso** e redireciona para `/result` (usuário vê os que deram certo + botão regerar nos que falharam).
-- Só lança exception se `errorCount === total` (todos falharam) ou timeout total com 0 prontos.
-- Mensagens de progresso continuam iguais, mas adiciona "X de Y slides prontos..." quando há mistura.
+- Modal fecha, toast "Regeração iniciada".
+- Card do slide/imagem volta para estado "generating" com overlay (já existe `StatusOverlay`).
+- Polling é **forçado a reiniciar** mesmo se o carrossel já estava 100% concluído (hoje o `refetchInterval` para quando tudo está done e não retoma — bug que faz o usuário achar que nada acontece).
 
-```ts
-const TIMEOUT_MS = 10 * 60 * 1000;
-const CAPTION_WAIT_MS = 60 * 1000;
-let allSlidesReadyAt: number | null = null;
-// ... no loop:
-const settled = doneCount + errorCount;
-if (settled >= total) {
-  if (car?.caption) { onProgress("Finalizando..."); break; }
-  allSlidesReadyAt ??= Date.now();
-  if (Date.now() - allSlidesReadyAt > CAPTION_WAIT_MS) break; // segue sem legenda
-  onProgress("Slides prontos. Gerando legenda...");
-  continue;
-}
-if (Date.now() - startedAt > TIMEOUT_MS) {
-  if (doneCount === 0) throw new Error("Falha ao gerar o carrossel.");
-  break; // resolve parcial
-}
-onProgress(`Gerando slide ${Math.min(doneCount + 1, total)} de ${total}...`);
-```
+## Detalhes técnicos
 
-## 3. Realçar regeneração por slide — `src/components/create-content/carousel/CarouselGallery.tsx`
+### Frontend
 
-A função `handleRegenerate` + `onlyIndex` **já existe** (linhas 74-102). Ajustes só de UX:
+Novo componente `src/components/create-content/regenerate/RegenerateImageDialog.tsx`:
 
-- Quando um slide tem `status === "error"`, exibir overlay claro sobre a imagem: ícone de alerta, texto "Falha ao gerar este slide" + botão **"Regerar slide"** primário.
-- Quando `status === "generating"` (após clicar regerar), trocar o botão por spinner + "Gerando...".
-- Adicionar botão discreto "Regerar" no menu de ações de todos os slides (mesmo os bem-sucedidos), para o caso do usuário não gostar do resultado.
-- Toast de sucesso já existe; manter o `useCarouselSlides` polling que já recarrega o slide quando o status muda.
+- Props: `open`, `onOpenChange`, `mode: "carousel-slide" | "single-image"`, `actionId`, `slideIndex?`, `currentImageUrl`, `regenerationCount`, `onSubmitted()`.
+- Upload de refs: reutiliza `ImageUploader`/`uploadImage` helper já usado em `CreateImage.tsx` (bucket `content-images`), retorna URLs públicas.
+- Custo: `cost = regenerationCount === 0 ? 0 : 4`.
+- Submit → chama edge function correspondente com payload novo (ver abaixo).
 
-Nenhuma mudança no contrato do edge — só consumimos `onlyIndex` que já é suportado.
+Integrações:
 
-## 4. (Opcional, mas recomendado) Limite na UI
+- `src/components/create-content/carousel/CarouselGallery.tsx`: substitui o `handleRegenerate` direto pela abertura do dialog. Remove o caminho que invoca `generate-carousel-images` direto sem instruções (mantém apenas via dialog).
+- `src/pages/ContentResult.tsx` (ou o componente equivalente para imagem única — confirmar onde está o botão "Regerar" hoje; se ainda não existe, o dialog já fica disponível e adicionamos o botão no header de ações da imagem única, padrão `ContentResultLayout`).
+- `src/hooks/useCarouselSlides.ts`: ajustar `refetchInterval` para também voltar a fazer polling quando algum slide volta para `generating`/`pending` depois de já ter ficado done (compara última versão conhecida; se algum status regrediu, retoma intervalo de 5s).
+- Persistir contador de regeração: campo novo `regenerationCount` por slide dentro de `result.carousel.slides[i]` (já é um JSONB em `actions.result`), e `result.regenerationCount` para imagem única. Edge function incrementa.
 
-No formulário de carrossel (`CarouselPanel`), avisar discretamente quando o usuário escolhe **>6 slides**:
-> "Carrosséis com muitos slides podem demorar 1-2 minutos. Slides que falharem podem ser regerados individualmente."
+### Edge functions
 
-Só copy, sem bloquear.
+`supabase/functions/generate-carousel-images/index.ts`:
 
-## Resumo dos arquivos tocados
+- Estender schema do body para aceitar, quando `onlyIndex` está presente:
+  - `regenerationInstructions: string`
+  - `referenceImages: string[]` (até 3)
+  - `avoid?: string`
+  - `keepOriginalPrompt: boolean` (default true)
+  - `costOverride?: number` (frontend já validou custo; edge revalida via `consume_workspace_credits` com `p_amount = costOverride`).
+- Antes de chamar `callGenerateImageForSlide`, monta o prompt final:
+  - Se `keepOriginalPrompt`: `prompt = slide.prompt + "\n\nAJUSTES SOLICITADOS:\n" + instructions`.
+  - Se `avoid`: anexa `"\n\nEVITAR: " + avoid`.
+  - `preserveImages` recebidas substituem (ou se somam, configurável) as refs originais do slide.
+- Incrementa `result.carousel.slides[onlyIndex].regenerationCount` ao final.
+- Mantém o `AbortController` de 4 min já existente.
 
-| Arquivo | Mudança |
-|---|---|
-| `supabase/functions/generate-carousel-images/index.ts` | Pool de concorrência 3 no lugar de `Promise.all` |
-| `src/pages/CreateImage.tsx` | Polling tolerante, timeout 10min, resolve parcial |
-| `src/components/create-content/carousel/CarouselGallery.tsx` | Overlay de erro com botão "Regerar" destacado |
-| `src/components/create-content/carousel/CarouselPanel.tsx` | (Opcional) aviso para >6 slides |
+`supabase/functions/generate-image/index.ts` (imagem única):
 
-## O que NÃO muda
+- Mesmo padrão: aceita `regenerationInstructions`, `referenceImages`, `avoid`, `costOverride`, `parentActionId`. Incrementa `result.regenerationCount` no `actions` registro.
 
-- Schema do edge function (`onlyIndex`, payload). Sem migração.
-- Hook `useCarouselSlides` (polling do `/result` continua igual).
-- Geração de legenda e custo de créditos.
-- Fluxo de imagem única.
+### Cobrança
 
-## Resultado esperado
+- Frontend mostra custo informativo, mas a fonte da verdade é a edge function: ela lê `regenerationCount` atual do `actions.result`, calcula `0` ou `4`, e chama `consume_workspace_credits` (já existe). Se o frontend pediu valor diferente, prevalece o do servidor (defesa contra adulteração).
 
-- 8 slides geram sem erro de timeout (lotes de 3, ~60-90s total).
-- Se 1-2 slides falharem, usuário cai no `/result` com os prontos + botão claro para regerar os que faltaram (cada regen consome 1 chamada e ~15s).
-- Overlay de "Gerando..." continua mostrando progresso passo a passo.
+## Fora do escopo
+
+- Histórico de versões antigas da imagem (mantemos só a mais recente; pode virar outra entrega).
+- Regeração em lote (vários slides ao mesmo tempo com as mesmas instruções).
+
+## Arquivos afetados
+
+- `src/components/create-content/regenerate/RegenerateImageDialog.tsx` (novo)
+- `src/components/create-content/carousel/CarouselGallery.tsx`
+- `src/pages/ContentResult.tsx` (ou local equivalente do botão de regerar imagem única — confirmo na implementação)
+- `src/hooks/useCarouselSlides.ts`
+- `supabase/functions/generate-carousel-images/index.ts`
+- `supabase/functions/generate-image/index.ts`
