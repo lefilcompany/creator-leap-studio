@@ -14,15 +14,32 @@ interface Props {
   onRegenerate?: (index: number) => void;
 }
 
-function StatusOverlay({ slide }: { slide: SlideState }) {
+function StatusOverlay({
+  slide,
+  onRegenerate,
+}: {
+  slide: SlideState;
+  onRegenerate?: () => void;
+}) {
   if (slide.status === "done") return null;
   if (slide.status === "error") {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-destructive/10 backdrop-blur-sm rounded-2xl gap-2 p-4 text-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-destructive/10 backdrop-blur-sm rounded-2xl gap-3 p-4 text-center">
         <AlertCircle className="h-8 w-8 text-destructive" />
-        <p className="text-sm font-medium text-destructive">Falha ao gerar</p>
+        <p className="text-sm font-medium text-destructive">Falha ao gerar este slide</p>
         {slide.error && (
-          <p className="text-xs text-muted-foreground line-clamp-3 max-w-xs">{slide.error}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 max-w-xs">{slide.error}</p>
+        )}
+        {onRegenerate && (
+          <Button
+            type="button"
+            size="sm"
+            onClick={onRegenerate}
+            className="mt-1 gap-1.5"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Regerar slide
+          </Button>
         )}
       </div>
     );
