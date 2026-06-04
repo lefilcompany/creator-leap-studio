@@ -54,6 +54,7 @@ export default function VideoResult() {
 
         // Se o vídeo está sendo processado, monitorar o status
         if (data.isProcessing && data.actionId) {
+          // eslint-disable-next-line prefer-const
           let intervalId: NodeJS.Timeout;
           
           const checkVideoStatus = async () => {

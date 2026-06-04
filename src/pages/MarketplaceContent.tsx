@@ -208,7 +208,7 @@ export default function MarketplaceContent() {
             }
           }
 
-          try { await refreshUserCredits(); } catch {}
+          try { await refreshUserCredits(); } catch { /* best-effort refresh */ }
 
           return {
             route: "/quick-content-result",

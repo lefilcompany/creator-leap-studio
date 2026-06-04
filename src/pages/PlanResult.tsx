@@ -163,8 +163,8 @@ const PlanResult = () => {
           paragraphs.push(new Paragraph({ children: [new TextRun({ text: t.replace(/^##\s+/, ""), font: "Arial", size: 32, bold: true, color: "000000" })], spacing: { before: 200, after: 100 } }));
         } else if (t.match(/^###\s+/)) {
           paragraphs.push(new Paragraph({ children: [new TextRun({ text: t.replace(/^###\s+/, ""), font: "Arial", size: 28, bold: true, color: "000000" })], spacing: { before: 160, after: 80 } }));
-        } else if (t.match(/^(\-|\*)\s+/)) {
-          paragraphs.push(new Paragraph({ children: processInlineMarkdown(t.replace(/^(\-|\*)\s+/, "")), bullet: { level: 0 }, spacing: { after: 80 } }));
+        } else if (t.match(/^(-|\*)\s+/)) {
+          paragraphs.push(new Paragraph({ children: processInlineMarkdown(t.replace(/^(-|\*)\s+/, "")), bullet: { level: 0 }, spacing: { after: 80 } }));
         } else {
           paragraphs.push(new Paragraph({ children: processInlineMarkdown(t), spacing: { after: 100 } }));
         }

@@ -220,7 +220,7 @@ export default function QuickContent() {
             }
           }
 
-          try { await refreshUserCredits(); } catch {}
+          try { await refreshUserCredits(); } catch { /* best-effort refresh */ }
 
           return {
             route: "/quick-content-result",

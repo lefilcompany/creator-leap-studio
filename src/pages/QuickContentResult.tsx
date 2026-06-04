@@ -110,7 +110,7 @@ export default function QuickContentResult() {
                 const timestamp = parseInt(match[1]);
                 if (now - timestamp > SEVEN_DAYS) keysToRemove.push(key);
               }
-            } catch (e) {}
+            } catch { /* ignore malformed key */ }
           }
         }
         keysToRemove.forEach(key => localStorage.removeItem(key));
@@ -129,7 +129,7 @@ export default function QuickContentResult() {
             setImageHistory(history);
             setCurrentImageUrl(history[history.length - 1]);
           }
-        } catch (error) {}
+        } catch { /* localStorage entry corrupted; skip */ }
       }
     }
   }, [imageUrl, navigate, actionId]);
@@ -239,7 +239,7 @@ export default function QuickContentResult() {
       }
 
       setTotalRevisions(newRevisionCount);
-      try { await refreshUserCredits(); } catch {}
+      try { await refreshUserCredits(); } catch { /* best-effort refresh */ }
 
       if (actionId) {
         await supabase.from("actions").update({

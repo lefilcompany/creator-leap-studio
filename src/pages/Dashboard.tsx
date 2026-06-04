@@ -140,7 +140,7 @@ const Dashboard = () => {
             p_limit: 6,
           });
         if (!error && data && data.length > 0) return data;
-      } catch {}
+      } catch { /* RPC may not exist; fall back to direct query */ }
       // Fallback: direct query
       const { data: fallbackData } = await supabase
         .from('actions')

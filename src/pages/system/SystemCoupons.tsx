@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Ticket, Copy, Pencil, Eye, CalendarDays, Infinity, AlertTriangle, Grid3X3, List, RefreshCw } from "lucide-react";
+import { Plus, Ticket, Copy, Pencil, Eye, CalendarDays, Infinity as InfinityIcon, AlertTriangle, Grid3X3, List, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -400,7 +400,7 @@ function CouponCard({ coupon, onCopy, onToggle }: {
               <CalendarDays className="h-3.5 w-3.5" />
               {coupon.expires_at
                 ? format(new Date(coupon.expires_at), "dd/MM/yy")
-                : <Infinity className="h-3.5 w-3.5" />
+                : <InfinityIcon className="h-3.5 w-3.5" />
               }
             </div>
             <div className="flex items-center gap-2">

@@ -1221,7 +1221,7 @@ export default function CreateContent() {
             }
             return;
           }
-        } catch (parseError) {}
+        } catch { /* ignore parse error, fall through to generic handler */ }
       }
       
       let errorMessage = "Erro ao gerar o conteúdo.";
