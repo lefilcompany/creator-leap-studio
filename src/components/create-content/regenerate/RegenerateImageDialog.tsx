@@ -202,9 +202,11 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
         onlyIndex: slide.index,
         // Novos campos de regeração
         regenerationInstructions: composedInstructions,
-        regenerationReferenceImages: refs,
+        regenerationReferenceImages: refs.map((r) => r.url),
+        preserveImageIndices,
         avoid: avoid.trim() || undefined,
         keepOriginalPrompt,
+
       };
 
       const { error } = await supabase.functions.invoke("generate-carousel-images", { body });
