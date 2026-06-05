@@ -37,6 +37,7 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
   const [submitting, setSubmitting] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [keepOriginalPrompt, setKeepOriginalPrompt] = useState(true);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Reset state when dialog opens for a new slide
   useEffect(() => {
@@ -295,10 +296,17 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
             <Label className="text-sm">
               Imagens de referência <span className="text-muted-foreground font-normal">(opcional, até {MAX_REFS})</span>
             </Label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-row flex-nowrap gap-2 overflow-x-auto pb-1">
               {refs.map((url, i) => (
-                <div key={url} className="relative h-20 w-20 rounded-lg overflow-hidden border border-border/40 group">
-                  <img src={url} alt={`Ref ${i + 1}`} className="h-full w-full object-cover" />
+                <div key={url} className="relative h-20 w-20 flex-shrink-0 rounded-lg overflow-hidden border border-border/40 group">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewUrl(url)}
+                    className="block h-full w-full"
+                    aria-label={`Visualizar referência ${i + 1}`}
+                  >
+                    <img src={url} alt={`Ref ${i + 1}`} className="h-full w-full object-cover cursor-zoom-in" />
+                  </button>
                   <button
                     type="button"
                     onClick={() => setRefs((prev) => prev.filter((_, idx) => idx !== i))}
@@ -315,7 +323,7 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
                   className={cn(
-                    "h-20 w-20 rounded-lg border-2 border-dashed border-border/60 flex flex-col items-center justify-center gap-0.5 text-[11px] text-muted-foreground hover:border-primary/60 hover:text-primary transition",
+                    "h-20 w-20 flex-shrink-0 rounded-lg border-2 border-dashed border-border/60 flex flex-col items-center justify-center gap-0.5 text-[11px] text-muted-foreground hover:border-primary/60 hover:text-primary transition",
                     uploading && "opacity-50 cursor-not-allowed"
                   )}
                 >
@@ -459,6 +467,21 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
           </div>
         </div>
       </DialogContent>
+
+      <Dialog open={!!previewUrl} onOpenChange={(o) => !o && setPreviewUrl(null)}>
+        <DialogContent className="max-w-4xl p-2 bg-background/95 backdrop-blur">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Visualizar referência</DialogTitle>
+          </DialogHeader>
+          {previewUrl && (
+            <img
+              src={previewUrl}
+              alt="Referência ampliada"
+              className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
