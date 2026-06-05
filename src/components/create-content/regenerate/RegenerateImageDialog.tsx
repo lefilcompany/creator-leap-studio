@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Upload, X, Sparkles, Coins, Info, RefreshCw, ClipboardPaste } from "lucide-react";
+import { Loader2, Upload, X, Sparkles, Coins, Info, RefreshCw, ClipboardPaste, ImagePlus } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -272,66 +272,79 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
             />
           </div>
 
-          {/* Instruções */}
+          {/* Instruções + Referências (unificado) */}
           <div className="space-y-1.5">
             <Label htmlFor="regen-instructions" className="text-sm font-semibold">
               O que ajustar nesta imagem?
             </Label>
-            <Textarea
-              id="regen-instructions"
-              placeholder="Ex: Trocar o fundo para um ambiente externo, aproximar o produto, mudar a iluminação para mais quente..."
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              className="min-h-[110px] resize-none text-sm"
-              maxLength={800}
-              required
-            />
-            <p className="text-[11px] text-muted-foreground">
-              Quanto mais específico, melhor o resultado.
-            </p>
-          </div>
+            <div className="rounded-2xl shadow-sm overflow-hidden border border-border/40 bg-card transition-shadow focus-within:shadow-md">
+              {/* Textarea */}
+              <div className="p-3 pb-2">
+                <Textarea
+                  id="regen-instructions"
+                  placeholder="Ex: Trocar o fundo para um ambiente externo, aproximar o produto, mudar a iluminação para mais quente..."
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  className="resize-none border-0 bg-transparent p-0 text-sm placeholder:text-sm placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[100px]"
+                  maxLength={800}
+                  required
+                />
+              </div>
 
-          {/* Referências */}
-          <div className="space-y-2">
-            <Label className="text-sm">
-              Imagens de referência <span className="text-muted-foreground font-normal">(opcional, até {MAX_REFS})</span>
-            </Label>
-            <div className="flex flex-row flex-nowrap gap-2 overflow-x-auto pb-1">
-              {refs.map((url, i) => (
-                <div key={url} className="relative h-20 w-20 flex-shrink-0 rounded-lg overflow-hidden border border-border/40 group">
-                  <button
-                    type="button"
-                    onClick={() => setPreviewUrl(url)}
-                    className="block h-full w-full"
-                    aria-label={`Visualizar referência ${i + 1}`}
-                  >
-                    <img src={url} alt={`Ref ${i + 1}`} className="h-full w-full object-cover cursor-zoom-in" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRefs((prev) => prev.filter((_, idx) => idx !== i))}
-                    className="absolute top-1 right-1 h-5 w-5 rounded-full bg-background/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                    aria-label="Remover"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+              {/* Thumbnails dentro do card */}
+              {refs.length > 0 && (
+                <div className="flex flex-row flex-nowrap gap-2 px-3 pb-2 overflow-x-auto">
+                  {refs.map((url, i) => (
+                    <div key={url} className="relative h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden border border-border/40 group">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewUrl(url)}
+                        className="block h-full w-full"
+                        aria-label={`Visualizar referência ${i + 1}`}
+                      >
+                        <img src={url} alt={`Ref ${i + 1}`} className="h-full w-full object-cover cursor-zoom-in" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRefs((prev) => prev.filter((_, idx) => idx !== i))}
+                        className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full bg-background/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                        aria-label="Remover"
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              {refs.length < MAX_REFS && (
+              )}
+
+              {/* Toolbar inferior */}
+              <div className="flex items-center gap-1 px-2.5 py-2 border-t border-border/20 bg-muted/10">
+                <span className="text-[11px] text-muted-foreground font-medium mr-1">Referências</span>
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  disabled={uploading}
-                  className={cn(
-                    "h-20 w-20 flex-shrink-0 rounded-lg border-2 border-dashed border-border/60 flex flex-col items-center justify-center gap-0.5 text-[11px] text-muted-foreground hover:border-primary/60 hover:text-primary transition",
-                    uploading && "opacity-50 cursor-not-allowed"
-                  )}
+                  disabled={uploading || refs.length >= MAX_REFS}
+                  className="h-7 inline-flex items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                  <span>{uploading ? "Enviando..." : "Adicionar"}</span>
+                  {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
+                  <span>Selecionar</span>
                 </button>
-              )}
+                <button
+                  type="button"
+                  onClick={handleClipboardPaste}
+                  disabled={uploading || refs.length >= MAX_REFS}
+                  className="h-7 inline-flex items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ClipboardPaste className="h-3.5 w-3.5" />
+                  <span>Colar</span>
+                </button>
+                <div className="flex-1" />
+                <span className="text-[10px] text-muted-foreground">{refs.length}/{MAX_REFS}</span>
+              </div>
             </div>
+            <p className="text-[11px] text-muted-foreground">
+              Quanto mais específico, melhor. Você pode anexar referências (Ctrl+V ou arrastar imagens).
+            </p>
             <input
               ref={fileRef}
               type="file"
@@ -348,22 +361,8 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
                 if (fileRef.current) fileRef.current.value = "";
               }}
             />
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleClipboardPaste}
-                disabled={uploading || refs.length >= MAX_REFS}
-                className="h-7 inline-flex items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ClipboardPaste className="h-3.5 w-3.5" />
-                <span>Colar imagem</span>
-              </button>
-              <span className="text-[10px] text-muted-foreground ml-auto">{refs.length}/{MAX_REFS}</span>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              Use para mostrar estilo, enquadramento ou elementos a manter. Você também pode colar (Ctrl+V) ou arrastar imagens para esta janela.
-            </p>
           </div>
+
 
           {/* Avançado */}
           <button
