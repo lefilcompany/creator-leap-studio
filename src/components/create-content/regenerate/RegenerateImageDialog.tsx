@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Upload, X, Sparkles, Coins, Info, RefreshCw } from "lucide-react";
+import { Loader2, Upload, X, Sparkles, Coins, Info, RefreshCw, ClipboardPaste } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,6 +65,10 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
       toast.error(`Máximo de ${MAX_REFS} referências`);
       return;
     }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Envie apenas arquivos de imagem");
+      return;
+    }
     if (file.size > 10 * 1024 * 1024) {
       toast.error("Imagem muito grande (máx. 10MB)");
       return;
@@ -86,6 +90,62 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const handlePasteEvent = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith("image/")) {
+        const f = items[i].getAsFile();
+        if (f) files.push(f);
+      }
+    }
+    if (files.length === 0) return;
+    e.preventDefault();
+    const remaining = MAX_REFS - refs.length;
+    for (const f of files.slice(0, remaining)) {
+      // eslint-disable-next-line no-await-in-loop
+      await handleUpload(f);
+    }
+  };
+
+  const handleClipboardPaste = async () => {
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      const files: File[] = [];
+      for (const item of clipboardItems) {
+        const imageType = item.types.find((t) => t.startsWith("image/"));
+        if (imageType) {
+          const blob = await item.getType(imageType);
+          const ext = imageType.split("/")[1] || "png";
+          files.push(new File([blob], `colado-${Date.now()}.${ext}`, { type: imageType }));
+        }
+      }
+      if (files.length === 0) {
+        toast.error("Nenhuma imagem encontrada na área de transferência");
+        return;
+      }
+      const remaining = MAX_REFS - refs.length;
+      for (const f of files.slice(0, remaining)) {
+        // eslint-disable-next-line no-await-in-loop
+        await handleUpload(f);
+      }
+    } catch {
+      toast.error("Não foi possível acessar a área de transferência. Use Ctrl+V dentro do diálogo.");
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
+    if (files.length === 0) return;
+    const remaining = MAX_REFS - refs.length;
+    for (const f of files.slice(0, remaining)) {
+      // eslint-disable-next-line no-await-in-loop
+      await handleUpload(f);
     }
   };
 
@@ -163,7 +223,12 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
 
   return (
     <Dialog open={open} onOpenChange={(o) => !submitting && onOpenChange(o)}>
-      <DialogContent className="max-w-xl max-h-[92vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-xl max-h-[92vh] overflow-y-auto"
+        onPaste={handlePasteEvent}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
@@ -262,14 +327,32 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
               ref={fileRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) handleUpload(f);
+              onChange={async (e) => {
+                const files = Array.from(e.target.files || []);
+                const remaining = MAX_REFS - refs.length;
+                for (const f of files.slice(0, remaining)) {
+                  // eslint-disable-next-line no-await-in-loop
+                  await handleUpload(f);
+                }
+                if (fileRef.current) fileRef.current.value = "";
               }}
             />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleClipboardPaste}
+                disabled={uploading || refs.length >= MAX_REFS}
+                className="h-7 inline-flex items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ClipboardPaste className="h-3.5 w-3.5" />
+                <span>Colar imagem</span>
+              </button>
+              <span className="text-[10px] text-muted-foreground ml-auto">{refs.length}/{MAX_REFS}</span>
+            </div>
             <p className="text-[11px] text-muted-foreground">
-              Use para mostrar estilo, enquadramento ou elementos a manter.
+              Use para mostrar estilo, enquadramento ou elementos a manter. Você também pode colar (Ctrl+V) ou arrastar imagens para esta janela.
             </p>
           </div>
 
