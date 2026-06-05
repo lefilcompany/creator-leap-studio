@@ -327,14 +327,32 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
               ref={fileRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) handleUpload(f);
+              onChange={async (e) => {
+                const files = Array.from(e.target.files || []);
+                const remaining = MAX_REFS - refs.length;
+                for (const f of files.slice(0, remaining)) {
+                  // eslint-disable-next-line no-await-in-loop
+                  await handleUpload(f);
+                }
+                if (fileRef.current) fileRef.current.value = "";
               }}
             />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleClipboardPaste}
+                disabled={uploading || refs.length >= MAX_REFS}
+                className="h-7 inline-flex items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ClipboardPaste className="h-3.5 w-3.5" />
+                <span>Colar imagem</span>
+              </button>
+              <span className="text-[10px] text-muted-foreground ml-auto">{refs.length}/{MAX_REFS}</span>
+            </div>
             <p className="text-[11px] text-muted-foreground">
-              Use para mostrar estilo, enquadramento ou elementos a manter.
+              Use para mostrar estilo, enquadramento ou elementos a manter. Você também pode colar (Ctrl+V) ou arrastar imagens para esta janela.
             </p>
           </div>
 
