@@ -1,49 +1,77 @@
-## Diagnóstico (verificado no banco)
+# Plano: Novo README.md completo
 
-A action `0adf6331…` mostra duas causas concretas:
+Substituir o README atual (genérico do Lovable) por uma documentação real do projeto **Creator / Planejar Conteúdo (Lefil)** — plataforma de criação de conteúdo de marketing com IA.
 
-1. **Alvo errado**: `regenerationCount=1` ficou no slide com `index=0` (Slide 1). O usuário tinha selecionado o Slide 2. O modal usa `currentSlide = slides[selectedIndex]` do embla — se o `selectedIndex` ainda não foi atualizado ou se o usuário aciona "Regerar este slide" antes do snap, o índice enviado é o errado. Hoje o modal mostra um thumb pequenino que não comunica claramente qual slide será regerado.
+## Estrutura proposta do novo README
 
-2. **Composição "3 em 1"**: os três slides têm **prompt idêntico** no banco: *"Crie uma sequência de 3 imagens realistas para um carrossel promocional…"*. Como o regen concatena `prompt original + instruções do usuário` com `keepOriginalPrompt=true` por padrão, o modelo segue obediente o "sequência de 3 imagens" e devolve um composite com 3 painéis em um quadro só.
+1. **Cabeçalho** — Nome do produto, tagline, badges (React, Vite, TS, Tailwind, Supabase).
+2. **Proposta do projeto**
+   - Plataforma SaaS para marcas e equipes criarem conteúdo (imagens, carrosséis, vídeos, legendas, planejamentos) com IA.
+   - Fluxos: Criação rápida, Criação personalizada (imagem/vídeo/carrossel), Calendário de conteúdo, Revisão, Marketplace de personas.
+   - Sistema de créditos individuais, equipes opcionais, categorias, histórico, lixeira, favoritos.
+   - Domínio canônico: `https://pla.creator.lefil.com.br`.
+3. **Principais funcionalidades** (lista resumida por área)
+   - Marcas, Personas, Temas estratégicos
+   - Geração de imagem (Gemini / Nano Banana) com Art Director, modo Marketplace, modo Anúncio Profissional
+   - Geração de carrossel multi-slide com regeneração individual
+   - Geração de vídeo e animação de imagem
+   - Calendário de conteúdo (briefing → design → revisão)
+   - Chatbot interno, Onboarding tour, Notificações
+   - Autenticação (email/senha + Google), planos Stripe, cupons, créditos
+   - Painel System (admin global)
+4. **Stack técnica**
+   - Frontend: React 18, Vite 5, TypeScript 5, Tailwind 3, shadcn/ui, Radix, React Router 6, TanStack Query, Framer Motion, Embla Carousel, React Hook Form + Zod.
+   - Backend: Lovable Cloud (Supabase) — Postgres + RLS, Auth, Storage, Edge Functions (Deno).
+   - IA: Lovable AI Gateway (Google Gemini 2.5/3.x, GPT-5.x) + integração direta Gemini.
+   - Pagamentos: Stripe (checkout, webhooks, portal).
+   - Email: domínio customizado via Lovable Email.
+   - Testes: Vitest, Playwright (E2E), Mocha + Selenium (integração).
+5. **Arquitetura do repositório**
+   ```text
+   src/
+     pages/           # rotas (Dashboard, Create*, Result, System/*)
+     components/      # UI + features (carousel, regenerate, marcas, ...)
+     contexts/        # Auth, Language, BackgroundTask
+     hooks/           # useAuth, useCarouselSlides, useCredits...
+     integrations/    # supabase client/types (auto-gerados)
+     lib/             # utils, creditCosts, platformSpecs
+   supabase/
+     functions/       # edge functions (generate-image, generate-carousel-images, stripe-webhook, ...)
+     config.toml
+   e2e/ selenium/     # testes end-to-end
+   ```
+6. **Como rodar localmente** (passo a passo)
+   - Pré-requisitos: Node 18+ e npm (ou bun), conta no Lovable Cloud / Supabase para variáveis.
+   - `git clone <repo>` e `cd <pasta>`
+   - `npm install`
+   - Variáveis de ambiente (`.env`, normalmente gerenciado pelo Lovable):
+     - `VITE_SUPABASE_URL`
+     - `VITE_SUPABASE_PUBLISHABLE_KEY`
+     - `VITE_SUPABASE_PROJECT_ID`
+   - `npm run dev` → app em `http://localhost:8080`
+   - Build: `npm run build` / Preview: `npm run preview`
+   - Lint: `npm run lint`
+7. **Como funciona (fluxo end-to-end resumido)**
+   - Usuário se autentica (Supabase Auth) → entra no Dashboard.
+   - Escolhe um fluxo de criação → frontend monta briefing e chama edge function (ex: `generate-carousel-images`).
+   - Edge function valida créditos (`profiles.credits`), chama Gemini via AI Gateway, salva resultado em Storage + tabela `actions`/`carousel_slides`.
+   - Frontend assina via Realtime e renderiza o resultado; usuário pode regerar slides, favoritar, mover para categorias ou lixeira.
+   - Stripe webhook recompõe créditos quando pacotes são comprados; cupons adicionam saldo com expiração de 30 dias.
+8. **Testes**
+   - `npm test` (Vitest)
+   - `npm run test:coverage`
+   - `npm run test:e2e` (Playwright)
+   - `npm run test:integration` (Mocha + Selenium)
+9. **Deploy**
+   - Via Lovable (Publish) — domínio padrão e custom domain configurados.
+   - Edge functions são deployadas automaticamente pelo Lovable.
+10. **Documentação adicional** — links para arquivos existentes: `EMAIL_CONFIGURATION.md`, `MIGRATION_GUIDE.md`, `OAUTH_SETUP.md`, `STRIPE_TESTING_GUIDE.md`, `STRIPE_WEBHOOK_SETUP.md`, `TESTING.md`, `TRANSLATION_GUIDE.md`.
+11. **Licença / Propriedade** — Projeto proprietário Lefil (a confirmar com o usuário se quiser explicitar).
 
-## Plano
-
-### 1. Targeting do slide (frontend)
-
-`src/components/create-content/carousel/CarouselGallery.tsx`
-- Substituir `currentSlide = slides[selectedIndex]` por uma resolução robusta: usar `selectedIndex` validado contra `emblaApi.selectedScrollSnap()` no momento do clique. Garantir que `openRegenerate` sempre receba o slide visível ativo.
-- Botão "Regerar este slide": ler `emblaApi?.selectedScrollSnap() ?? selectedIndex` no `onClick` (snapshot atômico em vez de variável de closure).
-- Desabilitar o botão enquanto o embla está em transição (`emblaApi.scrollProgress` não estável) para evitar disparo em slide errado.
-
-`src/components/create-content/regenerate/RegenerateImageDialog.tsx`
-- Subir a confirmação visual: thumb maior (≈80–96px), rótulo grande **"Regerar Slide N de Total"** no header, com o prompt resumido logo abaixo. Assim o usuário enxerga imediatamente qual slide vai mudar — se for o errado, fecha.
-- Adicionar guard: se `slide.index` recebido não bater com nenhum índice presente em `carousel.slides`, abortar com toast claro.
-
-### 2. Pressão do prompt original (frontend + edge function)
-
-`src/components/create-content/regenerate/RegenerateImageDialog.tsx`
-- Inverter o default: `keepOriginalPrompt = false`. O usuário forneceu instruções — elas devem ser o prompt. O toggle (em "Mais opções") passa a se chamar **"Manter prompt original como contexto leve"** (off por padrão).
-
-`supabase/functions/generate-carousel-images/index.ts` (função `callGenerateImageForSlide`)
-- Refatorar a composição do prompt quando `isRegenForThisSlide`:
-  - Se `keepOriginalPrompt=false` (novo default): `description = instruções do usuário` + bloco rígido `RESTRIÇÕES OBRIGATÓRIAS:` listando "uma única cena fotográfica, NÃO criar colagem/grid/painéis/sequência/múltiplas fotos no mesmo quadro".
-  - Se `keepOriginalPrompt=true`: incluir o prompt original **sanitizado** (regex removendo trechos tipo `sequência de N imagens`, `carrossel`, `colagem`, `grid`, `painéis`, `múltiplas cenas`) como "CONTEXTO LEVE (não copiar literalmente)", com as instruções do usuário marcadas como **prioritárias e vinculantes**.
-- Adicionar sempre, em modo regen, a diretiva anti-composite no payload `description`, independentemente do `keepOriginalPrompt`.
-- Quando o usuário enviar `avoid`, anexar normalmente.
-
-### 3. Higiene da geração inicial (correção de causa raiz, opcional nesta task)
-
-Os 3 slides terem prompt idêntico é bug do gerador de carrossel (não decompõe o master prompt em prompts por slide). Fora do escopo direto do pedido, mas registrar nota no código apontando para investigação separada — assim a regen não precisa carregar a culpa eternamente.
-
-## Validação
-
-1. Abrir o carrossel atual `0adf6331…`, selecionar Slide 2, abrir o modal: header deve dizer **"Regerar Slide 2 de 3"** com thumb grande do slide correto.
-2. Escrever "Apenas uma cena: brinde em close, fundo bokeh quente", regerar.
-3. Checar no banco: `regenerationCount` deve incrementar **apenas no slide index=1**.
-4. Imagem resultante deve ser uma cena única, não composite de 3 painéis.
-5. Repetir alternando para Slide 3 → confirmar que só o index=2 muda.
+## Arquivos alterados
+- `README.md` — sobrescrito com o novo conteúdo em PT-BR.
 
 ## Fora de escopo
-
-- Reescrever a geração inicial de prompts por slide (causa raiz dos prompts duplicados).
-- Mudar a UI do gallery além do necessário para o targeting.
+- Não criar diagramas de imagens.
+- Não alterar nenhum outro arquivo do projeto.
+- Não alterar a licença real do repositório.
