@@ -108,6 +108,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
         setFormData(initialFormData);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [brandToEdit, isOpen, loadDraft]);
 
   useEffect(() => {

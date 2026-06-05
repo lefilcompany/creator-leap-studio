@@ -357,6 +357,7 @@ export default function Team() {
   const navigate = useNavigate();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
   const [requestsExpanded, setRequestsExpanded] = useState(false);
   const [favoritesExpanded, setFavoritesExpanded] = useState(true);
@@ -395,6 +396,7 @@ export default function Team() {
     } else if (accessibleTeams.length > 0 && !selectedTeam) {
       setSelectedTeam(accessibleTeams[0]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [team, accessibleTeams]);
 
   const copyToClipboard = () => {
@@ -424,6 +426,7 @@ export default function Team() {
 
       toast.success(`${userName} foi adicionado à equipe!`);
       invalidateAll(selectedTeam?.id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error('Erro ao aprovar solicitação:', error);
       toast.error('Erro ao aprovar solicitação');
@@ -445,6 +448,7 @@ export default function Team() {
 
       toast.info(`Solicitação de ${userName} foi recusada.`);
       invalidateRequests(selectedTeam?.id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error('Erro ao rejeitar solicitação:', error);
       toast.error('Erro ao rejeitar solicitação');
@@ -467,6 +471,7 @@ export default function Team() {
 
       toast.success(`${memberName} foi removido da equipe!`);
       invalidateMembers(selectedTeam?.id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error('Erro ao remover membro:', error);
       toast.error('Erro ao remover membro. Tente novamente.');

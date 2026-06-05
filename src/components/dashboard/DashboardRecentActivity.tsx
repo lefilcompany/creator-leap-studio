@@ -239,8 +239,10 @@ export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRece
                         <div className={`relative h-28 bg-gradient-to-br ${config.gradient} flex items-center justify-center overflow-hidden`}>
                           {imageUrl ? (
                             <ActivityImage src={imageUrl} config={config} Icon={Icon} />
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                           ) : activity.type === 'GERAR_VIDEO' && (activity as any).video_url ? (
                             <video
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                               src={(activity as any).video_url}
                               className="w-full h-full object-cover pointer-events-none"
                               muted

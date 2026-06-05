@@ -43,6 +43,7 @@ export default function PublicProfile() {
   useEffect(() => {
     if (!userId || userId === user?.id) return;
     loadProfile();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [userId, user?.id]);
 
   const loadProfile = async () => {

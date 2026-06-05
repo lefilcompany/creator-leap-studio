@@ -94,6 +94,7 @@ export const useTeamMembers = (teamId: string | undefined) => {
         },
         (payload) => {
           // Only invalidate if the updated profile belongs to this team
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           if (payload.new && (payload.new as any).team_id === teamId) {
             queryClient.invalidateQueries({ queryKey: ['team-members', teamId] });
           }
@@ -139,6 +140,7 @@ export const usePendingRequests = (teamId: string | undefined, isAdmin: boolean)
       if (error) throw error;
       if (!requestsData || requestsData.length === 0) return [];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const userIds = requestsData.map((req: any) => req.user_id);
       const { data: profilesData } = await supabase
         .from('teammate_profiles')
@@ -147,6 +149,7 @@ export const usePendingRequests = (teamId: string | undefined, isAdmin: boolean)
 
       const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return requestsData.map((req: any) => {
         const profile = profilesMap.get(req.user_id);
         return {

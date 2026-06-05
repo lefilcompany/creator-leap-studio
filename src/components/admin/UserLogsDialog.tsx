@@ -29,6 +29,7 @@ interface SystemLog {
   level: string;
   message: string;
   source: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   metadata: any;
   created_at: string;
 }
@@ -48,7 +49,9 @@ interface ActionItem {
   type: string;
   status: string;
   created_at: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   details: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   result: any;
 }
 
@@ -56,6 +59,7 @@ interface UserEvent {
   id: string;
   event_type: string;
   event_name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   event_data: any;
   page_url: string | null;
   created_at: string;
@@ -89,6 +93,7 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
     if (user && open) {
       fetchUserData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [user, open]);
 
   const fetchUserData = async () => {

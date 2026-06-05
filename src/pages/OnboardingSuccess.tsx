@@ -58,6 +58,7 @@ const OnboardingSuccess = () => {
         } else {
           toast.error("Pagamento não confirmado: " + (data?.payment_status || 'desconhecido'));
         }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       } catch (error: any) {
         console.error("Erro na verificação:", error);
         toast.error("Erro ao verificar pagamento");

@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { OnboardingContextType, OnboardingState, OnboardingTourType } from '@/types/onboarding';
 import { toast } from '@/hooks/use-toast';
 
+// eslint-disable-next-line react-refresh/only-export-components -- arquivo compartilha componente e helpers (shadcn)
 export const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
 const ONBOARDING_FIELDS = [

@@ -139,6 +139,7 @@ const ReviewContent = () => {
   // Limpar dados persistidos ao montar - sempre iniciar do zero
   useEffect(() => {
     clearPersistedData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, []);
 
   // Detectar reset do sidebar
@@ -148,6 +149,7 @@ const ReviewContent = () => {
       handleReset();
       navigate(location.pathname, { replace: true, state: {} });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [location.state]);
 
   const handleBrandChange = (value: string) => {
@@ -194,6 +196,7 @@ const ReviewContent = () => {
       const selectedTheme = theme ? themes.find((t) => t.id === theme) : null;
 
       // Prepare payload before background dispatch
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       let payload: any = {};
       let functionName = "";
       let taskLabel = "";
@@ -311,6 +314,7 @@ const ReviewContent = () => {
       );
 
       navigate("/dashboard");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (err: any) {
       console.error("Error during review:", err);
       toast.error("Erro ao processar revisão");

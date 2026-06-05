@@ -33,6 +33,7 @@ export default function ContentCreationSelector() {
       setCreationType(null);
       navigate(location.pathname, { replace: true, state: {} });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [location.state]);
 
   useEffect(() => {

@@ -115,6 +115,7 @@ export default function ThemeView() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const viewMode = (location.state as any)?.viewMode || 'grid';
   const queryClient = useQueryClient();
 

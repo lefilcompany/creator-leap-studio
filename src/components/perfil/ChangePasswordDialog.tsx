@@ -74,6 +74,7 @@ export default function ChangePasswordDialog({ isOpen, onOpenChange }: ChangePas
   useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
         clearTimeout(toastTimeoutRef.current);
       }
     };

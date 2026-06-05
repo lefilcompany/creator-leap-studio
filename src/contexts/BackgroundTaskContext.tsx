@@ -8,6 +8,7 @@ export interface BackgroundTask {
   label: string;
   status: "running" | "complete" | "error";
   resultRoute: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   resultState?: any;
   errorMessage?: string;
   progressMessage?: string;
@@ -19,6 +20,7 @@ interface BackgroundTaskContextType {
   addTask: (
     label: string,
     type: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     asyncFn: (onProgress: (msg: string) => void) => Promise<{ route: string; state: any }>,
     onComplete?: () => void
   ) => string;
@@ -29,6 +31,7 @@ interface BackgroundTaskContextType {
 
 const BackgroundTaskContext = createContext<BackgroundTaskContextType | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components -- arquivo compartilha componente e helpers (shadcn)
 export function useBackgroundTasks() {
   const ctx = useContext(BackgroundTaskContext);
   if (!ctx) throw new Error("useBackgroundTasks must be used within BackgroundTaskProvider");
@@ -47,6 +50,7 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
   const addTask = useCallback((
     label: string,
     type: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     asyncFn: (onProgress: (msg: string) => void) => Promise<{ route: string; state: any }>,
     onComplete?: () => void
   ) => {
@@ -108,6 +112,7 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
         }, 60000);
         autoRemoveTimers.current.set(id, timer);
       })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       .catch((err: any) => {
         console.error("Background task error:", err);
         setTasks(prev =>

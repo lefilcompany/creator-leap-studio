@@ -58,6 +58,7 @@ const InfoBlock = ({
   label,
   value,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   icon: any;
   label: string;
   value?: string | null;

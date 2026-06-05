@@ -22,11 +22,11 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
-      // `any` é usado intencionalmente em fronteiras de API (supabase, fetch). Mantemos como
-      // warning para sinalizar smell sem quebrar o build com falsos positivos de boundary.
+      // Mantemos `warn` (com `--max-warnings=0` no CI) para que `any` seja sinalizado
+      // mas tolere overrides explícitos via `eslint-disable-next-line` em código legado.
       "@typescript-eslint/no-explicit-any": "warn",
-      // exhaustive-deps mantido como warn — quebrar o build aqui costuma forçar refactors
-      // arriscados de hooks. Sinalizamos sem barrar PRs.
+      // Idem para exhaustive-deps: legado já está silenciado linha-a-linha; novas violações
+      // aparecerão como warning e quebrarão o CI por causa do --max-warnings=0.
       "react-hooks/exhaustive-deps": "warn",
     },
   },
