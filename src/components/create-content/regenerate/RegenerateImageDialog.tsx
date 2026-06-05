@@ -494,24 +494,6 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
         </div>
       </DialogContent>
 
-      <Dialog open={!!previewUrl} onOpenChange={(o) => !o && setPreviewUrl(null)}>
-        <DialogContent className="max-w-[95vw] sm:max-w-6xl p-2 bg-background/95 backdrop-blur">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Visualizar referência</DialogTitle>
-          </DialogHeader>
-          {previewUrl && (
-            <img
-              src={previewUrl}
-              alt="Referência ampliada"
-              loading="eager"
-              decoding="sync"
-              className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
-              style={{ imageRendering: "auto" }}
-            />
-          )}
-        </DialogContent>
-
-      </Dialog>
     </Dialog>
   );
 }
