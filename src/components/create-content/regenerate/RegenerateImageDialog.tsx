@@ -260,16 +260,20 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
           {/* O que deu errado */}
           <div className="space-y-1.5">
             <Label htmlFor="regen-wrong" className="text-sm">
-              O que não ficou bom? <span className="text-muted-foreground font-normal">(opcional)</span>
+              O que não ficou bom?
             </Label>
-            <Textarea
-              id="regen-wrong"
-              placeholder="Ex: O produto ficou cortado, a cor do fundo está errada..."
-              value={whatWentWrong}
-              onChange={(e) => setWhatWentWrong(e.target.value)}
-              className="min-h-[60px] resize-none text-sm"
-              maxLength={400}
-            />
+            <div className="rounded-2xl shadow-sm overflow-hidden border border-border/40 bg-card transition-shadow focus-within:shadow-md">
+              <div className="p-3 pb-2">
+                <Textarea
+                  id="regen-wrong"
+                  placeholder="Ex: O produto ficou cortado, a cor do fundo está errada..."
+                  value={whatWentWrong}
+                  onChange={(e) => setWhatWentWrong(e.target.value)}
+                  className="resize-none border-0 bg-transparent p-0 text-sm placeholder:text-sm placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[60px]"
+                  maxLength={400}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Instruções + Referências (unificado) */}
