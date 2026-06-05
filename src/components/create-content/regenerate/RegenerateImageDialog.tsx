@@ -294,17 +294,17 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
             <Label className="text-sm">
               Imagens de referência <span className="text-muted-foreground font-normal">(opcional, até {MAX_REFS})</span>
             </Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-wrap gap-2">
               {refs.map((url, i) => (
-                <div key={url} className="relative aspect-square rounded-lg overflow-hidden border border-border/40 group">
+                <div key={url} className="relative h-20 w-20 rounded-lg overflow-hidden border border-border/40 group">
                   <img src={url} alt={`Ref ${i + 1}`} className="h-full w-full object-cover" />
                   <button
                     type="button"
                     onClick={() => setRefs((prev) => prev.filter((_, idx) => idx !== i))}
-                    className="absolute top-1 right-1 h-6 w-6 rounded-full bg-background/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                    className="absolute top-1 right-1 h-5 w-5 rounded-full bg-background/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                     aria-label="Remover"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-3 w-3" />
                   </button>
                 </div>
               ))}
@@ -314,7 +314,7 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
                   className={cn(
-                    "aspect-square rounded-lg border-2 border-dashed border-border/60 flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground hover:border-primary/60 hover:text-primary transition",
+                    "h-20 w-20 rounded-lg border-2 border-dashed border-border/60 flex flex-col items-center justify-center gap-0.5 text-[11px] text-muted-foreground hover:border-primary/60 hover:text-primary transition",
                     uploading && "opacity-50 cursor-not-allowed"
                   )}
                 >
