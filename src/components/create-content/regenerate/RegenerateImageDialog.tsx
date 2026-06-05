@@ -77,7 +77,7 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
     setUploading(true);
     try {
       const ext = (file.name.split(".").pop() || "png").toLowerCase();
-      const path = `regenerate-refs/${user.id}/${Date.now()}-slide-${slide?.index ?? 0}.${ext}`;
+      const path = `${user.id}/regenerate-refs/${Date.now()}-slide-${slide?.index ?? 0}.${ext}`;
       const { error } = await supabase.storage.from("content-images").upload(path, file, {
         cacheControl: "3600",
         upsert: false,
