@@ -33,12 +33,12 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
   const [instructions, setInstructions] = useState("");
   const [whatWentWrong, setWhatWentWrong] = useState("");
   const [avoid, setAvoid] = useState("");
-  const [refs, setRefs] = useState<string[]>([]);
+  const [refs, setRefs] = useState<{ url: string; name: string }[]>([]);
+  const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [keepOriginalPrompt, setKeepOriginalPrompt] = useState(true);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Reset state when dialog opens for a new slide
   useEffect(() => {
@@ -47,10 +47,12 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
       setWhatWentWrong("");
       setAvoid("");
       setRefs([]);
+      setPreserveImageIndices([]);
       setShowAdvanced(false);
       setKeepOriginalPrompt(true);
     }
   }, [open, slide?.index]);
+
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const regenerationCount = (slide as any)?.regenerationCount ?? 0;
