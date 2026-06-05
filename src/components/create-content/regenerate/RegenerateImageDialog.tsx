@@ -332,20 +332,6 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
                 </button>
               )}
             </div>
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  disabled={uploading}
-                  className={cn(
-                    "h-20 w-20 rounded-lg border-2 border-dashed border-border/60 flex flex-col items-center justify-center gap-0.5 text-[11px] text-muted-foreground hover:border-primary/60 hover:text-primary transition",
-                    uploading && "opacity-50 cursor-not-allowed"
-                  )}
-                >
-                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                  <span>{uploading ? "Enviando..." : "Adicionar"}</span>
-                </button>
-              )}
-            </div>
             <input
               ref={fileRef}
               type="file"
