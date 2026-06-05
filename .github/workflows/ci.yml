@@ -20,7 +20,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
-      - run: bun run lint
+      - run: bun run lint -- --max-warnings=0
 
   typecheck:
     name: Typecheck (tsc --noEmit)
