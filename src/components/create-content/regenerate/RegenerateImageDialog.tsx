@@ -467,6 +467,21 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
           </div>
         </div>
       </DialogContent>
+
+      <Dialog open={!!previewUrl} onOpenChange={(o) => !o && setPreviewUrl(null)}>
+        <DialogContent className="max-w-4xl p-2 bg-background/95 backdrop-blur">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Visualizar referência</DialogTitle>
+          </DialogHeader>
+          {previewUrl && (
+            <img
+              src={previewUrl}
+              alt="Referência ampliada"
+              className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
