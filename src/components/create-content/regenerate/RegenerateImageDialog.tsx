@@ -156,6 +156,12 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
 
   const handleSubmit = async () => {
     if (!slide) return;
+    // Guard: garante que o slide alvo realmente existe no carrossel atual.
+    const targetExists = carousel.slides.some((s) => s.index === slide.index);
+    if (!targetExists) {
+      toast.error("Slide alvo não encontrado. Feche e tente novamente.");
+      return;
+    }
     if (!instructions.trim()) {
       toast.error("Descreva o que quer ajustar");
       return;
