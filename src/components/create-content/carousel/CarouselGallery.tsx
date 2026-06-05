@@ -106,6 +106,15 @@ function CarouselGalleryBase({ actionId, carousel, onRegenerate }: Props) {
 
   const [regenSlide, setRegenSlide] = useState<SlideState | null>(null);
 
+  // Resolve o slide alvo a partir do snapshot atômico do embla no momento
+  // do clique. Evita race condition: se o usuário aciona "Regerar" enquanto
+  // o embla ainda está em transição/snap, o selectedIndex (estado React) pode
+  // estar defasado e mandar o índice do slide anterior.
+  const resolveActiveSlide = (): SlideState | undefined => {
+    const idx = emblaApi?.selectedScrollSnap?.() ?? selectedIndex;
+    return slides[idx];
+  };
+
   const openRegenerate = (slide: SlideState) => {
     if (onRegenerate) {
       onRegenerate(slide.index);
