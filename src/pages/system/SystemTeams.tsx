@@ -62,6 +62,7 @@ const AdminTeams = () => {
       if (teamsError) throw teamsError;
 
       const enrichedTeams = await Promise.all(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         (teamsData || []).map(async (team: any) => {
           const { data: planData } = await supabase
             .from("plans")

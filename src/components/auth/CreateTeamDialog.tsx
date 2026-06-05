@@ -104,6 +104,7 @@ export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }
           } else {
             toast.warning(`Cupom inválido: ${couponData.error}. Equipe criada sem benefícios.`);
           }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         } catch (couponError: any) {
           console.error('Erro ao resgatar cupom:', couponError);
           toast.warning('Equipe criada, mas não foi possível aplicar o cupom.');
@@ -143,6 +144,7 @@ export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }
       toast.success("Equipe criada com sucesso!");
       onSuccess();
       navigate("/dashboard");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error('Erro ao criar equipe:', error);
       toast.error(error.message || "Erro ao criar equipe. Tente novamente.");

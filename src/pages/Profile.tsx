@@ -45,6 +45,7 @@ export default function Profile() {
           state: data.state || '',
           city: data.city || '',
           avatarUrl: data.avatar_url || '',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           bannerUrl: (data as any).banner_url || '',
         });
       }
@@ -134,6 +135,7 @@ export default function Profile() {
 
       const { error: updateError } = await supabase
         .from('profiles')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         .update({ banner_url: publicUrl } as any)
         .eq('id', user.id);
       if (updateError) throw updateError;

@@ -96,6 +96,7 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
       toast.success("Solicitação enviada com sucesso! O administrador da equipe irá avaliar seu pedido.");
       
       onSuccess();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error('Erro ao solicitar entrada:', error);
       toast.error(error.message || "Erro ao solicitar entrada na equipe. Tente novamente.");

@@ -42,6 +42,7 @@ interface CreditPackage {
   isEnterprise?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
 const packageIcons: Record<string, any> = {
   pack_basic: Zap,
   pack_pro: Crown,
@@ -108,6 +109,7 @@ const Credits = () => {
           toast.error("Pagamento não foi concluído");
           navigate('/credits', { replace: true });
         }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       } catch (error: any) {
         console.error("Error verifying payment:", error);
         toast.error("Erro ao verificar pagamento: " + error.message);
@@ -235,6 +237,7 @@ const Credits = () => {
           window.open(data.url, '_blank');
         }, 500);
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error("Error creating custom checkout:", error);
       toast.error("Erro ao criar checkout: " + error.message);

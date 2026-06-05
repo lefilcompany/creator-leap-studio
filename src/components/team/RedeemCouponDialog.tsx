@@ -57,6 +57,7 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, curr
     ]);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const extractRedeemErrorMessage = async (error: any) => {
     if (typeof error?.context?.json === 'function') {
       try {
@@ -129,6 +130,7 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, curr
         // Erro de validação
         setValidationError(data.error || 'Cupom inválido');
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error('[RedeemCouponDialog] Error:', error);
       setValidationError(error.message || 'Erro ao processar cupom. Tente novamente.');

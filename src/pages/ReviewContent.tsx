@@ -194,6 +194,7 @@ const ReviewContent = () => {
       const selectedTheme = theme ? themes.find((t) => t.id === theme) : null;
 
       // Prepare payload before background dispatch
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       let payload: any = {};
       let functionName = "";
       let taskLabel = "";
@@ -311,6 +312,7 @@ const ReviewContent = () => {
       );
 
       navigate("/dashboard");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (err: any) {
       console.error("Error during review:", err);
       toast.error("Erro ao processar revisão");

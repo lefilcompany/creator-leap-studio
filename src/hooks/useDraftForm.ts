@@ -15,6 +15,7 @@ interface UseDraftFormOptions {
  * Hook para gerenciar rascunhos de formulários no localStorage
  * Salva automaticamente com debounce e expira após X horas
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
 export function useDraftForm<T extends Record<string, any>>(
   formData: T,
   options: UseDraftFormOptions

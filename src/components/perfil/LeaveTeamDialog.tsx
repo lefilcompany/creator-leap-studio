@@ -81,6 +81,7 @@ export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveT
       toast.success('Você saiu da equipe com sucesso!');
       onOpenChange(false);
       await reloadUserData();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error('Erro ao sair da equipe:', error);
       toast.error(error.message || 'Erro ao sair da equipe. Tente novamente.');

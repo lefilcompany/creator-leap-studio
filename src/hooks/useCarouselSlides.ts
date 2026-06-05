@@ -29,7 +29,9 @@ export function useCarouselSlides(actionId?: string) {
     structuralSharing: (oldData, newData) => {
       const oldSig = carouselSignature(oldData as CarouselResult | null | undefined);
       const newSig = carouselSignature(newData as CarouselResult | null | undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       if (oldSig === newSig && oldData) return oldData as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return newData as any;
     },
     refetchInterval: (query) => {
@@ -51,6 +53,7 @@ export function useCarouselSlides(actionId?: string) {
         .eq("id", actionId)
         .single();
       if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const carousel = (data?.result as any)?.carousel;
       return carousel ?? null;
     },

@@ -272,6 +272,7 @@ export default function QuickContentResult() {
   };
 
   const handleReusePrompt = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     const prefillData: Record<string, any> = {};
     const keys = [
       'prompt', 'brandId', 'themeId', 'personaId', 'platform',

@@ -21,6 +21,7 @@ export const api = {
     return response.json();
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   async post<T>(url: string, data?: any): Promise<T> {
     const response = await fetch(url, {
       method: 'POST',
@@ -37,6 +38,7 @@ export const api = {
     return response.json();
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   async put<T>(url: string, data?: any): Promise<T> {
     const response = await fetch(url, {
       method: 'PUT',

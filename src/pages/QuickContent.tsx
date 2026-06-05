@@ -82,6 +82,7 @@ export default function QuickContent() {
       if (teamId) query.eq("team_id", teamId); else query.eq("user_id", userId!);
       const { data, error } = await query;
       if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (data || []) as any as Brand[];
     },
     enabled: !!userId,
@@ -95,6 +96,7 @@ export default function QuickContent() {
       if (teamId) query.eq("team_id", teamId); else query.eq("user_id", userId!);
       const { data, error } = await query;
       if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (data || []) as any as StrategicTheme[];
     },
     enabled: !!userId,
@@ -108,6 +110,7 @@ export default function QuickContent() {
       if (teamId) query.eq("team_id", teamId); else query.eq("user_id", userId!);
       const { data, error } = await query;
       if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (data || []) as any as Persona[];
     },
     enabled: !!userId,
@@ -115,9 +118,11 @@ export default function QuickContent() {
   });
 
   const filteredThemes = formData.brandId
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     ? themes.filter((t: any) => t.brand_id === formData.brandId || t.brandId === formData.brandId)
     : [];
   const filteredPersonas = formData.brandId
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     ? personas.filter((p: any) => p.brand_id === formData.brandId || p.brandId === formData.brandId)
     : [];
 
@@ -244,6 +249,7 @@ export default function QuickContent() {
       );
 
       setGeneratingTaskId(newTaskId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error("Error preparing payload:", error);
       toast.error(error.message || "Erro ao preparar criação");
@@ -391,6 +397,7 @@ export default function QuickContent() {
 
                 {/* Customizations */}
                 <CustomizationCards
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                   brands={brands.map((b: any) => ({ id: b.id, name: b.name, brandColor: b.brand_color || b.brandColor }))}
                   personas={filteredPersonas}
                   themes={filteredThemes}

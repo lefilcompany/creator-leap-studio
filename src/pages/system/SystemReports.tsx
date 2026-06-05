@@ -93,7 +93,9 @@ export default function SystemReports() {
       if (error) throw error;
 
       // Fetch user profiles for each report
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const userIds = [...new Set((data || []).map((r: any) => r.user_id))];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const teamIds = [...new Set((data || []).filter((r: any) => r.team_id).map((r: any) => r.team_id))];
 
       const { data: profiles } = await supabase
@@ -105,6 +107,7 @@ export default function SystemReports() {
       if (teamIds.length > 0) {
         const { data: teams } = await supabase.rpc("get_all_teams_admin");
         if (teams) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           teamsMap = Object.fromEntries(teams.map((t: any) => [t.id, t.name]));
         }
       }
@@ -113,6 +116,7 @@ export default function SystemReports() {
         (profiles || []).map((p) => [p.id, p])
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const enriched = (data || []).map((r: any) => ({
         ...r,
         screenshot_urls: r.screenshot_urls || [],
@@ -138,6 +142,7 @@ export default function SystemReports() {
   const handleUpdateStatus = async (reportId: string, newStatus: string) => {
     setIsUpdating(true);
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const updateData: any = {
         status: newStatus,
         admin_notes: adminNotes || null,

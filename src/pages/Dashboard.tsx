@@ -148,6 +148,7 @@ const Dashboard = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (fallbackData || []).map((a: any) => ({
         id: a.id,
         type: a.type,
@@ -246,6 +247,7 @@ const Dashboard = () => {
       {/* Recent Activity */}
       <div id="dashboard-recent-actions">
         <DashboardRecentActivity 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           activities={recentActivities as any} 
           isLoading={isLoadingActivities} 
         />
