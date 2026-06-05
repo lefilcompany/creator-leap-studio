@@ -223,7 +223,12 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
 
   return (
     <Dialog open={open} onOpenChange={(o) => !submitting && onOpenChange(o)}>
-      <DialogContent className="max-w-xl max-h-[92vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-xl max-h-[92vh] overflow-y-auto"
+        onPaste={handlePasteEvent}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
