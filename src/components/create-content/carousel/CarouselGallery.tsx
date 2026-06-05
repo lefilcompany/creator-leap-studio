@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { CreationFeedback } from "@/components/CreationFeedback";
 import { RegenerateImageDialog } from "@/components/create-content/regenerate/RegenerateImageDialog";
 import type { CarouselResult, SlideState } from "./types";
+import creatorSymbol from "@/assets/creator-symbol.png";
 
 interface Props {
   actionId: string;
