@@ -299,31 +299,50 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
                 />
               </div>
 
-              {/* Thumbnails dentro do card */}
+              {/* Anexos: chip com nome + toggle "Preservar" */}
               {refs.length > 0 && (
-                <div className="flex flex-row flex-nowrap gap-2 px-3 pb-2 overflow-x-auto">
-                  {refs.map((url, i) => (
-                    <div key={url} className="relative h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden border border-border/40 group">
-                      <button
-                        type="button"
-                        onClick={() => setPreviewUrl(url)}
-                        className="block h-full w-full"
-                        aria-label={`Visualizar referência ${i + 1}`}
-                      >
-                        <img src={url} alt={`Ref ${i + 1}`} className="h-full w-full object-cover cursor-zoom-in" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRefs((prev) => prev.filter((_, idx) => idx !== i))}
-                        className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full bg-background/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                        aria-label="Remover"
-                      >
-                        <X className="h-2.5 w-2.5" />
-                      </button>
-                    </div>
-                  ))}
+                <div className="flex flex-wrap gap-2 px-3 pb-2">
+                  {refs.map((ref, i) => {
+                    const isPreserving = preserveImageIndices.includes(i);
+                    return (
+                      <div key={ref.url} className="relative group flex items-center gap-2 bg-muted/40 rounded-lg px-2.5 py-1.5 text-xs shadow-sm">
+                        <ImagePlus className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate max-w-[140px] text-foreground">{ref.name}</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPreserveImageIndices((prev) =>
+                              prev.includes(i) ? prev.filter((idx) => idx !== i) : [...prev, i]
+                            )
+                          }
+                          className={`text-[10px] px-1.5 py-0.5 rounded-full border transition-all ${
+                            isPreserving
+                              ? "bg-primary/15 border-primary/30 text-primary"
+                              : "bg-muted border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary"
+                          }`}
+                          title="Preservar traços desta imagem"
+                        >
+                          {isPreserving ? "Preservando" : "Preservar"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRefs((prev) => prev.filter((_, idx) => idx !== i));
+                            setPreserveImageIndices((prev) =>
+                              prev.filter((idx) => idx !== i).map((idx) => (idx > i ? idx - 1 : idx))
+                            );
+                          }}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                          aria-label="Remover"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
+
 
               {/* Toolbar inferior */}
               <div className="flex items-center gap-1 px-2.5 py-2 border-t border-border/20 bg-muted/10">
