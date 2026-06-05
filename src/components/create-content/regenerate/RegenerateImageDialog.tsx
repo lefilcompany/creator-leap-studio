@@ -87,7 +87,8 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
       });
       if (error) throw error;
       const { data } = supabase.storage.from("content-images").getPublicUrl(path);
-      setRefs((prev) => [...prev, data.publicUrl]);
+      setRefs((prev) => [...prev, { url: data.publicUrl, name: file.name }]);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (err: any) {
       toast.error("Erro ao enviar imagem", { description: err?.message });
