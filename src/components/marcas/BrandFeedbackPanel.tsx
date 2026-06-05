@@ -59,9 +59,7 @@ export function BrandFeedbackPanel({ brandId, accentColor }: BrandFeedbackPanelP
         if (feedbacks) {
           setTopImages(
             feedbacks
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
               .filter((f: any) => f.image_url)
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
               .map((f: any) => ({
                 id: f.id,
                 imageUrl: f.image_url,

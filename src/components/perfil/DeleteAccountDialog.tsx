@@ -86,7 +86,6 @@ export default function DeleteAccountDialog({ open, onOpenChange, userEmail }: D
       setPassword('');
       setEmailConfirm('');
       setUnderstood(false);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error('Erro ao deletar conta:', error);
       toast.error(error.message || 'Erro ao deletar conta. Tente novamente.');

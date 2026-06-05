@@ -254,10 +254,8 @@ export default function CreateContent() {
       reader.readAsDataURL(file);
       
       if (preserveImageIndices.includes(index)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         preserveImages.push(promise as any);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         styleImages.push(promise as any);
       }
     });
@@ -321,7 +319,6 @@ export default function CreateContent() {
             name: teamData.plan.name,
             description: teamData.plan.description || '',
             price: Number(teamData.plan.price_monthly || 0),
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             credits: (teamData.plan as any).credits || 0,
             maxMembers: teamData.plan.max_members,
             maxBrands: teamData.plan.max_brands,
@@ -331,13 +328,9 @@ export default function CreateContent() {
             isActive: teamData.plan.is_active,
             stripePriceId: teamData.plan.stripe_price_id_monthly,
           } : null,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           credits: (teamData as any).credits || 0,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           free_brands_used: (teamData as any).free_brands_used || 0,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           free_personas_used: (teamData as any).free_personas_used || 0,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           free_themes_used: (teamData as any).free_themes_used || 0,
         };
 
@@ -372,7 +365,6 @@ export default function CreateContent() {
         setThemes(mappedThemes);
         setPersonas(mappedPersonas);
         setIsLoadingData(false);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       } catch (error: any) {
         console.error("Erro ao carregar dados:", error);
         toast.error("Erro ao carregar dados do formulário");
@@ -407,11 +399,8 @@ export default function CreateContent() {
         .then(({ data: fullBrand, error }) => {
           if (!error && fullBrand) {
             const images: string[] = [];
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             const logo = fullBrand.logo as any;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             const moodboard = fullBrand.moodboard as any;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             const referenceImage = fullBrand.reference_image as any;
             
             if (logo?.content) images.push(logo.content);
@@ -1213,7 +1202,6 @@ export default function CreateContent() {
       );
 
       setGeneratingTaskId(newTaskId);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (err: any) {
       console.error("Erro ao gerar conteúdo:", err);
       
@@ -1935,7 +1923,6 @@ export default function CreateContent() {
                               onValueChange={(value) =>
                                 setFormData(prev => ({ 
                                   ...prev, 
-                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                                   videoTextPosition: value as any
                                 }))
                               }
@@ -2062,7 +2049,6 @@ export default function CreateContent() {
                               onValueChange={(value) =>
                                 setFormData(prev => ({ 
                                   ...prev, 
-                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                                   imageTextPosition: value as any
                                 }))
                               }
@@ -2637,7 +2623,6 @@ export default function CreateContent() {
                         onValueChange={(value) =>
                           setFormData(prev => ({ 
                             ...prev, 
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                             videoTextPosition: value as any
                           }))
                         }
@@ -2722,7 +2707,6 @@ export default function CreateContent() {
                           <Select 
                             value={formData.videoAudioStyle || 'sound_effects'}
                             onValueChange={(value) => 
-                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                               setFormData(prev => ({ ...prev, videoAudioStyle: value as any }))
                             }
                           >
@@ -2752,7 +2736,6 @@ export default function CreateContent() {
                           <Select 
                             value={formData.videoVisualStyle || 'cinematic'}
                             onValueChange={(value) => 
-                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                               setFormData(prev => ({ ...prev, videoVisualStyle: value as any }))
                             }
                           >
@@ -2782,7 +2765,6 @@ export default function CreateContent() {
                           <Select 
                             value={String(formData.videoDuration || 8)}
                             onValueChange={(value) => 
-                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                               setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))
                             }
                           >
@@ -2805,7 +2787,6 @@ export default function CreateContent() {
                           <Select 
                             value={formData.videoAspectRatio || '9:16'}
                             onValueChange={(value) => 
-                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                               setFormData(prev => ({ ...prev, videoAspectRatio: value as any }))
                             }
                           >
@@ -2827,7 +2808,6 @@ export default function CreateContent() {
                           <Select 
                             value={formData.videoResolution || '1080p'}
                             onValueChange={(value) => 
-                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                               setFormData(prev => ({ ...prev, videoResolution: value as any }))
                             }
                           >
@@ -2919,7 +2899,6 @@ export default function CreateContent() {
                           <Select 
                             value={String(formData.videoDuration || 8)}
                             onValueChange={(value) => 
-                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                               setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))
                             }
                           >
@@ -2942,7 +2921,6 @@ export default function CreateContent() {
                           <Select 
                             value={formData.videoAspectRatio || '9:16'}
                             onValueChange={(value) => 
-                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                               setFormData(prev => ({ ...prev, videoAspectRatio: value as any }))
                             }
                           >
@@ -2964,7 +2942,6 @@ export default function CreateContent() {
                           <Select 
                             value={formData.videoResolution || '1080p'}
                             onValueChange={(value) => 
-                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                               setFormData(prev => ({ ...prev, videoResolution: value as any }))
                             }
                           >

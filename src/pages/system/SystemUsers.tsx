@@ -128,7 +128,6 @@ const AdminUsers = () => {
         presenceMap.set(p.user_id, existing);
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const enrichedUsers = (usersData || []).map((user: any) => {
         const teamData = user.team_id ? teamsMap.get(user.team_id) : null;
         const actionsInfo = actionsCountMap.get(user.id);

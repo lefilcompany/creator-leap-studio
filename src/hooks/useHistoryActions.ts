@@ -62,12 +62,9 @@ export function useHistoryActions(filters: HistoryFilters) {
         if (entry) typeDbValue = entry[0];
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const normalizeRowsFromActionsTable = (tableRows: any[]) => {
         return tableRows.map((row) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           const result = (row.result || {}) as Record<string, any>;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           const details = (row.details || {}) as Record<string, any>;
           const brand = Array.isArray(row.brands) ? row.brands[0] : row.brands;
 
@@ -98,9 +95,7 @@ export function useHistoryActions(filters: HistoryFilters) {
         });
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       let rows: any[] = [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       let rpcError: any = null;
 
       const { data, error } = await supabase.rpc('get_action_summaries', {
@@ -177,7 +172,6 @@ export function useHistoryActions(filters: HistoryFilters) {
         return value.replace(/^\/+/, '');
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const actions: ActionSummary[] = rows.map((row: any) => {
         let imageUrl: string | undefined;
 
@@ -216,17 +210,13 @@ export function useHistoryActions(filters: HistoryFilters) {
           .select('id, result')
           .in('id', allIds);
         if (extraRows) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           const byId = new Map(extraRows.map((r: any) => [r.id, r.result]));
           for (const a of actions) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             const result = byId.get(a.id) as any;
             const slides = result?.carousel?.slides;
             if (Array.isArray(slides)) {
               const urls = slides
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                 .map((s: any) => s?.imageUrl)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                 .filter((u: any): u is string => typeof u === 'string' && u.length > 0);
               if (urls.length > 0) {
                 a.carouselImages = urls;

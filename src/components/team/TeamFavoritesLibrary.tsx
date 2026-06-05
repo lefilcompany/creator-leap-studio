@@ -119,7 +119,6 @@ export function TeamFavoritesLibrary({ teamId, inline = false }: TeamFavoritesLi
       const path = action.thumb_path.replace(/^\/+/, '');
       return `${storageBase}${path}`;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     const result = action.result as any;
     if (result?.imageUrl) return result.imageUrl;
     if (result?.originalImage) return result.originalImage;
@@ -133,10 +132,8 @@ export function TeamFavoritesLibrary({ teamId, inline = false }: TeamFavoritesLi
           const FallbackIcon = ACTION_ICON_MAP[action.type] || Sparkles;
           const gradient = ACTION_GRADIENT_MAP[action.type] || 'from-muted to-muted/50';
           const imageUrl = getImageUrl(action);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           const result = action.result as any;
           const title = result?.title || result?.description || displayType;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           const brandName = (action as any).brands?.name;
 
           return (

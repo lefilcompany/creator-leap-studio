@@ -127,7 +127,6 @@ export default function AdminPlans() {
 
       // Count teams per plan
       const planCounts: Record<string, number> = {};
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       teamsData?.forEach((team: any) => {
         planCounts[team.plan_id] = (planCounts[team.plan_id] || 0) + 1;
       });
@@ -141,7 +140,6 @@ export default function AdminPlans() {
       setPlans(plansWithCounts);
 
       // Fetch admin profiles for teams
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const adminIds = [...new Set(teamsData?.map((t: any) => t.admin_id) || [])];
       const { data: profilesData } = await supabase
         .from("profiles")
@@ -152,7 +150,6 @@ export default function AdminPlans() {
       const plansMap = new Map(plansData?.map(p => [p.id, p.name]) || []);
 
       // Build subscriptions list
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const subs: TeamSubscription[] = teamsData?.map((team: any) => {
         const admin = profilesMap.get(team.admin_id);
         return {

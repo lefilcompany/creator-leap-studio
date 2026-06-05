@@ -7,7 +7,6 @@ import LeaveTeamDialog from './LeaveTeamDialog';
 import { useNavigate } from 'react-router-dom';
 
 interface TeamInfoCardProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   team: any;
   userRole: 'admin' | 'member';
   // Créditos individuais do usuário (opcional para exibição)

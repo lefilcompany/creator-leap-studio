@@ -43,7 +43,6 @@ export const SystemRealtimeStats = () => {
         const users: OnlineUser[] = [];
         
         Object.keys(state).forEach((key) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           const presences = state[key] as any[];
           presences.forEach((presence) => {
             users.push({

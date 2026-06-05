@@ -141,7 +141,6 @@ const SectionCard = ({ title, icon, children, accentColor }: SectionCardProps) =
   </div>
 );
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
 function mapRowToBrand(data: any): Brand {
   return {
     id: data.id,
@@ -178,7 +177,6 @@ export default function BrandView() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const viewMode = (location.state as any)?.viewMode || 'grid';
   const { t } = useTranslation();
   const [brand, setBrand] = useState<Brand | null>(null);
@@ -309,7 +307,6 @@ export default function BrandView() {
           logo: visualFiles.logo,
           reference_image: visualFiles.referenceImage,
           moodboard: visualFiles.moodboard,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         } as any)
         .eq('id', brand.id);
 
@@ -579,7 +576,6 @@ export default function BrandView() {
         currentAvatarUrl={brand.avatarUrl}
         onSave={async (color, avatarUrl) => {
           try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             const updates: Record<string, any> = {};
             if (color !== selectedBrandColor) {
               updates.brand_color = color;

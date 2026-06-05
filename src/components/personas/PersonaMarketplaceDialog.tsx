@@ -105,7 +105,6 @@ export default function PersonaMarketplaceDialog({
           .eq("brand_id", selectedBrandId);
         if (error) throw error;
         if (cancelled) return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         const names = new Set((data || []).map((p: any) => (p.name || "").trim().toLowerCase()));
         setOwnedNames(names);
         // Remove any selections that became "owned" after brand change
@@ -176,14 +175,10 @@ export default function PersonaMarketplaceDialog({
       });
 
       if (error) throw error;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       if ((data as any)?.error) throw new Error((data as any).error);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const purchased = (data as any).purchased || 0;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const skipped = (data as any).skipped || 0;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const duplicates = (data as any).duplicates_skipped || 0;
 
       await refreshUserCredits();
@@ -201,7 +196,6 @@ export default function PersonaMarketplaceDialog({
 
       onPurchaseComplete();
       onOpenChange(false);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "Erro ao processar compra", { id: toastId });

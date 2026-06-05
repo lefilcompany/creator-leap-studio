@@ -109,7 +109,6 @@ export const initGlobalExtensionProtection = () => {
   // Proteger console para debug mesmo com extensões que o modificam
   const originalConsole = { ...console };
   const protectedConsole = Object.keys(console).reduce((acc, key) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     acc[key] = function(...args: any[]) {
       try {
         return originalConsole[key as keyof Console]?.apply(console, args);
@@ -118,7 +117,6 @@ export const initGlobalExtensionProtection = () => {
       }
     };
     return acc;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   }, {} as any);
 
   Object.assign(console, protectedConsole);

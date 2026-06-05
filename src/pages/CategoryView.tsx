@@ -89,7 +89,6 @@ export default function CategoryView() {
       if (itemsError) throw itemsError;
       if (!items || items.length === 0) return [];
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const actionIds = items.map((i: any) => i.action_id);
       const { data: actions, error } = await supabase
         .from('actions')
@@ -101,7 +100,6 @@ export default function CategoryView() {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
       const storageBase = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/content-images/` : '';
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (actions || []).map((a: any) => ({
         id: a.id,
         type: a.type,

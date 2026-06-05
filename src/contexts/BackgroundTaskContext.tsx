@@ -8,7 +8,6 @@ export interface BackgroundTask {
   label: string;
   status: "running" | "complete" | "error";
   resultRoute: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   resultState?: any;
   errorMessage?: string;
   progressMessage?: string;
@@ -20,7 +19,6 @@ interface BackgroundTaskContextType {
   addTask: (
     label: string,
     type: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     asyncFn: (onProgress: (msg: string) => void) => Promise<{ route: string; state: any }>,
     onComplete?: () => void
   ) => string;
@@ -49,7 +47,6 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
   const addTask = useCallback((
     label: string,
     type: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     asyncFn: (onProgress: (msg: string) => void) => Promise<{ route: string; state: any }>,
     onComplete?: () => void
   ) => {
@@ -111,7 +108,6 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
         }, 60000);
         autoRemoveTimers.current.set(id, timer);
       })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       .catch((err: any) => {
         console.error("Background task error:", err);
         setTasks(prev =>

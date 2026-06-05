@@ -24,7 +24,6 @@ interface VideoResultData {
   title?: string;
   body?: string;
   hashtags?: string[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   originalFormData?: any;
   actionId?: string;
   isProcessing?: boolean;
@@ -197,7 +196,6 @@ export default function VideoResult() {
       }
 
       // Preparar os dados do resultado
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const resultData: any = {
         videoUrl: videoData.mediaUrl,
         platform: videoData.platform,

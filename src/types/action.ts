@@ -62,7 +62,6 @@ export interface Action {
     prompt?: string;
     objective?: string;
     platform?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     [key: string]: any;
   } | null;
   result?: {
@@ -73,7 +72,6 @@ export interface Action {
     feedback?: string;
     plan?: string;
     originalImage?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     [key: string]: any;
   } | null;
   // Relacionamentos vindos do Prisma
@@ -100,7 +98,6 @@ export type ActionSummary = {
   title?: string;
   platform?: string;
   objective?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   extraDetails?: Record<string, any>;
   carouselImages?: string[];
 };

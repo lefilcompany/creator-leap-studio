@@ -163,7 +163,6 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
           window.open(data.url, '_blank');
           setStep("awaiting-payment");
         }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       } catch (error: any) {
         toast.error("Erro ao criar checkout: " + error.message);
       } finally {
@@ -193,7 +192,6 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
         window.open(data.url, '_blank');
         setStep("awaiting-payment");
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       toast.error("Erro ao criar checkout: " + error.message);
     } finally {

@@ -76,7 +76,6 @@ export default function History() {
         .eq('category_id', categoryId)
         .in('action_id', ids);
       
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const existingSet = new Set((existing || []).map((e: any) => e.action_id));
       const newIds = ids.filter(id => !existingSet.has(id));
       
@@ -165,7 +164,6 @@ export default function History() {
 
   const actionCategoryMap = useMemo(() => {
     const map = new Map<string, string[]>();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     categoryItems.forEach((item: any) => {
       const existing = map.get(item.action_id) || [];
       existing.push(item.category_id);

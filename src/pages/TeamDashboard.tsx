@@ -134,7 +134,6 @@ export default function TeamDashboard() {
       });
 
       setMemberStats(stats);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error('Erro ao carregar estatísticas:', error);
       toast.error('Erro ao carregar estatísticas dos membros');
@@ -208,7 +207,6 @@ export default function TeamDashboard() {
     [memberStats]
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -223,7 +221,6 @@ export default function TeamDashboard() {
     return null;
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const CustomPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 1.3;

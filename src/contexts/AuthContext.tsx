@@ -198,7 +198,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isMounted.current) return;
 
         if (!teamError && teamInfo && teamInfo.plans) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           const planData = teamInfo.plans as any;
           
           teamData = {
@@ -215,7 +214,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               name: planData.name,
               description: planData.description || '',
               price: planData.price_monthly || 0,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
               credits: (planData as any).credits || 0,
               maxMembers: planData.max_members,
               maxBrands: planData.max_brands,
@@ -224,13 +222,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               trialDays: planData.trial_days,
               isActive: planData.is_active,
             },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             credits: (teamInfo as any).credits || 0,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             free_brands_used: (teamInfo as any).free_brands_used || 0,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             free_personas_used: (teamInfo as any).free_personas_used || 0,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             free_themes_used: (teamInfo as any).free_themes_used || 0,
           };
         }
@@ -492,7 +486,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...prev, 
         credits: data.credits || 0, 
         maxCredits: data.max_credits || data.credits || 0,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         creditsExpireAt: (data as any).credits_expire_at || null,
       } : null);
     }
@@ -533,7 +526,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             name: teamData.plan.name,
             description: teamData.plan.description || '',
             price: teamData.plan.price_monthly,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             credits: (teamData.plan as any).credits || 0,
             maxMembers: teamData.plan.max_members,
             maxBrands: teamData.plan.max_brands,
@@ -542,13 +534,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             trialDays: teamData.plan.trial_days,
             isActive: teamData.plan.is_active
           },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           credits: (teamData as any).credits || 0,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           free_brands_used: (teamData as any).free_brands_used || 0,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           free_personas_used: (teamData as any).free_personas_used || 0,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           free_themes_used: (teamData as any).free_themes_used || 0,
         });
       }

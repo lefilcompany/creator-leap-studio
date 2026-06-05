@@ -73,7 +73,6 @@ export const GeminiQuotaCard = () => {
       }
       
       setQuotaData(data);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (err: any) {
       console.error("Erro ao verificar quota:", err);
       setError(err.message || "Erro ao verificar quota da API");

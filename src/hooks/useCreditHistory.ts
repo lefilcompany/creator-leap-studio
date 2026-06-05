@@ -8,7 +8,6 @@ export interface CreditHistoryItem {
   credits_before: number;
   credits_after: number;
   description: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   metadata: any;
   created_at: string;
   user_id: string;
@@ -24,7 +23,6 @@ export const useCreditHistory = (teamId: string | null | undefined) => {
       if (!teamId) return [];
 
       // Use rpc or raw query to bypass type checking until types are regenerated
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const { data, error } = await (supabase as any)
         .from("credit_history")
         .select(`

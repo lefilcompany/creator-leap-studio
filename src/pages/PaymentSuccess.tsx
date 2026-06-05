@@ -67,7 +67,6 @@ export default function PaymentSuccess() {
           setVerificationStatus('pending');
           setMessage('Seu pagamento está sendo processado. Aguarde alguns instantes.');
         }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       } catch (error: any) {
         console.error('Erro ao verificar pagamento:', error);
         setVerificationStatus('error');

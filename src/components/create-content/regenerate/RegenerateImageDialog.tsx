@@ -24,7 +24,6 @@ const REGEN_PAID_COST = 4; // créditos a partir da 2ª
 const MAX_REFS = 3;
 
 export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, slide }: Props) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const { user, refreshUserCredits } = useAuth() as any;
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -50,7 +49,6 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
     }
   }, [open, slide?.index]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const regenerationCount = (slide as any)?.regenerationCount ?? 0;
   const cost = regenerationCount < REGEN_FREE_LIMIT ? 0 : REGEN_PAID_COST;
   const userCredits = user?.credits ?? 0;
@@ -80,7 +78,6 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
       if (error) throw error;
       const { data } = supabase.storage.from("content-images").getPublicUrl(path);
       setRefs((prev) => [...prev, data.publicUrl]);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (err: any) {
       toast.error("Erro ao enviar imagem", { description: err?.message });
     } finally {
@@ -122,16 +119,11 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
           mood: s.mood,
           referenceImageUrl: s.referenceImageUrl,
         })),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         brandId: (carousel as any).brandId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         themeId: (carousel as any).themeId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         personaId: (carousel as any).personaId,
         platform: "Carrossel",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         contentType: (carousel as any).contentType ?? "organic",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         tone: (carousel as any).tone,
         onlyIndex: slide.index,
         // Novos campos de regeração
@@ -153,7 +145,6 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
       if (typeof refreshUserCredits === "function") refreshUserCredits();
 
       onOpenChange(false);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (err: any) {
       toast.error("Erro ao regerar", { description: err?.message });
     } finally {

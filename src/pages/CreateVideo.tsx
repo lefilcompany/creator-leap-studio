@@ -81,7 +81,6 @@ export default function CreateVideo() {
         .eq('team_id', teamId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (data || []).map((b: any) => ({
         id: b.id, name: b.name, responsible: b.responsible,
         brandColor: null, avatarUrl: null, createdAt: b.created_at, updatedAt: b.updated_at,
@@ -101,7 +100,6 @@ export default function CreateVideo() {
         .eq('team_id', teamId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (data || []).map((t: any) => ({
         id: t.id, brandId: t.brand_id, title: t.title, createdAt: t.created_at,
       })) as StrategicThemeSummary[];
@@ -120,7 +118,6 @@ export default function CreateVideo() {
         .eq('team_id', teamId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (data || []).map((p: any) => ({
         id: p.id, brandId: p.brand_id, name: p.name, createdAt: p.created_at,
       })) as PersonaSummary[];
@@ -233,7 +230,6 @@ export default function CreateVideo() {
 
       toast.success("Vídeo sendo gerado!", { id: toastId, duration: 3000 });
       navigate("/video-result", { state: { contentData: { actionId: actionData.id, isProcessing: true } } });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (err: any) {
       console.error("Erro:", err);
       toast.error(err?.message || "Erro ao gerar vídeo", { id: toastId });
@@ -485,7 +481,6 @@ export default function CreateVideo() {
                   <Label className="text-xs font-medium text-foreground">Estilo Visual</Label>
                   <NativeSelect
                     value={formData.videoVisualStyle}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                     onValueChange={(value) => setFormData(prev => ({ ...prev, videoVisualStyle: value as any }))}
                     options={[
                       { value: "cinematic", label: "Cinemático" },
@@ -502,7 +497,6 @@ export default function CreateVideo() {
                   <Label className="text-xs font-medium text-foreground">Proporção</Label>
                   <NativeSelect
                     value={formData.videoAspectRatio}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                     onValueChange={(value) => setFormData(prev => ({ ...prev, videoAspectRatio: value as any }))}
                     options={[
                       { value: "16:9", label: "16:9 (Horizontal)" },
@@ -517,7 +511,6 @@ export default function CreateVideo() {
                   <Label className="text-xs font-medium text-foreground">Resolução</Label>
                   <NativeSelect
                     value={formData.videoResolution}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                     onValueChange={(value) => setFormData(prev => ({ ...prev, videoResolution: value as any }))}
                     options={[
                       { value: "720p", label: "720p (HD)" },
@@ -532,7 +525,6 @@ export default function CreateVideo() {
                   <Label className="text-xs font-medium text-foreground">Duração</Label>
                   <NativeSelect
                     value={String(formData.videoDuration)}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                     onValueChange={(value) => setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))}
                     options={[
                       { value: "4", label: "4 segundos" },
@@ -548,7 +540,6 @@ export default function CreateVideo() {
                   <Label className="text-xs font-medium text-foreground">Estilo de Áudio</Label>
                   <NativeSelect
                     value={formData.videoAudioStyle}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                     onValueChange={(value) => setFormData(prev => ({ ...prev, videoAudioStyle: value as any }))}
                     options={[
                       { value: "dialogue", label: "Diálogo" },

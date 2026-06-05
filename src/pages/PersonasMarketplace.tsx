@@ -72,7 +72,6 @@ export default function PersonasMarketplacePage() {
         if (brandsRes.error) throw brandsRes.error;
 
         setTemplates(templatesRes.data || []);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         const summaries: BrandSummary[] = (brandsRes.data || []).map((b: any) => ({
           id: b.id,
           name: b.name,
@@ -109,7 +108,6 @@ export default function PersonasMarketplacePage() {
           .eq('brand_id', selectedBrandId);
         if (error) throw error;
         if (cancelled) return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         const names = new Set((data || []).map((p: any) => (p.name || '').trim().toLowerCase()));
         setOwnedNames(names);
         // Auto-deselect any selections that are now owned
@@ -249,12 +247,9 @@ export default function PersonasMarketplacePage() {
       });
 
       if (error) throw error;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       if ((data as any)?.error) throw new Error((data as any).error);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const purchased = (data as any).purchased || 0;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const skipped = (data as any).skipped || 0;
 
       await refreshUserCredits();
@@ -269,7 +264,6 @@ export default function PersonasMarketplacePage() {
       }
 
       navigate('/personas');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || 'Erro ao processar compra', { id: toastId });

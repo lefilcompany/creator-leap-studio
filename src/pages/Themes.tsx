@@ -24,7 +24,6 @@ export default function Themes() {
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const initialViewMode = (location.state as any)?.viewMode || 'grid';
 
   const [themes, setThemes] = useState<StrategicThemeSummary[]>([]);
@@ -238,7 +237,6 @@ export default function Themes() {
           if (isFree && user.teamId) {
             await supabase
               .from('teams')
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
               .update({ free_themes_used: freeThemesUsed + 1 } as any)
               .eq('id', user.teamId);
             await refreshTeamData();

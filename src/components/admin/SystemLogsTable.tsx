@@ -16,7 +16,6 @@ interface SystemLog {
   level: string;
   message: string;
   source: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   metadata: any;
   user_id: string | null;
   team_id: string | null;

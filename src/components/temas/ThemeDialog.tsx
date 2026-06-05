@@ -91,9 +91,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
 
       try {
         const raw = themeToEdit.toneOfVoice || '';
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         if (Array.isArray((themeToEdit as any).toneOfVoice)) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           setToneList((themeToEdit as any).toneOfVoice as string[]);
         } else if (typeof raw === 'string' && raw.trim()) {
           const parsed = raw.split(/[,;]\s*/).map(s => s.trim()).filter(Boolean);

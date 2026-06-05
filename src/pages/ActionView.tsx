@@ -149,30 +149,20 @@ const getStatusColor = (status: string) => {
 
 // ── Markdown components (reused) ─────────────────────────────
 const markdownComponents = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   h1: ({ children }: any) => <h1 className="text-2xl font-bold text-primary mb-4 pb-2 border-b border-primary/20">{children}</h1>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   h2: ({ children }: any) => (
     <h2 className="text-xl font-semibold text-foreground mt-6 mb-3 flex items-center gap-2">
       <span className="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full flex-shrink-0" />
       {children}
     </h2>
   ),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   h3: ({ children }: any) => <h3 className="text-lg font-semibold text-foreground mt-5 mb-2">{children}</h3>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   h4: ({ children }: any) => <h4 className="text-base font-semibold text-primary mt-3 mb-2">{children}</h4>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   p: ({ children }: any) => <p className="text-sm text-muted-foreground leading-relaxed mb-3">{children}</p>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   strong: ({ children }: any) => <strong className="font-semibold text-foreground">{children}</strong>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   ul: ({ children }: any) => <ul className="list-disc list-inside space-y-1 mb-3 ml-4">{children}</ul>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   ol: ({ children }: any) => <ol className="list-decimal list-inside space-y-1 mb-3 ml-4">{children}</ol>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   li: ({ children }: any) => <li className="text-sm text-muted-foreground">{children}</li>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   blockquote: ({ children }: any) => (
     <blockquote className="border-l-4 border-primary/30 pl-4 italic text-muted-foreground bg-primary/5 py-2 my-3 rounded-r">
       {children}
@@ -294,7 +284,6 @@ const parsePlanText = (raw: string): ParsedPlan => {
   return result;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
 const FIELD_ICONS: Record<string, React.ComponentType<any>> = {
   plataforma: Globe,
   'data sugerida': Calendar,
@@ -411,20 +400,17 @@ export default function ActionView() {
   const { actionId } = useParams<{ actionId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const viewMode = (location.state as any)?.viewMode || 'grid';
   const [action, setAction] = useState<Action | null>(null);
   const [loading, setLoading] = useState(true);
   const [copying, setCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const [showFullPlan, setShowFullPlan] = useState(false);
   const { data: actionCats = [] } = useActionCategories(actionId);
   const { categories, addActionToCategory, removeActionFromCategory } = useCategories();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const handleCreatePostContent = (post: any) => {
     const params = new URLSearchParams();
     const descParts: string[] = [];
@@ -666,9 +652,7 @@ export default function ActionView() {
 
   // ── Carousel short-circuit: render dedicated view ────────
   const isCarouselAction =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     !!(action.result as any)?.carousel ||
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     !!(action.details as any)?.isCarousel;
   if (isCarouselAction && actionId) {
     return <CarouselResultView actionId={actionId} />;
@@ -1142,7 +1126,6 @@ export default function ActionView() {
                 </div>
               </SectionCard>
               {/* Plan result below */}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
               {(action.result?.plan || (Array.isArray((action.result as any)?.posts) && (action.result as any).posts.length > 0)) && (
                 <SectionCard
                   title="Calendário de Conteúdo"
@@ -1181,10 +1164,8 @@ export default function ActionView() {
                     </div>
                   }
                 >
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                   {Array.isArray((action.result as any)?.posts) && (action.result as any).posts.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                       {((action.result as any).posts as any[]).map((post, idx) => (
                         <button
                           key={idx}

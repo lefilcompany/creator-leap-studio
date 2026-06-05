@@ -214,24 +214,20 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
           <FileDetailField label="Imagem de Referência" file={brand.referenceImage} />
           <FileDetailField label="Moodboard/Identidade Visual" file={brand.moodboard} />
           {/* Exibe identidade visual extraída do PDF, se houver */}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           {brand.moodboard && (brand.moodboard as any).colors && (brand.moodboard as any).colors.length > 0 && (
             <div className="mt-2">
               <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Palette className="inline-block h-4 w-4" /> Paleta extraída do PDF:</p>
               <div className="flex gap-2">
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                 {(brand.moodboard as any).colors.map((color: string, idx: number) => (
                   <div key={idx} className="w-8 h-8 rounded-full border-2 border-white shadow" style={{ background: color }} title={color}></div>
                 ))}
               </div>
             </div>
           )}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           {brand.moodboard && (brand.moodboard as any).images && (brand.moodboard as any).images.length > 0 && (
             <div className="mt-2">
               <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Palette className="inline-block h-4 w-4" /> Imagens extraídas do PDF:</p>
               <div className="flex gap-2 flex-wrap">
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                 {(brand.moodboard as any).images.map((img: string, idx: number) => (
                   <img key={idx} src={img} alt={`Imagem extraída ${idx+1}`} className="w-24 h-16 object-cover rounded border" />
                 ))}

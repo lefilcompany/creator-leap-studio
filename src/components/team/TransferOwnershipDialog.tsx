@@ -70,7 +70,6 @@ export function TransferOwnershipDialog({
       toast.success(`Administração transferida para ${selectedName}!`);
       onOpenChange(false);
       onSuccess();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error('Erro ao transferir administração:', error);
       toast.error('Erro ao transferir administração. Tente novamente.');
