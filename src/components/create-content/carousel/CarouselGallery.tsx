@@ -204,7 +204,10 @@ function CarouselGalleryBase({ actionId, carousel, onRegenerate }: Props) {
               size="sm"
               variant="outline"
               className="h-9 gap-1.5"
-              onClick={() => openRegenerate(currentSlide)}
+              onClick={() => {
+                const active = resolveActiveSlide() ?? currentSlide;
+                if (active) openRegenerate(active);
+              }}
               disabled={currentSlide.status === "generating" || currentSlide.status === "pending"}
             >
               <RefreshCw className={cn("h-3.5 w-3.5", currentSlide.status === "generating" && "animate-spin")} />
