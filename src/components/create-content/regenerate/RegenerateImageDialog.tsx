@@ -216,7 +216,20 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
         description: cost > 0 ? `Custou ${cost} crédito${cost > 1 ? "s" : ""}` : "Regeração gratuita",
       });
 
-      // Garante que o polling volte a rodar mesmo se já estava parado
+      // Otimisticamente marca o slide como "generating" no cache para o
+      // overlay aparecer imediatamente e o polling continuar até a edge
+      // function atualizar o banco (evita parar de pollar achando que está done).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shape do cache
+      queryClient.setQueryData(["carousel-slides", actionId], (old: any) => {
+        if (!old) return old;
+        const slides = Array.isArray(old.slides) ? [...old.slides] : [];
+        const i = slides.findIndex((s: any) => s?.index === slide.index);
+        if (i >= 0) {
+          slides[i] = { ...slides[i], status: "generating", error: null };
+        }
+        return { ...old, slides };
+      });
+      // Refetch em background para sincronizar com o servidor
       await queryClient.invalidateQueries({ queryKey: ["carousel-slides", actionId] });
       if (typeof refreshUserCredits === "function") refreshUserCredits();
 
