@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 
 interface UseFormPersistenceOptions {
   key: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   formData: any;
   excludeFields?: string[];
 }
@@ -31,6 +32,7 @@ export function useFormPersistence({
   }, [formData, key, excludeFields]);
 
   // Verifica se um objeto tem pelo menos um valor significativo
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const hasSignificantValues = (data: any): boolean => {
     if (!data || typeof data !== 'object') return false;
     return Object.values(data).some(value => {
@@ -69,6 +71,7 @@ export function useFormPersistence({
   };
 
   // Verificar se há dados relevantes (não apenas valores padrão)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const hasRelevantData = (data: any): boolean => {
     if (!data) return false;
     

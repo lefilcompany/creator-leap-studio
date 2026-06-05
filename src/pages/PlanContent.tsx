@@ -52,7 +52,9 @@ const PlanContent = () => {
   });
 
   const [loading, setLoading] = useState<boolean>(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const [brands, setBrands] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const [themes, setThemes] = useState<any[]>([]);
   const creditsRemaining = user?.credits ?? 0;
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -228,6 +230,7 @@ const PlanContent = () => {
       );
 
       navigate("/dashboard");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (err: any) {
       console.error("Error generating plan:", err);
       toast.error(err.message || "Erro ao gerar planejamento. Tente novamente.");

@@ -41,11 +41,15 @@ export function useCategories() {
         .eq('user_id', user!.id);
       if (memberError) throw memberError;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const editorEntries = (memberEntries || []).filter((m: any) => m.role === 'editor');
       const sharedCategoryIds = editorEntries
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         .map((m: any) => m.category_id)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         .filter((id: string) => !(ownCategories || []).some((c: any) => c.id === id));
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       let sharedCategories: any[] = [];
       if (sharedCategoryIds.length > 0) {
         const { data, error: sharedError } = await supabase
@@ -69,6 +73,7 @@ export function useCategories() {
           .select('category_id')
           .in('category_id', categoryIds);
         if (itemsError) throw itemsError;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         (items || []).forEach((item: any) => {
           countMap[item.category_id] = (countMap[item.category_id] || 0) + 1;
         });
@@ -79,11 +84,13 @@ export function useCategories() {
           .select('category_id')
           .in('category_id', categoryIds);
         if (membersError) throw membersError;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         (memberItems || []).forEach((item: any) => {
           memberCountMap[item.category_id] = (memberCountMap[item.category_id] || 0) + 1;
         });
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return allCategories.map((c: any) => ({
         ...c,
         action_count: countMap[c.id] || 0,
@@ -110,9 +117,11 @@ export function useCategories() {
           queryClient.invalidateQueries({ queryKey: ['categories'] });
           // Also invalidate individual category queries for CategoryView
           if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             queryClient.invalidateQueries({ queryKey: ['category', (payload.new as any).id] });
           }
           if (payload.old && typeof payload.old === 'object' && 'id' in payload.old) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             queryClient.invalidateQueries({ queryKey: ['category', (payload.old as any).id] });
           }
         }
@@ -279,6 +288,7 @@ export function useCategoryMembers(categoryId: string | undefined) {
       if (error) throw error;
       if (!data || data.length === 0) return [];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       const userIds = data.map((m: any) => m.user_id);
       const { data: profiles, error: profilesError } = await supabase
         .from('teammate_profiles')
@@ -288,6 +298,7 @@ export function useCategoryMembers(categoryId: string | undefined) {
 
       const profileMap = new Map((profiles || []).map(p => [p.id, p]));
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return data.map((m: any) => {
         const profile = profileMap.get(m.user_id);
         return {
@@ -314,6 +325,7 @@ export function useActionCategories(actionId: string | undefined) {
         .select('category_id, action_categories(id, name, color)')
         .eq('action_id', actionId!);
       if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (data || []).map((item: any) => item.action_categories).filter(Boolean) as Array<{ id: string; name: string; color: string }>;
     },
     enabled: !!actionId,

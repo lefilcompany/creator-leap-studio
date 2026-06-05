@@ -352,6 +352,7 @@ export default function CreateImage() {
       if (!teamId) return [];
       const { data, error } = await supabase.from('brands').select('id, name, responsible, created_at, updated_at').eq('team_id', teamId).order('created_at', { ascending: false });
       if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (data || []).map((brand: any) => ({ id: brand.id, name: brand.name, responsible: brand.responsible, brandColor: null, avatarUrl: null, createdAt: brand.created_at, updatedAt: brand.updated_at })) as BrandSummary[];
     },
     enabled: !!teamId,
@@ -364,6 +365,7 @@ export default function CreateImage() {
       if (!teamId) return [];
       const { data, error } = await supabase.from('strategic_themes').select('id, brand_id, title, created_at').eq('team_id', teamId).order('created_at', { ascending: false });
       if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (data || []).map((theme: any) => ({ id: theme.id, brandId: theme.brand_id, title: theme.title, createdAt: theme.created_at })) as StrategicThemeSummary[];
     },
     enabled: !!teamId,
@@ -376,6 +378,7 @@ export default function CreateImage() {
       if (!teamId) return [];
       const { data, error } = await supabase.from('personas').select('id, brand_id, name, created_at').eq('team_id', teamId).order('created_at', { ascending: false });
       if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (data || []).map((persona: any) => ({ id: persona.id, brandId: persona.brand_id, name: persona.name, createdAt: persona.created_at })) as PersonaSummary[];
     },
     enabled: !!teamId,
@@ -393,15 +396,20 @@ export default function CreateImage() {
         admin: teamData.admin_id, admin_id: teamData.admin_id, members: [], pending: [],
         plan: teamData.plan ? {
           id: teamData.plan.id, name: teamData.plan.name, description: teamData.plan.description || '',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           price: Number(teamData.plan.price_monthly || 0), credits: (teamData.plan as any).credits || 0,
           maxMembers: teamData.plan.max_members, maxBrands: teamData.plan.max_brands,
           maxStrategicThemes: teamData.plan.max_strategic_themes, maxPersonas: teamData.plan.max_personas,
           trialDays: teamData.plan.trial_days || 0, isActive: teamData.plan.is_active,
           stripePriceId: teamData.plan.stripe_price_id_monthly,
         } : null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         credits: (teamData as any).credits || 0,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         free_brands_used: (teamData as any).free_brands_used || 0,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         free_personas_used: (teamData as any).free_personas_used || 0,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         free_themes_used: (teamData as any).free_themes_used || 0,
       } as Team;
     },
@@ -504,8 +512,11 @@ export default function CreateImage() {
         .then(({ data: fullBrand, error }) => {
           if (!error && fullBrand) {
             const images: string[] = [];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             const logo = fullBrand.logo as any;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             const moodboard = fullBrand.moodboard as any;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             const referenceImage = fullBrand.reference_image as any;
             if (logo?.content) images.push(logo.content);
             if (moodboard?.content) images.push(moodboard.content);
@@ -780,10 +791,14 @@ export default function CreateImage() {
                 .select("result")
                 .eq("id", actionRow.id)
                 .single();
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
               const car: any = (cur?.result as any)?.carousel;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
               const slides: any[] = Array.isArray(car?.slides) ? car.slides : [];
               const total = car?.slidesCount ?? slides.length;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
               const doneCount = slides.filter((s: any) => s?.status === "done").length;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
               const errorCount = slides.filter((s: any) => s?.status === "error").length;
               const settled = doneCount + errorCount;
 
@@ -835,6 +850,7 @@ export default function CreateImage() {
         setGeneratingTaskId(newTaskId);
         requestAnimationFrame(() => scrollPageToTop());
         return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       } catch (err: any) {
         console.error("Erro carrossel:", err);
         toast.error("Erro ao gerar carrossel", { description: err.message });
@@ -979,6 +995,7 @@ export default function CreateImage() {
           const { imageUrl, attempt, legenda, complianceCheck, actionId: generatedActionId } = await imageResponse.json();
 
           // Handle caption
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           let captionData: any = null;
           let isLocalFallback = false;
 
@@ -1039,6 +1056,7 @@ export default function CreateImage() {
 
       setGeneratingTaskId(newTaskId);
       requestAnimationFrame(() => scrollPageToTop());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (err: any) {
       console.error("Erro:", err);
       toast.error("Erro ao preparar geração", { description: err.message || "Tente novamente." });
@@ -1660,6 +1678,7 @@ export default function CreateImage() {
                           <div className="grid grid-cols-4 gap-2 w-full">
                             {TEXT_POSITIONS.map(pos => (
                               <button key={pos.value} type="button"
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                                 onClick={() => setFormData(prev => ({ ...prev, imageTextPosition: pos.value as any }))}
                                 className={`h-14 rounded-xl text-sm font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-1.5 ${
                                   formData.imageTextPosition === pos.value
@@ -2186,10 +2205,12 @@ export default function CreateImage() {
               <div className="flex flex-col gap-3">
                 <VisualStyleGrid
                   value={formData.visualStyle}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                   onChange={value => handleSelectChange("visualStyle" as any, value)}
                 />
                 <CameraAngleGrid
                   value={formData.cameraAngle || "eye_level"}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                   onChange={value => handleSelectChange("cameraAngle" as any, value)}
                 />
               </div>

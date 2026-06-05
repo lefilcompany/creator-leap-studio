@@ -121,9 +121,11 @@ export default function PersonaView() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const viewMode = (location.state as any)?.viewMode || 'grid';
   const queryClient = useQueryClient();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const [persona, setPersona] = useState<any | null>(null);
   const [brand, setBrand] = useState<BrandData | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});

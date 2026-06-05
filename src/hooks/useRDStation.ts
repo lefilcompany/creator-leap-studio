@@ -73,6 +73,7 @@ export const useRDStation = () => {
         plan: teamData?.plans?.name,
         userRole: user.isAdmin ? 'admin' : 'member',
         subscriptionStatus: teamData?.subscription_status,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         credits: (teamData as any).credits || 0,
         ...customData
       };

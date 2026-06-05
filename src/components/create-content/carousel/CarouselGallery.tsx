@@ -73,6 +73,7 @@ async function downloadImage(url: string, filename: string) {
 
 function CarouselGalleryBase({ actionId, carousel, onRegenerate }: Props) {
   const slides = carousel?.slides ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const brandId = (carousel as any).brandId as string | undefined;
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: "center" });

@@ -167,6 +167,7 @@ export function CustomizationCards({
           icon={<UserRound className="h-4 w-4" />}
           title="Persona"
           description="Público-alvo"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           options={personas.map((p: any) => ({ value: p.id, label: p.name }))}
           value={formData.personaId}
           onChange={v => onFormChange({ personaId: v })}
@@ -177,6 +178,7 @@ export function CustomizationCards({
           icon={<Newspaper className="h-4 w-4" />}
           title="Editoria"
           description="Linha editorial"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
           options={themes.map((t: any) => ({ value: t.id, label: t.title }))}
           value={formData.themeId}
           onChange={v => onFormChange({ themeId: v })}

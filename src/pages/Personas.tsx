@@ -26,6 +26,7 @@ export default function PersonasPage() {
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const initialViewMode = (location.state as any)?.viewMode || 'grid';
 
   const [personas, setPersonas] = useState<PersonaSummary[]>([]);
@@ -217,6 +218,7 @@ export default function PersonasPage() {
         if (isFree && user.teamId) {
           await supabase
             .from('teams')
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
             .update({ free_personas_used: freePersonasUsed + 1 } as any)
             .eq('id', user.teamId);
           await refreshTeamData();

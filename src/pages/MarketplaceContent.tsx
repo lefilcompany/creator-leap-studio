@@ -231,6 +231,7 @@ export default function MarketplaceContent() {
       );
 
       setGeneratingTaskId(newTaskId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error("Error preparing marketplace payload:", error);
       toast.error(error.message || "Erro ao preparar criação");
@@ -464,6 +465,7 @@ export default function MarketplaceContent() {
                       placeholder="Sem marca"
                       showClearOption
                       clearLabel="Sem marca"
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                       options={brands.map((brand: any) => ({ value: brand.id, label: brand.name }))}
                     />
                   </div>

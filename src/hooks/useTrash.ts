@@ -42,6 +42,7 @@ export function useTrashItems() {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
       const storageBase = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/content-images/` : '';
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (data || []).map((row: any) => {
         let imageUrl: string | null = null;
         if (row.thumb_path && storageBase) {
@@ -75,6 +76,7 @@ export function useSoftDelete() {
     mutationFn: async (actionId: string) => {
       const { error } = await supabase
         .from('actions')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         .update({ deleted_at: new Date().toISOString() } as any)
         .eq('id', actionId);
       if (error) throw error;
@@ -98,6 +100,7 @@ export function useRestoreAction() {
     mutationFn: async (actionId: string) => {
       const { error } = await supabase
         .from('actions')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         .update({ deleted_at: null } as any)
         .eq('id', actionId);
       if (error) throw error;

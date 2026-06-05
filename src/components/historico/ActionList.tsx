@@ -331,6 +331,7 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
             <div className="flex items-center gap-1.5">
               <div 
                 className="w-2.5 h-2.5 rounded-full flex-shrink-0 border border-border/30" 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
                 style={{ backgroundColor: (action.brand as any).color || 'hsl(var(--muted))' }}
               />
               <span className="text-[11px] text-muted-foreground leading-tight">

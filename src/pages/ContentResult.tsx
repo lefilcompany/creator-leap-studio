@@ -67,6 +67,7 @@ interface ContentResultData {
   title?: string;
   body?: string;
   hashtags?: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   originalFormData?: any;
   actionId?: string;
   isLocalFallback?: boolean;
@@ -100,7 +101,9 @@ export default function ContentResult() {
         .eq("id", carouselActionId!)
         .single();
       const isCarousel =
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         !!(data?.result as any)?.carousel ||
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         !!(data?.details as any)?.isCarousel;
       return { isCarousel };
     },
@@ -118,6 +121,7 @@ export default function ContentResult() {
   const [totalRevisions, setTotalRevisions] = useState(0);
   
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
@@ -160,6 +164,7 @@ export default function ContentResult() {
           .select("result")
           .eq("id", data.actionId)
           .maybeSingle();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         const prevResult = (existing?.result as any) || {};
         const { error: updateError } = await supabase.from("actions").update({
           result: {
@@ -630,6 +635,7 @@ export default function ContentResult() {
         mediaUrl: updatedContent.mediaUrl,
         _updateKey: Date.now()
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       setContentData(newContentData as any);
 
       if (reviewType === "image" && updatedContent.mediaUrl) {
@@ -746,6 +752,7 @@ export default function ContentResult() {
   const handleReusePrompt = () => {
     const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
     const originalFormData = saved.originalFormData || {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     const prefillData: Record<string, any> = {};
     // Map all fields including text-on-image settings
     const keys = [

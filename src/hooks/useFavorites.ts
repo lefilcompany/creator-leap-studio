@@ -53,6 +53,7 @@ export function useFavorites() {
           .eq('scope', scope);
         if (error) throw error;
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         const insert: any = {
           user_id: user!.id,
           action_id: actionId,

@@ -115,6 +115,7 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
       onOpenChange(false);
       setPassword('');
       setSelectedNewAdmin('');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
     } catch (error: any) {
       console.error('Erro ao inativar conta:', error);
       toast.error(error.message || 'Erro ao inativar conta. Tente novamente.');
