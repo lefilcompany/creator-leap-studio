@@ -453,7 +453,7 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
                   className="mt-0.5"
                 />
                 <span className="text-muted-foreground">
-                  Manter o briefing original e apenas aplicar os ajustes acima. Desmarque para usar as instruções como prompt principal.
+                  Usar o briefing original como contexto leve. Por padrão, suas instruções acima são o prompt principal — marque esta opção apenas se quiser misturar o briefing inicial.
                 </span>
               </label>
             </div>
