@@ -17,6 +17,7 @@ const SlideSchema = z.object({
   composition: z.string().optional(),
   mood: z.string().optional(),
   referenceImageUrl: z.string().url().optional(),
+  referenceImageUrls: z.array(z.string().url()).max(2).optional(),
   includeText: z.boolean().optional(),
 });
 
@@ -117,7 +118,9 @@ async function callGenerateImageForSlide(
 
     // Mescla referência específica do slide (se houver) no pool de preserve.
     // Quando há regeração com referências enviadas, elas substituem as refs do slide.
-    const slideRef = slide.referenceImageUrl ? [slide.referenceImageUrl] : [];
+    const slideRef = Array.isArray(slide.referenceImageUrls) && slide.referenceImageUrls.length > 0
+      ? slide.referenceImageUrls.slice(0, 2)
+      : slide.referenceImageUrl ? [slide.referenceImageUrl] : [];
     const regenRefs = isRegenForThisSlide
       ? (body.regenerationReferenceImages ?? [])
       : [];

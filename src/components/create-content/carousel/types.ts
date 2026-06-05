@@ -7,6 +7,7 @@ export interface SlideBriefing {
   composition?: string;
   mood?: string;
   referenceImageUrl?: string;
+  referenceImageUrls?: string[];
 }
 
 export interface SlideState extends SlideBriefing {

@@ -181,6 +181,7 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
           composition: s.composition,
           mood: s.mood,
           referenceImageUrl: s.referenceImageUrl,
+          referenceImageUrls: s.referenceImageUrls,
         })),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
         brandId: (carousel as any).brandId,
