@@ -45,12 +45,26 @@ function StatusOverlay({
       </div>
     );
   }
+  const isGenerating = slide.status === "generating";
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/60 backdrop-blur-sm rounded-2xl gap-3">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      <p className="text-sm font-medium text-muted-foreground">
-        {slide.status === "generating" ? "Gerando..." : "Aguardando..."}
-      </p>
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/70 backdrop-blur-md rounded-2xl gap-4">
+      <img
+        src={creatorSymbol}
+        alt=""
+        aria-hidden
+        className={cn(
+          "h-12 w-12 object-contain drop-shadow-lg",
+          isGenerating ? "animate-bounce-logo" : "opacity-60"
+        )}
+      />
+      <div className="flex flex-col items-center gap-1">
+        <p className="text-sm font-semibold text-foreground">
+          {isGenerating ? "Regerando este slide..." : "Aguardando..."}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {isGenerating ? "Isso pode levar até 1 minuto" : "Em breve começa"}
+        </p>
+      </div>
     </div>
   );
 }
