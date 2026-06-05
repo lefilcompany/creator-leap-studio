@@ -118,7 +118,9 @@ async function callGenerateImageForSlide(
 
     // Mescla referência específica do slide (se houver) no pool de preserve.
     // Quando há regeração com referências enviadas, elas substituem as refs do slide.
-    const slideRef = slide.referenceImageUrl ? [slide.referenceImageUrl] : [];
+    const slideRef = Array.isArray(slide.referenceImageUrls) && slide.referenceImageUrls.length > 0
+      ? slide.referenceImageUrls.slice(0, 2)
+      : slide.referenceImageUrl ? [slide.referenceImageUrl] : [];
     const regenRefs = isRegenForThisSlide
       ? (body.regenerationReferenceImages ?? [])
       : [];
