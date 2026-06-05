@@ -47,7 +47,7 @@ const BodySchema = z.object({
   regenerationInstructions: z.string().max(2000).optional(),
   regenerationReferenceImages: z.array(z.string().url()).max(3).optional(),
   avoid: z.string().max(500).optional(),
-  keepOriginalPrompt: z.boolean().optional().default(true),
+  keepOriginalPrompt: z.boolean().optional().default(false),
 });
 
 type Body = z.infer<typeof BodySchema>;
