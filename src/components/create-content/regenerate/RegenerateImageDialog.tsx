@@ -37,6 +37,7 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
   const [submitting, setSubmitting] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [keepOriginalPrompt, setKeepOriginalPrompt] = useState(true);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Reset state when dialog opens for a new slide
   useEffect(() => {
