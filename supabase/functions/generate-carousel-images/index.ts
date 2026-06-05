@@ -47,7 +47,7 @@ const BodySchema = z.object({
   regenerationInstructions: z.string().max(2000).optional(),
   regenerationReferenceImages: z.array(z.string().url()).max(3).optional(),
   avoid: z.string().max(500).optional(),
-  keepOriginalPrompt: z.boolean().optional().default(true),
+  keepOriginalPrompt: z.boolean().optional().default(false),
 });
 
 type Body = z.infer<typeof BodySchema>;
@@ -104,13 +104,38 @@ async function callGenerateImageForSlide(
     // Monta a descrição (prompt) final
     let description = slide.prompt;
     if (isRegenForThisSlide) {
-      const keep = body.keepOriginalPrompt !== false;
+      const keep = body.keepOriginalPrompt === true; // default agora é false
       const instr = body.regenerationInstructions!.trim();
+
+      // Sanitiza o prompt original para remover diretivas que tendem a
+      // produzir composites (sequência/colagem/grid/painéis/múltiplas
+      // imagens no mesmo quadro) — essas palavras vinham do master prompt
+      // do carrossel e contaminavam o regen de um único slide.
+      const sanitizeOriginal = (txt: string) =>
+        (txt || "")
+          .replace(/sequ[êe]ncia\s+de\s+\d+\s+(imagens|fotos|cenas|quadros|pain[ée]is)/gi, "")
+          .replace(/(carrossel|colagem|grid|mosaico|pain[ée]is|m[úu]ltiplas?\s+(cenas|fotos|imagens|quadros))/gi, "")
+          .replace(/\b\d+\s+(imagens|fotos|cenas|quadros)\b/gi, "")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+
+      const ANTI_COMPOSITE =
+        "RESTRIÇÕES OBRIGATÓRIAS:\n" +
+        "- Gerar UMA ÚNICA cena fotográfica, em um único quadro.\n" +
+        "- NÃO criar colagem, grid, mosaico, painéis, sequência, comparativo antes/depois, dípticos ou múltiplas fotos no mesmo quadro.\n" +
+        "- NÃO dividir a imagem em seções horizontais ou verticais.\n" +
+        "- Composição unificada, perspectiva única.";
+
       if (keep) {
-        description = `${slide.prompt}\n\nAJUSTES SOLICITADOS PELO USUÁRIO (prioritários):\n${instr}`;
+        const ctx = sanitizeOriginal(slide.prompt);
+        description =
+          `INSTRUÇÕES PRIORITÁRIAS E VINCULANTES DO USUÁRIO (siga estritamente):\n${instr}\n\n` +
+          (ctx ? `CONTEXTO LEVE (não copiar literalmente, apenas tom/marca):\n${ctx}\n\n` : "") +
+          ANTI_COMPOSITE;
       } else {
-        description = instr;
+        description = `${instr}\n\n${ANTI_COMPOSITE}`;
       }
+
       if (body.avoid && body.avoid.trim()) {
         description += `\n\nEVITAR ABSOLUTAMENTE: ${body.avoid.trim()}`;
       }
