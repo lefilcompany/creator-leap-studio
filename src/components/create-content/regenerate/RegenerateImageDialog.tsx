@@ -259,25 +259,33 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-            Regerar slide {slide ? slide.index + 1 : ""}
+            Regerar Slide {slide ? slide.index + 1 : ""} de {carousel.slidesCount}
           </DialogTitle>
           <DialogDescription>
-            Descreva o que quer mudar e (opcional) envie referências para guiar a nova geração.
+            Confirme abaixo qual slide será regerado e descreva o ajuste.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Preview */}
-          {slide?.imageUrl && (
-            <div className="flex items-center gap-3 rounded-xl border border-border/40 bg-muted/30 p-2.5">
-              <img
-                src={slide.imageUrl}
-                alt={`Slide ${slide.index + 1}`}
-                className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
-              />
-              <div className="min-w-0 text-xs text-muted-foreground">
-                <p className="font-medium text-foreground line-clamp-1">Versão atual</p>
-                <p className="line-clamp-2">{slide.prompt}</p>
+          {/* Confirmação visual do slide alvo */}
+          {slide && (
+            <div className="flex items-center gap-3 rounded-xl border-2 border-primary/30 bg-primary/5 p-3">
+              {slide.imageUrl ? (
+                <img
+                  src={slide.imageUrl}
+                  alt={`Slide ${slide.index + 1}`}
+                  className="h-24 w-24 rounded-lg object-cover flex-shrink-0 ring-2 ring-primary/40"
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 ring-2 ring-primary/40 text-xs text-muted-foreground">
+                  Sem imagem
+                </div>
+              )}
+              <div className="min-w-0 text-xs text-muted-foreground space-y-1">
+                <p className="text-sm font-semibold text-foreground">
+                  Slide {slide.index + 1} de {carousel.slidesCount}
+                </p>
+                <p className="line-clamp-3">{slide.prompt}</p>
               </div>
             </div>
           )}
