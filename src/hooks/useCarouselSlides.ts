@@ -20,6 +20,7 @@ function carouselSignature(c: CarouselResult | null | undefined): string {
 }
 
 export function useCarouselSlides(actionId?: string) {
+  const queryClient = useQueryClient();
   return useQuery({
     queryKey: ["carousel-slides", actionId],
     enabled: !!actionId,
@@ -54,8 +55,35 @@ export function useCarouselSlides(actionId?: string) {
         .single();
       if (error) throw error;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
-      const carousel = (data?.result as any)?.carousel;
-      return carousel ?? null;
+      const carousel = (data?.result as any)?.carousel as CarouselResult | undefined;
+      if (!carousel) return null;
+
+      // Preserva status otimista "generating" definido pelo cliente
+      // (ex.: ao pedir regeração de um slide) enquanto o servidor ainda
+      // não trocou a imagem. Sem isso, o refetch logo após o pedido
+      // sobrescreve o status para "done" antigo, o overlay some e o
+      // polling para — usuário fica achando que nada está acontecendo.
+      const prev = queryClient.getQueryData<CarouselResult | null>([
+        "carousel-slides",
+        actionId,
+      ]);
+      if (prev?.slides?.length) {
+        const merged = (carousel.slides ?? []).map((s) => {
+          const old = prev.slides?.find((p) => p?.index === s?.index);
+          if (
+            old?.status === "generating" &&
+            s?.status === "done" &&
+            old?.imageUrl &&
+            s?.imageUrl === old.imageUrl
+          ) {
+            // Servidor ainda não atualizou — mantém "generating"
+            return { ...s, status: "generating" as const, error: null };
+          }
+          return s;
+        });
+        return { ...carousel, slides: merged };
+      }
+      return carousel;
     },
   });
 }
