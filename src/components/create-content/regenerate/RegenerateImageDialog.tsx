@@ -513,10 +513,10 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
                   Enviando...
                 </>
               ) : (
-                <>
-                  <RefreshCw className="h-4 w-4" />
-                  Regerar {cost > 0 ? `(${cost} cr)` : "(grátis)"}
-                </>
+              <>
+                <RefreshCw className="h-4 w-4" />
+                Regerar
+              </>
               )}
             </Button>
           </div>
