@@ -65,6 +65,10 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
       toast.error(`Máximo de ${MAX_REFS} referências`);
       return;
     }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Envie apenas arquivos de imagem");
+      return;
+    }
     if (file.size > 10 * 1024 * 1024) {
       toast.error("Imagem muito grande (máx. 10MB)");
       return;
@@ -86,6 +90,62 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const handlePasteEvent = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith("image/")) {
+        const f = items[i].getAsFile();
+        if (f) files.push(f);
+      }
+    }
+    if (files.length === 0) return;
+    e.preventDefault();
+    const remaining = MAX_REFS - refs.length;
+    for (const f of files.slice(0, remaining)) {
+      // eslint-disable-next-line no-await-in-loop
+      await handleUpload(f);
+    }
+  };
+
+  const handleClipboardPaste = async () => {
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      const files: File[] = [];
+      for (const item of clipboardItems) {
+        const imageType = item.types.find((t) => t.startsWith("image/"));
+        if (imageType) {
+          const blob = await item.getType(imageType);
+          const ext = imageType.split("/")[1] || "png";
+          files.push(new File([blob], `colado-${Date.now()}.${ext}`, { type: imageType }));
+        }
+      }
+      if (files.length === 0) {
+        toast.error("Nenhuma imagem encontrada na área de transferência");
+        return;
+      }
+      const remaining = MAX_REFS - refs.length;
+      for (const f of files.slice(0, remaining)) {
+        // eslint-disable-next-line no-await-in-loop
+        await handleUpload(f);
+      }
+    } catch {
+      toast.error("Não foi possível acessar a área de transferência. Use Ctrl+V dentro do diálogo.");
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
+    if (files.length === 0) return;
+    const remaining = MAX_REFS - refs.length;
+    for (const f of files.slice(0, remaining)) {
+      // eslint-disable-next-line no-await-in-loop
+      await handleUpload(f);
     }
   };
 
