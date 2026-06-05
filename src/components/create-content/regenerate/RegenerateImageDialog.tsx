@@ -296,10 +296,17 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
             <Label className="text-sm">
               Imagens de referência <span className="text-muted-foreground font-normal">(opcional, até {MAX_REFS})</span>
             </Label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-row flex-nowrap gap-2 overflow-x-auto pb-1">
               {refs.map((url, i) => (
-                <div key={url} className="relative h-20 w-20 rounded-lg overflow-hidden border border-border/40 group">
-                  <img src={url} alt={`Ref ${i + 1}`} className="h-full w-full object-cover" />
+                <div key={url} className="relative h-20 w-20 flex-shrink-0 rounded-lg overflow-hidden border border-border/40 group">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewUrl(url)}
+                    className="block h-full w-full"
+                    aria-label={`Visualizar referência ${i + 1}`}
+                  >
+                    <img src={url} alt={`Ref ${i + 1}`} className="h-full w-full object-cover cursor-zoom-in" />
+                  </button>
                   <button
                     type="button"
                     onClick={() => setRefs((prev) => prev.filter((_, idx) => idx !== i))}
@@ -311,6 +318,20 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
                 </div>
               ))}
               {refs.length < MAX_REFS && (
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  className={cn(
+                    "h-20 w-20 flex-shrink-0 rounded-lg border-2 border-dashed border-border/60 flex flex-col items-center justify-center gap-0.5 text-[11px] text-muted-foreground hover:border-primary/60 hover:text-primary transition",
+                    uploading && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  <span>{uploading ? "Enviando..." : "Adicionar"}</span>
+                </button>
+              )}
+            </div>
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
