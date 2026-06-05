@@ -79,28 +79,89 @@ export function SlideImageSettingsForm({ slide, onChange, expanded, onToggleExpa
   const fileRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
 
-  const handleUpload = async (file: File) => {
+  const MAX_REFS = 2;
+
+  const currentRefs: string[] = (() => {
+    if (Array.isArray(slide.referenceImageUrls) && slide.referenceImageUrls.length > 0) {
+      return slide.referenceImageUrls.slice(0, MAX_REFS);
+    }
+    return slide.referenceImageUrl ? [slide.referenceImageUrl] : [];
+  })();
+
+  const setRefs = (refs: string[]) => {
+    const next = refs.slice(0, MAX_REFS);
+    onChange({
+      ...slide,
+      referenceImageUrls: next.length ? next : undefined,
+      referenceImageUrl: next[0],
+    });
+  };
+
+  const handleUpload = async (files: File[]) => {
     if (!user?.id) {
       toast.error("Faça login para enviar imagens");
       return;
     }
-    const ext = (file.name.split(".").pop() || "png").toLowerCase();
-    const path = `carousel-refs/${user.id}/${Date.now()}-slide-${slide.index}.${ext}`;
-    const { error } = await supabase.storage.from("content-images").upload(path, file, {
-      cacheControl: "3600",
-      upsert: false,
-    });
-    if (error) {
-      toast.error("Erro ao enviar imagem", { description: error.message });
+    const available = MAX_REFS - currentRefs.length;
+    if (available <= 0) {
+      toast.error(`Máximo de ${MAX_REFS} referências por slide`);
       return;
     }
-    const { data } = supabase.storage.from("content-images").getPublicUrl(path);
-    onChange({ ...slide, referenceImageUrl: data.publicUrl });
-    toast.success("Referência adicionada");
+    const toUpload = files.slice(0, available);
+    const uploaded: string[] = [];
+    for (const file of toUpload) {
+      if (!file.type.startsWith("image/")) continue;
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Imagem maior que 10MB", { description: file.name });
+        continue;
+      }
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `carousel-refs/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}-slide-${slide.index}.${ext}`;
+      const { error } = await supabase.storage.from("content-images").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+      if (error) {
+        toast.error("Erro ao enviar imagem", { description: error.message });
+        continue;
+      }
+      const { data } = supabase.storage.from("content-images").getPublicUrl(path);
+      uploaded.push(data.publicUrl);
+    }
+    if (uploaded.length) {
+      setRefs([...currentRefs, ...uploaded]);
+      toast.success(uploaded.length > 1 ? "Referências adicionadas" : "Referência adicionada");
+    }
+  };
+
+  const handlePasteEvent = async (e: React.ClipboardEvent) => {
+    const items = Array.from(e.clipboardData?.items ?? []);
+    const files: File[] = [];
+    for (const it of items) {
+      if (it.kind === "file") {
+        const f = it.getAsFile();
+        if (f && f.type.startsWith("image/")) files.push(f);
+      }
+    }
+    if (files.length) {
+      e.preventDefault();
+      await handleUpload(files);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer?.files ?? []).filter((f) => f.type.startsWith("image/"));
+    if (files.length) await handleUpload(files);
   };
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card/50 p-3 space-y-2">
+    <div
+      className="rounded-xl border border-border/50 bg-card/50 p-3 space-y-2"
+      onPaste={handlePasteEvent}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={handleDrop}
+    >
       <button
         type="button"
         onClick={onToggleExpanded}
@@ -124,42 +185,47 @@ export function SlideImageSettingsForm({ slide, onChange, expanded, onToggleExpa
           </div>
 
           <div>
-            <Label className="text-[11px] font-medium text-muted-foreground">Imagem de referência</Label>
-            <div className="mt-1 flex items-center gap-2">
-              {slide.referenceImageUrl ? (
-                <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-2 py-1 text-xs">
-                  <img src={slide.referenceImageUrl} alt="" className="h-8 w-8 rounded object-cover" />
-                  <span className="truncate max-w-[140px]">Referência</span>
+            <Label className="text-[11px] font-medium text-muted-foreground">
+              Imagens de referência ({currentRefs.length}/{MAX_REFS})
+            </Label>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              {currentRefs.map((url, i) => (
+                <div key={url + i} className="relative h-16 w-16 rounded-lg overflow-hidden border border-border/50 group">
+                  <img src={url} alt="" className="h-full w-full object-cover" />
                   <button
                     type="button"
-                    onClick={() => onChange({ ...slide, referenceImageUrl: undefined })}
-                    className="text-muted-foreground hover:text-destructive"
+                    onClick={() => setRefs(currentRefs.filter((_, idx) => idx !== i))}
+                    className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full bg-background/80 text-muted-foreground hover:text-destructive flex items-center justify-center"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-2.5 w-2.5" />
                   </button>
                 </div>
-              ) : (
+              ))}
+              {currentRefs.length < MAX_REFS && (
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                  className="h-16 w-16 inline-flex flex-col items-center justify-center gap-0.5 rounded-lg border border-dashed border-border/60 text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                  title="Clique, cole (Ctrl+V) ou arraste imagens"
                 >
                   <ImagePlus className="h-3.5 w-3.5" />
-                  Adicionar referência
+                  Adicionar
                 </button>
               )}
               <input
                 ref={fileRef}
                 type="file"
                 accept="image/*"
+                multiple
                 className="hidden"
                 onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleUpload(f);
+                  const files = Array.from(e.target.files ?? []);
+                  if (files.length) handleUpload(files);
                   e.target.value = "";
                 }}
               />
             </div>
+            <p className="mt-1 text-[10px] text-muted-foreground">Cole (Ctrl+V) ou arraste imagens aqui</p>
           </div>
         </div>
       )}
