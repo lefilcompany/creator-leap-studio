@@ -1274,7 +1274,7 @@ export default function CreateImage() {
                   </div>
                   <div className="-mx-1 px-1 overflow-x-auto sm:overflow-visible">
                     <div className="flex items-center gap-1.5 min-w-max sm:min-w-0 sm:flex-wrap">
-                      {[3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                      {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                         <button
                           key={n}
                           type="button"
