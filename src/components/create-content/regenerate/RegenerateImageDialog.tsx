@@ -38,7 +38,7 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [keepOriginalPrompt, setKeepOriginalPrompt] = useState(true);
+  const [keepOriginalPrompt, setKeepOriginalPrompt] = useState(false);
 
   // Reset state when dialog opens for a new slide
   useEffect(() => {
@@ -49,7 +49,7 @@ export function RegenerateImageDialog({ open, onOpenChange, actionId, carousel, 
       setRefs([]);
       setPreserveImageIndices([]);
       setShowAdvanced(false);
-      setKeepOriginalPrompt(true);
+      setKeepOriginalPrompt(false);
     }
   }, [open, slide?.index]);
 
