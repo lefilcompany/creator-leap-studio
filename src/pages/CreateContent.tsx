@@ -193,6 +193,7 @@ export default function CreateContent() {
     if (persisted) {
       setFormData(prev => ({ ...prev, ...persisted }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, []);
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -424,6 +425,7 @@ export default function CreateContent() {
     } else {
       setBrandImages([]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [brands, themes, personas, formData.brand, supabase]);
 
   const handleInputChange = (

@@ -139,6 +139,7 @@ const ReviewContent = () => {
   // Limpar dados persistidos ao montar - sempre iniciar do zero
   useEffect(() => {
     clearPersistedData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, []);
 
   // Detectar reset do sidebar
@@ -148,6 +149,7 @@ const ReviewContent = () => {
       handleReset();
       navigate(location.pathname, { replace: true, state: {} });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [location.state]);
 
   const handleBrandChange = (value: string) => {

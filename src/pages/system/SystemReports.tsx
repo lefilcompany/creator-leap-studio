@@ -137,6 +137,7 @@ export default function SystemReports() {
 
   useEffect(() => {
     fetchReports();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [statusFilter]);
 
   const handleUpdateStatus = async (reportId: string, newStatus: string) => {

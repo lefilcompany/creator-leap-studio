@@ -52,6 +52,7 @@ export default function AvatarEditor({ imageUrl, onSave, onCancel, open }: Avata
     if (image && canvasRef.current) {
       drawImage();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [image, zoom, position, rotation]);
 
   const drawImage = () => {

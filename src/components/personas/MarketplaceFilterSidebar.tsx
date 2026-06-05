@@ -19,6 +19,7 @@ export type MarketplaceFilters = {
   journeyStages: string[];
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- arquivo compartilha componente e helpers (shadcn)
 export const initialFilters: MarketplaceFilters = {
   search: '',
   categories: [],

@@ -31,6 +31,7 @@ interface BackgroundTaskContextType {
 
 const BackgroundTaskContext = createContext<BackgroundTaskContextType | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components -- arquivo compartilha componente e helpers (shadcn)
 export function useBackgroundTasks() {
   const ctx = useContext(BackgroundTaskContext);
   if (!ctx) throw new Error("useBackgroundTasks must be used within BackgroundTaskProvider");

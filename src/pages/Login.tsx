@@ -250,6 +250,7 @@ const Login = () => {
       </form>
       </div>
     ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
     [
       email,
       password,

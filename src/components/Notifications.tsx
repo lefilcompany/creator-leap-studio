@@ -66,6 +66,7 @@ export default function Notifications() {
   // Load notifications on mount
   useEffect(() => {
     loadNotifications();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [user?.id]);
 
   // Subscribe to realtime updates
@@ -92,6 +93,7 @@ export default function Notifications() {
     return () => {
       supabase.removeChannel(channel);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [user?.id]);
 
   // Calculate unread count

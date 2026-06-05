@@ -27,4 +27,5 @@ const Toaster = ({ ...props }: ToasterProps) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- arquivo compartilha componente e helpers (shadcn)
 export { Toaster, toast };

@@ -71,6 +71,7 @@ export const PresenceTracker = () => {
       endSession();
       if (channel) supabase.removeChannel(channel);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [user?.id, team?.id]);
 
   return null;

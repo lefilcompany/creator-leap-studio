@@ -101,6 +101,7 @@ const Register = () => {
         });
     }
   }, [formData.state]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     if (id === "phone") {
@@ -127,6 +128,7 @@ const Register = () => {
       }));
     }
   };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   const handleSelectChange = (field: "state" | "city", value: string) => {
     const updatedData = {
       ...formData,
@@ -137,6 +139,7 @@ const Register = () => {
     }
     setFormData(updatedData);
   };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 

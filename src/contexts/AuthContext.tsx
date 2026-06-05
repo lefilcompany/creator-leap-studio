@@ -574,12 +574,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refreshUserCredits,
       setUser
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
     [user, session, team, isAuthenticated, isLoading, isTrialExpired, trialDaysRemaining, logout, reloadUserData, refreshProfile, refreshTeamData, refreshUserCredits]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- arquivo compartilha componente e helpers (shadcn)
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

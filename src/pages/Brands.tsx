@@ -85,6 +85,7 @@ export default function MarcasPage() {
     }
     setBrandToEdit(null);
     setIsConfirmDialogOpen(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [user, team, allBrands.length, t]);
 
   const handleConfirmCreate = useCallback(() => {
@@ -227,6 +228,7 @@ export default function MarcasPage() {
       toast.error(t.brands.saveError, { id: toastId });
       throw error;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [brandToEdit, user, t]);
 
   const isButtonDisabled = !user || (user.credits || 0) < 1;

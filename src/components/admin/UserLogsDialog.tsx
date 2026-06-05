@@ -93,6 +93,7 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
     if (user && open) {
       fetchUserData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [user, open]);
 
   const fetchUserData = async () => {

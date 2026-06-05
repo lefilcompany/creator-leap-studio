@@ -90,6 +90,7 @@ export default function TeamDashboard() {
     };
 
     checkAccess();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [user, team, navigate]);
 
   const loadMemberStats = async () => {

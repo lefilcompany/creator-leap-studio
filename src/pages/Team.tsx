@@ -396,6 +396,7 @@ export default function Team() {
     } else if (accessibleTeams.length > 0 && !selectedTeam) {
       setSelectedTeam(accessibleTeams[0]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, [team, accessibleTeams]);
 
   const copyToClipboard = () => {

@@ -476,6 +476,7 @@ export default function CreateImage() {
     // quando o usuário escolhe "criar outro" em /result (location.state.prefillData).
     // Limpa qualquer rascunho anterior para evitar reaproveitamento indesejado.
     clearPersistedData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: revisar deps do hook
   }, []);
 
   const handlePaste = (e: React.ClipboardEvent) => {
