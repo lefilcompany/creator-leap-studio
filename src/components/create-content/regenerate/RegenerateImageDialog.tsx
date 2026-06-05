@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Upload, X, Sparkles, Coins, Info, RefreshCw, ClipboardPaste } from "lucide-react";
+import { Loader2, Upload, X, Sparkles, Coins, Info, RefreshCw, ClipboardPaste, ImagePlus } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
