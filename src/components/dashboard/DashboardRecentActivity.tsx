@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
 import { History, FileText, ArrowRight, ChevronLeft, ChevronRight, Sparkles, CheckCircle, CalendarDays, Video, ImageOff } from "lucide-react";
-import { useState, useCallback, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import useEmblaCarousel from "embla-carousel-react";
+import { resolveActionThumbnail } from "@/lib/actionThumbnail";
 
 interface ActionSummary {
   id: string;
@@ -61,28 +61,9 @@ const actionConfig: Record<string, { icon: typeof Sparkles; color: string; gradi
   'GERAR_VIDEO': { icon: Video, color: 'text-secondary', gradient: 'from-secondary/15 to-secondary/5' },
 };
 
-const getImageUrl = (activity: ActionSummary): string | null => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  
-  if (activity.thumb_path) {
-    // Normalizar path removendo prefixos redundantes
-    let path = activity.thumb_path;
-    path = path.replace(/^content-images\//, '');
-    const { data } = supabase.storage.from('content-images').getPublicUrl(path);
-    return data?.publicUrl || null;
-  }
-  if (activity.image_url) {
-    let url = activity.image_url;
-    // Se já é uma URL completa ou data URI, retornar direto
-    if (url.startsWith('http') || url.startsWith('data:')) {
-      return url;
-    }
-    // Se é um path relativo, construir URL do storage
-    url = url.replace(/^content-images\//, '');
-    const { data } = supabase.storage.from('content-images').getPublicUrl(url);
-    return data?.publicUrl || null;
-  }
-  return null;
+const getStorageBase = () => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+  return supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/content-images/` : '';
 };
 
 const ActivitySkeleton = () => (
@@ -130,6 +111,7 @@ export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRece
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const clickAllowed = useRef(true);
+  const storageBase = useMemo(getStorageBase, []);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     dragFree: true,
@@ -222,7 +204,7 @@ export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRece
                 {activities.map((activity, index) => {
                   const config = actionConfig[activity.type] || actionConfig['CRIAR_CONTEUDO'];
                   const Icon = config.icon;
-                  const imageUrl = getImageUrl(activity);
+                  const imageUrl = resolveActionThumbnail({ thumbPath: activity.thumb_path, imageUrl: activity.image_url }, storageBase);
 
                   return (
                     <motion.div
@@ -239,17 +221,6 @@ export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRece
                         <div className={`relative h-28 bg-gradient-to-br ${config.gradient} flex items-center justify-center overflow-hidden`}>
                           {imageUrl ? (
                             <ActivityImage src={imageUrl} config={config} Icon={Icon} />
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
-                          ) : activity.type === 'GERAR_VIDEO' && (activity as any).video_url ? (
-                            <video
-                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
-                              src={(activity as any).video_url}
-                              className="w-full h-full object-cover pointer-events-none"
-                              muted
-                              playsInline
-                              preload="metadata"
-                              onLoadedData={(e) => { e.currentTarget.currentTime = 1; }}
-                            />
                           ) : (
                             <Icon className={`h-8 w-8 ${config.color} opacity-40`} />
                           )}
