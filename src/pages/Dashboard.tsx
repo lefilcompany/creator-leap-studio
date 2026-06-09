@@ -129,9 +129,33 @@ const Dashboard = () => {
   });
 
   const { data: recentActivities = [], isLoading: isLoadingActivities } = useQuery({
-    queryKey: ['dashboard-recent-activities', user?.id],
+    queryKey: ['dashboard-recent-activities', user?.id, user?.teamId],
     queryFn: async () => {
       if (!user?.id) return [];
+      const enrichWithCarouselFirstImage = async (rows: any[]) => {
+        const ids = rows.map((row) => row.id).filter(Boolean);
+        if (ids.length === 0) return rows;
+
+        const { data: actionRows } = await supabase
+          .from('actions')
+          .select('id, result')
+          .in('id', ids);
+
+        const resultById = new Map((actionRows || []).map((row: any) => [row.id, row.result]));
+        return rows.map((row) => {
+          const result = resultById.get(row.id) || row.result;
+          const slides = result?.carousel?.slides;
+          const firstCarouselImage = Array.isArray(slides)
+            ? slides.map((slide: any) => slide?.imageUrl).find((url: any) => typeof url === 'string' && url.length > 0)
+            : null;
+
+          return {
+            ...row,
+            carousel_image_url: firstCarouselImage || null,
+          };
+        });
+      };
+
       try {
         const { data, error } = await supabase
           .rpc('get_action_summaries', {
@@ -139,15 +163,20 @@ const Dashboard = () => {
             p_team_id: user.teamId || null,
             p_limit: 6,
           });
-        if (!error && data && data.length > 0) return data;
+        if (!error && data && data.length > 0) return enrichWithCarouselFirstImage(data);
       } catch { /* RPC may not exist; fall back to direct query */ }
       // Fallback: direct query
-      const { data: fallbackData } = await supabase
+      let fallbackQuery = supabase
         .from('actions')
         .select('id, type, created_at, approved, brand_id, brands(name), result, details, thumb_path')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(6);
+
+      fallbackQuery = user.teamId
+        ? fallbackQuery.or(`user_id.eq.${user.id},team_id.eq.${user.teamId}`)
+        : fallbackQuery.eq('user_id', user.id);
+
+      const { data: fallbackData } = await fallbackQuery;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       return (fallbackData || []).map((a: any) => ({
         id: a.id,
@@ -162,9 +191,12 @@ const Dashboard = () => {
         objective: a.details?.objective || null,
         total_count: 0,
         thumb_path: a.thumb_path || null,
+        carousel_image_url: Array.isArray(a.result?.carousel?.slides)
+          ? a.result.carousel.slides.map((slide: any) => slide?.imageUrl).find((url: any) => typeof url === 'string' && url.length > 0) || null
+          : null,
       }));
     },
-    enabled: !!user?.teamId,
+    enabled: !!user?.id,
   });
 
 
