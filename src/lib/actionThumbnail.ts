@@ -20,11 +20,12 @@ const toStorageObjectPath = (value?: string | null): string | null => {
     return null;
   }
 
-  return value.replace(/^\/+/, "").replace(/^content-images\//, "");
+  return value.replace(/^\/+/, "");
 };
 
 export interface ResolveThumbnailInput {
   thumbPath?: string | null;
+  carouselImageUrl?: string | null;
   imageUrl?: string | null;
 }
 
@@ -36,7 +37,20 @@ export const resolveActionThumbnail = (
   input: ResolveThumbnailInput,
   storageBase: string,
 ): string | null => {
-  const { thumbPath, imageUrl } = input;
+  const { thumbPath, carouselImageUrl, imageUrl } = input;
+
+  if (carouselImageUrl) {
+    if (carouselImageUrl.startsWith("data:")) return carouselImageUrl;
+    if (carouselImageUrl.startsWith("http")) {
+      const objectPath = toStorageObjectPath(carouselImageUrl);
+      if (objectPath && storageBase) return `${storageBase}${objectPath}`;
+      return carouselImageUrl;
+    }
+    if (storageBase) {
+      const objectPath = toStorageObjectPath(carouselImageUrl);
+      if (objectPath) return `${storageBase}${objectPath}`;
+    }
+  }
 
   if (thumbPath && storageBase) {
     if (thumbPath.startsWith("http")) {
