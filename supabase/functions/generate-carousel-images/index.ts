@@ -439,9 +439,14 @@ async function processCarousel(authHeader: string, body: Body, userId: string) {
     const result = await callGenerateImageForSlide(authHeader, body, slide);
 
     if (result.error) {
+      const raw = String(result.error || "");
+      const isRateLimit = /limite de requisi|rate.?limit|quota|429|resource.?exhausted|too many requests/i.test(raw);
+      const friendly = isRateLimit
+        ? "Limite temporário do modelo atingido. Clique em Regerar em alguns instantes."
+        : raw;
       await patchSlide(admin, body.actionId, slide.index, {
         status: "error",
-        error: result.error,
+        error: friendly,
       }, body.slidesCount);
     } else {
       await patchSlide(admin, body.actionId, slide.index, {
