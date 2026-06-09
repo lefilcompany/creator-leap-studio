@@ -16,6 +16,7 @@ interface ActionSummary {
   brand_id: string | null;
   brand_name: string | null;
   image_url: string | null;
+  carousel_image_url?: string | null;
   thumb_path: string | null;
   title: string | null;
   platform: string | null;
@@ -204,7 +205,11 @@ export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRece
                 {activities.map((activity, index) => {
                   const config = actionConfig[activity.type] || actionConfig['CRIAR_CONTEUDO'];
                   const Icon = config.icon;
-                  const imageUrl = resolveActionThumbnail({ thumbPath: activity.thumb_path, imageUrl: activity.image_url }, storageBase);
+                  const imageUrl = resolveActionThumbnail({
+                    carouselImageUrl: activity.carousel_image_url,
+                    thumbPath: activity.thumb_path,
+                    imageUrl: activity.image_url,
+                  }, storageBase);
 
                   return (
                     <motion.div
