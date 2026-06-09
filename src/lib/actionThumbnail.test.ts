@@ -10,15 +10,24 @@ describe("resolveActionThumbnail", () => {
     ).toBe(`${BASE}user-123/abc.jpg`);
   });
 
-  it("strips a redundant 'content-images/' prefix from thumb_path", () => {
+  it("keeps a 'content-images/' prefix when it is part of the stored object path", () => {
     expect(
       resolveActionThumbnail({ thumbPath: "content-images/u/1.jpg" }, BASE),
-    ).toBe(`${BASE}u/1.jpg`);
+    ).toBe(`${BASE}content-images/u/1.jpg`);
   });
 
   it("re-resolves an absolute storage URL in thumb_path against the current base", () => {
-    const stale = "https://old-project.supabase.co/storage/v1/object/public/content-images/u/1.jpg?token=xyz";
-    expect(resolveActionThumbnail({ thumbPath: stale }, BASE)).toBe(`${BASE}u/1.jpg`);
+    const stale = "https://old-project.supabase.co/storage/v1/object/public/content-images/content-images/u/1.jpg?token=xyz";
+    expect(resolveActionThumbnail({ thumbPath: stale }, BASE)).toBe(`${BASE}content-images/u/1.jpg`);
+  });
+
+  it("prioritizes the first carousel image over thumb_path", () => {
+    expect(
+      resolveActionThumbnail(
+        { thumbPath: "content-images/thumb.jpg", carouselImageUrl: "content-images/slide-1.jpg" },
+        BASE,
+      ),
+    ).toBe(`${BASE}content-images/slide-1.jpg`);
   });
 
   it("returns data: URIs from image_url as-is", () => {
