@@ -111,6 +111,7 @@ export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRece
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const clickAllowed = useRef(true);
+  const storageBase = useMemo(getStorageBase, []);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     dragFree: true,
@@ -203,7 +204,7 @@ export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRece
                 {activities.map((activity, index) => {
                   const config = actionConfig[activity.type] || actionConfig['CRIAR_CONTEUDO'];
                   const Icon = config.icon;
-                  const imageUrl = getImageUrl(activity);
+                  const imageUrl = resolveActionThumbnail({ thumbPath: activity.thumb_path, imageUrl: activity.image_url }, storageBase);
 
                   return (
                     <motion.div
