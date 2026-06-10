@@ -306,3 +306,12 @@ async function loadBrandLogo(admin: any, brandId: string): Promise<Uint8Array | 
 
 // Cache de fontes em memória (entre invocações dentro do mesmo isolate).
 // `mem` é declarado em escopo de módulo acima.
+
+function u8ToBase64(bytes: Uint8Array): string {
+  let s = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    s += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(s);
+}
