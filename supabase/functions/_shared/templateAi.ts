@@ -15,7 +15,9 @@
 export const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 export const VISION_MODEL = "gemini-2.5-flash";
 export const INPAINT_MODEL = "gemini-3-pro-image-preview";
-export const IMAGE_GEN_MODEL = "gemini-3.1-flash-image-preview";
+// `gemini-2.5-flash-image` é o modelo de geração de imagem estável e validado
+// nas outras edge functions deste projeto (generate-image, edit-image).
+export const IMAGE_GEN_MODEL = "gemini-2.5-flash-image";
 
 export interface RetryOptions {
   maxAttempts?: number;

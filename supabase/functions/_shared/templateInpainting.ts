@@ -49,7 +49,8 @@ export async function inpaintBackground(
     }],
     generationConfig: {
       temperature: 0.2,
-      responseModalities: ["IMAGE"],
+      // Gemini exige IMAGE+TEXT para edição de imagem (apenas IMAGE retorna 400).
+      responseModalities: ["IMAGE", "TEXT"],
     },
   };
   const raw = await callGeminiWithRetry(url, {
