@@ -1,102 +1,88 @@
-## ADR 0003 — Pipeline de IA para Templates (TDD)
+# ADR 0002 — Frontend de Templates por Marca
 
-Implementa os 4 estágios da ADR 0003 substituindo os stubs deixados pela ADR 0001. Princípio inegociável: **IA cuida da imagem, servidor cuida do texto**.
+Objetivo: entregar a UI de Templates ligada às edge functions `import-brand-template`, `commit-brand-template`, `delete-brand-template` e `generate-from-template` (ADR 0003), com progresso, erros e consumo de créditos consistentes com `/create-image`.
 
-### Decisões confirmadas
-- **Canvas:** `npm:@napi-rs/canvas` no Deno (registerFont, loadImage).
-- **Escopo:** pipeline completo agora (Estágios 1+2+3+4).
-- **IA:** `GEMINI_API_KEY` direto (mantém padrão do `geminiClient.ts`). Modelos: `gemini-2.5-flash` (Vision), `gemini-3-pro-image-preview` (Inpainting), `gemini-3.1-flash-image-preview` (Branch B).
-- **Fontes:** cache em memória por invocação + persistência num bucket privado `template-fonts` (Google Fonts e custom).
+## Princípios
 
-### Infraestrutura nova
-- Bucket privado `template-fonts` (apenas service_role lê/escreve; nada via cliente).
-- Sem migration de schema — `brand_templates`, `font_assets`, `text_zones` e `logo_slot` já existem da ADR 0001.
+- **Floating board** (`bg-card`, `rounded-2xl`, raw divs), terminologia "ajustar", breadcrumbs, sem rótulo "(opcional)" — memórias do projeto.
+- **Reuso visual de `/create-image`**: mesmos componentes/estilos de inputs (`Label` + `Input/Textarea`, `Popover`, `CategorySelector`, `CreditConfirmationDialog`, `BackgroundTaskProvider`, `CreationProgressBar`, `GeneratingOverlay`, `VisualStyleGrid`).
+- **TDD vertical** (tracer bullets): cada hook/comp recebe 1 teste → implementação mínima → próximo. Sem horizontal slicing.
 
-### Estrutura de arquivos (novos)
+## Decisões técnicas
 
-```text
-supabase/functions/_shared/
-  templateCanvas.ts          # carrega imagem, registra fontes, desenha zonas, auto-shrink, cola logo
-  templateCanvas_test.ts     # unit tests puros (medições, auto-shrink, fit logo)
-  templateVision.ts          # chama Gemini Vision, valida JSON estrito de text_zones + logo_slot
-  templateVision_test.ts     # mock de resposta Gemini → parsing/validação
-  templateInpainting.ts      # chama Gemini image-edit, salva clean_background.png
-  templateFontCache.ts       # Google Fonts API + bucket template-fonts (LRU em memória)
-  templateFontCache_test.ts  # cache hit/miss, fallback bucket → Google
-  templateRasterize.ts       # PDF (pdfjs-dist) e PNG → PNG normalizado + width/height
+| Item | Decisão |
+| --- | --- |
+| Rasterização de PDF no client | `pdfjs-dist` + `<canvas>` → blob PNG @ 1080px na maior dimensão antes de enviar. Mantém o PDF original em `source.pdf` (base64 também enviado). |
+| Editor de zonas | HTML/CSS puro com `react-rnd` (drag+resize sobre `<img>` do preview, bbox em coords relativas 0–1). Sem Konva/Fabric. |
+| Fontes Google no autocomplete | Lista estática curada (top ~80 do Google Fonts) em `src/lib/googleFonts.ts`. Combobox shadcn. |
+| Estado de geração | Reusa `BackgroundTaskProvider` + `GeneratingOverlay` (mesmo padrão de `/create-image`). |
+| Créditos | `useCreditsAction` com `TEMPLATE_IMAGE` (4) e `CreditConfirmationDialog`. 402 → modal de compra existente. |
+| Invocação | Sempre via `supabase.functions.invoke()`. |
 
-supabase/functions/import-brand-template/index.ts      # AGORA chama Vision + Inpainting reais (fake-ai continua para system admin)
-supabase/functions/generate-from-template/index.ts     # AGORA roda pipeline real (Branch A/B + Canvas + compliance)
+## Estrutura de arquivos
+
+```
+src/
+├── lib/
+│   ├── googleFonts.ts                    # lista curada
+│   └── rasterizePdf.ts                   # pdf → PNG dataURL
+├── hooks/
+│   ├── useBrandTemplates.ts              # list + soft-delete (React Query)
+│   ├── useImportTemplate.ts              # upload → import-brand-template
+│   ├── useCommitTemplate.ts              # commit-brand-template
+│   └── useGenerateFromTemplate.ts        # generate-from-template + background task
+├── components/marcas/templates/
+│   ├── BrandTemplatesTab.tsx             # grid + header "X / 10" + CTA
+│   ├── TemplateCard.tsx                  # preview + menu (ajustar/excluir)
+│   ├── TemplateUploadDialog.tsx          # 4 steps (upload → processando → ajustar → confirmar)
+│   ├── TemplateZoneEditor.tsx            # canvas + react-rnd
+│   ├── TemplateZonePanel.tsx             # painel lateral por zona
+│   └── FontPicker.tsx                    # Google + custom fonts
+└── pages/
+    └── CreateFromTemplate.tsx            # rota /create-from-template
 ```
 
-### Plano TDD (slices verticais)
+Testes TDD (cycle por arquivo, não em bulk):
+```
+src/hooks/useBrandTemplates.test.ts
+src/hooks/useImportTemplate.test.ts
+src/hooks/useGenerateFromTemplate.test.ts
+src/lib/rasterizePdf.test.ts
+src/components/marcas/templates/TemplateUploadDialog.test.tsx
+src/components/marcas/templates/TemplateZoneEditor.test.tsx
+src/pages/CreateFromTemplate.test.tsx
+```
 
-Cada slice = um teste falhando → mínimo código pra passar.
+## Comportamentos verificados (ordem dos tracer bullets)
 
-**Slice 1 — Rasterização**
-- T: PNG entra, sai PNG normalizado com `width`/`height` corretos.
-- T: PDF 1 página renderiza em PNG ≥200 DPI.
+1. `useBrandTemplates` lista templates `ready`/`draft` não deletados por `brand_id`.
+2. `useBrandTemplates.softDelete(id)` chama `delete-brand-template` e invalida cache.
+3. `rasterizePdf(file)` retorna `{ pngBlob, width, height }` para PDF de 1 página.
+4. `useImportTemplate` rejeita arquivo > 5MB e MIME ≠ pdf/png antes da chamada.
+5. `useImportTemplate` envia `mime_type`, `size_bytes`, `pdf_page_count`, `image_base64` para `import-brand-template` e retorna `{ template_id, text_zones, logo_slot, preview_url }`.
+6. `useCommitTemplate` envia `text_zones` + `font_assets` ajustados.
+7. `TemplateUploadDialog` percorre os 4 steps (upload → processando → ajustar → salvar) e mostra erro inline em fonte faltante.
+8. `TemplateZoneEditor` permite mover/redimensionar uma zona e emite bbox normalizado 0–1.
+9. `BrandTemplatesTab` mostra "X / 10" e desabilita "+ Novo template" no limite.
+10. `useGenerateFromTemplate` envia `template_id`, `fills` (array `{zone_id, value}`), `background_mode`, `background_prompt?`, debita via `useCreditsAction`, registra como `BackgroundTask` e navega para `/content/:actionId` ao final.
+11. `CreateFromTemplate` exibe preview ao vivo com texto sobreposto conforme o usuário digita.
+12. Erro 402 abre `CreditConfirmationDialog` → modal de compra; erro 422 (compliance) renderiza `ComplianceAlert`.
 
-**Slice 2 — Vision (detecção de zonas)**
-- T: resposta válida do Gemini → array de `text_zones` com `label`, `bbox` normalizado, estimativas.
-- T: detecta `logo_slot` quando presente.
-- T: JSON inválido → erro tratado, não derruba função.
-- T: 4xx do provider → erro fail-fast (sem retry). 5xx/429 → backoff (3 tentativas).
+## Integração com app shell
 
-**Slice 3 — Inpainting (clean_background)**
-- T: gera PNG sem texto preservando fundo (verifica chamada com bboxes + prompt correto).
-- T: resultado salvo em `{workspace}/{brand}/{template}/clean_background.png` no bucket `brand-templates`.
+- `App.tsx`: nova rota lazy `/create-from-template` dentro do `DashboardLayout` protegido.
+- `AppSidebar.tsx`: novo item "Criar a partir de template" na seção de criação.
+- `BrandView.tsx`: nova aba "Templates" (`BrandTemplatesTab`), mantendo abas atuais intactas.
 
-**Slice 4 — `import-brand-template` integrado**
-- T: fluxo end-to-end real (com `x-template-fake-ai: 1` para system admin continua mockável).
-- T: cria `brand_templates` com `status='draft'`, `text_zones`, `logo_slot`, `clean_background_path`.
+## Fora de escopo deste PR
 
-**Slice 5 — Cache de fontes**
-- T: Google Fonts → download → grava em `template-fonts/google/<family>-<weight>.ttf`.
-- T: segunda chamada → vem do bucket (sem hit externo).
-- T: custom font → resolve `custom_fonts.font_id` → `custom-fonts` bucket.
+- Ajuste fino de zonas no mobile (mobile só visualiza/gera; ADR já antecipa).
+- Tour de onboarding dedicado.
+- Migração de templates legados.
 
-**Slice 6 — Composição Canvas**
-- T: desenha 1 zona com fonte registrada, respeita `bbox`/`align`/`color`.
-- T: auto-shrink em passos de 2px até caber (piso 12px), erro se não couber.
-- T: logo slot — `fit: contain` dentro do bbox com `padding`.
-- T: exporta PNG com dimensões `width×height`.
+## Confirmações que preciso antes de codar
 
-**Slice 7 — Branch A (reusar clean_background)**
-- T: `generate-from-template` com `background_mode='reuse'` → baixa `clean_background.png`, compõe, sobe em `content-images`. 0 chamadas IA.
-
-**Slice 8 — Branch B (novo fundo)**
-- T: `background_mode='new'` + `background_prompt` → Art Director enriquece → Gemini image gera fundo sem texto → compõe.
-- T: aspect ratio do prompt = `width:height` do template.
-
-**Slice 9 — Compliance + finalização**
-- T: cada `zone_values` passa por `complianceCheck` antes do desenho; bloqueio → 422 com motivo, sem debitar.
-- T: sucesso → debita `TEMPLATE_IMAGE=4`, cria `actions(type='template_image', details, result)`, dispara `generate-caption`.
-
-**Slice 10 — Guardrails**
-- T: Branch B nunca recebe instrução de desenhar texto (snapshot do prompt).
-- T: logo nunca passa por IA (composição usa `brands.logo` diretamente).
-
-### Detalhes técnicos
-
-- `corsHeaders` mantido como já está no projeto (não usar `npm:@supabase/supabase-js@2/cors` para não quebrar padrão).
-- Backoff: exponencial 500ms→1s→2s, respeita `Retry-After`. Fail-fast em 4xx.
-- Cache de fontes em memória: `Map<string, Uint8Array>` por invocação. Bucket é a camada persistente.
-- Auto-shrink: usa `ctx.measureText` para validar largura; respeita `max_chars` se presente.
-- `templates_test.ts` (já existente) permanece intocado.
-- Verificação: `supabase--test_edge_functions` rodando os `*_test.ts` novos + lint.
-
-### Riscos conhecidos
-- `@napi-rs/canvas` em Deno via `npm:` — se falhar em runtime, fallback é `skia-canvas`. Decisão à vista do primeiro erro (não autônomo: paro e pergunto).
-- `pdfjs-dist` em Deno pode exigir polyfill de canvas para `getViewport().render()` — se quebrar, paro e pergunto se aceita fallback (só PNG no MVP).
-
-### Fora do escopo
-- Frontend (ADR 0002).
-- Telemetria/observabilidade adicional.
-- Cleanup de fontes órfãs do bucket.
-
-### O que preciso confirmar antes de codar
-1. **Bucket `template-fonts` privado** — ok criar? (não exibe lista de buckets para o usuário, só confirmo o nome).
-2. **`background_mode` na API** — aceito `'reuse' | 'new'` no body de `generate-from-template`, com `background_prompt` obrigatório só no `'new'`. Pode ser?
-3. **Compliance bloqueia sem debitar** — se qualquer zona falhar em `complianceCheck`, retorno 422 *antes* de chamar IA/Canvas. Confirma?
-4. **Caption automático** — disparar `generate-caption` no fim do `generate-from-template` é parte do MVP (ADR diz que sim). Confirma?
+1. **Ponto de entrada do upload**: adicionar a aba "Templates" em `BrandView.tsx` (página da marca) — **confirma?** A ADR fala em `BrandDetails`, mas a página atual é `BrandView`.
+2. **Editor de zonas — biblioteca**: usar `react-rnd` (leve, ~10KB) está OK, ou prefere reaproveitar algo já existente (não vi equivalente no projeto)?
+3. **Preview ao vivo na página de geração**: render via `<canvas>` no client (carrega Google Fonts via `FontFace`), aceitando possível FOUT — OK?
+4. **Lista de Google Fonts**: lista estática curada (~80 fontes) no bundle vs. fetch da API do Google em runtime — confirma estática?
