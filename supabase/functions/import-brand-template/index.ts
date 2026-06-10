@@ -129,11 +129,17 @@ serve(async (req) => {
     logoSlot = fake.logo_slot;
     cleanBase64 = fake.clean_background_base64;
   } else {
-    if (!geminiKey) return json(500, { error: "GEMINI_API_KEY ausente" });
+    if (!geminiKey) {
+      console.error("[import-brand-template] GEMINI_API_KEY ausente");
+      return json(500, { error: "GEMINI_API_KEY ausente" });
+    }
     try {
+      console.log("[import-brand-template] Vision detectZones start", { width, height, bytes: imageBase64.length });
       const vision = await detectZones(geminiKey, imageBase64 as string);
+      console.log("[import-brand-template] Vision OK", { zones: vision.text_zones.length, hasLogo: !!vision.logo_slot });
       textZones = vision.text_zones;
       logoSlot = vision.logo_slot;
+      console.log("[import-brand-template] Inpainting start");
       const clean = await inpaintBackground(
         geminiKey,
         imageBase64 as string,
@@ -141,7 +147,12 @@ serve(async (req) => {
         vision.logo_slot,
       );
       cleanBase64 = clean.base64;
+      console.log("[import-brand-template] Inpainting OK", { bytes: cleanBase64.length });
     } catch (err: any) {
+      console.error("[import-brand-template] AI pipeline failure", {
+        status: err?.status,
+        message: String(err?.message ?? err),
+      });
       const status = err?.status >= 400 && err?.status < 500 ? 422 : 502;
       return json(status, { error: "Falha no pipeline de IA", detail: String(err?.message ?? err) });
     }
