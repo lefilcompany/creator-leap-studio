@@ -42,12 +42,12 @@ export function TemplateUploadDialog({ brandId, open, onOpenChange }: Props) {
   const commitMut = useCommitTemplate();
   const queryClient = useQueryClient();
 
-  const { data: customFonts = [] } = useQuery({
+  const { data: customFonts = [] } = useQuery<{ id: string; name: string }[]>({
     queryKey: ["custom-fonts"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("custom_fonts").select("id, name");
-      if (error) return [];
-      return (data ?? []) as { id: string; name: string }[];
+      const { data, error } = await supabase.from("custom_fonts").select("id, family_name, display_name");
+      if (error || !data) return [];
+      return data.map((r) => ({ id: r.id, name: r.display_name || r.family_name }));
     },
   });
 
