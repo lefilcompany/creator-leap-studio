@@ -2,6 +2,8 @@ import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { rasterizePdf, imageFileToPng, type RasterizedPdf } from "@/lib/rasterizePdf";
 import type { TemplateTextZone, TemplateLogoSlot } from "@/types/template";
+import { useAuth } from "@/hooks/useAuth";
+import { CREDIT_COSTS } from "@/lib/creditCosts";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -53,11 +55,23 @@ async function extractFunctionError(error: unknown): Promise<string> {
   return (error as Error)?.message ?? "Erro desconhecido";
 }
 
+export const IMPORT_TEMPLATE_COST = CREDIT_COSTS.TEMPLATE_IMPORT;
+
 export function useImportTemplate() {
+  const { user, refreshUserCredits } = useAuth();
+
   return useMutation<ImportTemplateResult, Error, ImportInput>({
     mutationFn: async ({ brand_id, name, file }) => {
       const err = validateImportFile(file);
       if (err) throw new Error(err);
+
+      // Pré-check no cliente para evitar a rasterização (custosa) sem créditos.
+      const available = user?.credits ?? 0;
+      if (available < IMPORT_TEMPLATE_COST) {
+        throw new Error(
+          `Créditos insuficientes: a análise do template requer ${IMPORT_TEMPLATE_COST} créditos e você tem ${available}.`,
+        );
+      }
 
       const rast = await prepare(file);
 
@@ -79,6 +93,10 @@ export function useImportTemplate() {
       }
       if (!data?.template_id) throw new Error("Resposta inválida do servidor");
       return data as ImportTemplateResult;
+    },
+    onSuccess: () => {
+      // Atualiza saldo após débito server-side.
+      void refreshUserCredits?.();
     },
   });
 }

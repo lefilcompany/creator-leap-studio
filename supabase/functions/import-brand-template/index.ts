@@ -9,6 +9,9 @@ import {
 } from "../_shared/templates.ts";
 import { detectZones } from "../_shared/templateVision.ts";
 import { inpaintBackground } from "../_shared/templateInpainting.ts";
+import { CREDIT_COSTS } from "../_shared/creditCosts.ts";
+
+const IMPORT_COST = CREDIT_COSTS.TEMPLATE_IMPORT;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -119,6 +122,33 @@ serve(async (req) => {
     isSystemAdmin: isAdminData === true,
   });
 
+  // === Pré-check de créditos (falha rápida antes do pipeline IA caro) ===
+  if (!useFake) {
+    const { data: profile, error: profileErr } = await adminClient
+      .from("profiles")
+      .select("credits, credits_expire_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (profileErr) return json(500, { error: profileErr.message });
+    const available = profile?.credits ?? 0;
+    const expired = profile?.credits_expire_at && new Date(profile.credits_expire_at as string) < new Date();
+    if (expired) {
+      return json(402, {
+        error: "Créditos expirados",
+        required: IMPORT_COST,
+        available: 0,
+      });
+    }
+    if (available < IMPORT_COST) {
+      return json(402, {
+        error: "Créditos insuficientes",
+        message: `Esta análise requer ${IMPORT_COST} créditos. Você tem ${available}.`,
+        required: IMPORT_COST,
+        available,
+      });
+    }
+  }
+
   // Detecção + inpainting.
   let textZones: TextZone[];
   let logoSlot: any = null;
@@ -155,6 +185,33 @@ serve(async (req) => {
       });
       const status = err?.status >= 400 && err?.status < 500 ? 422 : 502;
       return json(status, { error: "Falha no pipeline de IA", detail: String(err?.message ?? err) });
+    }
+  }
+
+  // === Débito de créditos (após sucesso da IA, antes de persistir) ===
+  // Falha aqui não cobra nada e não cria template.
+  if (!useFake) {
+    const { data: consume, error: consumeErr } = await adminClient.rpc(
+      "consume_workspace_credits",
+      {
+        p_workspace_id: null,
+        p_user_id: user.id,
+        p_amount: IMPORT_COST,
+        p_action_type: "template_import",
+        p_reference_id: null,
+        p_metadata: { brand_id: brandId, source_type: validation.sourceType, width, height },
+      },
+    );
+    if (consumeErr) {
+      console.error("[import-brand-template] consume_workspace_credits error", consumeErr);
+      return json(500, { error: consumeErr.message });
+    }
+    const row = Array.isArray(consume) ? consume[0] : consume;
+    if (!row?.success) {
+      return json(402, {
+        error: row?.error ?? "Créditos insuficientes",
+        required: IMPORT_COST,
+      });
     }
   }
 

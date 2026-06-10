@@ -13,6 +13,7 @@ export const CREDIT_COSTS = {
   CREATE_THEME: 1,          // Criar tema (após 3 gratuitos)
   MARKETPLACE_IMAGE: 5,     // Imagem para marketplace de produtos
   TEMPLATE_IMAGE: 4,        // Geração a partir de template de marca (50% de COMPLETE_IMAGE)
+  TEMPLATE_IMPORT: 3,       // Análise (Vision) + Inpainting do template original
 } as const;
 
 export const FREE_RESOURCE_LIMITS = {
