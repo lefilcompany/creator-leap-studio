@@ -178,7 +178,7 @@ export function TemplateUploadDialog({ brandId, open, onOpenChange }: Props) {
             {step === "adjust" && "Ajustar zonas e fontes"}
           </DialogTitle>
           <DialogDescription>
-            {step === "upload" && "Envie um PDF de 1 página ou imagem (PNG/JPG) com até 5MB."}
+            {step === "upload" && `Envie um PDF de 1 página ou imagem (PNG/JPG) com até 5MB. A análise por IA consome ${IMPORT_TEMPLATE_COST} créditos.`}
             {step === "processing" && "Detectando zonas de texto e logo..."}
             {step === "adjust" && "Posicione as zonas e ajuste as configurações de tipografia."}
           </DialogDescription>
