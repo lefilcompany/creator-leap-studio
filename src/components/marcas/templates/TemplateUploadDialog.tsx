@@ -301,7 +301,7 @@ export function TemplateUploadDialog({ brandId, open, onOpenChange }: Props) {
             <>
               <Button variant="outline" onClick={() => handleClose(false)} className="rounded-xl">Cancelar</Button>
               <Button onClick={handleImport} disabled={!file || !name.trim()} className="rounded-xl">
-                <Upload className="h-4 w-4 mr-1.5" /> Enviar template
+                <Upload className="h-4 w-4 mr-1.5" /> Enviar template · {IMPORT_TEMPLATE_COST} créditos
               </Button>
             </>
           )}
