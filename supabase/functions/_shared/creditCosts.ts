@@ -12,6 +12,7 @@ export const CREDIT_COSTS = {
   CREATE_PERSONA: 1,        // Criar persona (após 3 gratuitas)
   CREATE_THEME: 1,          // Criar tema (após 3 gratuitos)
   MARKETPLACE_IMAGE: 5,     // Imagem para marketplace de produtos
+  TEMPLATE_IMAGE: 4,        // Geração a partir de template de marca (50% de COMPLETE_IMAGE)
 } as const;
 
 export const FREE_RESOURCE_LIMITS = {

@@ -1,100 +1,117 @@
+# Plano — Implementação TDD da ADR 0001 (Backend de Templates)
 
-# Plano: ADRs da funcionalidade de Templates por Marca
+Aprovado: escopo completo (migration + 4 edge functions), Deno.test + psql, `TEMPLATE_IMAGE=4`, migration aplicada ao aprovar o plano.
 
-Vou criar 3 arquivos `.md` em `docs/adr/` (diretório novo) para revisão, consolidando as decisões já validadas no grilling:
+## Princípio (skill /skill:tdd)
+Trabalho em **fatias verticais**: para cada comportamento, um teste vermelho → código mínimo para passar → próximo. Sem escrever todos os testes antes de todo o código. Testes validam comportamento via interface pública (HTTP da edge function, RPCs, RLS efetivo), nunca detalhes internos.
 
+## Fase 0 — Custo `TEMPLATE_IMAGE`
+Adicionar `TEMPLATE_IMAGE: 4` em dois arquivos espelhados:
+- `supabase/functions/_shared/creditCosts.ts`
+- `src/lib/creditCosts.ts`
+
+## Fase 1 — Migration (uma migration única)
+
+Tabela `public.brand_templates` conforme ADR §2.1 + colunas auxiliares padrão.
+
+Estrutura (resumo dos campos relevantes — schemas JSONB validados na app):
+- `id uuid PK default gen_random_uuid()`
+- `brand_id uuid NOT NULL REFERENCES brands(id) ON DELETE CASCADE`
+- `user_id uuid NOT NULL` (auth.users id, sem FK conforme convenção do projeto)
+- `workspace_id uuid` (preenchido por trigger `set_workspace_id_from_user`)
+- `name text NOT NULL`
+- `source_type text NOT NULL CHECK (source_type IN ('pdf','png'))`
+- `source_file_path text NOT NULL`
+- `preview_path text`
+- `clean_background_path text`
+- `width int`, `height int`
+- `text_zones jsonb NOT NULL DEFAULT '[]'::jsonb`
+- `logo_slot jsonb`
+- `font_assets jsonb NOT NULL DEFAULT '{}'::jsonb`
+- `status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','ready','failed'))`
+- `deleted_at timestamptz`
+- `created_at timestamptz NOT NULL DEFAULT now()`
+- `updated_at timestamptz NOT NULL DEFAULT now()`
+
+Índices: `(brand_id) WHERE deleted_at IS NULL`, `(workspace_id)`, `(user_id)`, `(deleted_at)` para o cleanup-trash.
+
+GRANTs:
+- `GRANT SELECT, INSERT, UPDATE, DELETE ON public.brand_templates TO authenticated;`
+- `GRANT ALL ON public.brand_templates TO service_role;`
+
+RLS (4 policies — `using` e `with check` via `can_access_workspace_resource` resolvendo `team_id` a partir da `brands`):
+
+```text
+SELECT/INSERT/UPDATE/DELETE  USING/CHECK
+  can_access_workspace_resource(
+    user_id,
+    workspace_id,
+    (SELECT team_id FROM brands WHERE id = brand_id)
+  )
 ```
-docs/adr/
-├── 0001-templates-backend.md
-├── 0002-templates-frontend.md
-└── 0003-templates-ai-agent.md
-```
 
-## Decisões consolidadas (transversais às 3 ADRs)
+Triggers:
+1. `BEFORE INSERT` → `set_workspace_id_from_user` (já existe no projeto).
+2. `BEFORE UPDATE` → `update_updated_at_column` (já existe).
+3. `BEFORE INSERT` → nova função `enforce_brand_template_limit()` (SECURITY DEFINER, search_path=public): rejeita se `COUNT(*) WHERE brand_id=NEW.brand_id AND deleted_at IS NULL >= 10` com `RAISE EXCEPTION 'Limite de 10 templates por marca atingido'`.
 
-| # | Decisão | Resposta |
-|---|---|---|
-| 1 | Detecção de texto | Híbrido OCR + ajuste manual |
-| 2 | Fundo na geração | Usuário escolhe por geração (reusar limpo ou gerar novo) |
-| 3 | PDF multipágina | Apenas 1 página por template; rejeitar/escolher na importação |
-| 4 | Composição final | Híbrido — IA gera fundo, Canvas server-side desenha texto |
-| 5 | Fontes | Google Fonts auto + fallback pede upload (.ttf/.otf via `custom_fonts`) |
-| 6 | UX | Página própria `/create-from-template` |
-| 7 | Permissões | Qualquer membro da equipe (igual marca) |
-| 8 | Limite | 10 templates por marca |
-| 9 | Custo | 50% do custo de uma imagem comum |
-| 10 | Elementos editáveis | Texto + slot de logo da marca (puxa de `brands.logo`) |
+Bucket: `brand-templates` (privado) criado via `supabase--storage_create_bucket` (não via SQL). Policies em `storage.objects` no mesmo migration:
+- 4 policies (SELECT/INSERT/UPDATE/DELETE) restritas a `is_workspace_member((storage.foldername(name))[1]::uuid, auth.uid())`.
 
----
+Soft-delete: `cleanup-trash` será estendido em fase separada (fora desta ADR) — aqui só garantimos coluna `deleted_at` indexada.
 
-## Conteúdo de cada ADR (resumo do que cada arquivo vai conter)
+## Fase 2 — Edge functions (TDD vertical, uma por vez)
 
-### `0001-templates-backend.md`
-- **Status:** Proposto
-- **Contexto:** Marcas precisam reutilizar layouts visuais aprovados. Hoje cada criação parte do zero.
-- **Decisões:**
-  - Nova tabela `brand_templates` (1 template = 1 página): `id, brand_id, user_id, workspace_id, name, source_file_path, preview_path, width, height, text_zones jsonb, logo_slot jsonb, font_assets jsonb, status (draft|ready|failed), source_type (pdf|png), deleted_at, created_at, updated_at`.
-  - GRANTs `authenticated`/`service_role`, RLS via `can_access_workspace_resource`, soft-delete (padrão Trash).
-  - Schema de `text_zones[]`: `{ id, label, bbox {x,y,w,h}, font_family, font_weight, font_size_px, color, align, line_height, max_chars, original_text }`.
-  - Schema de `logo_slot`: `{ bbox, fit: "contain"|"cover", padding }` ou `null`.
-  - Bucket `brand-templates` (privado) com paths `{workspace_id}/{brand_id}/{template_id}/source.(pdf|png)` + `clean_background.png` (gerado no salvamento, custo amortizado).
-  - Edge functions:
-    - `import-brand-template` — recebe arquivo, valida (PDF=1 página, tipo, ≤5MB), gera preview PNG e clean_background, retorna zonas detectadas para confirmação.
-    - `commit-brand-template` — salva zonas finais após ajuste do usuário.
-    - `generate-from-template` — orquestra pipeline (ver ADR 3) e cria `actions` com `type='template_image'` e custo 50% do `IMAGE` (ver `creditCosts.ts`).
-  - Limite de 10 templates por marca validado por trigger.
-  - Reutiliza `actions` (sem nova tabela de output) e modelo de créditos individual.
-- **Consequências:** custo extra de storage (~2-3 MB/template), pipeline determinístico previsível.
-- **Alternativas rejeitadas:** template como linha em `brands` (rígido); compor 100% por IA (tipografia quebra).
+Para cada função, ciclo: escrever `index.test.ts` com 1 caso → criar `index.ts` mínimo → adicionar próximo caso → repetir → refatorar.
 
-### `0002-templates-frontend.md`
-- **Status:** Proposto
-- **Contexto:** Precisa de UI para gerenciar templates por marca e um fluxo dedicado de criação.
-- **Decisões:**
-  - Nova aba "Templates" em `BrandDetails.tsx` (lista, upload, exclusão, contador X/10).
-  - `TemplateUploadDialog` — etapas: upload → preview com zonas detectadas sobrepostas (canvas interativo) → ajuste manual de bbox/texto/fonte → confirmação. Se fonte não estiver em Google Fonts, bloqueia o "Salvar" pedindo upload do arquivo de fonte.
-  - Nova rota `/create-from-template` com:
-    - Galeria de templates da marca selecionada (thumbnails).
-    - Form lateral: campos dinâmicos por zona detectada (label + maxLength), toggle "Reusar fundo original / Gerar novo fundo" (se "novo": campo de descrição), toggle "Incluir logo da marca" (se slot existir).
-    - Botão "Gerar imagem" → consome 50% do custo, vai para `ContentResult` existente.
-  - Item no `AppSidebar` apontando para `/create-from-template`.
-  - Componentes seguem padrão: bg-card, rounded-2xl, raw divs (sem Card), terminologia "ajustar".
-  - Breadcrumbs ao invés de back button.
-  - `useBrandTemplates(brandId)` hook (React Query) + `useCreateFromTemplate()` mutation.
-- **Consequências:** dois fluxos paralelos de criação (livre + template); decisões de UX claras para cada um.
-- **Alternativas rejeitadas:** colocar dentro do `/create-image` (mistura modos), aba global de templates (perde escopo por marca).
+Cobertura de comportamento alvo por função:
 
-### `0003-templates-ai-agent.md`
-- **Status:** Proposto
-- **Contexto:** Pipeline de geração precisa preservar fidelidade tipográfica (impossível com IA pura) mas manter flexibilidade visual no fundo.
-- **Decisões — pipeline em 4 estágios:**
-  1. **Importação (1x por template):**
-     - PDF → rasteriza p.1 com pdf.js (já no projeto via deps).
-     - PNG → usa direto.
-     - Chama Gemini Vision (`google/gemini-2.5-flash` via `LOVABLE_API_KEY`) com prompt estruturado pedindo JSON de zonas (bbox normalizado, texto, fonte estimada, peso, tamanho aproximado em px, cor hex, alinhamento).
-     - Inpainting do texto via Gemini image edit (`google/gemini-3-pro-image-preview`) → gera `clean_background.png`.
-     - Retorna ao frontend para ajuste manual (princípio "OCR sugere, humano confirma").
-  2. **Geração — etapa fundo (por uso):**
-     - Branch A (reusar): lê `clean_background.png` do bucket.
-     - Branch B (gerar novo): chama `google/gemini-3.1-flash-image-preview` com prompt enriquecido pelo Art Director (mem `image-generation/art-director-enrichment`), respeitando aspect ratio do template e estilo da marca (mem `brand-style-feedback-system`).
-  3. **Geração — etapa texto (Canvas server-side em Deno):**
-     - Edge function usa `@napi-rs/canvas` ou `skia-canvas` via npm specifier no Deno.
-     - Carrega fonte: Google Fonts CDN (cache) ou arquivo do bucket `custom-fonts`.
-     - Desenha cada zona: respeita bbox, fonte, peso, tamanho, cor, alinhamento, line-height; auto-shrink se exceder bbox (mem `text-on-image-specs`).
-     - Se `logo_slot` ativo: baixa `brands.logo` e cola com fit configurado.
-  4. **Compliance & finalização:**
-     - Roda `complianceCheck` (mem `content-compliance-moderation`) no texto antes do desenho.
-     - Salva PNG final em `content-images`, cria `actions` com `type='template_image'`, debita créditos, dispara legenda sugerida (mem `legenda-sugerida-padrao-v2`).
-  - **Guardrails:**
-    - Logo da marca é imutável (mem `reference-image-preservation`).
-    - Sem contexto político.
-    - Modelo determinístico: nenhuma reescrita de texto pela IA (texto vai exatamente como o usuário digitou).
-- **Consequências:** custo de IA reduzido (1 inpainting amortizado + 0-1 fundo por uso) justifica desconto de 50%; tipografia 100% fiel.
-- **Alternativas rejeitadas:** edição via Gemini Pro de ponta a ponta (texto borrado, palavras inventadas); composição 100% determinística sem IA (sem flexibilidade de fundo).
+### `import-brand-template`
+- 401 sem JWT
+- 400 sem `brand_id` / arquivo / MIME inválido / PDF >1 página / >5MB
+- 403 quando usuário não tem acesso à brand
+- 422 quando atingiu limite de 10 templates (via trigger)
+- 200 happy path: cria linha `status='draft'`, sobe `source.*` + `preview.png` ao bucket, devolve `{ template_id, text_zones, logo_slot, clean_background_url }`
+- IA (Vision/Inpainting): mockada na camada de teste via env flag `TEMPLATE_FAKE_AI=1` (não chama Gemini em testes)
 
----
+### `commit-brand-template`
+- 401/403/404 padrão
+- 400 quando `font_assets` não cobre todas as `font_family` em `text_zones`
+- 400 quando fonte `custom` aponta para `font_id` que o usuário não pode acessar
+- 200: atualiza zonas/logo/fontes e promove `status='ready'`
 
-## Após aprovação do plano
-Crio os 3 arquivos `.md` com o conteúdo acima detalhado em prosa de ADR (Contexto / Decisão / Consequências / Alternativas / Riscos). Nenhuma alteração de código, migração ou edge function nesta etapa — só documentação.
+### `generate-from-template`
+- 401/403/404
+- 402 quando saldo < `TEMPLATE_IMAGE` (4)
+- 422 quando template `status != 'ready'`
+- 200: cria `actions(type='template_image', details.template_id=...)`, chama `consume_workspace_credits('template_image', 4)`, persiste imagem final em `content-images`
+- Apenas a casca da pipeline aqui; etapas IA detalhadas ficam para ADR 0003 (mocks até lá)
 
-Usei as skills `grill-with-docs` (interview iterativo) e `grill-me` (challenge das decisões). Confirma a entrega que vou gerar?
+### `delete-brand-template`
+- 401/403/404
+- 200: marca `deleted_at = now()`, não remove storage
+- Após delete: novo INSERT na mesma brand passa (slot liberado)
+
+## Fase 3 — Verificação
+
+1. `supabase--test_edge_functions` rodando todos os `*_test.ts`.
+2. psql:
+   - `SELECT * FROM pg_policies WHERE tablename='brand_templates'` → 4 linhas.
+   - Inserir 11 linhas para a mesma `brand_id` → 11ª falha.
+   - `SELECT has_table_privilege('authenticated','brand_templates','SELECT')` → true.
+3. `supabase--linter` para garantir RLS e GRANTs ok.
+
+## Ordem de entrega ao sair do plan mode
+1. Migration (Fase 0+1 num único `supabase--migration`) — você aprova → roda.
+2. Bucket via `storage_create_bucket`.
+3. Por edge function (4×): test file → index.ts → `deploy_edge_functions` → `test_edge_functions`.
+4. Linter + checagens psql finais.
+
+## Pontos que NÃO entram nesta ADR
+- UI/frontend (ADR 0002).
+- Pipeline de composição com `skia-canvas` e Art Director (ADR 0003) — `generate-from-template` fica com stub que devolve a `preview.png` como imagem final até a ADR 0003 ser implementada.
+- Extensão do `cleanup-trash` para o novo bucket (tarefa separada referenciada).
+
+## Confirmar antes de codar
+- OK chamar Gemini com `TEMPLATE_FAKE_AI=1` nos testes (sem custo) e código real apenas no deploy?
+- OK o stub de `generate-from-template` retornar a `preview.png` até a ADR 0003?
