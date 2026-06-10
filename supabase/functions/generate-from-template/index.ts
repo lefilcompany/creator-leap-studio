@@ -159,6 +159,26 @@ serve(async (req) => {
     return json(422, { error: "Falha na composição", detail: String(err?.message ?? err) });
   }
 
+  // ===== Compliance da imagem final, ANTES do débito =====
+  if (geminiKey) {
+    try {
+      const dataUrl = `data:image/png;base64,${btoa(String.fromCharCode(...finalPng))}`;
+      const concatenated = zoneValues.map((z) => z.value).filter(Boolean).join(" | ");
+      const compliance = await checkCompliance(dataUrl, concatenated, geminiKey);
+      if (compliance && compliance.approved === false) {
+        return json(422, {
+          error: "Imagem reprovada pelo compliance",
+          flags: compliance.flags,
+          details: compliance.details,
+          category: compliance.category,
+        });
+      }
+    } catch (err) {
+      console.warn("Compliance check falhou (fail-open):", err);
+    }
+  }
+
+
   // ===== Débito =====
   const { data: consume, error: consumeErr } = await admin.rpc(
     "consume_workspace_credits",
