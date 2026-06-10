@@ -39,7 +39,8 @@ export async function generateBackground(
     }],
     generationConfig: {
       temperature: 0.7,
-      responseModalities: ["IMAGE"],
+      // Gemini exige IMAGE+TEXT na resposta (apenas IMAGE retorna 400).
+      responseModalities: ["IMAGE", "TEXT"],
     },
   };
   const raw = await callGeminiWithRetry(url, {
