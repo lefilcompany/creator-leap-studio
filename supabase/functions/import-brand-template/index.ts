@@ -122,6 +122,33 @@ serve(async (req) => {
     isSystemAdmin: isAdminData === true,
   });
 
+  // === Pré-check de créditos (falha rápida antes do pipeline IA caro) ===
+  if (!useFake) {
+    const { data: profile, error: profileErr } = await adminClient
+      .from("profiles")
+      .select("credits, credits_expire_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (profileErr) return json(500, { error: profileErr.message });
+    const available = profile?.credits ?? 0;
+    const expired = profile?.credits_expire_at && new Date(profile.credits_expire_at as string) < new Date();
+    if (expired) {
+      return json(402, {
+        error: "Créditos expirados",
+        required: IMPORT_COST,
+        available: 0,
+      });
+    }
+    if (available < IMPORT_COST) {
+      return json(402, {
+        error: "Créditos insuficientes",
+        message: `Esta análise requer ${IMPORT_COST} créditos. Você tem ${available}.`,
+        required: IMPORT_COST,
+        available,
+      });
+    }
+  }
+
   // Detecção + inpainting.
   let textZones: TextZone[];
   let logoSlot: any = null;
