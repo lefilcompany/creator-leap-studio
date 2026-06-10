@@ -2,6 +2,8 @@ import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { rasterizePdf, imageFileToPng, type RasterizedPdf } from "@/lib/rasterizePdf";
 import type { TemplateTextZone, TemplateLogoSlot } from "@/types/template";
+import { useAuth } from "@/hooks/useAuth";
+import { CREDIT_COSTS } from "@/lib/creditCosts";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
