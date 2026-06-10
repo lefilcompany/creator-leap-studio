@@ -41,6 +41,7 @@ const PersonasMarketplace = lazy(() => import("./pages/PersonasMarketplace"));
 const PersonaView = lazy(() => import("./pages/PersonaView"));
 const History = lazy(() => import("./pages/History"));
 const CreateImage = lazy(() => import("./pages/CreateImage"));
+const CreateFromTemplate = lazy(() => import("./pages/CreateFromTemplate"));
 const CreateVideo = lazy(() => import("./pages/CreateVideo"));
 const AnimateImage = lazy(() => import("./pages/AnimateImage"));
 const ContentCreationSelector = lazy(() => import("./pages/ContentCreationSelector"));
@@ -149,6 +150,7 @@ const App = () => (
                         <Route path="create" element={<SuspenseRoute><ContentCreationSelector /></SuspenseRoute>} />
                         <Route path="create/quick" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
                         <Route path="create/image" element={<SuspenseRoute><CreateImage /></SuspenseRoute>} />
+                        <Route path="create/template" element={<SuspenseRoute><CreateFromTemplate /></SuspenseRoute>} />
                         <Route path="create/video" element={<SuspenseRoute><CreateVideo /></SuspenseRoute>} />
                         <Route path="create/animate" element={<SuspenseRoute><AnimateImage /></SuspenseRoute>} />
                         <Route path="create/marketplace" element={<SuspenseRoute><MarketplaceContent /></SuspenseRoute>} />
