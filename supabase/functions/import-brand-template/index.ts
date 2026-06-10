@@ -7,6 +7,8 @@ import {
   validateImportRequest,
   type TextZone,
 } from "../_shared/templates.ts";
+import { detectZones } from "../_shared/templateVision.ts";
+import { inpaintBackground } from "../_shared/templateInpainting.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,43 +17,37 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function json(status: number, body: unknown) {
-  return new Response(JSON.stringify(body), {
+const json = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
-}
 
-// Mock determinístico para testes (admin@admin.com com header).
-function fakeDetect(): {
+const decode = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+
+// Mock determinístico (apenas system admin com header).
+function fakeDetect(width: number, height: number): {
   text_zones: TextZone[];
   logo_slot: null;
-  width: number;
-  height: number;
   preview_base64: string;
   clean_background_base64: string;
 } {
-  // 1x1 PNG transparente em base64 (placeholder válido).
   const PNG_1PX =
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
   return {
-    text_zones: [
-      {
-        id: crypto.randomUUID(),
-        label: "Título",
-        bbox: { x: 0.05, y: 0.1, w: 0.9, h: 0.18 },
-        font_family: "Inter",
-        font_weight: 700,
-        font_size_px: 64,
-        color: "#0F172A",
-        align: "left",
-        line_height: 1.1,
-        original_text: "Mock heading",
-      },
-    ],
+    text_zones: [{
+      id: crypto.randomUUID(),
+      label: "Título",
+      bbox: { x: 0.05, y: 0.1, w: 0.9, h: 0.18 },
+      font_family: "Inter",
+      font_weight: 700,
+      font_size_px: 64,
+      color: "#0F172A",
+      align: "left",
+      line_height: 1.1,
+      original_text: "Mock heading",
+    }],
     logo_slot: null,
-    width: 1080,
-    height: 1080,
     preview_base64: PNG_1PX,
     clean_background_base64: PNG_1PX,
   };
@@ -67,6 +63,7 @@ serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const geminiKey = Deno.env.get("GEMINI_API_KEY");
 
   const userClient = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: authHeader } },
@@ -87,19 +84,32 @@ serve(async (req) => {
   const validation = validateImportRequest(body as never);
   if (!validation.ok) return json(400, { errors: validation.errors });
 
+  // Campos extra obrigatórios do pipeline real.
+  const imageBase64 = body.image_base64;
+  const sourceBase64 = body.source_base64 ?? imageBase64;
+  const width = Number(body.width);
+  const height = Number(body.height);
+  if (typeof imageBase64 !== "string" || imageBase64.length < 100) {
+    return json(400, { error: "image_base64 (PNG rasterizado) é obrigatório" });
+  }
+  if (!Number.isFinite(width) || width < 64 || width > 8192) {
+    return json(400, { error: "width inválido" });
+  }
+  if (!Number.isFinite(height) || height < 64 || height > 8192) {
+    return json(400, { error: "height inválido" });
+  }
+
   const brandId = body.brand_id as string;
   const name = (body.name as string).trim();
 
-  // Confere acesso à brand (RLS faz o trabalho).
   const { data: brand, error: brandErr } = await userClient
     .from("brands")
-    .select("id, team_id")
+    .select("id")
     .eq("id", brandId)
     .maybeSingle();
   if (brandErr) return json(500, { error: brandErr.message });
   if (!brand) return json(403, { error: "Marca não acessível" });
 
-  // Mock de IA é restrito a system admin.
   const { data: isAdminData } = await adminClient.rpc("has_role", {
     _user_id: user.id,
     _role: "system",
@@ -109,17 +119,35 @@ serve(async (req) => {
     isSystemAdmin: isAdminData === true,
   });
 
-  if (!useFake) {
-    // Pipeline real (Gemini Vision + inpainting) será detalhada na ADR 0003.
-    return json(501, {
-      error: "Pipeline de IA será habilitada na entrega da ADR 0003",
-    });
+  // Detecção + inpainting.
+  let textZones: TextZone[];
+  let logoSlot: any = null;
+  let cleanBase64: string;
+  if (useFake) {
+    const fake = fakeDetect(width, height);
+    textZones = fake.text_zones;
+    logoSlot = fake.logo_slot;
+    cleanBase64 = fake.clean_background_base64;
+  } else {
+    if (!geminiKey) return json(500, { error: "GEMINI_API_KEY ausente" });
+    try {
+      const vision = await detectZones(geminiKey, imageBase64 as string);
+      textZones = vision.text_zones;
+      logoSlot = vision.logo_slot;
+      const clean = await inpaintBackground(
+        geminiKey,
+        imageBase64 as string,
+        vision.text_zones,
+        vision.logo_slot,
+      );
+      cleanBase64 = clean.base64;
+    } catch (err: any) {
+      const status = err?.status >= 400 && err?.status < 500 ? 422 : 502;
+      return json(status, { error: "Falha no pipeline de IA", detail: String(err?.message ?? err) });
+    }
   }
 
-  const fake = fakeDetect();
-
-  // INSERT como service_role para garantir workspace_id resolvido por trigger
-  // mas escopando user_id ao caller.
+  // Persistência.
   const { data: inserted, error: insertErr } = await adminClient
     .from("brand_templates")
     .insert({
@@ -128,10 +156,10 @@ serve(async (req) => {
       name,
       source_type: validation.sourceType,
       source_file_path: "pending",
-      width: fake.width,
-      height: fake.height,
-      text_zones: fake.text_zones,
-      logo_slot: fake.logo_slot,
+      width,
+      height,
+      text_zones: textZones,
+      logo_slot: logoSlot,
       status: "draft",
     })
     .select("id, workspace_id")
@@ -146,29 +174,27 @@ serve(async (req) => {
 
   const tplId = inserted.id;
   const wsId = inserted.workspace_id;
-
-  // Sobe arquivos mockados.
   const sourceName = validation.sourceType === "pdf" ? "source.pdf" : "source.png";
   const sourcePath = templateStoragePath(wsId, brandId, tplId, sourceName);
   const previewPath = templateStoragePath(wsId, brandId, tplId, "preview.png");
   const cleanPath = templateStoragePath(wsId, brandId, tplId, "clean_background.png");
 
-  const decode = (b64: string) =>
-    Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-
   await adminClient.storage.from(TEMPLATE_BUCKET).upload(
     sourcePath,
-    decode(fake.preview_base64),
-    { contentType: validation.sourceType === "pdf" ? "application/pdf" : "image/png", upsert: true },
+    decode(sourceBase64 as string),
+    {
+      contentType: validation.sourceType === "pdf" ? "application/pdf" : "image/png",
+      upsert: true,
+    },
   );
   await adminClient.storage.from(TEMPLATE_BUCKET).upload(
     previewPath,
-    decode(fake.preview_base64),
+    decode(imageBase64 as string),
     { contentType: "image/png", upsert: true },
   );
   await adminClient.storage.from(TEMPLATE_BUCKET).upload(
     cleanPath,
-    decode(fake.clean_background_base64),
+    decode(cleanBase64),
     { contentType: "image/png", upsert: true },
   );
 
@@ -184,10 +210,10 @@ serve(async (req) => {
   return json(200, {
     template_id: tplId,
     workspace_id: wsId,
-    text_zones: fake.text_zones,
-    logo_slot: fake.logo_slot,
-    width: fake.width,
-    height: fake.height,
+    text_zones: textZones,
+    logo_slot: logoSlot,
+    width,
+    height,
     paths: { source: sourcePath, preview: previewPath, clean_background: cleanPath },
   });
 });
