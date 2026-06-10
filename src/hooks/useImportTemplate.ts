@@ -32,6 +32,27 @@ async function prepare(file: File): Promise<RasterizedPdf> {
   return imageFileToPng(file);
 }
 
+async function extractFunctionError(error: unknown): Promise<string> {
+  // supabase.functions.invoke embrulha o body em FunctionsHttpError (`error.context`).
+  // Sem isso o usuário só vê "Edge Function returned a non-2xx status code".
+  const ctx = (error as { context?: Response | { json?: () => Promise<unknown>; text?: () => Promise<string> } } | null)?.context;
+  if (ctx && typeof (ctx as Response).json === "function") {
+    try {
+      const body = await (ctx as Response).clone().json();
+      const b = body as { error?: string; detail?: string; errors?: Array<{ message?: string }> };
+      if (b?.detail) return `${b.error ?? "Erro"}: ${b.detail}`;
+      if (b?.error) return b.error;
+      if (Array.isArray(b?.errors)) return b.errors.map((e) => e?.message).filter(Boolean).join(" • ");
+    } catch {
+      try {
+        const txt = await (ctx as Response).clone().text();
+        if (txt) return txt.slice(0, 500);
+      } catch { /* ignore */ }
+    }
+  }
+  return (error as Error)?.message ?? "Erro desconhecido";
+}
+
 export function useImportTemplate() {
   return useMutation<ImportTemplateResult, Error, ImportInput>({
     mutationFn: async ({ brand_id, name, file }) => {
@@ -52,7 +73,10 @@ export function useImportTemplate() {
           height: rast.height,
         },
       });
-      if (error) throw error;
+      if (error) {
+        const msg = await extractFunctionError(error);
+        throw new Error(msg);
+      }
       if (!data?.template_id) throw new Error("Resposta inválida do servidor");
       return data as ImportTemplateResult;
     },
