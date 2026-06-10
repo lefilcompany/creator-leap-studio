@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Upload, AlertCircle, Plus, FileImage } from "lucide-react";
-import { useImportTemplate, validateImportFile } from "@/hooks/useImportTemplate";
+import { useImportTemplate, validateImportFile, IMPORT_TEMPLATE_COST } from "@/hooks/useImportTemplate";
 import { useCommitTemplate, defaultFontAssetsFromZones } from "@/hooks/useCommitTemplate";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
