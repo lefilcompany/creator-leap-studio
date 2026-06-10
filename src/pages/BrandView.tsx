@@ -23,6 +23,7 @@ import {
 import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, List, Info, Palette, Pencil, TrendingUp } from 'lucide-react';
 import { BrandVisualIdentity } from '@/components/marcas/BrandVisualIdentity';
 import { BrandFeedbackPanel } from '@/components/marcas/BrandFeedbackPanel';
+import { BrandTemplatesTab } from '@/components/marcas/templates/BrandTemplatesTab';
 import { BrandAvatarEditor } from '@/components/marcas/BrandAvatarEditor';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
@@ -532,6 +533,8 @@ export default function BrandView() {
                 maxColors={8}
               />
             </SectionCard>
+
+            <BrandTemplatesTab brandId={brand.id} />
           </div>
 
           {/* Sidebar - visual assets */}
