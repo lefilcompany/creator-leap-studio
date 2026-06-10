@@ -162,7 +162,7 @@ serve(async (req) => {
   // ===== Compliance da imagem final, ANTES do débito =====
   if (geminiKey) {
     try {
-      const dataUrl = `data:image/png;base64,${btoa(String.fromCharCode(...finalPng))}`;
+      const dataUrl = `data:image/png;base64,${u8ToBase64(finalPng)}`;
       const concatenated = zoneValues.map((z) => z.value).filter(Boolean).join(" | ");
       const compliance = await checkCompliance(dataUrl, concatenated, geminiKey);
       if (compliance && compliance.approved === false) {
