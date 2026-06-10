@@ -55,11 +55,23 @@ async function extractFunctionError(error: unknown): Promise<string> {
   return (error as Error)?.message ?? "Erro desconhecido";
 }
 
+export const IMPORT_TEMPLATE_COST = CREDIT_COSTS.TEMPLATE_IMPORT;
+
 export function useImportTemplate() {
+  const { user, refreshUserCredits } = useAuth();
+
   return useMutation<ImportTemplateResult, Error, ImportInput>({
     mutationFn: async ({ brand_id, name, file }) => {
       const err = validateImportFile(file);
       if (err) throw new Error(err);
+
+      // Pré-check no cliente para evitar a rasterização (custosa) sem créditos.
+      const available = user?.credits ?? 0;
+      if (available < IMPORT_TEMPLATE_COST) {
+        throw new Error(
+          `Créditos insuficientes: a análise do template requer ${IMPORT_TEMPLATE_COST} créditos e você tem ${available}.`,
+        );
+      }
 
       const rast = await prepare(file);
 
@@ -81,6 +93,10 @@ export function useImportTemplate() {
       }
       if (!data?.template_id) throw new Error("Resposta inválida do servidor");
       return data as ImportTemplateResult;
+    },
+    onSuccess: () => {
+      // Atualiza saldo após débito server-side.
+      void refreshUserCredits?.();
     },
   });
 }
