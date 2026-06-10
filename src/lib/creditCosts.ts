@@ -13,6 +13,7 @@ export const CREDIT_COSTS = {
   CREATE_THEME: 1,
   MARKETPLACE_IMAGE: 5,
   TEMPLATE_IMAGE: 4,         // Geração a partir de template de marca (50% de COMPLETE_IMAGE)
+  TEMPLATE_IMPORT: 3,        // Análise (Vision) + Inpainting do template original
 } as const;
 
 export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string => {
@@ -31,6 +32,7 @@ export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string =>
     CREATE_THEME: "Criar editoria",
     MARKETPLACE_IMAGE: "Imagem para marketplace",
     TEMPLATE_IMAGE: "Imagem a partir de template",
+    TEMPLATE_IMPORT: "Análise de template de marca",
   };
   return labels[action];
 };
