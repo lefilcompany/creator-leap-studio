@@ -93,20 +93,11 @@ serve(async (req) => {
     return { ...z, value: f?.value ?? z.original_text ?? "" };
   });
 
-  // ===== Compliance ANTES de qualquer débito ou chamada IA =====
+  // Compliance roda APÓS composição (precisa da imagem final), mas ANTES do débito.
+  // Validação simples de tamanho/charset acontece aqui.
   for (const z of zoneValues) {
-    if (!z.value.trim()) continue;
-    try {
-      const c = await checkCompliance(geminiKey ?? "", { text: z.value });
-      if (c && c.approved === false) {
-        return json(422, {
-          error: `Texto da zona "${z.label}" bloqueado por compliance`,
-          flags: c.flags,
-          details: c.details,
-        });
-      }
-    } catch {
-      // fail-open
+    if (z.value.length > 500) {
+      return json(422, { error: `Zona "${z.label}" excede 500 caracteres` });
     }
   }
 
