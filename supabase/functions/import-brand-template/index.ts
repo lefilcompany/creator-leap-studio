@@ -188,6 +188,33 @@ serve(async (req) => {
     }
   }
 
+  // === Débito de créditos (após sucesso da IA, antes de persistir) ===
+  // Falha aqui não cobra nada e não cria template.
+  if (!useFake) {
+    const { data: consume, error: consumeErr } = await adminClient.rpc(
+      "consume_workspace_credits",
+      {
+        p_workspace_id: null,
+        p_user_id: user.id,
+        p_amount: IMPORT_COST,
+        p_action_type: "template_import",
+        p_reference_id: null,
+        p_metadata: { brand_id: brandId, source_type: validation.sourceType, width, height },
+      },
+    );
+    if (consumeErr) {
+      console.error("[import-brand-template] consume_workspace_credits error", consumeErr);
+      return json(500, { error: consumeErr.message });
+    }
+    const row = Array.isArray(consume) ? consume[0] : consume;
+    if (!row?.success) {
+      return json(402, {
+        error: row?.error ?? "Créditos insuficientes",
+        required: IMPORT_COST,
+      });
+    }
+  }
+
   // Persistência.
   const { data: inserted, error: insertErr } = await adminClient
     .from("brand_templates")
