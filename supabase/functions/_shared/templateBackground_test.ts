@@ -26,5 +26,5 @@ Deno.test("buildInpaintingPrompt: lista zonas e logo", () => {
   assertStringIncludes(p, "Título");
   assertStringIncludes(p, "Olá");
   assertStringIncludes(p, "Logo em");
-  assertStringIncludes(p, "NÃO");
+  assertStringIncludes(p, "Não adicione novo texto");
 });
