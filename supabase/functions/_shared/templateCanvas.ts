@@ -125,8 +125,11 @@ export function bboxToPx(
  * Throws com mensagens claras se uma zona não couber mesmo após shrink.
  */
 export async function composeTemplate(input: ComposeInput): Promise<Uint8Array> {
-  // Import dinâmico para permitir testes sem nativo.
-  const mod = await import("npm:@napi-rs/canvas@0.1.59");
+  // Specifier montado em runtime para escapar do type-check estático do Deno
+  // (a lib só roda na edge function, não nos testes unitários puros).
+  const specifier = ["npm:", "@napi-rs/canvas@0.1.59"].join("");
+  // deno-lint-ignore no-explicit-any
+  const mod: any = await import(/* @vite-ignore */ specifier);
   const { createCanvas, loadImage, GlobalFonts } = mod;
 
   // Registra fontes.
