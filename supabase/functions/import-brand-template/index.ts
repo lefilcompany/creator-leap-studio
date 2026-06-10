@@ -9,6 +9,9 @@ import {
 } from "../_shared/templates.ts";
 import { detectZones } from "../_shared/templateVision.ts";
 import { inpaintBackground } from "../_shared/templateInpainting.ts";
+import { CREDIT_COSTS } from "../_shared/creditCosts.ts";
+
+const IMPORT_COST = CREDIT_COSTS.TEMPLATE_IMPORT;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
