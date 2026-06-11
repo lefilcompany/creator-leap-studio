@@ -249,7 +249,7 @@ export default function ContentCreationSelector() {
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/15 border border-secondary/30">
                     <LayoutTemplate className="h-4 w-4 text-secondary" />
                     <span className="text-sm font-bold text-secondary">
-                      {CREDIT_COSTS.TEMPLATE_GENERATION ?? 4} créditos
+                      {CREDIT_COSTS.TEMPLATE_IMAGE} créditos
                     </span>
                   </div>
                 </CardContent>
