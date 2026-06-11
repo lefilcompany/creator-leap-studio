@@ -43,6 +43,7 @@ export default function ContentCreationSelector() {
         video: "/create/video",
         marketplace: "/create/marketplace",
         review: "/review",
+        template: "/create/template",
       };
       navigate(routes[creationType]);
     }
