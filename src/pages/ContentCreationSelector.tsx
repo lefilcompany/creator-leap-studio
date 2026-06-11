@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Zap, ImageIcon, Video, HelpCircle, ShoppingBag, CheckCircle } from "lucide-react";
+import { Loader2, Zap, ImageIcon, Video, HelpCircle, ShoppingBag, CheckCircle, LayoutTemplate } from "lucide-react";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
@@ -12,7 +12,7 @@ import { contentCreationSelectorSteps } from "@/components/onboarding/tourSteps"
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import createBanner from "@/assets/create-banner.jpg";
 
-type CreationType = "image" | "video" | "marketplace" | "review";
+type CreationType = "image" | "video" | "marketplace" | "review" | "template";
 
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
@@ -43,6 +43,7 @@ export default function ContentCreationSelector() {
         video: "/create/video",
         marketplace: "/create/marketplace",
         review: "/review",
+        template: "/create/template",
       };
       navigate(routes[creationType]);
     }
@@ -150,7 +151,7 @@ export default function ContentCreationSelector() {
           onValueChange={(value) => setCreationType(value as CreationType)}
           className="h-full"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 h-full">
             {/* Criar Conteúdo */}
             <label htmlFor="image" className="cursor-pointer h-full" onClick={() => setCreationType("image")}>
               <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
@@ -223,6 +224,32 @@ export default function ContentCreationSelector() {
                     <ShoppingBag className="h-4 w-4 text-success" />
                     <span className="text-sm font-bold text-success">
                       {CREDIT_COSTS.MARKETPLACE_IMAGE} créditos
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </label>
+
+            {/* Criar de Template */}
+            <label htmlFor="template" className="cursor-pointer h-full" onClick={() => setCreationType("template")}>
+              <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-secondary/10 hover:border-secondary/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
+                <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
+                  <RadioGroupItem value="template" id="template" className="sr-only" />
+                  <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                    <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                      <LayoutTemplate className="h-8 w-8 text-secondary" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="font-semibold text-lg">Criar de Template</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Gere peças a partir de templates aprovados da marca
+                      </p>
+                    </div>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/15 border border-secondary/30">
+                    <LayoutTemplate className="h-4 w-4 text-secondary" />
+                    <span className="text-sm font-bold text-secondary">
+                      {CREDIT_COSTS.TEMPLATE_IMAGE} créditos
                     </span>
                   </div>
                 </CardContent>

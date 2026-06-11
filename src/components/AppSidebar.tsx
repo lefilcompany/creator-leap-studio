@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Newspaper, Coins, UsersRound, FolderOpen, ChevronRight, LayoutTemplate } from "lucide-react";
+import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Newspaper, Coins, UsersRound, FolderOpen, ChevronRight } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -313,7 +313,6 @@ export function AppSidebar() {
 
   const actionButtons = [
     { id: "nav-plan-content", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
-    { id: "nav-create-from-template", href: "/create/template", icon: LayoutTemplate, label: "Criar de template", variant: "accent" as const },
     { id: "nav-create-content", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
   ];
 
