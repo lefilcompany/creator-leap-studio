@@ -313,7 +313,6 @@ export function AppSidebar() {
 
   const actionButtons = [
     { id: "nav-plan-content", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
-    { id: "nav-create-from-template", href: "/create/template", icon: LayoutTemplate, label: "Criar de template", variant: "accent" as const },
     { id: "nav-create-content", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
   ];
 
