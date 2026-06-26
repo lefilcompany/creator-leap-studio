@@ -20,7 +20,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/hooks/useAuth";
 import { validateReturnUrl } from "@/lib/auth-urls";
 import { motion } from "framer-motion";
-import decorativeElement from "@/assets/decorative-element.png";
+import decorativeElement from "@/assets/decorative-element.webp";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 const Login = () => {

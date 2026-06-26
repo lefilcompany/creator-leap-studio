@@ -29,7 +29,7 @@ import { getEmailRedirectUrl } from "@/lib/auth-urls";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
-import decorativeElement from "@/assets/decorative-element.png";
+import decorativeElement from "@/assets/decorative-element.webp";
 
 // Interfaces para os dados do IBGE
 interface State {
