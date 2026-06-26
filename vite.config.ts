@@ -46,9 +46,18 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ["react", "react-dom"],
+    esbuildOptions: {
+      target: "es2022",
+    },
+  },
+  esbuild: {
+    target: "es2022",
+    // Remove logs/debugger em produção para encolher payload
+    drop: ["debugger"],
   },
   build: {
-    target: "es2020",
+    target: "es2022",
+
     cssCodeSplit: true,
     sourcemap: false,
     chunkSizeWarningLimit: 800,
