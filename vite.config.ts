@@ -47,4 +47,37 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     include: ["react", "react-dom"],
   },
+  build: {
+    target: "es2020",
+    cssCodeSplit: true,
+    sourcemap: false,
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        // Split heavy / rarely-used libs out of the initial bundle so the
+        // landing/auth screens only load what they actually need.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (id.includes("react-router")) return "router";
+          if (id.includes("@tanstack/react-query")) return "react-query";
+          if (id.includes("framer-motion")) return "framer-motion";
+          if (id.includes("recharts") || id.includes("d3-")) return "charts";
+          if (id.includes("pdfjs-dist")) return "pdfjs";
+          if (id.includes("jspdf") || id.includes("html2canvas")) return "pdf-export";
+          if (id.includes("docx") || id.includes("file-saver")) return "docx-export";
+          if (id.includes("react-joyride")) return "joyride";
+          if (id.includes("three")) return "three";
+          if (id.includes("embla-carousel")) return "embla";
+          if (id.includes("react-rnd") || id.includes("react-draggable") || id.includes("re-resizable")) return "rnd";
+          if (id.includes("@radix-ui")) return "radix";
+          if (id.includes("lucide-react")) return "icons";
+          if (id.includes("react-markdown") || id.includes("remark") || id.includes("micromark") || id.includes("mdast")) return "markdown";
+          if (id.includes("date-fns")) return "date-fns";
+          if (id.includes("@supabase")) return "supabase";
+          if (id.includes("react-dom")) return "react-dom";
+          if (id.includes("/react/")) return "react";
+        },
+      },
+    },
+  },
 }));
