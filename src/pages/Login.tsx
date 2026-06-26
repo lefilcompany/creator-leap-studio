@@ -312,6 +312,10 @@ const Login = () => {
           <motion.img
             src={decorativeElement}
             alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
             className="absolute top-1/4 right-1/4 w-64 h-64 object-contain opacity-10"
             style={{ filter: "blur(8px)" }}
             animate={{
@@ -329,6 +333,10 @@ const Login = () => {
           <motion.img
             src={decorativeElement}
             alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
             className="absolute bottom-1/3 left-1/3 w-48 h-48 object-contain opacity-8"
             style={{ filter: "blur(10px)" }}
             animate={{
@@ -347,6 +355,10 @@ const Login = () => {
           <motion.img
             src={decorativeElement}
             alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
             className="absolute top-1/3 left-1/5 w-40 h-40 object-contain opacity-6"
             style={{ filter: "blur(12px)" }}
             animate={{
