@@ -3,6 +3,11 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { initGlobalExtensionProtection } from "./hooks/useExtensionProtection";
+import { scheduleAnalytics } from "./lib/loadAnalytics";
+
+// Carrega GTM/GA4/Meta Pixel fora do critical path (idle ou primeira interação)
+scheduleAnalytics();
+
 
 // Inicializar proteções globais contra extensões
 initGlobalExtensionProtection();
