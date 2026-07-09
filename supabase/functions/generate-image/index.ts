@@ -20,6 +20,7 @@ import {
   buildFeedbackMessageParts,
   uint8ArrayToBase64,
 } from '../_shared/imagePromptBuilder.ts';
+import { downscaleAll } from '../_shared/downscaleReferenceImage.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
