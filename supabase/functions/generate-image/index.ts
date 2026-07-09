@@ -273,12 +273,26 @@ serve(async (req) => {
     // =====================================
     // STEP 4: Build message content with images
     // =====================================
+    // Redimensiona/comprime referências ANTES de montar o payload para reduzir
+    // o pico de memória da edge function (evita WORKER_RESOURCE_LIMIT quando o
+    // usuário envia várias fotos grandes de celular).
+    const [downscaledPreserve, downscaledStyle, downscaledFeedback] = [
+      await downscaleAll(preserveImages, 1024, 80),
+      await downscaleAll(styleReferenceImages, 1024, 80),
+      await downscaleAll(feedbackBase64Images, 1024, 80),
+    ];
+    console.log('[Step 4] Downscaled references:', {
+      preserve: downscaledPreserve.length,
+      style: downscaledStyle.length,
+      feedback: downscaledFeedback.length,
+    });
+
     const messageContent: any[] = [{ type: 'text', text: finalPrompt }];
 
-    for (const img of preserveImages) {
+    for (const img of downscaledPreserve) {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
-    for (const img of styleReferenceImages) {
+    for (const img of downscaledStyle) {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
 
