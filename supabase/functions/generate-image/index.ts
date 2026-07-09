@@ -299,10 +299,10 @@ serve(async (req) => {
     // Add approved feedback images + config as style references
     const totalManualImages = preserveImages.length + styleReferenceImages.length;
     const feedbackSlots = Math.max(0, 5 - totalManualImages);
-    if (feedbackBase64Images.length > 0 || approvedFeedbackImages.length > 0) {
+    if (downscaledFeedback.length > 0 || approvedFeedbackImages.length > 0) {
       const { feedbackInstruction, feedbackImagesToAdd } = buildFeedbackMessageParts(
         approvedFeedbackImages,
-        feedbackBase64Images,
+        downscaledFeedback,
         feedbackSlots,
       );
       messageContent.push({ type: 'text', text: feedbackInstruction });
