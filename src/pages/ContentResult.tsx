@@ -1124,49 +1124,30 @@ export default function ContentResult() {
                 Reportar problema com geração
               </button>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-2 pt-2 w-1/2">
+              {/* Assistente de Ajuste (chatbot) */}
+              <div className="pt-2">
+                <ImageEditChat
+                  availableCredits={user?.credits ?? 0}
+                  editCost={CREDIT_COSTS.IMAGE_REVIEW}
+                  isApplying={isReviewing}
+                  onApply={async (refined) => {
+                    await handleSubmitReview(refined, "image");
+                  }}
+                />
                 <button
-                  onClick={handleOpenReview}
-                  disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}
-                  className="relative overflow-hidden bg-accent/20 border border-accent/30 text-accent rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center disabled:pointer-events-none disabled:opacity-50 group"
+                  type="button"
+                  onClick={() => {
+                    setReviewType("caption");
+                    setReviewPrompt("");
+                    setShowReviewDialog(true);
+                  }}
+                  className="mt-2 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 inline-flex items-center gap-1"
                 >
-                  <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
-                  <Pen className="h-4 w-4 relative z-10" />
-                  <span className="relative z-10">Corrigir</span>
+                  <FileText className="h-3 w-3" />
+                  Prefere ajustar a legenda?
                 </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      className="relative overflow-hidden bg-gradient-to-r from-primary via-secondary to-accent text-white rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center group"
-                    >
-                      <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
-                      <Plus className="h-4 w-4 relative z-10" />
-                      <span className="relative z-10">Criar outro</span>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="w-60 p-1.5">
-                    <DropdownMenuItem onClick={handleReusePrompt} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-primary/10 hover:bg-primary/10 data-[highlighted]:bg-primary/10 focus:text-foreground data-[highlighted]:text-foreground">
-                      <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/15 shrink-0">
-                        <RefreshCw className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-sm">Mesmo prompt</span>
-                        <span className="text-xs text-muted-foreground">Reutilizar as configurações atuais</span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/create/image")} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-muted hover:bg-muted data-[highlighted]:bg-muted focus:text-foreground data-[highlighted]:text-foreground">
-                      <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted shrink-0">
-                        <Sparkles className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-sm">Começar do zero</span>
-                        <span className="text-xs text-muted-foreground">Criar com novas configurações</span>
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
+
             </div>
           </div>
         </div>
