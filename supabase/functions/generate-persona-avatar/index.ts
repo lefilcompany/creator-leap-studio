@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
       try {
         const prompt = `${STYLE_INSTRUCTION} Subject: ${buildSubjectDescription(t)}`;
         const geminiUrl =
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`;
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent?key=${GEMINI_API_KEY}`;
 
         const r = await fetch(geminiUrl, {
           method: "POST",

@@ -280,8 +280,8 @@ serve(async (req) => {
     // =====================================
     const MAX_RETRIES = 3;
     const REQUEST_TIMEOUT_MS = 90000;
-    const PRIMARY_IMAGE_MODEL = 'gemini-3-pro-image-preview';
-    const FALLBACK_IMAGE_MODEL = 'gemini-2.5-flash-image';
+    const PRIMARY_IMAGE_MODEL = 'gemini-3-pro-image';
+    const FALLBACK_IMAGE_MODEL = 'gemini-3.1-flash-image';
 
     let lastError: any = null;
     let imageUrl: string | null = null;
@@ -519,7 +519,7 @@ REGRAS:
             { inlineData: { mimeType: origMimeType, data: origBase64 } }
           ];
 
-          const editModel = 'gemini-2.5-flash-image-preview';
+          const editModel = 'gemini-3-pro-image';
           const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${editModel}:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

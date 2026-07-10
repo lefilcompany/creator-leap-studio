@@ -1,6 +1,6 @@
 /**
  * Inpainting: gera `clean_background.png` removendo apenas o texto detectado
- * pelo Vision. Usa Gemini Image Edit (gemini-3-pro-image-preview).
+ * pelo Vision. Usa Gemini Image Edit (gemini-3-pro-image).
  */
 import {
   callGeminiWithRetry,
