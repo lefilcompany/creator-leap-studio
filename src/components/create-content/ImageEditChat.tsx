@@ -94,7 +94,7 @@ export function ImageEditChat({
     setIsThinking(true);
     try {
       const { data, error } = await supabase.functions.invoke("image-edit-chat", {
-        body: { messages: next },
+        body: { messages: next, imageUrl, contextText },
       });
       if (error) throw error;
       const assistantMsg = (data?.message as string) ?? "";
