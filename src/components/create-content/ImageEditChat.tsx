@@ -18,6 +18,10 @@ interface ImageEditChatProps {
   availableCredits: number;
   /** Custo em créditos do ajuste (para exibição). */
   editCost: number;
+  /** URL da imagem atual — usada pelo assistente para ler textos e citar trechos exatos. */
+  imageUrl?: string;
+  /** Texto/contexto (título, legenda, prompt) para ajudar o assistente a identificar elementos. */
+  contextText?: string;
   className?: string;
 }
 
@@ -31,6 +35,8 @@ export function ImageEditChat({
   isApplying = false,
   availableCredits,
   editCost,
+  imageUrl,
+  contextText,
   className,
 }: ImageEditChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
