@@ -16,8 +16,15 @@ export function GoogleSignInButton({ label = "Continuar com Google", className }
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      // Preserve ?next= so OAuth consent flows return to the original URL.
+      const currentNext = new URLSearchParams(window.location.search).get("next");
+      let redirectUri = getAuthBaseUrl();
+      if (currentNext && currentNext.startsWith("/") && !currentNext.startsWith("//")) {
+        const origin = window.location.origin;
+        redirectUri = `${origin}/login?next=${encodeURIComponent(currentNext)}`;
+      }
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: getAuthBaseUrl(),
+        redirect_uri: redirectUri,
       });
 
       if (error) {
