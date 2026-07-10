@@ -474,8 +474,13 @@ export default function ContentResult() {
     setReviewPrompt("");
   };
 
-  const handleSubmitReview = async () => {
-    if (!reviewPrompt.trim() || !contentData || !reviewType) return;
+  const handleSubmitReview = async (
+    overridePrompt?: string,
+    overrideType?: "image" | "caption",
+  ) => {
+    const effectivePrompt = (overridePrompt ?? reviewPrompt).trim();
+    const effectiveType = overrideType ?? reviewType;
+    if (!effectivePrompt || !contentData || !effectiveType) return;
 
     if (!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) {
       toast.error(`Você não tem créditos disponíveis. Cada ajuste custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
