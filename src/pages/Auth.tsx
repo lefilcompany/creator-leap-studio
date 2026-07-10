@@ -127,9 +127,23 @@ const Auth = () => {
   const passwordsMatch = formData.password === confirmPassword;
   const isPasswordValid = formData.password && formData.password.length >= 6;
 
+  // Same-origin relative path preserved through the auth flow (?next=/...)
+  const nextParam = useMemo(() => {
+    const raw = searchParams.get("next");
+    if (!raw) return null;
+    // Only allow same-origin relative paths for safety.
+    if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+    return raw;
+  }, [searchParams]);
+
   // Redireciona automaticamente quando autenticado (inclui retorno do OAuth)
   useEffect(() => {
     if (!authLoading && user && !showChangePassword) {
+      if (nextParam) {
+        console.log("[Auth] Auth complete, honoring ?next=", nextParam);
+        window.location.replace(nextParam);
+        return;
+      }
       if (user.isAdmin) {
         console.log("[Auth] System Admin authenticated, redirecting to /system");
         navigate("/system", { replace: true });
@@ -138,7 +152,7 @@ const Auth = () => {
       console.log("[Auth] Auth complete, redirecting to dashboard");
       navigate("/dashboard", { replace: true });
     }
-  }, [authLoading, user, showChangePassword, navigate]);
+  }, [authLoading, user, showChangePassword, navigate, nextParam]);
 
   // Busca os estados do Brasil na API do IBGE
   useEffect(() => {

@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.1",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://lcpmqnkorcsclmpfbizr.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "creator-mcp",
+      "version": "0.1.0",
+      "title": "Creator (Lefil) MCP"
+    },
+    "tools": [
+      {
+        "name": "get_credits",
+        "title": "Consultar créditos",
+        "description": "Retorna o saldo de créditos individuais do usuário autenticado no Creator.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_brands",
+        "title": "Listar marcas",
+        "description": "Lista as marcas às quais o usuário autenticado tem acesso no Creator (via RLS).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_recent_content",
+        "title": "Listar conteúdos recentes",
+        "description": "Lista os conteúdos gerados mais recentes do usuário autenticado no Creator (imagens, vídeos, textos). RLS já limita a resultados que o usuário pode ver.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10,
+              "description": "Número máximo de itens a retornar (1–50). Padrão: 10."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
