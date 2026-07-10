@@ -5,8 +5,8 @@
  *  - 4xx → fail-fast (sem retry).
  *  - 429/5xx → backoff exponencial (3 tentativas), respeita `Retry-After`.
  *  - Vision: gemini-2.5-flash (JSON estrito).
- *  - Inpainting/edição: gemini-3-pro-image-preview.
- *  - Geração de fundo (Branch B): gemini-3.1-flash-image-preview.
+ *  - Inpainting/edição: gemini-3-pro-image.
+ *  - Geração de fundo (Branch B): gemini-3-pro-image.
  *
  * As funções de baixo nível (`callGeminiWithRetry`, `extractInlineImage`)
  * são testáveis isoladamente via fetch mock.
@@ -14,10 +14,8 @@
 
 export const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 export const VISION_MODEL = "gemini-2.5-flash";
-export const INPAINT_MODEL = "gemini-3-pro-image-preview";
-// `gemini-2.5-flash-image` é o modelo de geração de imagem estável e validado
-// nas outras edge functions deste projeto (generate-image, edit-image).
-export const IMAGE_GEN_MODEL = "gemini-2.5-flash-image";
+export const INPAINT_MODEL = "gemini-3-pro-image";
+export const IMAGE_GEN_MODEL = "gemini-3-pro-image";
 
 export interface RetryOptions {
   maxAttempts?: number;
