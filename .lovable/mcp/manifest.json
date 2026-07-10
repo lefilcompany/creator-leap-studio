@@ -12,14 +12,70 @@
   "mcp": {
     "server": {
       "name": "creator-mcp",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "title": "Creator (Lefil) MCP"
     },
     "tools": [
       {
-        "name": "get_credits",
+        "name": "profile_get",
+        "title": "Consultar perfil",
+        "description": "Retorna o perfil do usuário autenticado (nome, email, telefone, cidade, estado, plano).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "profile_update",
+        "title": "Atualizar perfil",
+        "description": "Atualiza campos do perfil do usuário autenticado (nome, telefone, cidade, estado, avatar). Não permite alterar email, créditos, plano ou papel.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "phone": {
+              "type": "string",
+              "maxLength": 30
+            },
+            "city": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "state": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "avatar_url": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 500
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "credits_get",
         "title": "Consultar créditos",
-        "description": "Retorna o saldo de créditos individuais do usuário autenticado no Creator.",
+        "description": "Retorna o saldo de créditos individuais do usuário autenticado.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -33,25 +89,9 @@
         "outputSchema": null
       },
       {
-        "name": "list_brands",
-        "title": "Listar marcas",
-        "description": "Lista as marcas às quais o usuário autenticado tem acesso no Creator (via RLS).",
-        "annotations": {
-          "readOnlyHint": true,
-          "idempotentHint": true,
-          "openWorldHint": false
-        },
-        "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
-          "type": "object",
-          "properties": {}
-        },
-        "outputSchema": null
-      },
-      {
-        "name": "list_recent_content",
-        "title": "Listar conteúdos recentes",
-        "description": "Lista os conteúdos gerados mais recentes do usuário autenticado no Creator (imagens, vídeos, textos). RLS já limita a resultados que o usuário pode ver.",
+        "name": "credits_history",
+        "title": "Histórico de créditos",
+        "description": "Lista os lançamentos de consumo/adição de créditos do usuário autenticado, com paginação.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -63,9 +103,1322 @@
             "limit": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 50,
-              "default": 10,
-              "description": "Número máximo de itens a retornar (1–50). Padrão: 10."
+              "maximum": 100,
+              "default": 20
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "action_type": {
+              "type": "string",
+              "maxLength": 64
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "brands_list",
+        "title": "Listar marcas",
+        "description": "Lista as marcas às quais o usuário autenticado tem acesso (via RLS), com busca por nome e paginação.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "search": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "brands_get",
+        "title": "Obter marca",
+        "description": "Retorna os detalhes completos de uma marca por ID.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "brands_create",
+        "title": "Criar marca",
+        "description": "Cria uma nova marca vinculada ao usuário autenticado.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "responsible": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "segment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "values": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "keywords": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "goals": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "promise": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "brand_color": {
+              "type": "string",
+              "maxLength": 20
+            },
+            "avatar_url": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "name",
+            "responsible",
+            "segment"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "brands_update",
+        "title": "Atualizar marca",
+        "description": "Atualiza campos editáveis de uma marca. RLS garante que só o dono/equipe pode alterar.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "responsible": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "segment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "values": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "keywords": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "goals": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "promise": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "brand_color": {
+              "type": "string",
+              "maxLength": 20
+            },
+            "avatar_url": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "brands_delete",
+        "title": "Excluir marca",
+        "description": "OPERAÇÃO DESTRUTIVA. Exclui permanentemente uma marca. Exige confirm=true. RLS garante que só o dono/equipe pode excluir.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "confirm": {
+              "type": "boolean",
+              "const": true,
+              "description": "Precisa ser explicitamente true para confirmar."
+            }
+          },
+          "required": [
+            "id",
+            "confirm"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "personas_list",
+        "title": "Listar personas",
+        "description": "Lista as personas às quais o usuário autenticado tem acesso, com paginação e filtro por marca.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "search": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "personas_get",
+        "title": "Obter persona",
+        "description": "Retorna os detalhes completos de uma persona por ID.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "personas_create",
+        "title": "Criar persona",
+        "description": "Cria uma nova persona vinculada a uma marca do usuário.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "gender": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "age": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "location": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "professional_context": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "beliefs_and_interests": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "main_goal": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "challenges": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "preferred_tone_of_voice": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "brand_id",
+            "name"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "personas_update",
+        "title": "Atualizar persona",
+        "description": "Atualiza campos editáveis de uma persona.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "gender": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "age": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "location": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "professional_context": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "beliefs_and_interests": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "main_goal": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "challenges": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "preferred_tone_of_voice": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "personas_delete",
+        "title": "Excluir persona",
+        "description": "OPERAÇÃO DESTRUTIVA. Exclui permanentemente uma persona. Exige confirm=true.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "confirm": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "id",
+            "confirm"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "themes_list",
+        "title": "Listar temas estratégicos",
+        "description": "Lista temas estratégicos acessíveis ao usuário, com filtro por marca.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "search": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "themes_get",
+        "title": "Obter tema estratégico",
+        "description": "Retorna detalhes completos de um tema estratégico por ID.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "themes_create",
+        "title": "Criar tema estratégico",
+        "description": "Cria um novo tema estratégico vinculado a uma marca.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "tone_of_voice": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "target_audience": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "hashtags": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "objectives": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "content_format": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "brand_id",
+            "title"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "themes_update",
+        "title": "Atualizar tema estratégico",
+        "description": "Atualiza campos editáveis de um tema estratégico.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "tone_of_voice": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "target_audience": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "hashtags": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "objectives": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "content_format": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "themes_delete",
+        "title": "Excluir tema estratégico",
+        "description": "OPERAÇÃO DESTRUTIVA. Exclui permanentemente um tema estratégico. Exige confirm=true.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "confirm": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "id",
+            "confirm"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "content_list",
+        "title": "Listar conteúdos",
+        "description": "Lista conteúdos gerados (imagens, vídeos, textos, carrosséis) acessíveis ao usuário. Suporta filtros por marca, tipo, aprovado, incluir/excluir arquivados, e paginação.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "approved": {
+              "type": "boolean"
+            },
+            "include_archived": {
+              "type": "boolean",
+              "default": false
+            },
+            "only_root": {
+              "type": "boolean",
+              "default": true,
+              "description": "Apenas ações raiz (sem parent_action_id)."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "content_get",
+        "title": "Obter conteúdo",
+        "description": "Retorna detalhes completos de um conteúdo (action) por ID, incluindo details e result.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "content_approve",
+        "title": "Aprovar conteúdo",
+        "description": "Marca um conteúdo como aprovado.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "content_reject",
+        "title": "Rejeitar conteúdo",
+        "description": "Remove a aprovação de um conteúdo (approved=false).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "content_archive",
+        "title": "Arquivar conteúdo (lixeira)",
+        "description": "Envia o conteúdo para a lixeira (soft-delete via deleted_at). Retenção padrão: 30 dias. Use content_restore para desarquivar.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "content_restore",
+        "title": "Restaurar conteúdo da lixeira",
+        "description": "Restaura um conteúdo arquivado (limpa deleted_at).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "content_favorite",
+        "title": "Favoritar conteúdo",
+        "description": "Adiciona um conteúdo aos favoritos com escopo 'me' (pessoal) ou 'team' (compartilhado com a equipe).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "action_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "scope": {
+              "type": "string",
+              "enum": [
+                "me",
+                "team"
+              ],
+              "default": "me"
+            }
+          },
+          "required": [
+            "action_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "content_unfavorite",
+        "title": "Remover dos favoritos",
+        "description": "Remove um conteúdo dos favoritos do usuário no escopo indicado.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "action_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "scope": {
+              "type": "string",
+              "enum": [
+                "me",
+                "team"
+              ],
+              "default": "me"
+            }
+          },
+          "required": [
+            "action_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "categories_list",
+        "title": "Listar categorias",
+        "description": "Lista as categorias de conteúdo acessíveis ao usuário (próprias ou compartilhadas via equipe).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "categories_create",
+        "title": "Criar categoria",
+        "description": "Cria uma nova categoria de conteúdo. Visibilidade: 'personal' (só o dono) ou 'team' (equipe do usuário).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "color": {
+              "type": "string",
+              "maxLength": 20
+            },
+            "visibility": {
+              "type": "string",
+              "enum": [
+                "personal",
+                "team"
+              ],
+              "default": "personal"
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "categories_update",
+        "title": "Atualizar categoria",
+        "description": "Atualiza nome, descrição, cor ou visibilidade de uma categoria.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "color": {
+              "type": "string",
+              "maxLength": 20
+            },
+            "visibility": {
+              "type": "string",
+              "enum": [
+                "personal",
+                "team"
+              ]
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "categories_delete",
+        "title": "Excluir categoria",
+        "description": "OPERAÇÃO DESTRUTIVA. Exclui uma categoria. Exige confirm=true.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "confirm": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "id",
+            "confirm"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "categories_add_item",
+        "title": "Adicionar conteúdo a categoria",
+        "description": "Adiciona uma action (conteúdo) a uma categoria. Requer papel de Dono ou Editor na categoria.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "category_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "action_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "category_id",
+            "action_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "categories_remove_item",
+        "title": "Remover conteúdo de categoria",
+        "description": "Remove uma action de uma categoria. Requer papel de Dono ou Editor na categoria.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "category_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "action_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "category_id",
+            "action_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "notifications_list",
+        "title": "Listar notificações",
+        "description": "Lista as notificações do usuário autenticado, com filtro por lida/não lida.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "only_unread": {
+              "type": "boolean",
+              "default": false
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "notifications_mark_read",
+        "title": "Marcar notificação como lida",
+        "description": "Marca uma notificação como lida.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "notifications_mark_all_read",
+        "title": "Marcar todas as notificações como lidas",
+        "description": "Marca todas as notificações não lidas do usuário autenticado como lidas.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "calendar_list",
+        "title": "Listar calendários de conteúdo",
+        "description": "Lista os calendários de conteúdo do usuário, com filtro por marca e status.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "calendar_get",
+        "title": "Obter calendário de conteúdo",
+        "description": "Retorna os detalhes de um calendário e seus itens (calendar_items).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "templates_list",
+        "title": "Listar templates de marca",
+        "description": "Lista os templates de marca disponíveis ao usuário, com filtro por marca.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "audit_log_list",
+        "title": "Listar log de auditoria",
+        "description": "Lista as entradas de auditoria MCP do usuário autenticado (administradores de sistema veem todos). Registra operações de escrita realizadas via MCP.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "tool_name": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "resource_type": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "only_errors": {
+              "type": "boolean",
+              "default": false
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
             }
           },
           "additionalProperties": false,

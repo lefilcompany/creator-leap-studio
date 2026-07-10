@@ -5,9 +5,11 @@
 // src/lib/mcp/index.ts
 import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.1";
 
-// src/lib/mcp/tools/get-credits.ts
-import { createClient } from "npm:@supabase/supabase-js@^2.58.0";
+// src/lib/mcp/tools/profile-get.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.1";
+
+// src/lib/mcp/_shared.ts
+import { createClient } from "npm:@supabase/supabase-js@^2.58.0";
 function supabaseForUser(ctx) {
   return createClient(
     process.env.SUPABASE_URL,
@@ -18,138 +20,1118 @@ function supabaseForUser(ctx) {
     }
   );
 }
-var get_credits_default = defineTool({
-  name: "get_credits",
-  title: "Consultar cr\xE9ditos",
-  description: "Retorna o saldo de cr\xE9ditos individuais do usu\xE1rio autenticado no Creator.",
+function newRequestId() {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `req_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+function ok(data, message, meta) {
+  const requestId = newRequestId();
+  const timestamp = (/* @__PURE__ */ new Date()).toISOString();
+  const summary = message ?? (typeof data === "object" && data !== null ? JSON.stringify(data).slice(0, 800) : String(data));
+  return {
+    content: [{ type: "text", text: summary }],
+    structuredContent: {
+      success: true,
+      data,
+      requestId,
+      timestamp,
+      ...meta ?? {}
+    }
+  };
+}
+function fail(code, message, details) {
+  const requestId = newRequestId();
+  const timestamp = (/* @__PURE__ */ new Date()).toISOString();
+  return {
+    content: [{ type: "text", text: `${code}: ${message}` }],
+    structuredContent: {
+      success: false,
+      error: { code, message, ...details ?? {} },
+      requestId,
+      timestamp
+    },
+    isError: true
+  };
+}
+function requireAuth(ctx) {
+  if (!ctx.isAuthenticated()) {
+    return fail("unauthenticated", "Autentica\xE7\xE3o necess\xE1ria.");
+  }
+  const uid = ctx.getUserId();
+  if (!uid) return fail("unauthenticated", "Usu\xE1rio n\xE3o identificado.");
+  return uid;
+}
+async function audit(ctx, params) {
+  try {
+    const uid = ctx.getUserId();
+    if (!uid) return;
+    const supabase = supabaseForUser(ctx);
+    await supabase.from("mcp_audit_log").insert({
+      user_id: uid,
+      tool_name: params.toolName,
+      action: params.action,
+      resource_type: params.resourceType ?? null,
+      resource_id: params.resourceId ?? null,
+      success: params.success,
+      error_code: params.errorCode ?? null,
+      error_message: params.errorMessage ?? null,
+      client_id: ctx.getClientId?.() ?? null,
+      metadata: params.metadata ?? {}
+    });
+  } catch (e) {
+    console.warn("[mcp:audit] falha ao gravar auditoria", e);
+  }
+}
+async function withAudit(ctx, meta, result) {
+  const success = !result.isError;
+  const err = success ? void 0 : result.structuredContent?.error;
+  await audit(ctx, {
+    ...meta,
+    success,
+    errorCode: err?.code,
+    errorMessage: err?.message
+  });
+  return result;
+}
+var PAGINATION_MAX = 100;
+var PAGINATION_DEFAULT = 20;
+function stripSensitive(row) {
+  const clone = { ...row };
+  const DROP = [
+    "password",
+    "password_hash",
+    "stripe_customer_id",
+    "stripe_subscription_id",
+    "force_password_change",
+    "password_reset_sent_at"
+  ];
+  for (const key of DROP) delete clone[key];
+  return clone;
+}
+
+// src/lib/mcp/tools/profile-get.ts
+var profile_get_default = defineTool({
+  name: "profile_get",
+  title: "Consultar perfil",
+  description: "Retorna o perfil do usu\xE1rio autenticado (nome, email, telefone, cidade, estado, plano).",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async (_input, ctx) => {
-    if (!ctx.isAuthenticated()) {
-      return {
-        content: [{ type: "text", text: "N\xE3o autenticado." }],
-        isError: true
-      };
-    }
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
     const supabase = supabaseForUser(ctx);
-    const { data, error } = await supabase.from("profiles").select("credits, max_credits, credits_expire_at").eq("id", ctx.getUserId()).maybeSingle();
-    if (error) {
-      return {
-        content: [{ type: "text", text: error.message }],
-        isError: true
-      };
-    }
-    if (!data) {
-      return {
-        content: [{ type: "text", text: "Perfil n\xE3o encontrado." }],
-        isError: true
-      };
-    }
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Cr\xE9ditos dispon\xEDveis: ${data.credits ?? 0}` + (data.max_credits ? ` (limite: ${data.max_credits})` : "") + (data.credits_expire_at ? ` \u2014 expira em ${data.credits_expire_at}` : "")
-        }
-      ],
-      structuredContent: {
+    const { data, error } = await supabase.from("profiles").select(
+      "id, name, email, phone, state, city, avatar_url, credits, max_credits, credits_expire_at, plan_id, subscription_status, team_id, tutorial_completed, created_at"
+    ).eq("id", uid).maybeSingle();
+    if (error) return fail("db_error", error.message);
+    if (!data) return fail("not_found", "Perfil n\xE3o encontrado.");
+    return ok(stripSensitive(data), `Perfil de ${data.name ?? data.email}`);
+  }
+});
+
+// src/lib/mcp/tools/profile-update.ts
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z } from "npm:zod@^3.25.76";
+var profile_update_default = defineTool2({
+  name: "profile_update",
+  title: "Atualizar perfil",
+  description: "Atualiza campos do perfil do usu\xE1rio autenticado (nome, telefone, cidade, estado, avatar). N\xE3o permite alterar email, cr\xE9ditos, plano ou papel.",
+  inputSchema: {
+    name: z.string().trim().min(1).max(100).optional(),
+    phone: z.string().trim().max(30).optional(),
+    city: z.string().trim().max(100).optional(),
+    state: z.string().trim().max(50).optional(),
+    avatar_url: z.string().url().max(500).optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const patch = {};
+    for (const [k, v] of Object.entries(input)) if (v !== void 0) patch[k] = v;
+    if (Object.keys(patch).length === 0)
+      return fail("invalid_input", "Envie ao menos um campo para atualizar.");
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("profiles").update(patch).eq("id", uid).select("id, name, phone, city, state, avatar_url").maybeSingle();
+    const result = error ? fail("db_error", error.message) : ok(data, "Perfil atualizado.");
+    return withAudit(
+      ctx,
+      { toolName: "profile_update", action: "update", resourceType: "profile", resourceId: uid, metadata: { fields: Object.keys(patch) } },
+      result
+    );
+  }
+});
+
+// src/lib/mcp/tools/credits-get.ts
+import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.1";
+var credits_get_default = defineTool3({
+  name: "credits_get",
+  title: "Consultar cr\xE9ditos",
+  description: "Retorna o saldo de cr\xE9ditos individuais do usu\xE1rio autenticado.",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("profiles").select("credits, max_credits, credits_expire_at").eq("id", uid).maybeSingle();
+    if (error) return fail("db_error", error.message);
+    if (!data) return fail("not_found", "Perfil n\xE3o encontrado.");
+    return ok(
+      {
         credits: data.credits ?? 0,
         max_credits: data.max_credits ?? null,
         credits_expire_at: data.credits_expire_at ?? null
-      }
-    };
+      },
+      `Cr\xE9ditos dispon\xEDveis: ${data.credits ?? 0}`
+    );
   }
 });
 
-// src/lib/mcp/tools/list-brands.ts
-import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.58.0";
-import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.1";
-function supabaseForUser2(ctx) {
-  return createClient2(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_PUBLISHABLE_KEY,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false }
-    }
-  );
-}
-var list_brands_default = defineTool2({
-  name: "list_brands",
-  title: "Listar marcas",
-  description: "Lista as marcas \xE0s quais o usu\xE1rio autenticado tem acesso no Creator (via RLS).",
-  inputSchema: {},
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async (_input, ctx) => {
-    if (!ctx.isAuthenticated()) {
-      return {
-        content: [{ type: "text", text: "N\xE3o autenticado." }],
-        isError: true
-      };
-    }
-    const supabase = supabaseForUser2(ctx);
-    const { data, error } = await supabase.from("brands").select("id, name, description, tone_of_voice, created_at").order("name").limit(100);
-    if (error) {
-      return {
-        content: [{ type: "text", text: error.message }],
-        isError: true
-      };
-    }
-    const items = data ?? [];
-    const summary = items.length === 0 ? "Nenhuma marca encontrada." : items.map((b) => `\u2022 ${b.name}${b.description ? ` \u2014 ${b.description}` : ""}`).join("\n");
-    return {
-      content: [{ type: "text", text: summary }],
-      structuredContent: { brands: items }
-    };
-  }
-});
-
-// src/lib/mcp/tools/list-recent-content.ts
-import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.58.0";
-import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.1";
-import { z } from "npm:zod@^3.25.76";
-function supabaseForUser3(ctx) {
-  return createClient3(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_PUBLISHABLE_KEY,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false }
-    }
-  );
-}
-var list_recent_content_default = defineTool3({
-  name: "list_recent_content",
-  title: "Listar conte\xFAdos recentes",
-  description: "Lista os conte\xFAdos gerados mais recentes do usu\xE1rio autenticado no Creator (imagens, v\xEDdeos, textos). RLS j\xE1 limita a resultados que o usu\xE1rio pode ver.",
+// src/lib/mcp/tools/credits-history.ts
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z2 } from "npm:zod@^3.25.76";
+var credits_history_default = defineTool4({
+  name: "credits_history",
+  title: "Hist\xF3rico de cr\xE9ditos",
+  description: "Lista os lan\xE7amentos de consumo/adi\xE7\xE3o de cr\xE9ditos do usu\xE1rio autenticado, com pagina\xE7\xE3o.",
   inputSchema: {
-    limit: z.number().int().min(1).max(50).default(10).describe("N\xFAmero m\xE1ximo de itens a retornar (1\u201350). Padr\xE3o: 10.")
+    limit: z2.number().int().min(1).max(PAGINATION_MAX).default(PAGINATION_DEFAULT),
+    offset: z2.number().int().min(0).default(0),
+    action_type: z2.string().max(64).optional()
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async ({ limit }, ctx) => {
-    if (!ctx.isAuthenticated()) {
-      return {
-        content: [{ type: "text", text: "N\xE3o autenticado." }],
-        isError: true
-      };
-    }
-    const supabase = supabaseForUser3(ctx);
-    const { data, error } = await supabase.from("actions").select("id, type, status, created_at, brands(name)").is("deleted_at", null).order("created_at", { ascending: false }).limit(limit);
-    if (error) {
-      return {
-        content: [{ type: "text", text: error.message }],
-        isError: true
-      };
-    }
-    const items = data ?? [];
-    const summary = items.length === 0 ? "Nenhum conte\xFAdo recente encontrado." : items.map((a) => {
-      const brandName = Array.isArray(a.brands) ? a.brands[0]?.name : a.brands?.name;
-      return `\u2022 [${a.type}] ${brandName ?? "\u2014"} \xB7 ${a.status} \xB7 ${a.created_at}`;
-    }).join("\n");
-    return {
-      content: [{ type: "text", text: summary }],
-      structuredContent: { items }
+  handler: async ({ limit, offset, action_type }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    let q = supabase.from("credit_history").select(
+      "id, action_type, credits_used, credits_before, credits_after, description, created_at",
+      { count: "exact" }
+    ).eq("user_id", uid).order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+    if (action_type) q = q.eq("action_type", action_type);
+    const { data, error, count } = await q;
+    if (error) return fail("db_error", error.message);
+    return ok(
+      { items: data ?? [], total: count ?? 0, limit, offset },
+      `${data?.length ?? 0} lan\xE7amento(s).`
+    );
+  }
+});
+
+// src/lib/mcp/tools/brands-list.ts
+import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z3 } from "npm:zod@^3.25.76";
+var brands_list_default = defineTool5({
+  name: "brands_list",
+  title: "Listar marcas",
+  description: "Lista as marcas \xE0s quais o usu\xE1rio autenticado tem acesso (via RLS), com busca por nome e pagina\xE7\xE3o.",
+  inputSchema: {
+    search: z3.string().trim().max(100).optional(),
+    limit: z3.number().int().min(1).max(PAGINATION_MAX).default(PAGINATION_DEFAULT),
+    offset: z3.number().int().min(0).default(0)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ search, limit, offset }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    let q = supabase.from("brands").select(
+      "id, name, responsible, segment, values, keywords, goals, brand_color, avatar_url, created_at, updated_at",
+      { count: "exact" }
+    ).order("name").range(offset, offset + limit - 1);
+    if (search) q = q.ilike("name", `%${search}%`);
+    const { data, error, count } = await q;
+    if (error) return fail("db_error", error.message);
+    return ok(
+      { items: data ?? [], total: count ?? 0, limit, offset },
+      `${data?.length ?? 0} marca(s) encontrada(s).`
+    );
+  }
+});
+
+// src/lib/mcp/tools/brands-get.ts
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z4 } from "npm:zod@^3.25.76";
+var brands_get_default = defineTool6({
+  name: "brands_get",
+  title: "Obter marca",
+  description: "Retorna os detalhes completos de uma marca por ID.",
+  inputSchema: { id: z4.string().uuid() },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("brands").select("*").eq("id", id).maybeSingle();
+    if (error) return fail("db_error", error.message);
+    if (!data) return fail("not_found", "Marca n\xE3o encontrada ou sem acesso.");
+    return ok(data, `Marca: ${data.name}`);
+  }
+});
+
+// src/lib/mcp/tools/brands-create.ts
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z5 } from "npm:zod@^3.25.76";
+var brandFields = {
+  name: z5.string().trim().min(1).max(100),
+  responsible: z5.string().trim().min(1).max(100),
+  segment: z5.string().trim().min(1).max(100),
+  values: z5.string().trim().max(2e3).optional(),
+  keywords: z5.string().trim().max(500).optional(),
+  goals: z5.string().trim().max(2e3).optional(),
+  promise: z5.string().trim().max(1e3).optional(),
+  brand_color: z5.string().trim().max(20).optional(),
+  avatar_url: z5.string().url().max(500).optional()
+};
+var brands_create_default = defineTool7({
+  name: "brands_create",
+  title: "Criar marca",
+  description: "Cria uma nova marca vinculada ao usu\xE1rio autenticado.",
+  inputSchema: brandFields,
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data: profile } = await supabase.from("profiles").select("team_id, current_workspace_id").eq("id", uid).maybeSingle();
+    const payload = {
+      ...Object.fromEntries(Object.entries(input).filter(([, v]) => v !== void 0)),
+      user_id: uid,
+      team_id: profile?.team_id ?? null,
+      workspace_id: profile?.current_workspace_id ?? null
     };
+    const { data, error } = await supabase.from("brands").insert(payload).select("id, name, segment, created_at").maybeSingle();
+    const result = error ? fail("db_error", error.message) : ok(data, `Marca criada: ${data?.name}`);
+    return withAudit(
+      ctx,
+      { toolName: "brands_create", action: "create", resourceType: "brand", resourceId: data?.id ?? null },
+      result
+    );
+  }
+});
+
+// src/lib/mcp/tools/brands-update.ts
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z6 } from "npm:zod@^3.25.76";
+var brands_update_default = defineTool8({
+  name: "brands_update",
+  title: "Atualizar marca",
+  description: "Atualiza campos edit\xE1veis de uma marca. RLS garante que s\xF3 o dono/equipe pode alterar.",
+  inputSchema: {
+    id: z6.string().uuid(),
+    name: z6.string().trim().min(1).max(100).optional(),
+    responsible: z6.string().trim().min(1).max(100).optional(),
+    segment: z6.string().trim().min(1).max(100).optional(),
+    values: z6.string().trim().max(2e3).optional(),
+    keywords: z6.string().trim().max(500).optional(),
+    goals: z6.string().trim().max(2e3).optional(),
+    promise: z6.string().trim().max(1e3).optional(),
+    brand_color: z6.string().trim().max(20).optional(),
+    avatar_url: z6.string().url().max(500).optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ id, ...rest }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const patch = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== void 0));
+    if (Object.keys(patch).length === 0)
+      return fail("invalid_input", "Envie ao menos um campo para atualizar.");
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("brands").update(patch).eq("id", id).select("id, name").maybeSingle();
+    const result = !data && !error ? fail("not_found", "Marca n\xE3o encontrada ou sem permiss\xE3o.") : error ? fail("db_error", error.message) : ok(data, `Marca atualizada.`);
+    return withAudit(
+      ctx,
+      { toolName: "brands_update", action: "update", resourceType: "brand", resourceId: id, metadata: { fields: Object.keys(patch) } },
+      result
+    );
+  }
+});
+
+// src/lib/mcp/tools/brands-delete.ts
+import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z7 } from "npm:zod@^3.25.76";
+var brands_delete_default = defineTool9({
+  name: "brands_delete",
+  title: "Excluir marca",
+  description: "OPERA\xC7\xC3O DESTRUTIVA. Exclui permanentemente uma marca. Exige confirm=true. RLS garante que s\xF3 o dono/equipe pode excluir.",
+  inputSchema: {
+    id: z7.string().uuid(),
+    confirm: z7.literal(true).describe("Precisa ser explicitamente true para confirmar.")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+  handler: async ({ id, confirm }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    if (!confirm) return fail("confirmation_required", "Envie confirm=true para excluir.");
+    const supabase = supabaseForUser(ctx);
+    const { error, count } = await supabase.from("brands").delete({ count: "exact" }).eq("id", id);
+    const result = error ? fail("db_error", error.message) : (count ?? 0) === 0 ? fail("not_found", "Marca n\xE3o encontrada ou sem permiss\xE3o.") : ok({ id, deleted: true }, "Marca exclu\xEDda.");
+    return withAudit(
+      ctx,
+      { toolName: "brands_delete", action: "delete", resourceType: "brand", resourceId: id },
+      result
+    );
+  }
+});
+
+// src/lib/mcp/tools/personas-list.ts
+import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z8 } from "npm:zod@^3.25.76";
+var personas_list_default = defineTool10({
+  name: "personas_list",
+  title: "Listar personas",
+  description: "Lista as personas \xE0s quais o usu\xE1rio autenticado tem acesso, com pagina\xE7\xE3o e filtro por marca.",
+  inputSchema: {
+    brand_id: z8.string().uuid().optional(),
+    search: z8.string().trim().max(100).optional(),
+    limit: z8.number().int().min(1).max(PAGINATION_MAX).default(PAGINATION_DEFAULT),
+    offset: z8.number().int().min(0).default(0)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id, search, limit, offset }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    let q = supabase.from("personas").select("id, name, brand_id, gender, age, location, main_goal, created_at", { count: "exact" }).order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+    if (brand_id) q = q.eq("brand_id", brand_id);
+    if (search) q = q.ilike("name", `%${search}%`);
+    const { data, error, count } = await q;
+    if (error) return fail("db_error", error.message);
+    return ok({ items: data ?? [], total: count ?? 0, limit, offset }, `${data?.length ?? 0} persona(s).`);
+  }
+});
+
+// src/lib/mcp/tools/personas-get.ts
+import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z9 } from "npm:zod@^3.25.76";
+var personas_get_default = defineTool11({
+  name: "personas_get",
+  title: "Obter persona",
+  description: "Retorna os detalhes completos de uma persona por ID.",
+  inputSchema: { id: z9.string().uuid() },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("personas").select("*").eq("id", id).maybeSingle();
+    if (error) return fail("db_error", error.message);
+    if (!data) return fail("not_found", "Persona n\xE3o encontrada ou sem acesso.");
+    return ok(data, `Persona: ${data.name}`);
+  }
+});
+
+// src/lib/mcp/tools/personas-create.ts
+import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z10 } from "npm:zod@^3.25.76";
+var personas_create_default = defineTool12({
+  name: "personas_create",
+  title: "Criar persona",
+  description: "Cria uma nova persona vinculada a uma marca do usu\xE1rio.",
+  inputSchema: {
+    brand_id: z10.string().uuid(),
+    name: z10.string().trim().min(1).max(100),
+    gender: z10.string().trim().max(50).optional(),
+    age: z10.string().trim().max(50).optional(),
+    location: z10.string().trim().max(200).optional(),
+    professional_context: z10.string().trim().max(2e3).optional(),
+    beliefs_and_interests: z10.string().trim().max(2e3).optional(),
+    main_goal: z10.string().trim().max(2e3).optional(),
+    challenges: z10.string().trim().max(2e3).optional(),
+    preferred_tone_of_voice: z10.string().trim().max(500).optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data: profile } = await supabase.from("profiles").select("team_id, current_workspace_id").eq("id", uid).maybeSingle();
+    const payload = {
+      ...Object.fromEntries(Object.entries(input).filter(([, v]) => v !== void 0)),
+      user_id: uid,
+      team_id: profile?.team_id ?? null,
+      workspace_id: profile?.current_workspace_id ?? null
+    };
+    const { data, error } = await supabase.from("personas").insert(payload).select("id, name, brand_id").maybeSingle();
+    const result = error ? fail("db_error", error.message) : ok(data, `Persona criada: ${data?.name}`);
+    return withAudit(ctx, { toolName: "personas_create", action: "create", resourceType: "persona", resourceId: data?.id ?? null }, result);
+  }
+});
+
+// src/lib/mcp/tools/personas-update.ts
+import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z11 } from "npm:zod@^3.25.76";
+var personas_update_default = defineTool13({
+  name: "personas_update",
+  title: "Atualizar persona",
+  description: "Atualiza campos edit\xE1veis de uma persona.",
+  inputSchema: {
+    id: z11.string().uuid(),
+    name: z11.string().trim().min(1).max(100).optional(),
+    gender: z11.string().trim().max(50).optional(),
+    age: z11.string().trim().max(50).optional(),
+    location: z11.string().trim().max(200).optional(),
+    professional_context: z11.string().trim().max(2e3).optional(),
+    beliefs_and_interests: z11.string().trim().max(2e3).optional(),
+    main_goal: z11.string().trim().max(2e3).optional(),
+    challenges: z11.string().trim().max(2e3).optional(),
+    preferred_tone_of_voice: z11.string().trim().max(500).optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ id, ...rest }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const patch = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== void 0));
+    if (Object.keys(patch).length === 0) return fail("invalid_input", "Envie ao menos um campo.");
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("personas").update(patch).eq("id", id).select("id, name").maybeSingle();
+    const result = error ? fail("db_error", error.message) : !data ? fail("not_found", "Persona n\xE3o encontrada ou sem permiss\xE3o.") : ok(data, "Persona atualizada.");
+    return withAudit(ctx, { toolName: "personas_update", action: "update", resourceType: "persona", resourceId: id, metadata: { fields: Object.keys(patch) } }, result);
+  }
+});
+
+// src/lib/mcp/tools/personas-delete.ts
+import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z12 } from "npm:zod@^3.25.76";
+var personas_delete_default = defineTool14({
+  name: "personas_delete",
+  title: "Excluir persona",
+  description: "OPERA\xC7\xC3O DESTRUTIVA. Exclui permanentemente uma persona. Exige confirm=true.",
+  inputSchema: { id: z12.string().uuid(), confirm: z12.literal(true) },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+  handler: async ({ id, confirm }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    if (!confirm) return fail("confirmation_required", "Envie confirm=true para excluir.");
+    const supabase = supabaseForUser(ctx);
+    const { error, count } = await supabase.from("personas").delete({ count: "exact" }).eq("id", id);
+    const result = error ? fail("db_error", error.message) : (count ?? 0) === 0 ? fail("not_found", "Persona n\xE3o encontrada ou sem permiss\xE3o.") : ok({ id, deleted: true }, "Persona exclu\xEDda.");
+    return withAudit(ctx, { toolName: "personas_delete", action: "delete", resourceType: "persona", resourceId: id }, result);
+  }
+});
+
+// src/lib/mcp/tools/themes-list.ts
+import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z13 } from "npm:zod@^3.25.76";
+var themes_list_default = defineTool15({
+  name: "themes_list",
+  title: "Listar temas estrat\xE9gicos",
+  description: "Lista temas estrat\xE9gicos acess\xEDveis ao usu\xE1rio, com filtro por marca.",
+  inputSchema: {
+    brand_id: z13.string().uuid().optional(),
+    search: z13.string().trim().max(100).optional(),
+    limit: z13.number().int().min(1).max(PAGINATION_MAX).default(PAGINATION_DEFAULT),
+    offset: z13.number().int().min(0).default(0)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id, search, limit, offset }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    let q = supabase.from("strategic_themes").select("id, title, brand_id, tone_of_voice, target_audience, created_at", { count: "exact" }).order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+    if (brand_id) q = q.eq("brand_id", brand_id);
+    if (search) q = q.ilike("title", `%${search}%`);
+    const { data, error, count } = await q;
+    if (error) return fail("db_error", error.message);
+    return ok({ items: data ?? [], total: count ?? 0, limit, offset }, `${data?.length ?? 0} tema(s).`);
+  }
+});
+
+// src/lib/mcp/tools/themes-get.ts
+import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z14 } from "npm:zod@^3.25.76";
+var themes_get_default = defineTool16({
+  name: "themes_get",
+  title: "Obter tema estrat\xE9gico",
+  description: "Retorna detalhes completos de um tema estrat\xE9gico por ID.",
+  inputSchema: { id: z14.string().uuid() },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("strategic_themes").select("*").eq("id", id).maybeSingle();
+    if (error) return fail("db_error", error.message);
+    if (!data) return fail("not_found", "Tema n\xE3o encontrado ou sem acesso.");
+    return ok(data, `Tema: ${data.title}`);
+  }
+});
+
+// src/lib/mcp/tools/themes-create.ts
+import { defineTool as defineTool17 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z15 } from "npm:zod@^3.25.76";
+var themes_create_default = defineTool17({
+  name: "themes_create",
+  title: "Criar tema estrat\xE9gico",
+  description: "Cria um novo tema estrat\xE9gico vinculado a uma marca.",
+  inputSchema: {
+    brand_id: z15.string().uuid(),
+    title: z15.string().trim().min(1).max(200),
+    description: z15.string().trim().max(2e3).optional(),
+    tone_of_voice: z15.string().trim().max(500).optional(),
+    target_audience: z15.string().trim().max(1e3).optional(),
+    hashtags: z15.string().trim().max(1e3).optional(),
+    objectives: z15.string().trim().max(2e3).optional(),
+    content_format: z15.string().trim().max(500).optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data: profile } = await supabase.from("profiles").select("team_id, current_workspace_id").eq("id", uid).maybeSingle();
+    const payload = {
+      ...Object.fromEntries(Object.entries(input).filter(([, v]) => v !== void 0)),
+      user_id: uid,
+      team_id: profile?.team_id ?? null,
+      workspace_id: profile?.current_workspace_id ?? null
+    };
+    const { data, error } = await supabase.from("strategic_themes").insert(payload).select("id, title").maybeSingle();
+    const result = error ? fail("db_error", error.message) : ok(data, `Tema criado: ${data?.title}`);
+    return withAudit(ctx, { toolName: "themes_create", action: "create", resourceType: "theme", resourceId: data?.id ?? null }, result);
+  }
+});
+
+// src/lib/mcp/tools/themes-update.ts
+import { defineTool as defineTool18 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z16 } from "npm:zod@^3.25.76";
+var themes_update_default = defineTool18({
+  name: "themes_update",
+  title: "Atualizar tema estrat\xE9gico",
+  description: "Atualiza campos edit\xE1veis de um tema estrat\xE9gico.",
+  inputSchema: {
+    id: z16.string().uuid(),
+    title: z16.string().trim().min(1).max(200).optional(),
+    description: z16.string().trim().max(2e3).optional(),
+    tone_of_voice: z16.string().trim().max(500).optional(),
+    target_audience: z16.string().trim().max(1e3).optional(),
+    hashtags: z16.string().trim().max(1e3).optional(),
+    objectives: z16.string().trim().max(2e3).optional(),
+    content_format: z16.string().trim().max(500).optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ id, ...rest }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const patch = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== void 0));
+    if (Object.keys(patch).length === 0) return fail("invalid_input", "Envie ao menos um campo.");
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("strategic_themes").update(patch).eq("id", id).select("id, title").maybeSingle();
+    const result = error ? fail("db_error", error.message) : !data ? fail("not_found", "Tema n\xE3o encontrado ou sem permiss\xE3o.") : ok(data, "Tema atualizado.");
+    return withAudit(ctx, { toolName: "themes_update", action: "update", resourceType: "theme", resourceId: id, metadata: { fields: Object.keys(patch) } }, result);
+  }
+});
+
+// src/lib/mcp/tools/themes-delete.ts
+import { defineTool as defineTool19 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z17 } from "npm:zod@^3.25.76";
+var themes_delete_default = defineTool19({
+  name: "themes_delete",
+  title: "Excluir tema estrat\xE9gico",
+  description: "OPERA\xC7\xC3O DESTRUTIVA. Exclui permanentemente um tema estrat\xE9gico. Exige confirm=true.",
+  inputSchema: { id: z17.string().uuid(), confirm: z17.literal(true) },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+  handler: async ({ id, confirm }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    if (!confirm) return fail("confirmation_required", "Envie confirm=true para excluir.");
+    const supabase = supabaseForUser(ctx);
+    const { error, count } = await supabase.from("strategic_themes").delete({ count: "exact" }).eq("id", id);
+    const result = error ? fail("db_error", error.message) : (count ?? 0) === 0 ? fail("not_found", "Tema n\xE3o encontrado ou sem permiss\xE3o.") : ok({ id, deleted: true }, "Tema exclu\xEDdo.");
+    return withAudit(ctx, { toolName: "themes_delete", action: "delete", resourceType: "theme", resourceId: id }, result);
+  }
+});
+
+// src/lib/mcp/tools/content-list.ts
+import { defineTool as defineTool20 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z18 } from "npm:zod@^3.25.76";
+var content_list_default = defineTool20({
+  name: "content_list",
+  title: "Listar conte\xFAdos",
+  description: "Lista conte\xFAdos gerados (imagens, v\xEDdeos, textos, carross\xE9is) acess\xEDveis ao usu\xE1rio. Suporta filtros por marca, tipo, aprovado, incluir/excluir arquivados, e pagina\xE7\xE3o.",
+  inputSchema: {
+    brand_id: z18.string().uuid().optional(),
+    type: z18.string().max(64).optional(),
+    approved: z18.boolean().optional(),
+    include_archived: z18.boolean().default(false),
+    only_root: z18.boolean().default(true).describe("Apenas a\xE7\xF5es raiz (sem parent_action_id)."),
+    limit: z18.number().int().min(1).max(PAGINATION_MAX).default(PAGINATION_DEFAULT),
+    offset: z18.number().int().min(0).default(0)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id, type, approved, include_archived, only_root, limit, offset }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    let q = supabase.from("actions").select("id, type, status, approved, brand_id, parent_action_id, created_at, deleted_at, brands(name)", { count: "exact" }).order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+    if (!include_archived) q = q.is("deleted_at", null);
+    if (only_root) q = q.is("parent_action_id", null);
+    if (brand_id) q = q.eq("brand_id", brand_id);
+    if (type) q = q.eq("type", type);
+    if (approved !== void 0) q = q.eq("approved", approved);
+    const { data, error, count } = await q;
+    if (error) return fail("db_error", error.message);
+    return ok({ items: data ?? [], total: count ?? 0, limit, offset }, `${data?.length ?? 0} conte\xFAdo(s).`);
+  }
+});
+
+// src/lib/mcp/tools/content-get.ts
+import { defineTool as defineTool21 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z19 } from "npm:zod@^3.25.76";
+var content_get_default = defineTool21({
+  name: "content_get",
+  title: "Obter conte\xFAdo",
+  description: "Retorna detalhes completos de um conte\xFAdo (action) por ID, incluindo details e result.",
+  inputSchema: { id: z19.string().uuid() },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("actions").select("id, type, status, approved, brand_id, parent_action_id, details, result, thumb_path, asset_path, created_at, updated_at, deleted_at").eq("id", id).maybeSingle();
+    if (error) return fail("db_error", error.message);
+    if (!data) return fail("not_found", "Conte\xFAdo n\xE3o encontrado ou sem acesso.");
+    return ok(data, `Conte\xFAdo ${data.type}`);
+  }
+});
+
+// src/lib/mcp/tools/content-approve.ts
+import { defineTool as defineTool22 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z20 } from "npm:zod@^3.25.76";
+var content_approve_default = defineTool22({
+  name: "content_approve",
+  title: "Aprovar conte\xFAdo",
+  description: "Marca um conte\xFAdo como aprovado.",
+  inputSchema: { id: z20.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("actions").update({ approved: true }).eq("id", id).select("id, approved").maybeSingle();
+    const result = error ? fail("db_error", error.message) : !data ? fail("not_found", "Conte\xFAdo n\xE3o encontrado ou sem permiss\xE3o.") : ok(data, "Conte\xFAdo aprovado.");
+    return withAudit(ctx, { toolName: "content_approve", action: "approve", resourceType: "action", resourceId: id }, result);
+  }
+});
+
+// src/lib/mcp/tools/content-reject.ts
+import { defineTool as defineTool23 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z21 } from "npm:zod@^3.25.76";
+var content_reject_default = defineTool23({
+  name: "content_reject",
+  title: "Rejeitar conte\xFAdo",
+  description: "Remove a aprova\xE7\xE3o de um conte\xFAdo (approved=false).",
+  inputSchema: { id: z21.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("actions").update({ approved: false }).eq("id", id).select("id, approved").maybeSingle();
+    const result = error ? fail("db_error", error.message) : !data ? fail("not_found", "Conte\xFAdo n\xE3o encontrado ou sem permiss\xE3o.") : ok(data, "Aprova\xE7\xE3o removida.");
+    return withAudit(ctx, { toolName: "content_reject", action: "reject", resourceType: "action", resourceId: id }, result);
+  }
+});
+
+// src/lib/mcp/tools/content-archive.ts
+import { defineTool as defineTool24 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z22 } from "npm:zod@^3.25.76";
+var content_archive_default = defineTool24({
+  name: "content_archive",
+  title: "Arquivar conte\xFAdo (lixeira)",
+  description: "Envia o conte\xFAdo para a lixeira (soft-delete via deleted_at). Reten\xE7\xE3o padr\xE3o: 30 dias. Use content_restore para desarquivar.",
+  inputSchema: { id: z22.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("actions").update({ deleted_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", id).select("id, deleted_at").maybeSingle();
+    const result = error ? fail("db_error", error.message) : !data ? fail("not_found", "Conte\xFAdo n\xE3o encontrado ou sem permiss\xE3o.") : ok(data, "Conte\xFAdo enviado para a lixeira.");
+    return withAudit(ctx, { toolName: "content_archive", action: "archive", resourceType: "action", resourceId: id }, result);
+  }
+});
+
+// src/lib/mcp/tools/content-restore.ts
+import { defineTool as defineTool25 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z23 } from "npm:zod@^3.25.76";
+var content_restore_default = defineTool25({
+  name: "content_restore",
+  title: "Restaurar conte\xFAdo da lixeira",
+  description: "Restaura um conte\xFAdo arquivado (limpa deleted_at).",
+  inputSchema: { id: z23.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("actions").update({ deleted_at: null }).eq("id", id).select("id, deleted_at").maybeSingle();
+    const result = error ? fail("db_error", error.message) : !data ? fail("not_found", "Conte\xFAdo n\xE3o encontrado ou sem permiss\xE3o.") : ok(data, "Conte\xFAdo restaurado.");
+    return withAudit(ctx, { toolName: "content_restore", action: "restore", resourceType: "action", resourceId: id }, result);
+  }
+});
+
+// src/lib/mcp/tools/content-favorite.ts
+import { defineTool as defineTool26 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z24 } from "npm:zod@^3.25.76";
+var content_favorite_default = defineTool26({
+  name: "content_favorite",
+  title: "Favoritar conte\xFAdo",
+  description: "Adiciona um conte\xFAdo aos favoritos com escopo 'me' (pessoal) ou 'team' (compartilhado com a equipe).",
+  inputSchema: {
+    action_id: z24.string().uuid(),
+    scope: z24.enum(["me", "team"]).default("me")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ action_id, scope }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data: profile } = await supabase.from("profiles").select("team_id, current_workspace_id").eq("id", uid).maybeSingle();
+    const payload = {
+      user_id: uid,
+      action_id,
+      scope,
+      team_id: scope === "team" ? profile?.team_id ?? null : null,
+      workspace_id: profile?.current_workspace_id ?? null
+    };
+    const { data, error } = await supabase.from("action_favorites").insert(payload).select("id, scope").maybeSingle();
+    const result = error ? error.code === "23505" ? ok({ already: true }, "J\xE1 estava favoritado.") : fail("db_error", error.message) : ok(data, "Favoritado.");
+    return withAudit(ctx, { toolName: "content_favorite", action: "favorite", resourceType: "action", resourceId: action_id, metadata: { scope } }, result);
+  }
+});
+
+// src/lib/mcp/tools/content-unfavorite.ts
+import { defineTool as defineTool27 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z25 } from "npm:zod@^3.25.76";
+var content_unfavorite_default = defineTool27({
+  name: "content_unfavorite",
+  title: "Remover dos favoritos",
+  description: "Remove um conte\xFAdo dos favoritos do usu\xE1rio no escopo indicado.",
+  inputSchema: {
+    action_id: z25.string().uuid(),
+    scope: z25.enum(["me", "team"]).default("me")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ action_id, scope }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { error, count } = await supabase.from("action_favorites").delete({ count: "exact" }).eq("action_id", action_id).eq("user_id", uid).eq("scope", scope);
+    const result = error ? fail("db_error", error.message) : ok({ removed: count ?? 0 }, `${count ?? 0} favorito(s) removido(s).`);
+    return withAudit(ctx, { toolName: "content_unfavorite", action: "unfavorite", resourceType: "action", resourceId: action_id, metadata: { scope } }, result);
+  }
+});
+
+// src/lib/mcp/tools/categories-list.ts
+import { defineTool as defineTool28 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z26 } from "npm:zod@^3.25.76";
+var categories_list_default = defineTool28({
+  name: "categories_list",
+  title: "Listar categorias",
+  description: "Lista as categorias de conte\xFAdo acess\xEDveis ao usu\xE1rio (pr\xF3prias ou compartilhadas via equipe).",
+  inputSchema: {
+    limit: z26.number().int().min(1).max(PAGINATION_MAX).default(PAGINATION_DEFAULT),
+    offset: z26.number().int().min(0).default(0)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ limit, offset }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error, count } = await supabase.from("action_categories").select("id, name, description, color, visibility, user_id, team_id, created_at", { count: "exact" }).order("name").range(offset, offset + limit - 1);
+    if (error) return fail("db_error", error.message);
+    return ok({ items: data ?? [], total: count ?? 0, limit, offset }, `${data?.length ?? 0} categoria(s).`);
+  }
+});
+
+// src/lib/mcp/tools/categories-create.ts
+import { defineTool as defineTool29 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z27 } from "npm:zod@^3.25.76";
+var categories_create_default = defineTool29({
+  name: "categories_create",
+  title: "Criar categoria",
+  description: "Cria uma nova categoria de conte\xFAdo. Visibilidade: 'personal' (s\xF3 o dono) ou 'team' (equipe do usu\xE1rio).",
+  inputSchema: {
+    name: z27.string().trim().min(1).max(100),
+    description: z27.string().trim().max(500).optional(),
+    color: z27.string().trim().max(20).optional(),
+    visibility: z27.enum(["personal", "team"]).default("personal")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data: profile } = await supabase.from("profiles").select("team_id, current_workspace_id").eq("id", uid).maybeSingle();
+    if (input.visibility === "team" && !profile?.team_id)
+      return fail("invalid_input", "Voc\xEA precisa pertencer a uma equipe para criar categorias com visibilidade 'team'.");
+    const payload = {
+      name: input.name,
+      description: input.description ?? null,
+      color: input.color ?? null,
+      visibility: input.visibility,
+      user_id: uid,
+      team_id: input.visibility === "team" ? profile?.team_id : null,
+      workspace_id: profile?.current_workspace_id ?? null
+    };
+    const { data, error } = await supabase.from("action_categories").insert(payload).select("id, name, visibility").maybeSingle();
+    const result = error ? fail("db_error", error.message) : ok(data, `Categoria criada: ${data?.name}`);
+    return withAudit(ctx, { toolName: "categories_create", action: "create", resourceType: "category", resourceId: data?.id ?? null }, result);
+  }
+});
+
+// src/lib/mcp/tools/categories-update.ts
+import { defineTool as defineTool30 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z28 } from "npm:zod@^3.25.76";
+var categories_update_default = defineTool30({
+  name: "categories_update",
+  title: "Atualizar categoria",
+  description: "Atualiza nome, descri\xE7\xE3o, cor ou visibilidade de uma categoria.",
+  inputSchema: {
+    id: z28.string().uuid(),
+    name: z28.string().trim().min(1).max(100).optional(),
+    description: z28.string().trim().max(500).optional(),
+    color: z28.string().trim().max(20).optional(),
+    visibility: z28.enum(["personal", "team"]).optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ id, ...rest }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const patch = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== void 0));
+    if (Object.keys(patch).length === 0) return fail("invalid_input", "Envie ao menos um campo.");
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("action_categories").update(patch).eq("id", id).select("id, name").maybeSingle();
+    const result = error ? fail("db_error", error.message) : !data ? fail("not_found", "Categoria n\xE3o encontrada ou sem permiss\xE3o.") : ok(data, "Categoria atualizada.");
+    return withAudit(ctx, { toolName: "categories_update", action: "update", resourceType: "category", resourceId: id, metadata: { fields: Object.keys(patch) } }, result);
+  }
+});
+
+// src/lib/mcp/tools/categories-delete.ts
+import { defineTool as defineTool31 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z29 } from "npm:zod@^3.25.76";
+var categories_delete_default = defineTool31({
+  name: "categories_delete",
+  title: "Excluir categoria",
+  description: "OPERA\xC7\xC3O DESTRUTIVA. Exclui uma categoria. Exige confirm=true.",
+  inputSchema: { id: z29.string().uuid(), confirm: z29.literal(true) },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+  handler: async ({ id, confirm }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    if (!confirm) return fail("confirmation_required", "Envie confirm=true.");
+    const supabase = supabaseForUser(ctx);
+    const { error, count } = await supabase.from("action_categories").delete({ count: "exact" }).eq("id", id);
+    const result = error ? fail("db_error", error.message) : (count ?? 0) === 0 ? fail("not_found", "Categoria n\xE3o encontrada ou sem permiss\xE3o.") : ok({ id, deleted: true }, "Categoria exclu\xEDda.");
+    return withAudit(ctx, { toolName: "categories_delete", action: "delete", resourceType: "category", resourceId: id }, result);
+  }
+});
+
+// src/lib/mcp/tools/categories-add-item.ts
+import { defineTool as defineTool32 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z30 } from "npm:zod@^3.25.76";
+var categories_add_item_default = defineTool32({
+  name: "categories_add_item",
+  title: "Adicionar conte\xFAdo a categoria",
+  description: "Adiciona uma action (conte\xFAdo) a uma categoria. Requer papel de Dono ou Editor na categoria.",
+  inputSchema: { category_id: z30.string().uuid(), action_id: z30.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ category_id, action_id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("action_category_items").insert({ category_id, action_id, added_by: uid }).select("id").maybeSingle();
+    const result = error ? error.code === "23505" ? ok({ already: true }, "Item j\xE1 estava na categoria.") : fail("db_error", error.message) : ok(data, "Item adicionado \xE0 categoria.");
+    return withAudit(ctx, { toolName: "categories_add_item", action: "add_item", resourceType: "category", resourceId: category_id, metadata: { action_id } }, result);
+  }
+});
+
+// src/lib/mcp/tools/categories-remove-item.ts
+import { defineTool as defineTool33 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z31 } from "npm:zod@^3.25.76";
+var categories_remove_item_default = defineTool33({
+  name: "categories_remove_item",
+  title: "Remover conte\xFAdo de categoria",
+  description: "Remove uma action de uma categoria. Requer papel de Dono ou Editor na categoria.",
+  inputSchema: { category_id: z31.string().uuid(), action_id: z31.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ category_id, action_id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { error, count } = await supabase.from("action_category_items").delete({ count: "exact" }).eq("category_id", category_id).eq("action_id", action_id);
+    const result = error ? fail("db_error", error.message) : ok({ removed: count ?? 0 }, `${count ?? 0} item(ns) removido(s).`);
+    return withAudit(ctx, { toolName: "categories_remove_item", action: "remove_item", resourceType: "category", resourceId: category_id, metadata: { action_id } }, result);
+  }
+});
+
+// src/lib/mcp/tools/notifications-list.ts
+import { defineTool as defineTool34 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z32 } from "npm:zod@^3.25.76";
+var notifications_list_default = defineTool34({
+  name: "notifications_list",
+  title: "Listar notifica\xE7\xF5es",
+  description: "Lista as notifica\xE7\xF5es do usu\xE1rio autenticado, com filtro por lida/n\xE3o lida.",
+  inputSchema: {
+    only_unread: z32.boolean().default(false),
+    limit: z32.number().int().min(1).max(PAGINATION_MAX).default(PAGINATION_DEFAULT),
+    offset: z32.number().int().min(0).default(0)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ only_unread, limit, offset }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    let q = supabase.from("notifications").select("id, type, title, message, read, created_at", { count: "exact" }).eq("user_id", uid).order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+    if (only_unread) q = q.eq("read", false);
+    const { data, error, count } = await q;
+    if (error) return fail("db_error", error.message);
+    return ok({ items: data ?? [], total: count ?? 0, limit, offset }, `${data?.length ?? 0} notifica\xE7\xE3o(\xF5es).`);
+  }
+});
+
+// src/lib/mcp/tools/notifications-mark-read.ts
+import { defineTool as defineTool35 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z33 } from "npm:zod@^3.25.76";
+var notifications_mark_read_default = defineTool35({
+  name: "notifications_mark_read",
+  title: "Marcar notifica\xE7\xE3o como lida",
+  description: "Marca uma notifica\xE7\xE3o como lida.",
+  inputSchema: { id: z33.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("notifications").update({ read: true }).eq("id", id).eq("user_id", uid).select("id, read").maybeSingle();
+    const result = error ? fail("db_error", error.message) : !data ? fail("not_found", "Notifica\xE7\xE3o n\xE3o encontrada.") : ok(data, "Notifica\xE7\xE3o marcada como lida.");
+    return withAudit(ctx, { toolName: "notifications_mark_read", action: "mark_read", resourceType: "notification", resourceId: id }, result);
+  }
+});
+
+// src/lib/mcp/tools/notifications-mark-all-read.ts
+import { defineTool as defineTool36 } from "npm:@lovable.dev/mcp-js@0.20.1";
+var notifications_mark_all_read_default = defineTool36({
+  name: "notifications_mark_all_read",
+  title: "Marcar todas as notifica\xE7\xF5es como lidas",
+  description: "Marca todas as notifica\xE7\xF5es n\xE3o lidas do usu\xE1rio autenticado como lidas.",
+  inputSchema: {},
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { error, count } = await supabase.from("notifications").update({ read: true }, { count: "exact" }).eq("user_id", uid).eq("read", false);
+    const result = error ? fail("db_error", error.message) : ok({ updated: count ?? 0 }, `${count ?? 0} marcada(s) como lida(s).`);
+    return withAudit(ctx, { toolName: "notifications_mark_all_read", action: "mark_all_read", resourceType: "notification" }, result);
+  }
+});
+
+// src/lib/mcp/tools/calendar-list.ts
+import { defineTool as defineTool37 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z34 } from "npm:zod@^3.25.76";
+var calendar_list_default = defineTool37({
+  name: "calendar_list",
+  title: "Listar calend\xE1rios de conte\xFAdo",
+  description: "Lista os calend\xE1rios de conte\xFAdo do usu\xE1rio, com filtro por marca e status.",
+  inputSchema: {
+    brand_id: z34.string().uuid().optional(),
+    status: z34.string().max(64).optional(),
+    limit: z34.number().int().min(1).max(PAGINATION_MAX).default(PAGINATION_DEFAULT),
+    offset: z34.number().int().min(0).default(0)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id, status, limit, offset }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    let q = supabase.from("content_calendars").select("id, name, description, brand_id, reference_month, status, created_at", { count: "exact" }).order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+    if (brand_id) q = q.eq("brand_id", brand_id);
+    if (status) q = q.eq("status", status);
+    const { data, error, count } = await q;
+    if (error) return fail("db_error", error.message);
+    return ok({ items: data ?? [], total: count ?? 0, limit, offset }, `${data?.length ?? 0} calend\xE1rio(s).`);
+  }
+});
+
+// src/lib/mcp/tools/calendar-get.ts
+import { defineTool as defineTool38 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z35 } from "npm:zod@^3.25.76";
+var calendar_get_default = defineTool38({
+  name: "calendar_get",
+  title: "Obter calend\xE1rio de conte\xFAdo",
+  description: "Retorna os detalhes de um calend\xE1rio e seus itens (calendar_items).",
+  inputSchema: { id: z35.string().uuid() },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    const { data: calendar, error: e1 } = await supabase.from("content_calendars").select("*").eq("id", id).maybeSingle();
+    if (e1) return fail("db_error", e1.message);
+    if (!calendar) return fail("not_found", "Calend\xE1rio n\xE3o encontrado ou sem acesso.");
+    const { data: items, error: e2 } = await supabase.from("calendar_items").select("id, title, theme, scheduled_date, position, stage, calendar_approved, briefing_approved, design_approved, final_approved").eq("calendar_id", id).order("position");
+    if (e2) return fail("db_error", e2.message);
+    return ok({ calendar, items: items ?? [] }, `Calend\xE1rio: ${calendar.name} (${items?.length ?? 0} itens).`);
+  }
+});
+
+// src/lib/mcp/tools/templates-list.ts
+import { defineTool as defineTool39 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z36 } from "npm:zod@^3.25.76";
+var templates_list_default = defineTool39({
+  name: "templates_list",
+  title: "Listar templates de marca",
+  description: "Lista os templates de marca dispon\xEDveis ao usu\xE1rio, com filtro por marca.",
+  inputSchema: {
+    brand_id: z36.string().uuid().optional(),
+    limit: z36.number().int().min(1).max(PAGINATION_MAX).default(PAGINATION_DEFAULT),
+    offset: z36.number().int().min(0).default(0)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id, limit, offset }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    let q = supabase.from("brand_templates").select("id, name, brand_id, status, width, height, created_at", { count: "exact" }).is("deleted_at", null).order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+    if (brand_id) q = q.eq("brand_id", brand_id);
+    const { data, error, count } = await q;
+    if (error) return fail("db_error", error.message);
+    return ok({ items: data ?? [], total: count ?? 0, limit, offset }, `${data?.length ?? 0} template(s).`);
+  }
+});
+
+// src/lib/mcp/tools/audit-log-list.ts
+import { defineTool as defineTool40 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z37 } from "npm:zod@^3.25.76";
+var audit_log_list_default = defineTool40({
+  name: "audit_log_list",
+  title: "Listar log de auditoria",
+  description: "Lista as entradas de auditoria MCP do usu\xE1rio autenticado (administradores de sistema veem todos). Registra opera\xE7\xF5es de escrita realizadas via MCP.",
+  inputSchema: {
+    tool_name: z37.string().max(64).optional(),
+    resource_type: z37.string().max(64).optional(),
+    only_errors: z37.boolean().default(false),
+    limit: z37.number().int().min(1).max(PAGINATION_MAX).default(PAGINATION_DEFAULT),
+    offset: z37.number().int().min(0).default(0)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ tool_name, resource_type, only_errors, limit, offset }, ctx) => {
+    const uid = requireAuth(ctx);
+    if (typeof uid !== "string") return uid;
+    const supabase = supabaseForUser(ctx);
+    let q = supabase.from("mcp_audit_log").select("id, user_id, tool_name, action, resource_type, resource_id, success, error_code, error_message, created_at", { count: "exact" }).order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+    if (tool_name) q = q.eq("tool_name", tool_name);
+    if (resource_type) q = q.eq("resource_type", resource_type);
+    if (only_errors) q = q.eq("success", false);
+    const { data, error, count } = await q;
+    if (error) return fail("db_error", error.message);
+    return ok({ items: data ?? [], total: count ?? 0, limit, offset }, `${data?.length ?? 0} registro(s) de auditoria.`);
   }
 });
 
@@ -158,13 +1140,60 @@ var projectRef = "lcpmqnkorcsclmpfbizr";
 var mcp_default = defineMcp({
   name: "creator-mcp",
   title: "Creator (Lefil) MCP",
-  version: "0.1.0",
-  instructions: "Ferramentas do Creator (Lefil). Use `get_credits` para consultar cr\xE9ditos, `list_brands` para listar marcas do usu\xE1rio e `list_recent_content` para ver conte\xFAdos gerados recentes. Todas as ferramentas atuam como o usu\xE1rio autenticado.",
+  version: "0.2.0",
+  instructions: [
+    "API MCP do Creator (Lefil). Todas as ferramentas atuam como o usu\xE1rio autenticado, respeitando RLS/permiss\xF5es do banco.",
+    "Conven\xE7\xE3o de nomes: `<recurso>_<a\xE7\xE3o>` (ex.: brands_list, brands_create, content_approve).",
+    "Respostas padronizadas em structuredContent: { success, data|error, requestId, timestamp }.",
+    "Opera\xE7\xF5es destrutivas (delete) exigem confirm=true e s\xE3o registradas em mcp_audit_log.",
+    "Pagina\xE7\xE3o: limit (1-100, padr\xE3o 20) e offset (>=0). Use audit_log_list para auditar opera\xE7\xF5es."
+  ].join("\n"),
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
   }),
-  tools: [get_credits_default, list_brands_default, list_recent_content_default]
+  tools: [
+    profile_get_default,
+    profile_update_default,
+    credits_get_default,
+    credits_history_default,
+    brands_list_default,
+    brands_get_default,
+    brands_create_default,
+    brands_update_default,
+    brands_delete_default,
+    personas_list_default,
+    personas_get_default,
+    personas_create_default,
+    personas_update_default,
+    personas_delete_default,
+    themes_list_default,
+    themes_get_default,
+    themes_create_default,
+    themes_update_default,
+    themes_delete_default,
+    content_list_default,
+    content_get_default,
+    content_approve_default,
+    content_reject_default,
+    content_archive_default,
+    content_restore_default,
+    content_favorite_default,
+    content_unfavorite_default,
+    categories_list_default,
+    categories_create_default,
+    categories_update_default,
+    categories_delete_default,
+    categories_add_item_default,
+    categories_remove_item_default,
+    notifications_list_default,
+    notifications_mark_read_default,
+    notifications_mark_all_read_default,
+    calendar_list_default,
+    calendar_get_default,
+    templates_list_default,
+    audit_log_list_default
+  ]
 });
 
 // lovable-mcp-supabase-entry.ts
