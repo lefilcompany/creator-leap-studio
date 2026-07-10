@@ -1131,10 +1131,18 @@ export default function ContentResult() {
                   availableCredits={user?.credits ?? 0}
                   editCost={CREDIT_COSTS.IMAGE_REVIEW}
                   isApplying={isReviewing}
+                  imageUrl={contentData?.mediaUrl}
+                  contextText={[
+                    contentData?.title && `Título: ${contentData.title}`,
+                    contentData?.body && `Corpo: ${contentData.body}`,
+                    contentData?.caption && `Legenda: ${contentData.caption}`,
+                    contentData?.hashtags?.length && `Hashtags: ${contentData.hashtags.join(" ")}`,
+                  ].filter(Boolean).join("\n")}
                   onApply={async (refined) => {
                     await handleSubmitReview(refined, "image");
                   }}
                 />
+
                 <button
                   type="button"
                   onClick={() => {
