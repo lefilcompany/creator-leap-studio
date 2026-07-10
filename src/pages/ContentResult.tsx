@@ -1276,7 +1276,7 @@ export default function ContentResult() {
                   <Button variant="outline" onClick={() => { setReviewType(null); setReviewPrompt(""); }} className="flex-1" disabled={isReviewing}>
                     Voltar
                   </Button>
-                  <Button onClick={handleSubmitReview} className="flex-1 gap-2" disabled={!reviewPrompt.trim() || isReviewing || !user?.credits || user.credits <= 0}>
+                  <Button onClick={() => handleSubmitReview()} className="flex-1 gap-2" disabled={!reviewPrompt.trim() || isReviewing || !user?.credits || user.credits <= 0}>
                     {isReviewing ? (
                       <><RefreshCw className="h-4 w-4 animate-spin" />Ajustando...</>
                     ) : (
