@@ -494,11 +494,11 @@ export default function ContentResult() {
 
       const updatedContent = { ...contentData };
 
-      if (reviewType === "caption") {
+      if (effectiveType === "caption") {
         toast.info("Ajustando legenda com base no seu feedback...");
         const { data, error } = await supabase.functions.invoke("revise-caption-openai", {
           body: {
-            prompt: reviewPrompt,
+            prompt: effectivePrompt,
             originalTitle: contentData.title || "",
             originalBody: contentData.body || contentData.caption?.split("\n\n")[1] || "",
             originalHashtags: contentData.hashtags || [],
@@ -526,14 +526,14 @@ export default function ContentResult() {
         toast.info("Editando imagem com base no seu feedback...");
         try {
           console.log("🤖 Enviando requisição para edit-image:", {
-            hasPrompt: !!reviewPrompt,
+            hasPrompt: !!effectivePrompt: effectivePrompt,
             hasImageUrl: !!contentData.mediaUrl,
             hasBrandId: !!originalFormData.brandId,
             hasThemeId: !!originalFormData.themeId
           });
           const { data, error } = await supabase.functions.invoke("edit-image", {
             body: {
-              reviewPrompt,
+              reviewPrompt: effectivePrompt,
               imageUrl: contentData.mediaUrl,
               brandId: originalFormData.brandId,
               themeId: originalFormData.themeId || null,
@@ -643,7 +643,7 @@ export default function ContentResult() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: tipar adequadamente
       setContentData(newContentData as any);
 
-      if (reviewType === "image" && updatedContent.mediaUrl) {
+      if (effectiveType === "image" && updatedContent.mediaUrl) {
         try {
           sessionStorage.setItem(`image_${saved.id}`, updatedContent.mediaUrl);
         } catch (error) {
@@ -660,8 +660,8 @@ export default function ContentResult() {
         title: updatedContent.title,
         body: updatedContent.body,
         hashtags: updatedContent.hashtags,
-        type: reviewType,
-        reviewPrompt,
+        type: effectiveType,
+        reviewPrompt: effectivePrompt,
         usedCredit: true,
         mediaUrl: updatedContent.mediaUrl
       };
@@ -686,8 +686,8 @@ export default function ContentResult() {
         currentVersion: newRevisionCount,
         versions: updatedVersions,
         revisions: [...(saved.revisions || []), {
-          type: reviewType,
-          prompt: reviewPrompt,
+          type: effectiveType,
+          prompt: effectivePrompt,
           timestamp: new Date().toISOString(),
           usedCredit: true
         }]
@@ -717,7 +717,7 @@ export default function ContentResult() {
             title: updatedContent.title,
             body: updatedContent.body || updatedContent.caption,
             hashtags: updatedContent.hashtags,
-            feedback: reviewPrompt
+            feedback: effectivePrompt
           },
           updated_at: new Date().toISOString()
         }).eq("id", saved.actionId);
