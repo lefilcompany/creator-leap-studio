@@ -54,9 +54,12 @@ export default defineTool({
     const summary = items.length === 0
       ? "Nenhum conteúdo recente encontrado."
       : items
-          .map((a: { id: string; type: string; status: string; created_at: string; brands?: { name?: string } | null }) =>
-            `• [${a.type}] ${a.brands?.name ?? "—"} · ${a.status} · ${a.created_at}`,
-          )
+          .map((a) => {
+            const brandName = Array.isArray(a.brands)
+              ? a.brands[0]?.name
+              : (a.brands as { name?: string } | null)?.name;
+            return `• [${a.type}] ${brandName ?? "—"} · ${a.status} · ${a.created_at}`;
+          })
           .join("\n");
 
     return {
