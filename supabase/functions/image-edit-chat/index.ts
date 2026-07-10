@@ -112,6 +112,10 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const messages: ChatMessage[] = Array.isArray(body?.messages) ? body.messages : [];
+    const imageUrl: string | undefined =
+      typeof body?.imageUrl === "string" ? body.imageUrl : undefined;
+    const contextText: string | undefined =
+      typeof body?.contextText === "string" ? body.contextText : undefined;
 
     // First-turn: return the opening question deterministically (no model call needed).
     if (messages.length === 0) {
@@ -133,10 +137,40 @@ serve(async (req) => {
       );
     }
 
-    const geminiContents = messages.map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }],
-    }));
+    // Try to fetch the image so Gemini can literally read the text on it.
+    let imagePart: { inlineData: { mimeType: string; data: string } } | null = null;
+    if (imageUrl) {
+      try {
+        const imgRes = await fetch(imageUrl);
+        if (imgRes.ok) {
+          const buf = new Uint8Array(await imgRes.arrayBuffer());
+          let binary = "";
+          for (let i = 0; i < buf.length; i++) binary += String.fromCharCode(buf[i]);
+          const base64 = btoa(binary);
+          const mimeType = imgRes.headers.get("content-type") || "image/png";
+          imagePart = { inlineData: { mimeType, data: base64 } };
+        }
+      } catch (e) {
+        console.warn("[image-edit-chat] Failed to fetch image for vision:", e);
+      }
+    }
+
+    const geminiContents = messages.map((m, idx) => {
+      const parts: Array<Record<string, unknown>> = [{ text: m.content }];
+      // Attach image + context on the FIRST user message so the model sees it once.
+      if (idx === 0 && m.role === "user") {
+        if (imagePart) parts.unshift(imagePart);
+        if (contextText) {
+          parts.unshift({
+            text: `Contexto da imagem (texto/legenda/prompt usados na geração):\n${contextText}`,
+          });
+        }
+      }
+      return {
+        role: m.role === "assistant" ? "model" : "user",
+        parts,
+      };
+    });
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
