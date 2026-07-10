@@ -950,12 +950,46 @@ export default function ContentResult() {
 
             {/* Right column - Info */}
             <div className="space-y-5 order-2 lg:order-1">
-              {/* Success Title */}
-              <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight">
-                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent font-bold text-3xl">
-                  Conteúdo gerado{"\n"}com sucesso!
-                </span>
-              </h2>
+              {/* Success Title + Criar outro */}
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight">
+                  <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent font-bold text-3xl">
+                    Conteúdo gerado{"\n"}com sucesso!
+                  </span>
+                </h2>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="relative overflow-hidden bg-gradient-to-r from-primary via-secondary to-accent text-white rounded-xl gap-2 h-10 px-4 text-sm font-semibold shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center group flex-shrink-0"
+                    >
+                      <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+                      <Plus className="h-4 w-4 relative z-10" />
+                      <span className="relative z-10">Criar outro</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-60 p-1.5">
+                    <DropdownMenuItem onClick={handleReusePrompt} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-primary/10 hover:bg-primary/10 data-[highlighted]:bg-primary/10 focus:text-foreground data-[highlighted]:text-foreground">
+                      <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/15 shrink-0">
+                        <RefreshCw className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-sm">Mesmo prompt</span>
+                        <span className="text-xs text-muted-foreground">Reutilizar as configurações atuais</span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/create/image")} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-muted hover:bg-muted data-[highlighted]:bg-muted focus:text-foreground data-[highlighted]:text-foreground">
+                      <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted shrink-0">
+                        <Sparkles className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-sm">Começar do zero</span>
+                        <span className="text-xs text-muted-foreground">Criar com novas configurações</span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
 
               {/* Caption Card */}
               <div className="space-y-2">
