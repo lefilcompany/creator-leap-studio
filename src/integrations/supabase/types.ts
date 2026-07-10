@@ -1168,6 +1168,54 @@ export type Database = {
         }
         Relationships: []
       }
+      mcp_audit_log: {
+        Row: {
+          action: string
+          client_id: string | null
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          id: string
+          metadata: Json
+          request_id: string | null
+          resource_id: string | null
+          resource_type: string | null
+          success: boolean
+          tool_name: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          client_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json
+          request_id?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          success: boolean
+          tool_name: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          client_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json
+          request_id?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          success?: boolean
+          tool_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string | null
