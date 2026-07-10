@@ -526,7 +526,7 @@ export default function ContentResult() {
         toast.info("Editando imagem com base no seu feedback...");
         try {
           console.log("🤖 Enviando requisição para edit-image:", {
-            hasPrompt: !!effectivePrompt: effectivePrompt,
+            hasPrompt: !!effectivePrompt,
             hasImageUrl: !!contentData.mediaUrl,
             hasBrandId: !!originalFormData.brandId,
             hasThemeId: !!originalFormData.themeId
