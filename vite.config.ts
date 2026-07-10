@@ -38,6 +38,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     nonBlockingCss(),
+    mcpPlugin(),
   ].filter(Boolean),
   resolve: {
     alias: {
