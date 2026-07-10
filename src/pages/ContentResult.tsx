@@ -38,6 +38,7 @@ import createBanner from "@/assets/create-banner.jpg";
 import { ComplianceAlert, type ComplianceData } from "@/components/ComplianceAlert";
 import { CarouselResultView } from "@/components/create-content/carousel/CarouselResultView";
 import { useQuery } from "@tanstack/react-query";
+import { ImageEditChat } from "@/components/create-content/ImageEditChat";
 
 function PlatformIcon({ platform, className = "h-3.5 w-3.5" }: { platform: string; className?: string }) {
   switch (platform) {
