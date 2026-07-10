@@ -61,7 +61,7 @@ Página de seleção do tipo de criação:
 
 ### 📝 Revisar Conteúdo (/review)
 Revisão inteligente de conteúdos existentes:
-- **Revisão de Imagem**: Analisa e sugere melhorias na imagem. Custo: 4 créditos.
+- **Revisão de Imagem**: Analisa e sugere melhorias na imagem. Custo: 1 crédito.
 - **Revisão de Legenda**: Otimiza texto da legenda. Custo: 2 créditos.
 - **Revisão de Texto para Imagem**: Revisa o texto que aparece na imagem. Custo: 2 créditos.
 
@@ -123,7 +123,7 @@ Configurações pessoais:
 | Conteúdo Completo (imagem + legenda) | 8 + 5 = 13 |
 | Geração de Imagem avulsa | 5 |
 | Correção de Imagem | 1 |
-| Revisão de Imagem | 4 |
+| Revisão de Imagem | 1 |
 | Revisão de Legenda | 2 |
 | Revisão de Texto | 2 |
 | Calendário de Conteúdo | 8 |
