@@ -515,7 +515,7 @@ serve(async (req) => {
             { inlineData: { mimeType: origMimeType, data: origBase64 } }
           ];
 
-          const editModel = 'gemini-2.5-flash-image-preview';
+          const editModel = 'gemini-3-pro-image';
           const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${editModel}:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
