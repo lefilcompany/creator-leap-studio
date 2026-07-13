@@ -1,56 +1,30 @@
-## Problema
+## Diagnóstico
 
-Em produção, a equipe `LeFil Company` tem 21 membros no banco, mas a tela `/team` mostra apenas 1 (o próprio usuário). O mesmo ocorre em Test.
+O domínio `pla.creator.lefil.com.br` carrega o HTML corretamente, mas o `<div id="root">` fica vazio. O erro capturado no console de produção é:
 
-## Causa raiz
+```
+Cannot read properties of undefined (reading '__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED')
+```
 
-A view `public.teammate_profiles` foi criada com `security_invoker=true`. Isso faz com que a leitura respeite as RLS policies da tabela base `profiles`. As policies de SELECT em `profiles` em produção são apenas:
+Esse erro vem do `react-dom` tentando acessar internals do `react` que ainda não foram inicializados. Ao inspecionar os bundles publicados:
 
-- `Users can view their own profile` — `auth.uid() = id`
-- `System admins can view all profiles` — `has_role(auth.uid(), 'system')`
+- `assets/react-CmhjfBA0.js` importa de `./charts-C3tFmzZ0.js`
+- `assets/react-dom-v4dcKFTQ.js` importa de `./react-CmhjfBA0.js` **e** de `./charts-C3tFmzZ0.js`
 
-Não existe nenhuma policy que permita a um usuário enxergar os outros membros do seu próprio time. Resultado: ao consultar `teammate_profiles` filtrando por `team_id`, o usuário só recebe a própria linha.
+Ou seja, a build atualmente em produção foi gerada com uma configuração antiga de `manualChunks` que criou uma dependência circular entre `react`, `react-dom` e `charts`, e por isso o React sobe pela metade e a página fica em branco.
 
-Em Test há uma policy extra baseada em `workspace_members` (conceito antigo/diferente), que também não cobre o modelo atual de `team_id` em `profiles`, então o bug se reproduz em ambos os ambientes.
+A configuração atual do repositório (`vite.config.ts`) já não tem mais `manualChunks` e o preview de desenvolvimento carrega normalmente. Portanto o código-fonte já está correto — o que está quebrado é o **artefato publicado**, que está desatualizado em relação ao repositório.
 
-Bônus: a view `teammate_profiles` também está sem `GRANT SELECT` explícito em produção (já existe em Test via migração, mas em produção a tabela `pg_class` mostra a view sem privilégios).
+## Plano
 
-## Correção
+1. **Republicar o app** (novo deploy da branch atual) para substituir a build quebrada em produção por uma nova build feita a partir do `vite.config.ts` atual (sem `manualChunks`). Isso gera um bundle único de vendor sem a dependência circular.
+2. Após a publicação, **validar** `https://pla.creator.lefil.com.br/`:
+   - HTTP 200 e `#root` renderizado (não vazio).
+   - Sem `PAGEERROR` sobre `__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED` no console.
+   - Tela de login aparece normalmente.
+3. Se após republicar o erro voltar, aí sim faremos ajuste de código — provavelmente reforçando o `dedupe` de React no `vite.config.ts` e garantindo que não haja `manualChunks` conflitante — mas o mais provável é que a republicação já resolva, porque a config no repositório já está saudável.
 
-Migração única que:
+## Observação técnica
 
-1. Adiciona uma policy de SELECT em `public.profiles` permitindo que membros do mesmo time leiam as linhas uns dos outros, usando a função SECURITY DEFINER já existente `public.get_user_team_id(auth.uid())` para evitar recursão de RLS:
-
-   ```sql
-   CREATE POLICY "Teammates can view co-members profiles"
-   ON public.profiles FOR SELECT
-   TO authenticated
-   USING (
-     team_id IS NOT NULL
-     AND team_id = public.get_user_team_id(auth.uid())
-   );
-   ```
-
-2. Reafirma os GRANTs da view (idempotente, cobre o caso de produção sem grants):
-
-   ```sql
-   GRANT SELECT ON public.teammate_profiles TO authenticated;
-   ```
-   (Sem grant para `anon` — leitura de teammates é auth-only.)
-
-3. Remove a policy obsoleta `Workspace members can view co-members profiles` em Test, que referencia a tabela antiga `workspace_members` e não tem efeito útil hoje.
-
-## Por que essa policy é segura
-
-- A view `teammate_profiles` já restringe colunas a campos não-sensíveis (id, name, email, avatar_url, banner_url, team_id, created_at, tutorial_completed, phone, city, state). Senhas/tokens não estão na tabela `profiles`.
-- A nova policy concede leitura apenas a linhas com o mesmo `team_id` do usuário autenticado. Usuários sem time (`team_id IS NULL`) continuam só vendo o próprio perfil.
-- A função `get_user_team_id` é SECURITY DEFINER, então não há recursão de RLS ao avaliar a policy.
-
-## Verificação após publicar
-
-- Logar com um membro do LeFil Company em produção e abrir `/team` — deve listar os 21 membros.
-- Conferir que um usuário sem time continua enxergando só o próprio perfil em outras telas que usam `profiles`.
-
-## Sem mudanças de frontend
-
-`useTeamMembers` já consulta `teammate_profiles` filtrando por `team_id`; nenhuma alteração de código React é necessária.
+- Nenhuma mudança de código é necessária no passo 1; o problema é 100% do artefato publicado.
+- Se o usuário quiser blindar contra regressões futuras, podemos adicionar um teste simples (Playwright) que carrega a home publicada e falha se o `#root` estiver vazio — dá para incluir depois, mas não é obrigatório para o fix.
