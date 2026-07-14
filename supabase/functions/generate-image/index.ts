@@ -451,102 +451,11 @@ serve(async (req) => {
     }
 
     // =====================================
-    // STEP 8: Compliance Check + Auto-correction
+    // STEP 8: Deduct credits + persist action (compliance runs in background)
     // =====================================
-    console.log('[Step 8] Running compliance check...');
-    const geminiKeyCompliance = GEMINI_API_KEY;
-    const brandContext = formData.brandId ? `Marca: ${formData.description}` : '';
+    const finalPublicUrl = publicUrl;
     let complianceResult: ComplianceResult | null = null;
-    let finalPublicUrl = publicUrl;
 
-    try {
-      complianceResult = await checkCompliance(publicUrl, formData.description || '', GEMINI_API_KEY, brandContext);
-
-      // Se reprovado e temos instruções de correção, regenerar SEM custo extra
-      if (!complianceResult.approved && complianceResult.correctionInstructions) {
-        console.log('[Step 8] ❌ Compliance FAILED. Auto-correcting...');
-        const originalIssues = [...(complianceResult.flags || [])];
-
-        // Regenerar com prompt corrigido
-        try {
-          // Download the original image to use as reference for editing
-          const origImgResp = await fetch(finalPublicUrl);
-          const origImgBuffer = await origImgResp.arrayBuffer();
-          const origBytes = new Uint8Array(origImgBuffer);
-          const chunkSize = 8192;
-          let binaryStr = '';
-          for (let i = 0; i < origBytes.length; i += chunkSize) {
-            const chunk = origBytes.subarray(i, i + chunkSize);
-            binaryStr += String.fromCharCode(...chunk);
-          }
-          const origBase64 = btoa(binaryStr);
-          const origMimeType = origImgResp.headers.get('content-type') || 'image/png';
-
-          const correctedParts = [
-            { 
-              text: `Edite esta imagem para corrigir os seguintes problemas de compliance, mantendo o máximo possível da composição, estilo, cores e elementos originais. A imagem corrigida deve ser visualmente muito similar à original, apenas com as correções necessárias aplicadas:\n\nPROBLEMAS A CORRIGIR:\n${complianceResult.correctionInstructions}\n\nINSTRUÇÃO ORIGINAL: ${formData.description}\n\nIMPORTANTE: Mantenha a mesma cena, cenário, personagens e estilo visual. Apenas corrija os problemas específicos listados acima.` 
-            },
-            { inlineData: { mimeType: origMimeType, data: origBase64 } }
-          ];
-
-          const editModel = 'gemini-2.5-flash-image-preview';
-          const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${editModel}:generateContent?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ role: 'user', parts: correctedParts }],
-              generationConfig: {
-                responseModalities: ['IMAGE', 'TEXT'],
-              },
-            }),
-          });
-
-          if (correctedResponse.ok) {
-            const correctedData = await correctedResponse.json();
-            const correctedExtracted = extractImageFromResponse(correctedData);
-
-            if (correctedExtracted.imageUrl) {
-              console.log('[Step 8] ✅ Corrected image generated, post-processing...');
-
-              let correctedBinary: Uint8Array;
-              if (correctedExtracted.imageUrl.startsWith('data:')) {
-                correctedBinary = decodeBase64Image(correctedExtracted.imageUrl);
-              } else {
-                const imgResp = await fetch(correctedExtracted.imageUrl);
-                correctedBinary = new Uint8Array(await imgResp.arrayBuffer());
-              }
-
-              const correctedPost = await postProcessImage(correctedBinary, aspectRatio, targetDims.width, targetDims.height);
-
-              // Upload corrected image
-              const correctedFileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${Date.now()}_corrected.png`;
-              const { error: correctedUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedPost.processedData, { contentType: 'image/png', upsert: false });
-
-              if (!correctedUploadErr) {
-                const { data: correctedUrlData } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
-                finalPublicUrl = correctedUrlData.publicUrl;
-                console.log('[Step 8] ✅ Corrected image uploaded:', finalPublicUrl);
-              }
-
-              complianceResult = {
-                ...complianceResult,
-                approved: true,
-                wasAutoCorrected: true,
-                originalIssues,
-                score: 85,
-              };
-            }
-          }
-        } catch (correctionError) {
-          console.error('[Step 8] Auto-correction failed:', correctionError);
-          // Manter a imagem original com os flags de compliance
-        }
-      }
-    } catch (complianceError) {
-      console.error('[Step 8] Compliance check error:', complianceError);
-    }
-
-    // Deduct credits (apenas uma vez, mesmo com regeneração)
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
     const creditsAfter = deductResult.newCredits;
     if (!deductResult.success) console.error('Error deducting credits:', deductResult.error);
@@ -558,7 +467,7 @@ serve(async (req) => {
       creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
       creditsBefore,
       creditsAfter,
-      description: 'Geração de imagem completa (Pipeline v4)',
+      description: 'Geração de imagem (Pipeline v5 - overlay no cliente)',
       metadata: { platform: formData.platform, visualStyle, model: usedImageModel, hasHeadline: !!briefingResult.headline }
     });
 
@@ -572,6 +481,7 @@ serve(async (req) => {
       approved: true,
       asset_path: !uploadError ? fileName : null,
       thumb_path: !uploadError ? fileName : null,
+      overlay_status: needsClientOverlay ? 'pending' : 'not_needed',
       details: {
         description: formData.description,
         brandId: formData.brandId,
@@ -582,9 +492,10 @@ serve(async (req) => {
         contentType: formData.contentType,
         preserveImagesCount: preserveImages.length,
         styleReferenceImagesCount: styleReferenceImages.length,
-        pipeline: 'premium_v5',
+        pipeline: 'client_overlay_v1',
         requestedAspectRatio: aspectRatio,
         aspectRatioSource,
+        needsClientOverlay,
       },
       result: {
         imageUrl: finalPublicUrl,
@@ -592,17 +503,43 @@ serve(async (req) => {
         headline: briefingResult.headline || null,
         subtexto: briefingResult.subtexto || null,
         legenda: briefingResult.legenda || null,
-        finalWidth: postProcessResult.finalWidth,
-        finalHeight: postProcessResult.finalHeight,
-        finalAspectRatio: postProcessResult.finalAspectRatio,
-        requestedAspectRatio: postProcessResult.requestedAspectRatio,
-        wasCropped: postProcessResult.wasCropped,
-        wasResized: postProcessResult.wasResized,
-        complianceCheck: complianceResult,
+        finalWidth: targetDims.width,
+        finalHeight: targetDims.height,
+        finalAspectRatio: aspectRatio,
+        requestedAspectRatio: aspectRatio,
+        wasCropped: false,
+        wasResized: false,
+        overlayPayload,
+        complianceCheck: null,
       }
     }).select().single();
 
     if (actionError) console.error('Error creating action:', actionError);
+
+    // Fire-and-forget: run compliance check in background so the HTTP
+    // response returns immediately and the Edge worker stays under CPU budget.
+    // No image regeneration happens here (that was the previous CPU killer).
+    const runComplianceInBackground = async () => {
+      try {
+        const brandContext = formData.brandId ? `Marca: ${formData.description}` : '';
+        const compl = await checkCompliance(publicUrl, formData.description || '', GEMINI_API_KEY, brandContext);
+        if (actionData?.id) {
+          await supabase
+            .from('actions')
+            .update({ result: { ...(actionData.result || {}), imageUrl: finalPublicUrl, overlayPayload, complianceCheck: compl } })
+            .eq('id', actionData.id);
+        }
+      } catch (err) {
+        console.error('[Background compliance] failed:', err);
+      }
+    };
+    // @ts-ignore EdgeRuntime is provided by Deno Deploy at runtime
+    if (typeof EdgeRuntime !== 'undefined' && (EdgeRuntime as any).waitUntil) {
+      // @ts-ignore
+      (EdgeRuntime as any).waitUntil(runComplianceInBackground());
+    } else {
+      runComplianceInBackground().catch(() => {});
+    }
 
     return new Response(JSON.stringify({
       imageUrl: finalPublicUrl,
@@ -612,10 +549,12 @@ serve(async (req) => {
       legenda: briefingResult.legenda || null,
       actionId: actionData?.id,
       success: true,
-      finalWidth: postProcessResult.finalWidth,
-      finalHeight: postProcessResult.finalHeight,
-      finalAspectRatio: postProcessResult.finalAspectRatio,
-      requestedAspectRatio: postProcessResult.requestedAspectRatio,
+      finalWidth: targetDims.width,
+      finalHeight: targetDims.height,
+      finalAspectRatio: aspectRatio,
+      requestedAspectRatio: aspectRatio,
+      needsClientOverlay,
+      overlayPayload,
       complianceCheck: complianceResult,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
