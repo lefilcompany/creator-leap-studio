@@ -386,75 +386,64 @@ serve(async (req) => {
     }
 
     // =====================================
-    // STEP 6: Post-process image
+    // STEP 6: Decode raw Gemini output (no ImageScript post-processing)
+    // Gemini already returns the requested aspect ratio via imageConfig.
+    // Any crop / resize / SVG-overlay work is deferred to the client
+    // (Canvas 2D) to keep the Edge worker under its CPU budget and
+    // eliminate the HTTP 546 "CPU time exceeded" failures.
     // =====================================
-    console.log('[Step 6] Post-processing image to exact dimensions...');
-    
-    let binaryData: Uint8Array;
+    let finalImageData: Uint8Array;
     if (imageUrl.startsWith('data:')) {
-      binaryData = decodeBase64Image(imageUrl);
+      finalImageData = decodeBase64Image(imageUrl);
     } else {
       const imgResp = await fetch(imageUrl);
-      binaryData = new Uint8Array(await imgResp.arrayBuffer());
+      finalImageData = new Uint8Array(await imgResp.arrayBuffer());
     }
+    console.log('[Step 6] Raw image bytes ready:', finalImageData.byteLength);
 
-    const postProcessResult = await postProcessImage(binaryData, aspectRatio, targetDims.width, targetDims.height);
+    // Detect whether the client will need to composite text on top.
+    const needsClientOverlay = !!(
+      includeText && (
+        briefingResult.headline ||
+        briefingResult.subtexto ||
+        (formData.ctaText && String(formData.ctaText).trim()) ||
+        (formData.disclaimerText && String(formData.disclaimerText).trim())
+      )
+    );
 
-    console.log('[Step 6] Post-process result:', {
-      finalWidth: postProcessResult.finalWidth,
-      finalHeight: postProcessResult.finalHeight,
-      wasCropped: postProcessResult.wasCropped,
-      wasResized: postProcessResult.wasResized,
-    });
-
-    // =====================================
-    // STEP 6.5: Apply Text Overlay (if requested)
-    // =====================================
-    let finalImageData = postProcessResult.processedData;
-
-    if (includeText && (briefingResult.headline || briefingResult.subtexto || formData.ctaText)) {
-      console.log('[Step 6.5] Applying text overlay with typographic engine...');
-      try {
-        const overlayResult = await applyTextOverlay(finalImageData, {
-          headline: briefingResult.headline,
-          subtexto: briefingResult.subtexto,
-          ctaText: cleanInput(formData.ctaText) || '',
-          disclaimerText: cleanInput(formData.disclaimerText) || '',
-          disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
-          textPosition: cleanInput(formData.textPosition) || 'top',
-          fontFamily: formData.fontFamily || 'Montserrat',
-          fontWeight: formData.fontWeight || 'bold',
-          fontItalic: formData.fontItalic || false,
-          fontSize: formData.fontSize,
-          textDesignStyle: formData.textDesignStyle || 'clean',
-          brandColor: brandData?.brand_color || '#FFFFFF',
-          imageWidth: postProcessResult.finalWidth,
-          imageHeight: postProcessResult.finalHeight,
-        });
-        if (overlayResult.elementsApplied > 0) {
-          finalImageData = overlayResult.processedData;
-          console.log('[Step 6.5] Text overlay applied successfully');
-        }
-      } catch (overlayError) {
-        console.error('[Step 6.5] Text overlay failed, continuing without text:', overlayError);
-      }
-    }
+    const overlayPayload = needsClientOverlay ? {
+      headline: briefingResult.headline || '',
+      subtexto: briefingResult.subtexto || '',
+      ctaText: cleanInput(formData.ctaText) || '',
+      disclaimerText: cleanInput(formData.disclaimerText) || '',
+      disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
+      textPosition: cleanInput(formData.textPosition) || 'top',
+      fontFamily: formData.fontFamily || 'Montserrat',
+      fontWeight: formData.fontWeight || 'bold',
+      fontItalic: formData.fontItalic || false,
+      fontSize: formData.fontSize,
+      textDesignStyle: formData.textDesignStyle || 'clean',
+      brandColor: brandData?.brand_color || '#FFFFFF',
+      targetWidth: targetDims.width,
+      targetHeight: targetDims.height,
+      aspectRatio,
+    } : null;
 
     // =====================================
-    // STEP 7: Upload to Storage
+    // STEP 7: Upload raw image to Storage
     // =====================================
-    console.log('[Step 7] Uploading post-processed image to storage...');
+    console.log('[Step 7] Uploading raw image to storage...');
     const timestamp = Date.now();
     const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
 
     const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, finalImageData, { contentType: 'image/png', upsert: false });
-    
+
     let publicUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
       const base64Fallback = uint8ArrayToBase64(finalImageData);
       publicUrl = `data:image/png;base64,${base64Fallback}`;
-      console.warn('[Step 7] Upload failed, returning post-processed base64 fallback');
+      console.warn('[Step 7] Upload failed, returning base64 fallback');
     } else {
       const { data: urlData } = supabase.storage.from('content-images').getPublicUrl(fileName);
       publicUrl = urlData.publicUrl;
