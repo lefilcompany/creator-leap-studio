@@ -28,6 +28,7 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
+import { composeImageOverlay, type ClientOverlayPayload } from "@/lib/clientImageOverlay";
 
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
 import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
