@@ -75,12 +75,5 @@ Cobrem:
   overlay de texto, basta setar `needsClientOverlay=true` e enviar `overlayPayload`
   — o cliente já roteia via `finalizeClientOverlay`.
 - E2E Playwright completo (`/criar-conteudo` → verificar `overlay_status='applied'`).
-
-
-## Ainda em aberto
-
-- Migrar `generate-quick-content` para o mesmo padrão (ainda usa `postProcessImage`
-  WASM no servidor).
-- E2E Playwright completo (`/criar-conteudo` → verificar `overlay_status='applied'`).
 - Se o Gemini em si passar a ter latência > CPU budget, migrar para worker
   externo (arquitetura "a") — a Edge Function já está no mínimo possível.
