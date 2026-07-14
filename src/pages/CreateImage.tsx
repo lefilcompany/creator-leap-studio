@@ -709,7 +709,35 @@ export default function CreateImage() {
             body: JSON.stringify(requestData),
           });
           if (!imageResponse.ok) throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
-          const { imageUrl, attempt, legenda, complianceCheck } = await imageResponse.json();
+          const generateResult = await imageResponse.json();
+          let { imageUrl, legenda, complianceCheck, actionId, needsClientOverlay, overlayPayload } = generateResult as {
+            imageUrl: string;
+            legenda?: string;
+            complianceCheck?: any;
+            actionId?: string;
+            needsClientOverlay?: boolean;
+            overlayPayload?: ClientOverlayPayload | null;
+          };
+
+          // Client-side text overlay (moved off Edge Runtime to avoid HTTP 546 CPU-time errors).
+          if (needsClientOverlay && overlayPayload && actionId) {
+            try {
+              const composedDataUrl = await composeImageOverlay(imageUrl, overlayPayload);
+              const finalizeResp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/finalize-image-overlay`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${capturedSession?.access_token}` },
+                body: JSON.stringify({ actionId, finalImageBase64: composedDataUrl }),
+              });
+              if (finalizeResp.ok) {
+                const finalizeJson = await finalizeResp.json();
+                if (finalizeJson?.imageUrl) imageUrl = finalizeJson.imageUrl;
+              } else {
+                console.warn("[overlay] finalize failed, keeping raw image:", await finalizeResp.text());
+              }
+            } catch (overlayErr) {
+              console.error("[overlay] client composition failed, keeping raw image:", overlayErr);
+            }
+          }
 
           // Handle caption
           let captionData: any = null;
