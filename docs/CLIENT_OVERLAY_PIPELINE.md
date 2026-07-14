@@ -58,7 +58,7 @@ Com 1080×1350 essa cadeia estoura o budget de CPU do Edge Runtime.
 ## Testes
 
 ```
-supabase--test_edge_functions { functions: ["generate-image", "finalize-image-overlay"] }
+supabase--test_edge_functions { functions: ["generate-image", "generate-quick-content", "finalize-image-overlay"] }
 ```
 
 Cobrem:
@@ -69,8 +69,11 @@ Cobrem:
 
 ## Ainda em aberto
 
-- Migrar `generate-quick-content` para o mesmo padrão (ainda usa `postProcessImage`
-  WASM no servidor).
+- `generate-quick-content` também segue o padrão: sem `postProcessImage` no
+  worker, compliance em background (sem re-geração), `overlay_status='not_needed'`
+  (o fluxo rápido não compõe texto sobre a imagem). Se um dia essa tela ganhar
+  overlay de texto, basta setar `needsClientOverlay=true` e enviar `overlayPayload`
+  — o cliente já roteia via `finalizeClientOverlay`.
 - E2E Playwright completo (`/criar-conteudo` → verificar `overlay_status='applied'`).
 - Se o Gemini em si passar a ter latência > CPU budget, migrar para worker
   externo (arquitetura "a") — a Edge Function já está no mínimo possível.
