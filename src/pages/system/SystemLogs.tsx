@@ -1,4 +1,5 @@
 import { SystemLogsTable } from "@/components/admin/SystemLogsTable";
+import { OverlayFailuresCard } from "@/components/admin/OverlayFailuresCard";
 
 const AdminLogs = () => {
   return (
@@ -10,9 +11,12 @@ const AdminLogs = () => {
         </p>
       </div>
 
+      <OverlayFailuresCard />
+
       <SystemLogsTable />
     </div>
   );
 };
 
 export default AdminLogs;
+
