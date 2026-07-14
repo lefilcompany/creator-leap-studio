@@ -4,9 +4,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { expandBriefing } from '../_shared/expandBriefing.ts';
-import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
+import { resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
 import { checkCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
-import { applyTextOverlay } from '../_shared/textOverlay.ts';
 import {
   cleanInput,
   normalizeImageArray,
@@ -386,75 +385,64 @@ serve(async (req) => {
     }
 
     // =====================================
-    // STEP 6: Post-process image
+    // STEP 6: Decode raw Gemini output (no ImageScript post-processing)
+    // Gemini already returns the requested aspect ratio via imageConfig.
+    // Any crop / resize / SVG-overlay work is deferred to the client
+    // (Canvas 2D) to keep the Edge worker under its CPU budget and
+    // eliminate the HTTP 546 "CPU time exceeded" failures.
     // =====================================
-    console.log('[Step 6] Post-processing image to exact dimensions...');
-    
-    let binaryData: Uint8Array;
+    let finalImageData: Uint8Array;
     if (imageUrl.startsWith('data:')) {
-      binaryData = decodeBase64Image(imageUrl);
+      finalImageData = decodeBase64Image(imageUrl);
     } else {
       const imgResp = await fetch(imageUrl);
-      binaryData = new Uint8Array(await imgResp.arrayBuffer());
+      finalImageData = new Uint8Array(await imgResp.arrayBuffer());
     }
+    console.log('[Step 6] Raw image bytes ready:', finalImageData.byteLength);
 
-    const postProcessResult = await postProcessImage(binaryData, aspectRatio, targetDims.width, targetDims.height);
+    // Detect whether the client will need to composite text on top.
+    const needsClientOverlay = !!(
+      includeText && (
+        briefingResult.headline ||
+        briefingResult.subtexto ||
+        (formData.ctaText && String(formData.ctaText).trim()) ||
+        (formData.disclaimerText && String(formData.disclaimerText).trim())
+      )
+    );
 
-    console.log('[Step 6] Post-process result:', {
-      finalWidth: postProcessResult.finalWidth,
-      finalHeight: postProcessResult.finalHeight,
-      wasCropped: postProcessResult.wasCropped,
-      wasResized: postProcessResult.wasResized,
-    });
-
-    // =====================================
-    // STEP 6.5: Apply Text Overlay (if requested)
-    // =====================================
-    let finalImageData = postProcessResult.processedData;
-
-    if (includeText && (briefingResult.headline || briefingResult.subtexto || formData.ctaText)) {
-      console.log('[Step 6.5] Applying text overlay with typographic engine...');
-      try {
-        const overlayResult = await applyTextOverlay(finalImageData, {
-          headline: briefingResult.headline,
-          subtexto: briefingResult.subtexto,
-          ctaText: cleanInput(formData.ctaText) || '',
-          disclaimerText: cleanInput(formData.disclaimerText) || '',
-          disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
-          textPosition: cleanInput(formData.textPosition) || 'top',
-          fontFamily: formData.fontFamily || 'Montserrat',
-          fontWeight: formData.fontWeight || 'bold',
-          fontItalic: formData.fontItalic || false,
-          fontSize: formData.fontSize,
-          textDesignStyle: formData.textDesignStyle || 'clean',
-          brandColor: brandData?.brand_color || '#FFFFFF',
-          imageWidth: postProcessResult.finalWidth,
-          imageHeight: postProcessResult.finalHeight,
-        });
-        if (overlayResult.elementsApplied > 0) {
-          finalImageData = overlayResult.processedData;
-          console.log('[Step 6.5] Text overlay applied successfully');
-        }
-      } catch (overlayError) {
-        console.error('[Step 6.5] Text overlay failed, continuing without text:', overlayError);
-      }
-    }
+    const overlayPayload = needsClientOverlay ? {
+      headline: briefingResult.headline || '',
+      subtexto: briefingResult.subtexto || '',
+      ctaText: cleanInput(formData.ctaText) || '',
+      disclaimerText: cleanInput(formData.disclaimerText) || '',
+      disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
+      textPosition: cleanInput(formData.textPosition) || 'top',
+      fontFamily: formData.fontFamily || 'Montserrat',
+      fontWeight: formData.fontWeight || 'bold',
+      fontItalic: formData.fontItalic || false,
+      fontSize: formData.fontSize,
+      textDesignStyle: formData.textDesignStyle || 'clean',
+      brandColor: brandData?.brand_color || '#FFFFFF',
+      targetWidth: targetDims.width,
+      targetHeight: targetDims.height,
+      aspectRatio,
+    } : null;
 
     // =====================================
-    // STEP 7: Upload to Storage
+    // STEP 7: Upload raw image to Storage
     // =====================================
-    console.log('[Step 7] Uploading post-processed image to storage...');
+    console.log('[Step 7] Uploading raw image to storage...');
     const timestamp = Date.now();
     const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
 
     const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, finalImageData, { contentType: 'image/png', upsert: false });
-    
+
     let publicUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
       const base64Fallback = uint8ArrayToBase64(finalImageData);
       publicUrl = `data:image/png;base64,${base64Fallback}`;
-      console.warn('[Step 7] Upload failed, returning post-processed base64 fallback');
+      console.warn('[Step 7] Upload failed, returning base64 fallback');
     } else {
       const { data: urlData } = supabase.storage.from('content-images').getPublicUrl(fileName);
       publicUrl = urlData.publicUrl;
@@ -462,102 +450,11 @@ serve(async (req) => {
     }
 
     // =====================================
-    // STEP 8: Compliance Check + Auto-correction
+    // STEP 8: Deduct credits + persist action (compliance runs in background)
     // =====================================
-    console.log('[Step 8] Running compliance check...');
-    const geminiKeyCompliance = GEMINI_API_KEY;
-    const brandContext = formData.brandId ? `Marca: ${formData.description}` : '';
+    const finalPublicUrl = publicUrl;
     let complianceResult: ComplianceResult | null = null;
-    let finalPublicUrl = publicUrl;
 
-    try {
-      complianceResult = await checkCompliance(publicUrl, formData.description || '', GEMINI_API_KEY, brandContext);
-
-      // Se reprovado e temos instruções de correção, regenerar SEM custo extra
-      if (!complianceResult.approved && complianceResult.correctionInstructions) {
-        console.log('[Step 8] ❌ Compliance FAILED. Auto-correcting...');
-        const originalIssues = [...(complianceResult.flags || [])];
-
-        // Regenerar com prompt corrigido
-        try {
-          // Download the original image to use as reference for editing
-          const origImgResp = await fetch(finalPublicUrl);
-          const origImgBuffer = await origImgResp.arrayBuffer();
-          const origBytes = new Uint8Array(origImgBuffer);
-          const chunkSize = 8192;
-          let binaryStr = '';
-          for (let i = 0; i < origBytes.length; i += chunkSize) {
-            const chunk = origBytes.subarray(i, i + chunkSize);
-            binaryStr += String.fromCharCode(...chunk);
-          }
-          const origBase64 = btoa(binaryStr);
-          const origMimeType = origImgResp.headers.get('content-type') || 'image/png';
-
-          const correctedParts = [
-            { 
-              text: `Edite esta imagem para corrigir os seguintes problemas de compliance, mantendo o máximo possível da composição, estilo, cores e elementos originais. A imagem corrigida deve ser visualmente muito similar à original, apenas com as correções necessárias aplicadas:\n\nPROBLEMAS A CORRIGIR:\n${complianceResult.correctionInstructions}\n\nINSTRUÇÃO ORIGINAL: ${formData.description}\n\nIMPORTANTE: Mantenha a mesma cena, cenário, personagens e estilo visual. Apenas corrija os problemas específicos listados acima.` 
-            },
-            { inlineData: { mimeType: origMimeType, data: origBase64 } }
-          ];
-
-          const editModel = 'gemini-2.5-flash-image-preview';
-          const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${editModel}:generateContent?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ role: 'user', parts: correctedParts }],
-              generationConfig: {
-                responseModalities: ['IMAGE', 'TEXT'],
-              },
-            }),
-          });
-
-          if (correctedResponse.ok) {
-            const correctedData = await correctedResponse.json();
-            const correctedExtracted = extractImageFromResponse(correctedData);
-
-            if (correctedExtracted.imageUrl) {
-              console.log('[Step 8] ✅ Corrected image generated, post-processing...');
-
-              let correctedBinary: Uint8Array;
-              if (correctedExtracted.imageUrl.startsWith('data:')) {
-                correctedBinary = decodeBase64Image(correctedExtracted.imageUrl);
-              } else {
-                const imgResp = await fetch(correctedExtracted.imageUrl);
-                correctedBinary = new Uint8Array(await imgResp.arrayBuffer());
-              }
-
-              const correctedPost = await postProcessImage(correctedBinary, aspectRatio, targetDims.width, targetDims.height);
-
-              // Upload corrected image
-              const correctedFileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${Date.now()}_corrected.png`;
-              const { error: correctedUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedPost.processedData, { contentType: 'image/png', upsert: false });
-
-              if (!correctedUploadErr) {
-                const { data: correctedUrlData } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
-                finalPublicUrl = correctedUrlData.publicUrl;
-                console.log('[Step 8] ✅ Corrected image uploaded:', finalPublicUrl);
-              }
-
-              complianceResult = {
-                ...complianceResult,
-                approved: true,
-                wasAutoCorrected: true,
-                originalIssues,
-                score: 85,
-              };
-            }
-          }
-        } catch (correctionError) {
-          console.error('[Step 8] Auto-correction failed:', correctionError);
-          // Manter a imagem original com os flags de compliance
-        }
-      }
-    } catch (complianceError) {
-      console.error('[Step 8] Compliance check error:', complianceError);
-    }
-
-    // Deduct credits (apenas uma vez, mesmo com regeneração)
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
     const creditsAfter = deductResult.newCredits;
     if (!deductResult.success) console.error('Error deducting credits:', deductResult.error);
@@ -569,7 +466,7 @@ serve(async (req) => {
       creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
       creditsBefore,
       creditsAfter,
-      description: 'Geração de imagem completa (Pipeline v4)',
+      description: 'Geração de imagem (Pipeline v5 - overlay no cliente)',
       metadata: { platform: formData.platform, visualStyle, model: usedImageModel, hasHeadline: !!briefingResult.headline }
     });
 
@@ -583,6 +480,7 @@ serve(async (req) => {
       approved: true,
       asset_path: !uploadError ? fileName : null,
       thumb_path: !uploadError ? fileName : null,
+      overlay_status: needsClientOverlay ? 'pending' : 'not_needed',
       details: {
         description: formData.description,
         brandId: formData.brandId,
@@ -593,9 +491,10 @@ serve(async (req) => {
         contentType: formData.contentType,
         preserveImagesCount: preserveImages.length,
         styleReferenceImagesCount: styleReferenceImages.length,
-        pipeline: 'premium_v5',
+        pipeline: 'client_overlay_v1',
         requestedAspectRatio: aspectRatio,
         aspectRatioSource,
+        needsClientOverlay,
       },
       result: {
         imageUrl: finalPublicUrl,
@@ -603,17 +502,43 @@ serve(async (req) => {
         headline: briefingResult.headline || null,
         subtexto: briefingResult.subtexto || null,
         legenda: briefingResult.legenda || null,
-        finalWidth: postProcessResult.finalWidth,
-        finalHeight: postProcessResult.finalHeight,
-        finalAspectRatio: postProcessResult.finalAspectRatio,
-        requestedAspectRatio: postProcessResult.requestedAspectRatio,
-        wasCropped: postProcessResult.wasCropped,
-        wasResized: postProcessResult.wasResized,
-        complianceCheck: complianceResult,
+        finalWidth: targetDims.width,
+        finalHeight: targetDims.height,
+        finalAspectRatio: aspectRatio,
+        requestedAspectRatio: aspectRatio,
+        wasCropped: false,
+        wasResized: false,
+        overlayPayload,
+        complianceCheck: null,
       }
     }).select().single();
 
     if (actionError) console.error('Error creating action:', actionError);
+
+    // Fire-and-forget: run compliance check in background so the HTTP
+    // response returns immediately and the Edge worker stays under CPU budget.
+    // No image regeneration happens here (that was the previous CPU killer).
+    const runComplianceInBackground = async () => {
+      try {
+        const brandContext = formData.brandId ? `Marca: ${formData.description}` : '';
+        const compl = await checkCompliance(publicUrl, formData.description || '', GEMINI_API_KEY, brandContext);
+        if (actionData?.id) {
+          await supabase
+            .from('actions')
+            .update({ result: { ...(actionData.result || {}), imageUrl: finalPublicUrl, overlayPayload, complianceCheck: compl } })
+            .eq('id', actionData.id);
+        }
+      } catch (err) {
+        console.error('[Background compliance] failed:', err);
+      }
+    };
+    // @ts-ignore EdgeRuntime is provided by Deno Deploy at runtime
+    if (typeof EdgeRuntime !== 'undefined' && (EdgeRuntime as any).waitUntil) {
+      // @ts-ignore
+      (EdgeRuntime as any).waitUntil(runComplianceInBackground());
+    } else {
+      runComplianceInBackground().catch(() => {});
+    }
 
     return new Response(JSON.stringify({
       imageUrl: finalPublicUrl,
@@ -623,10 +548,12 @@ serve(async (req) => {
       legenda: briefingResult.legenda || null,
       actionId: actionData?.id,
       success: true,
-      finalWidth: postProcessResult.finalWidth,
-      finalHeight: postProcessResult.finalHeight,
-      finalAspectRatio: postProcessResult.finalAspectRatio,
-      requestedAspectRatio: postProcessResult.requestedAspectRatio,
+      finalWidth: targetDims.width,
+      finalHeight: targetDims.height,
+      finalAspectRatio: aspectRatio,
+      requestedAspectRatio: aspectRatio,
+      needsClientOverlay,
+      overlayPayload,
       complianceCheck: complianceResult,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 

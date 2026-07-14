@@ -186,6 +186,7 @@ export type Database = {
           deleted_at: string | null
           details: Json | null
           id: string
+          overlay_status: string | null
           parent_action_id: string | null
           result: Json | null
           revisions: number | null
@@ -205,6 +206,7 @@ export type Database = {
           deleted_at?: string | null
           details?: Json | null
           id?: string
+          overlay_status?: string | null
           parent_action_id?: string | null
           result?: Json | null
           revisions?: number | null
@@ -224,6 +226,7 @@ export type Database = {
           deleted_at?: string | null
           details?: Json | null
           id?: string
+          overlay_status?: string | null
           parent_action_id?: string | null
           result?: Json | null
           revisions?: number | null

@@ -1115,7 +1115,29 @@ export default function CreateContent() {
             throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
           }
 
-          const { imageUrl, attempt, complianceCheck } = await imageResponse.json();
+          const generateResult = await imageResponse.json();
+          let { imageUrl, complianceCheck } = generateResult as { imageUrl: string; complianceCheck?: any };
+          const { actionId: genActionId, needsClientOverlay, overlayPayload } = generateResult as { actionId?: string; needsClientOverlay?: boolean; overlayPayload?: import("@/lib/clientImageOverlay").ClientOverlayPayload | null };
+
+          if (needsClientOverlay && overlayPayload && genActionId) {
+            try {
+              const { composeImageOverlay } = await import("@/lib/clientImageOverlay");
+              const composedDataUrl = await composeImageOverlay(imageUrl, overlayPayload);
+              const finalizeResp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/finalize-image-overlay`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${capturedSession?.access_token}` },
+                body: JSON.stringify({ actionId: genActionId, finalImageBase64: composedDataUrl }),
+              });
+              if (finalizeResp.ok) {
+                const finalizeJson = await finalizeResp.json();
+                if (finalizeJson?.imageUrl) imageUrl = finalizeJson.imageUrl;
+              } else {
+                console.warn("[overlay] finalize failed:", await finalizeResp.text());
+              }
+            } catch (overlayErr) {
+              console.error("[overlay] client composition failed:", overlayErr);
+            }
+          }
 
           // 2. Generate caption
           const captionResponse = await fetch(
