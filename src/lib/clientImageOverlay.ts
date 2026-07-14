@@ -26,7 +26,7 @@ export interface ClientOverlayPayload {
   aspectRatio?: string;
 }
 
-function loadImage(url: string): Promise<HTMLImageElement> {
+function loadImageDirect(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -34,6 +34,45 @@ function loadImage(url: string): Promise<HTMLImageElement> {
     img.onerror = (e) => reject(e);
     img.src = url;
   });
+}
+
+// Load an image with a CORS-safe fallback: if the direct <img crossorigin>
+// path fails (some CDNs strip CORS headers), fetch the bytes and turn them
+// into a blob URL. This is what lets Canvas 2D read pixels without tainting.
+async function loadImage(url: string): Promise<HTMLImageElement> {
+  try {
+    return await loadImageDirect(url);
+  } catch (err) {
+    try {
+      const resp = await fetch(url, { mode: "cors", cache: "no-store" });
+      if (!resp.ok) throw new Error(`fetch ${resp.status}`);
+      const blob = await resp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      try {
+        return await loadImageDirect(blobUrl);
+      } finally {
+        // Revoke on next tick so the decoder has already read it.
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      }
+    } catch {
+      throw err;
+    }
+  }
+}
+
+// Best-effort font preloading. If the requested family/weight isn't ready,
+// Canvas silently falls back to sans-serif, which changes the visual layout.
+async function ensureFontsReady(family: string, sizes: number[], weights: number[]) {
+  const anyDoc: any = typeof document !== "undefined" ? document : null;
+  if (!anyDoc?.fonts?.load) return;
+  const specs: string[] = [];
+  for (const w of weights) for (const s of sizes) specs.push(`${w} ${s}px ${family}`);
+  try {
+    await Promise.all(specs.map((spec) => anyDoc.fonts.load(spec)));
+    if (anyDoc.fonts.ready) await anyDoc.fonts.ready;
+  } catch {
+    // Non-fatal — proceed with system fallback rather than failing the render.
+  }
 }
 
 function drawCoverImage(
@@ -118,6 +157,15 @@ export async function composeImageOverlay(
   const fontFamily = payload.fontFamily || "Montserrat, sans-serif";
   const color = payload.brandColor || "#FFFFFF";
   const design = payload.textDesignStyle || "clean";
+
+  // Preload the exact sizes/weights we're about to render so Canvas doesn't
+  // silently fall back to a system font and break the layout.
+  await ensureFontsReady(
+    fontFamily,
+    [headlineSize, subtitleSize, ctaSize, disclaimerSize],
+    [400, 700],
+  );
+
 
   // Background treatments
   if (design === "gradient" || design === "dark") {

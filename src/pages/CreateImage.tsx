@@ -28,7 +28,7 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
-import { composeImageOverlay, type ClientOverlayPayload } from "@/lib/clientImageOverlay";
+import type { ClientOverlayPayload } from "@/lib/clientImageOverlay";
 
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
 import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
@@ -721,23 +721,15 @@ export default function CreateImage() {
 
           // Client-side text overlay (moved off Edge Runtime to avoid HTTP 546 CPU-time errors).
           if (needsClientOverlay && overlayPayload && actionId) {
-            try {
-              const composedDataUrl = await composeImageOverlay(imageUrl, overlayPayload);
-              const finalizeResp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/finalize-image-overlay`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${capturedSession?.access_token}` },
-                body: JSON.stringify({ actionId, finalImageBase64: composedDataUrl }),
-              });
-              if (finalizeResp.ok) {
-                const finalizeJson = await finalizeResp.json();
-                if (finalizeJson?.imageUrl) imageUrl = finalizeJson.imageUrl;
-              } else {
-                console.warn("[overlay] finalize failed, keeping raw image:", await finalizeResp.text());
-              }
-            } catch (overlayErr) {
-              console.error("[overlay] client composition failed, keeping raw image:", overlayErr);
-            }
+            const { finalizeClientOverlay } = await import("@/lib/finalizeOverlay");
+            imageUrl = await finalizeClientOverlay({
+              imageUrl,
+              actionId,
+              overlayPayload,
+              accessToken: capturedSession?.access_token,
+            });
           }
+
 
           // Handle caption
           let captionData: any = null;

@@ -1120,24 +1120,15 @@ export default function CreateContent() {
           const { actionId: genActionId, needsClientOverlay, overlayPayload } = generateResult as { actionId?: string; needsClientOverlay?: boolean; overlayPayload?: import("@/lib/clientImageOverlay").ClientOverlayPayload | null };
 
           if (needsClientOverlay && overlayPayload && genActionId) {
-            try {
-              const { composeImageOverlay } = await import("@/lib/clientImageOverlay");
-              const composedDataUrl = await composeImageOverlay(imageUrl, overlayPayload);
-              const finalizeResp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/finalize-image-overlay`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${capturedSession?.access_token}` },
-                body: JSON.stringify({ actionId: genActionId, finalImageBase64: composedDataUrl }),
-              });
-              if (finalizeResp.ok) {
-                const finalizeJson = await finalizeResp.json();
-                if (finalizeJson?.imageUrl) imageUrl = finalizeJson.imageUrl;
-              } else {
-                console.warn("[overlay] finalize failed:", await finalizeResp.text());
-              }
-            } catch (overlayErr) {
-              console.error("[overlay] client composition failed:", overlayErr);
-            }
+            const { finalizeClientOverlay } = await import("@/lib/finalizeOverlay");
+            imageUrl = await finalizeClientOverlay({
+              imageUrl,
+              actionId: genActionId,
+              overlayPayload,
+              accessToken: capturedSession?.access_token,
+            });
           }
+
 
           // 2. Generate caption
           const captionResponse = await fetch(
