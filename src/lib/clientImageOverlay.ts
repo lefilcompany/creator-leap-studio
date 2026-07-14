@@ -158,6 +158,15 @@ export async function composeImageOverlay(
   const color = payload.brandColor || "#FFFFFF";
   const design = payload.textDesignStyle || "clean";
 
+  // Preload the exact sizes/weights we're about to render so Canvas doesn't
+  // silently fall back to a system font and break the layout.
+  await ensureFontsReady(
+    fontFamily,
+    [headlineSize, subtitleSize, ctaSize, disclaimerSize],
+    [400, 700],
+  );
+
+
   // Background treatments
   if (design === "gradient" || design === "dark") {
     ctx.fillStyle = "rgba(0,0,0,0.4)";
