@@ -359,43 +359,39 @@ serve(async (req) => {
     }
 
     // =====================================
-    // STEP 6: Post-process image
+    // STEP 6: Decode raw Gemini output (no WASM post-processing)
+    // Gemini already returns the requested aspect ratio via imageConfig.
+    // Any crop / resize / overlay work is deferred to the client to
+    // keep the Edge worker under its CPU budget and eliminate the
+    // HTTP 546 "CPU time exceeded" failures.
     // =====================================
-    console.log('[Quick Step 6] Post-processing image to exact dimensions...');
+    console.log('[Quick Step 6] Decoding raw Gemini bytes (no server-side post-process)...');
 
-    let rawBinaryData: Uint8Array;
+    let finalImageData: Uint8Array;
     if (imageUrl.startsWith('data:')) {
-      rawBinaryData = decodeBase64Image(imageUrl);
+      finalImageData = decodeBase64Image(imageUrl);
     } else {
       const imgResp = await fetch(imageUrl);
-      rawBinaryData = new Uint8Array(await imgResp.arrayBuffer());
+      finalImageData = new Uint8Array(await imgResp.arrayBuffer());
     }
-
-    const postProcessResult = await postProcessImage(rawBinaryData, normalizedAspectRatio, dims.width, dims.height);
-
-    console.log('[Quick Step 6] Post-process result:', {
-      finalWidth: postProcessResult.finalWidth,
-      finalHeight: postProcessResult.finalHeight,
-      wasCropped: postProcessResult.wasCropped,
-      wasResized: postProcessResult.wasResized,
-    });
+    console.log('[Quick Step 6] Raw image bytes ready:', finalImageData.byteLength);
 
     // =====================================
-    // STEP 7: Upload to Storage
+    // STEP 7: Upload raw image to Storage
     // =====================================
-    console.log('[Quick Step 7] Uploading post-processed image to storage...');
+    console.log('[Quick Step 7] Uploading raw image to storage...');
     const timestamp = Date.now();
     const randomId = crypto.randomUUID();
     const fileName = `quick-content/${authenticatedTeamId || authenticatedUserId}/${timestamp}-${randomId}.png`;
 
-    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, postProcessResult.processedData, { contentType: 'image/png', upsert: false });
-    
+    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, finalImageData, { contentType: 'image/png', upsert: false });
+
     let finalImageUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      const base64Fallback = uint8ArrayToBase64(postProcessResult.processedData);
+      const base64Fallback = uint8ArrayToBase64(finalImageData);
       finalImageUrl = `data:image/png;base64,${base64Fallback}`;
-      console.warn('[Quick Step 7] Upload failed, returning post-processed base64 fallback');
+      console.warn('[Quick Step 7] Upload failed, returning base64 fallback');
     } else {
       const { data: { publicUrl } } = supabase.storage.from('content-images').getPublicUrl(fileName);
       finalImageUrl = publicUrl;
@@ -437,8 +433,7 @@ REGRAS:
 - Tudo em português brasileiro
 - NÃO use emojis excessivos (máximo 2-3 no total)`;
 
-      // Build image part for Gemini
-      const imageBase64 = uint8ArrayToBase64(postProcessResult.processedData);
+      const imageBase64 = uint8ArrayToBase64(finalImageData);
       const captionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CAPTION_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -459,7 +454,6 @@ REGRAS:
         const captionText = captionResult?.candidates?.[0]?.content?.parts?.[0]?.text || '';
         console.log('[Quick Step 8] Raw caption response length:', captionText.length, 'preview:', captionText.substring(0, 300));
 
-        // Parse JSON from response
         try {
           const jsonMatch = captionText.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
@@ -485,87 +479,8 @@ REGRAS:
     }
 
     // =====================================
-    // STEP 9: Compliance Check + Auto-correction
+    // STEP 9: Deduct credits + save action (compliance runs in background)
     // =====================================
-    console.log('[Quick Step 9] Running compliance check...');
-    let complianceResult: ComplianceResult | null = null;
-
-    try {
-      const brandCtx = brandData ? `Marca: ${brandData.name}, Segmento: ${brandData.segment}` : '';
-      complianceResult = await checkCompliance(finalImageUrl, prompt || '', GEMINI_API_KEY, brandCtx);
-
-      if (!complianceResult.approved && complianceResult.correctionInstructions) {
-        console.log('[Quick Step 9] ❌ Compliance FAILED. Auto-correcting...');
-        const originalIssues = [...(complianceResult.flags || [])];
-
-        try {
-          // Download the original image to use as reference for editing
-          const origImgResp = await fetch(finalImageUrl);
-          const origImgBuffer = await origImgResp.arrayBuffer();
-          const origBytes = new Uint8Array(origImgBuffer);
-          const chunkSize = 8192;
-          let binaryStr = '';
-          for (let i = 0; i < origBytes.length; i += chunkSize) {
-            const chunk = origBytes.subarray(i, i + chunkSize);
-            binaryStr += String.fromCharCode(...chunk);
-          }
-          const origBase64 = btoa(binaryStr);
-          const origMimeType = origImgResp.headers.get('content-type') || 'image/png';
-
-          const correctedParts = [
-            { 
-              text: `Edite esta imagem para corrigir os seguintes problemas de compliance, mantendo o máximo possível da composição, estilo, cores e elementos originais. A imagem corrigida deve ser visualmente muito similar à original, apenas com as correções necessárias aplicadas:\n\nPROBLEMAS A CORRIGIR:\n${complianceResult.correctionInstructions}\n\nINSTRUÇÃO ORIGINAL: ${prompt}\n\nIMPORTANTE: Mantenha a mesma cena, cenário, personagens e estilo visual. Apenas corrija os problemas específicos listados acima.` 
-            },
-            { inlineData: { mimeType: origMimeType, data: origBase64 } }
-          ];
-
-          const editModel = 'gemini-2.5-flash-image-preview';
-          const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${editModel}:generateContent?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ role: 'user', parts: correctedParts }],
-              generationConfig: {
-                responseModalities: ['IMAGE', 'TEXT'],
-              },
-            }),
-          });
-
-          if (correctedResponse.ok) {
-            const correctedData = await correctedResponse.json();
-            const correctedExtracted = extractImageFromResponse(correctedData);
-
-            if (correctedExtracted.imageUrl) {
-              let correctedBinary: Uint8Array;
-              if (correctedExtracted.imageUrl.startsWith('data:')) {
-                correctedBinary = decodeBase64Image(correctedExtracted.imageUrl);
-              } else {
-                const imgResp = await fetch(correctedExtracted.imageUrl);
-                correctedBinary = new Uint8Array(await imgResp.arrayBuffer());
-              }
-
-              const correctedPost = await postProcessImage(correctedBinary, normalizedAspectRatio, dims.width, dims.height);
-              const correctedFileName = `quick-content/${authenticatedTeamId || authenticatedUserId}/${Date.now()}_corrected.png`;
-              const { error: correctedUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedPost.processedData, { contentType: 'image/png', upsert: false });
-
-              if (!correctedUploadErr) {
-                const { data: correctedUrlData } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
-                finalImageUrl = correctedUrlData.publicUrl;
-                console.log('[Quick Step 9] ✅ Corrected image uploaded:', finalImageUrl);
-              }
-
-              complianceResult = { ...complianceResult, approved: true, wasAutoCorrected: true, originalIssues, score: 85 };
-            }
-          }
-        } catch (correctionError) {
-          console.error('[Quick Step 9] Auto-correction failed:', correctionError);
-        }
-      }
-    } catch (complianceError) {
-      console.error('[Quick Step 9] Compliance check error:', complianceError);
-    }
-
-    // Deduct credits (uma vez, mesmo com regeneração)
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, creditCost);
     if (!deductResult.success) console.error('Error deducting credits:', deductResult.error);
 
@@ -576,11 +491,12 @@ REGRAS:
       creditsUsed: creditCost,
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
-      description: isMarketplace ? 'Imagem de produto para marketplace' : 'Criação rápida de imagem (Pipeline Unificado v6)',
+      description: isMarketplace ? 'Imagem de produto para marketplace' : 'Criação rápida de imagem (Pipeline v7 - overlay no cliente)',
       metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: usedImageModel, aspectRatioSource, mode }
     });
 
-    // Save action
+    // Save action (no server-side text overlay in the quick-content flow, so
+    // overlay_status is always 'not_needed' — needsClientOverlay=false).
     const { data: actionData, error: actionError } = await supabase.from('actions').insert({
       user_id: authenticatedUserId,
       team_id: authenticatedTeamId || null,
@@ -589,6 +505,7 @@ REGRAS:
       brand_id: brandId || null,
       asset_path: !uploadError ? fileName : null,
       thumb_path: !uploadError ? fileName : null,
+      overlay_status: 'not_needed',
       details: {
         prompt, description: prompt, platform, aspectRatio: normalizedAspectRatio, style, quality,
         visualStyle, colorPalette, lighting, composition, cameraAngle, detailLevel, mood,
@@ -596,8 +513,9 @@ REGRAS:
         hasReferenceImages: referenceImages?.length > 0,
         hasPreserveImages: rawPreserveImages?.length > 0,
         hasStyleReferenceImages: rawStyleReferenceImages?.length > 0,
-        themeId, personaId, pipeline: 'unified_v7',
-        requestedAspectRatio: normalizedAspectRatio, aspectRatioSource, mode
+        themeId, personaId, pipeline: 'client_overlay_v1',
+        requestedAspectRatio: normalizedAspectRatio, aspectRatioSource, mode,
+        needsClientOverlay: false,
       },
       result: {
         imageUrl: finalImageUrl,
@@ -609,17 +527,42 @@ REGRAS:
         cta: captionData.cta || null,
         hashtags: captionData.hashtags.length > 0 ? captionData.hashtags : null,
         generatedAt: new Date().toISOString(),
-        finalWidth: postProcessResult.finalWidth,
-        finalHeight: postProcessResult.finalHeight,
-        finalAspectRatio: postProcessResult.finalAspectRatio,
-        requestedAspectRatio: postProcessResult.requestedAspectRatio,
-        wasCropped: postProcessResult.wasCropped,
-        wasResized: postProcessResult.wasResized,
-        complianceCheck: complianceResult,
+        finalWidth: dims.width,
+        finalHeight: dims.height,
+        finalAspectRatio: normalizedAspectRatio,
+        requestedAspectRatio: normalizedAspectRatio,
+        wasCropped: false,
+        wasResized: false,
+        complianceCheck: null,
       }
     }).select().single();
 
     if (actionError) console.error('Error saving action:', actionError);
+
+    // Fire-and-forget compliance check — mirror generate-image. Any
+    // regeneration / re-upload happens off the critical path so the HTTP
+    // response returns immediately and the worker stays under CPU budget.
+    const runComplianceInBackground = async () => {
+      try {
+        const brandCtx = brandData ? `Marca: ${brandData.name}, Segmento: ${brandData.segment}` : '';
+        const compl = await checkCompliance(finalImageUrl, prompt || '', GEMINI_API_KEY, brandCtx);
+        if (actionData?.id) {
+          await supabase
+            .from('actions')
+            .update({ result: { ...(actionData.result || {}), imageUrl: finalImageUrl, complianceCheck: compl } })
+            .eq('id', actionData.id);
+        }
+      } catch (err) {
+        console.error('[Quick background compliance] failed:', err);
+      }
+    };
+    // @ts-ignore EdgeRuntime is provided by Deno Deploy at runtime
+    if (typeof EdgeRuntime !== 'undefined' && (EdgeRuntime as any).waitUntil) {
+      // @ts-ignore
+      (EdgeRuntime as any).waitUntil(runComplianceInBackground());
+    } else {
+      runComplianceInBackground().catch(() => {});
+    }
 
     return new Response(JSON.stringify({
       success: true,
@@ -633,11 +576,13 @@ REGRAS:
       creditsUsed: creditCost,
       creditsRemaining: deductResult.newCredits,
       brandName, themeName, personaName, platform,
-      finalWidth: postProcessResult.finalWidth,
-      finalHeight: postProcessResult.finalHeight,
-      finalAspectRatio: postProcessResult.finalAspectRatio,
-      requestedAspectRatio: postProcessResult.requestedAspectRatio,
-      complianceCheck: complianceResult,
+      finalWidth: dims.width,
+      finalHeight: dims.height,
+      finalAspectRatio: normalizedAspectRatio,
+      requestedAspectRatio: normalizedAspectRatio,
+      needsClientOverlay: false,
+      overlayPayload: null,
+      complianceCheck: null,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
