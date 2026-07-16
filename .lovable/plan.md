@@ -1,38 +1,60 @@
-# Corrigir 401 do MCP Creator — migração para chaves assimétricas
+## Plano
 
-## Causa raiz (confirmada nos logs de `mcp`)
+1. **Confirmar o diagnóstico atual**
+   - Considerar o token OAuth como válido: issuer correto, audience `authenticated`, `client_id` presente, `iat/exp` válidos e token emitido pelo Auth do próprio Creator.
+   - Tratar o `401 {"error":"unauthorized"}` como uma decisão de autorização feita dentro da edge function `mcp` do Creator, não como falha do handshake OAuth do Marketing OS.
 
-A edge function do Creator está rejeitando os tokens com:
+2. **Enviar ao time do Creator os dados mínimos para correlação de logs**
+   - Endpoint: `POST /functions/v1/mcp`.
+   - Resposta: `401 unauthorized` já no `initialize`.
+   - Campos para buscar nos logs: `sub`, `email`, `client_id`, `iat`.
+   - Pedir explicitamente para localizar a linha exata onde a função `mcp` retorna `unauthorized`.
 
+3. **Pedir verificação dos três pontos prováveis no Creator**
+   - Se o usuário `emanuel.rodrigues@lefil.com.br` / `ecb55ace-66b9-4f69-92fe-977aaa5c7d30` existe e tem acesso/membership válido no Creator.
+   - Se o OAuth client `6f5a7496-f3b5-4641-9acf-0f741e3f7ac7` criado via DCR está ativo e permitido.
+   - Se a função `mcp` exige escopos, claims ou permissões adicionais além de `profile email`.
+
+4. **Não alterar o lado Marketing OS agora**
+   - Não mexer em `mcp.server.ts`, `mcp.functions.ts`, card de UI ou fluxo OAuth.
+   - Não reconfigurar o handshake, porque o token está sendo emitido corretamente e chega ao Creator.
+
+5. **Próxima ação só após resposta do Creator**
+   - Se o Creator indicar falta de membership, ajustar permissões/provisionamento lá.
+   - Se indicar `client_id` inválido/revogado, desconectar e reconectar o MCP para gerar novo client.
+   - Se indicar escopo/claim adicional, atualizar a configuração OAuth/MCP conforme a exigência real.
+
+## Mensagem sugerida para enviar ao time do Creator
+
+```text
+O endpoint MCP do Creator continua retornando 401 unauthorized na chamada initialize:
+
+POST https://afxwqkrneraatgovhpkb.supabase.co/functions/v1/mcp
+HTTP 401
+{"error":"unauthorized"}
+
+O token OAuth recebido parece válido e foi emitido pelo Auth do próprio Creator:
+
+iss: https://afxwqkrneraatgovhpkb.supabase.co/auth/v1
+aud: authenticated
+sub: ecb55ace-66b9-4f69-92fe-977aaa5c7d30
+email: emanuel.rodrigues@lefil.com.br
+client_id: 6f5a7496-f3b5-4641-9acf-0f741e3f7ac7
+scope: profile email
+iat: 1784234149
+exp: 1784237749
+
+Como o token está bem formado, recente, não expirado, com audience correta e client_id presente, precisamos que vocês verifiquem nos logs da edge function mcp do projeto Creator onde exatamente a autorização está negando.
+
+Por favor, chequem principalmente:
+
+1. Se o usuário ecb55ace-66b9-4f69-92fe-977aaa5c7d30 / emanuel.rodrigues@lefil.com.br está provisionado e tem membership/permissão no app Creator.
+2. Se o client_id 6f5a7496-f3b5-4641-9acf-0f741e3f7ac7 registrado via DCR está ativo, válido e não revogado.
+3. Se a função mcp exige algum scope, claim ou permissão adicional além de profile email.
+
+Do lado Marketing OS não parece haver alteração necessária no handshake OAuth: o token é emitido pelo Creator e enviado corretamente; a negação ocorre dentro do Creator.
 ```
-JOSEAlgNotAllowed: "alg" (Algorithm) Header Parameter value not allowed
-oauth.verify.start ... jwtAlg: "HS256", jwtKid: "M5GNu73DXe437VQ5"
-outcome: 401 invalid_token
-```
 
-O access token OAuth emitido pelo Supabase Auth do Creator ainda está sendo assinado com **HS256** (segredo simétrico do sistema legado). O verificador do `@lovable.dev/mcp-js` só aceita chaves assimétricas publicadas em JWKS (RSA/EC/OKP), conforme a RFC 8414 / OAuth 2.1. Por isso todo `tools/list` cai em 401 — não é problema de escopo, provisionamento, DCR, refresh token nem do Marketing OS. O JWKS `https://lcpmqnkorcsclmpfbizr.supabase.co/auth/v1/.well-known/jwks.json` provavelmente está vazio (ou só simétrico), e é o que precisa ser corrigido.
+## Critério de conclusão
 
-## Correção
-
-Executar a migração do Supabase Auth para o novo sistema de **assinaturas assimétricas (signing keys)**. Isso faz o Supabase passar a emitir JWTs `RS256/ES256`, publicar a chave pública no JWKS, e o `mcp-js` passa a verificar com sucesso.
-
-### Passos (build mode)
-
-1. Rodar `supabase--migrate_signing_keys` no projeto Creator.
-2. Verificar `curl $ISSUER/.well-known/jwks.json` — precisa aparecer ao menos uma chave com `kty: RSA` ou `EC` (não vazio, não só HS).
-3. Pedir para o Marketing OS reconectar o Creator em Configurações → MCP (o access token atual, HS256, precisa ser trocado por um novo emitido já com a chave nova).
-4. Confirmar nos logs de `mcp` que aparece `oauth.verify.start ... jwtAlg: "RS256"` (ou EC) e não mais `JOSEAlgNotAllowed`, e que o `tools/list` responde 200 com as 29 ferramentas.
-
-### O que NÃO mexer
-
-- `src/lib/mcp/index.ts`, tools, `supabase/functions/mcp/index.ts`, manifest — estão corretos.
-- Nada na UI ou no Marketing OS.
-- Consent route, DCR, escopos — sem alteração.
-
-## Impacto
-
-A migração de signing keys afeta **todos** os JWTs do projeto (não só MCP): sessões de usuários logados no app Creator serão invalidadas gradualmente conforme os refresh tokens rodam, e clients server-side que hardcoded o `JWT_SECRET` simétrico param de validar tokens novos. No Creator os edge functions usam `getUser()`/`getClaims()` via SDK, que resolvem sozinhos via JWKS — sem alteração de código esperada. Usuários no app podem precisar refazer login uma vez.
-
-## Rollback
-
-`supabase--migrate_signing_keys` é reversível pelo próprio Supabase (rotação/rollback de key). Caso algo quebre, revertemos a chave e reconectamos o MCP.
+O problema só pode ser fechado quando o Creator retornar nos logs a causa exata do `unauthorized` ou quando, após ajuste de membership/client/scope no Creator, o `tools/list` passar a retornar as ferramentas em vez de `0 ferramentas`.
