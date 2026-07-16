@@ -18,8 +18,8 @@
     "tools": [
       {
         "name": "echo",
-        "title": "Echo",
-        "description": "Echoes back the provided text. Useful to verify MCP connectivity.",
+        "title": "Creator — Echo",
+        "description": "Echoes back the provided text along with the authenticated user id and a timestamp. Use this to verify that arguments flow correctly from the MCP client to the server.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -32,7 +32,7 @@
             "text": {
               "type": "string",
               "minLength": 1,
-              "description": "Text to echo back."
+              "description": "Texto que será ecoado de volta."
             }
           },
           "required": [
