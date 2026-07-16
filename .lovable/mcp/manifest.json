@@ -12,7 +12,7 @@
   "mcp": {
     "server": {
       "name": "creator-mcp",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "title": "Creator MCP"
     },
     "tools": [
@@ -77,6 +77,1100 @@
               "maximum": 100
             }
           }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_brand",
+        "title": "Obter marca",
+        "description": "Retorna os dados completos de uma marca pelo id.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "ID da marca."
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_brand",
+        "title": "Cadastrar marca",
+        "description": "Cria uma nova marca no Creator. Alinhado ao formulário de cadastro do roteiro: nome, segmento, valores, indicadores de sucesso, restrições e URL do logo são obrigatórios.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Nome oficial ou comercial da marca."
+            },
+            "segment": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Segmento ou mercado de atuação."
+            },
+            "values": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Valores que orientam a marca."
+            },
+            "success_metrics": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Indicadores usados para avaliar sucesso."
+            },
+            "restrictions": {
+              "type": "string",
+              "minLength": 1,
+              "description": "O que nunca deve aparecer na comunicação."
+            },
+            "logo_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL pública do logo principal (PNG/SVG/PDF)."
+            },
+            "responsible": {
+              "description": "Nome do responsável pela marca (default: nome do usuário).",
+              "type": "string"
+            },
+            "keywords": {
+              "description": "Palavras-chave que representam a marca.",
+              "type": "string"
+            },
+            "inspirations": {
+              "description": "Marcas/perfis de referência e o que se admira.",
+              "type": "string"
+            },
+            "special_dates": {
+              "description": "Datas ou períodos importantes para o negócio.",
+              "type": "string"
+            },
+            "brand_references": {
+              "description": "Conteúdos de referência (links, campanhas, estilo).",
+              "type": "string"
+            },
+            "goals": {
+              "description": "Objetivos de negócio ou comunicação.",
+              "type": "string"
+            },
+            "promise": {
+              "description": "Promessa da marca.",
+              "type": "string"
+            },
+            "brand_color": {
+              "description": "Cor principal em hex (#RRGGBB).",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "segment",
+            "values",
+            "success_metrics",
+            "restrictions",
+            "logo_url"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_brand",
+        "title": "Atualizar marca",
+        "description": "Atualiza campos parciais de uma marca existente.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "ID da marca."
+            },
+            "name": {
+              "type": "string"
+            },
+            "segment": {
+              "type": "string"
+            },
+            "values": {
+              "type": "string"
+            },
+            "keywords": {
+              "type": "string"
+            },
+            "goals": {
+              "type": "string"
+            },
+            "inspirations": {
+              "type": "string"
+            },
+            "success_metrics": {
+              "type": "string"
+            },
+            "brand_references": {
+              "type": "string"
+            },
+            "special_dates": {
+              "type": "string"
+            },
+            "promise": {
+              "type": "string"
+            },
+            "restrictions": {
+              "type": "string"
+            },
+            "brand_color": {
+              "type": "string"
+            },
+            "logo_url": {
+              "description": "Se informado, substitui o logo.",
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "delete_brand",
+        "title": "Excluir marca",
+        "description": "Remove uma marca definitivamente. A marca sai imediatamente da lista.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "ID da marca."
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_personas",
+        "title": "Listar personas",
+        "description": "Lista as personas acessíveis pelo usuário. Filtra por marca opcionalmente.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "description": "Filtra personas de uma marca.",
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "limit": {
+              "description": "Máx. de linhas (padrão 25).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_persona",
+        "title": "Obter persona",
+        "description": "Retorna os dados completos de uma persona pelo id.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_persona",
+        "title": "Criar persona",
+        "description": "Cria uma persona associada opcionalmente a uma marca.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Nome da persona (ex.: 'Empreendedora Beleza 25-34')."
+            },
+            "brand_id": {
+              "description": "Marca associada.",
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "age": {
+              "type": "string"
+            },
+            "gender": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "professional_context": {
+              "type": "string"
+            },
+            "beliefs_and_interests": {
+              "type": "string"
+            },
+            "content_consumption_routine": {
+              "type": "string"
+            },
+            "main_goal": {
+              "description": "Principal objetivo/desejo.",
+              "type": "string"
+            },
+            "challenges": {
+              "description": "Dores/desafios.",
+              "type": "string"
+            },
+            "preferred_tone_of_voice": {
+              "type": "string"
+            },
+            "purchase_journey_stage": {
+              "type": "string"
+            },
+            "interest_triggers": {
+              "type": "string"
+            },
+            "income_and_purchase_habits": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_persona",
+        "title": "Atualizar persona",
+        "description": "Atualiza campos parciais de uma persona.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "name": {
+              "type": "string"
+            },
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "age": {
+              "type": "string"
+            },
+            "gender": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "professional_context": {
+              "type": "string"
+            },
+            "beliefs_and_interests": {
+              "type": "string"
+            },
+            "content_consumption_routine": {
+              "type": "string"
+            },
+            "main_goal": {
+              "type": "string"
+            },
+            "challenges": {
+              "type": "string"
+            },
+            "preferred_tone_of_voice": {
+              "type": "string"
+            },
+            "purchase_journey_stage": {
+              "type": "string"
+            },
+            "interest_triggers": {
+              "type": "string"
+            },
+            "income_and_purchase_habits": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "delete_persona",
+        "title": "Excluir persona",
+        "description": "Remove uma persona.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_themes",
+        "title": "Listar temas estratégicos",
+        "description": "Lista as editorias/temas estratégicos acessíveis. Filtra por marca opcionalmente.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_theme",
+        "title": "Obter tema estratégico",
+        "description": "Retorna os dados completos de um tema estratégico pelo id.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_theme",
+        "title": "Criar tema estratégico",
+        "description": "Cria um tema/editoria associado a uma marca.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Título do tema/editoria."
+            },
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Marca associada."
+            },
+            "description": {
+              "type": "string"
+            },
+            "tone_of_voice": {
+              "description": "Ex.: 'Inspirador; Profissional'.",
+              "type": "string"
+            },
+            "target_audience": {
+              "type": "string"
+            },
+            "objectives": {
+              "type": "string"
+            },
+            "macro_themes": {
+              "type": "string"
+            },
+            "best_formats": {
+              "type": "string"
+            },
+            "platforms": {
+              "type": "string"
+            },
+            "hashtags": {
+              "type": "string"
+            },
+            "expected_action": {
+              "type": "string"
+            },
+            "color_palette": {
+              "type": "string"
+            },
+            "additional_info": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "brand_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_theme",
+        "title": "Atualizar tema estratégico",
+        "description": "Atualiza campos parciais de um tema estratégico.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "tone_of_voice": {
+              "type": "string"
+            },
+            "target_audience": {
+              "type": "string"
+            },
+            "objectives": {
+              "type": "string"
+            },
+            "macro_themes": {
+              "type": "string"
+            },
+            "best_formats": {
+              "type": "string"
+            },
+            "platforms": {
+              "type": "string"
+            },
+            "hashtags": {
+              "type": "string"
+            },
+            "expected_action": {
+              "type": "string"
+            },
+            "color_palette": {
+              "type": "string"
+            },
+            "additional_info": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "delete_theme",
+        "title": "Excluir tema estratégico",
+        "description": "Remove um tema estratégico.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_image_content",
+        "title": "Criar imagem (pipeline completo)",
+        "description": "Gera uma imagem usando o pipeline completo do Creator (marca, persona, tema, tom de voz, plataforma). Retorna a URL da imagem e o id da action.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "ID da marca (obrigatório para contexto)."
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Descrição da cena a ser gerada."
+            },
+            "persona_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "theme_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "narrative": {
+              "description": "Narrativa a contar para a persona.",
+              "type": "string"
+            },
+            "tone": {
+              "description": "Tons de voz (até 4). Ex.: ['inspirador','profissional'].",
+              "maxItems": 4,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "platform": {
+              "description": "Plataforma alvo (ex.: 'instagram_feed').",
+              "type": "string"
+            },
+            "aspect_ratio": {
+              "description": "Ex.: '1:1', '4:5', '9:16'.",
+              "type": "string"
+            },
+            "include_text": {
+              "description": "Se deve incluir texto sobre a imagem.",
+              "type": "boolean"
+            },
+            "text_content": {
+              "description": "Texto a aparecer na imagem.",
+              "type": "string"
+            },
+            "content_type": {
+              "type": "string",
+              "enum": [
+                "organic",
+                "paid"
+              ]
+            },
+            "campaign_context": {
+              "description": "Bloco de campanha (nome, objetivo, posicionamento).",
+              "type": "string"
+            },
+            "visual_style": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "brand_id",
+            "description"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_quick_content",
+        "title": "Criar conteúdo rápido",
+        "description": "Fluxo rápido de geração de imagem a partir de um prompt livre (sem contexto de marca obrigatório).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "prompt": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 5000,
+              "description": "Prompt livre descrevendo a imagem desejada."
+            },
+            "aspect_ratio": {
+              "description": "Ex.: '1:1', '4:5', '9:16'.",
+              "type": "string"
+            },
+            "platform": {
+              "type": "string"
+            },
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": [
+            "prompt"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "generate_caption",
+        "title": "Gerar legenda",
+        "description": "Gera legenda para uma imagem/conteúdo, usando contexto de marca e persona se fornecido.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "prompt": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Instrução ou contexto para a legenda."
+            },
+            "image_url": {
+              "description": "URL da imagem base.",
+              "type": "string",
+              "format": "uri"
+            },
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "persona_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "theme_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "platform": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "prompt"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_content_plan",
+        "title": "Criar calendário de conteúdo",
+        "description": "Cria um calendário de conteúdo (planejamento) para uma marca, com quantidade, plataformas e objetivo.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Marca do planejamento."
+            },
+            "quantity": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 60,
+              "description": "Quantidade de peças a planejar."
+            },
+            "objective": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Objetivo do planejamento."
+            },
+            "themes": {
+              "description": "Temas/editorias a distribuir.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "platforms": {
+              "description": "Plataformas alvo (ex.: instagram, linkedin).",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "platform": {
+              "description": "Plataforma única (retrocompat.).",
+              "type": "string"
+            },
+            "additional_info": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "brand_id",
+            "quantity",
+            "objective"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "review_image",
+        "title": "Revisar/ajustar imagem",
+        "description": "Aplica ajustes descritos em linguagem natural a uma imagem existente.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "image_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL da imagem base a ser ajustada."
+            },
+            "prompt": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Instruções de ajuste."
+            },
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": [
+            "image_url",
+            "prompt"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "review_caption",
+        "title": "Revisar/ajustar legenda",
+        "description": "Aplica ajustes descritos em linguagem natural a uma legenda existente.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "caption": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Legenda original."
+            },
+            "prompt": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Instruções de ajuste."
+            },
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": [
+            "caption",
+            "prompt"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "review_text_for_image",
+        "title": "Revisar texto sobre imagem",
+        "description": "Aplica ajustes ao texto que aparece sobre uma imagem (headline, CTA, disclaimer).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Texto atual sobre a imagem."
+            },
+            "prompt": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Instruções de ajuste."
+            },
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": [
+            "text",
+            "prompt"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_credit_balance",
+        "title": "Saldo de créditos",
+        "description": "Retorna o saldo atual de créditos do usuário.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_calendars",
+        "title": "Listar calendários de conteúdo",
+        "description": "Lista os calendários de conteúdo acessíveis pelo usuário.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_calendar_items",
+        "title": "Listar itens de um calendário",
+        "description": "Lista os itens de um calendário de conteúdo (título, tema, data agendada, estágio).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "calendar_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          },
+          "required": [
+            "calendar_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_actions",
+        "title": "Listar peças criadas (histórico)",
+        "description": "Lista as peças (actions) criadas pelo usuário, com filtros por marca e tipo.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "type": {
+              "description": "Tipo da action (ex.: 'image', 'video', 'quick').",
+              "type": "string"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_action",
+        "title": "Obter peça (action)",
+        "description": "Retorna os dados completos de uma action (imagem/vídeo/quick) pelo id.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": [
+            "id"
+          ]
         },
         "outputSchema": null
       }
