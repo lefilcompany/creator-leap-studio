@@ -523,32 +523,6 @@
         "outputSchema": null
       },
       {
-        "name": "delete_brand",
-        "title": "Excluir marca",
-        "description": "Exclui definitivamente uma marca (e por cascade suas personas, temas, templates e entregáveis). Operação destrutiva — confirme com o usuário antes de invocar.",
-        "annotations": {
-          "readOnlyHint": false,
-          "destructiveHint": true,
-          "idempotentHint": true,
-          "openWorldHint": false
-        },
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "brand_id": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          "required": [
-            "brand_id"
-          ],
-          "additionalProperties": false,
-          "$schema": "http://json-schema.org/draft-07/schema#"
-        },
-        "outputSchema": null
-      },
-      {
         "name": "create_persona",
         "title": "Criar persona",
         "description": "Cria uma persona vinculada a uma marca. Todos os campos textuais são obrigatórios porque alimentam o briefing dos entregáveis (caption, imagem, plano). Se algum dado for desconhecido, envie uma descrição curta como `\"a definir\"` em vez de string vazia.",
@@ -704,32 +678,6 @@
         "outputSchema": null
       },
       {
-        "name": "delete_persona",
-        "title": "Excluir persona",
-        "description": "Exclui uma persona. Operação destrutiva — confirme com o usuário antes de invocar.",
-        "annotations": {
-          "readOnlyHint": false,
-          "destructiveHint": true,
-          "idempotentHint": true,
-          "openWorldHint": false
-        },
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "persona_id": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          "required": [
-            "persona_id"
-          ],
-          "additionalProperties": false,
-          "$schema": "http://json-schema.org/draft-07/schema#"
-        },
-        "outputSchema": null
-      },
-      {
         "name": "create_strategic_theme",
         "title": "Criar tema estratégico",
         "description": "Cria um tema estratégico vinculado a uma marca. Os campos textuais são obrigatórios porque estruturam o briefing usado por captions/imagens/planos. Envie 'a definir' em campos que ainda não estejam claros.",
@@ -874,32 +822,6 @@
             },
             "additional_info": {
               "type": "string"
-            }
-          },
-          "required": [
-            "theme_id"
-          ],
-          "additionalProperties": false,
-          "$schema": "http://json-schema.org/draft-07/schema#"
-        },
-        "outputSchema": null
-      },
-      {
-        "name": "delete_strategic_theme",
-        "title": "Excluir tema estratégico",
-        "description": "Exclui um tema estratégico. Operação destrutiva — confirme com o usuário antes de invocar.",
-        "annotations": {
-          "readOnlyHint": false,
-          "destructiveHint": true,
-          "idempotentHint": true,
-          "openWorldHint": false
-        },
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "theme_id": {
-              "type": "string",
-              "format": "uuid"
             }
           },
           "required": [
