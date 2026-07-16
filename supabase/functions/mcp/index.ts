@@ -76,18 +76,808 @@ var list_brands_default = defineTool3({
   }
 });
 
+// src/lib/mcp/tools/brands/get-brand.ts
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z3 } from "npm:zod@^4.4.3";
+
+// src/lib/mcp/_shared/supabase.ts
+import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.110.6";
+function supabaseForUser3(ctx) {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY;
+  return createClient3(url, key, {
+    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+function notAuthenticated() {
+  return {
+    content: [{ type: "text", text: "Not authenticated" }],
+    isError: true
+  };
+}
+function errorResult(message) {
+  return {
+    content: [{ type: "text", text: message }],
+    isError: true
+  };
+}
+function okResult(data, key) {
+  return {
+    content: [{ type: "text", text: JSON.stringify(data) }],
+    structuredContent: { [key]: data }
+  };
+}
+
+// src/lib/mcp/tools/brands/get-brand.ts
+var get_brand_default = defineTool4({
+  name: "get_brand",
+  title: "Obter marca",
+  description: "Retorna os dados completos de uma marca pelo id.",
+  inputSchema: {
+    id: z3.string().uuid().describe("ID da marca.")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const { data, error } = await supabaseForUser3(ctx).from("brands").select("*").eq("id", id).maybeSingle();
+    if (error) return errorResult(error.message);
+    if (!data) return errorResult("Marca n\xE3o encontrada.");
+    return okResult(data, "brand");
+  }
+});
+
+// src/lib/mcp/tools/brands/create-brand.ts
+import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z4 } from "npm:zod@^4.4.3";
+var create_brand_default = defineTool5({
+  name: "create_brand",
+  title: "Cadastrar marca",
+  description: "Cria uma nova marca no Creator. Alinhado ao formul\xE1rio de cadastro do roteiro: nome, segmento, valores, indicadores de sucesso, restri\xE7\xF5es e URL do logo s\xE3o obrigat\xF3rios.",
+  inputSchema: {
+    name: z4.string().min(1).describe("Nome oficial ou comercial da marca."),
+    segment: z4.string().min(1).describe("Segmento ou mercado de atua\xE7\xE3o."),
+    values: z4.string().min(1).describe("Valores que orientam a marca."),
+    success_metrics: z4.string().min(1).describe("Indicadores usados para avaliar sucesso."),
+    restrictions: z4.string().min(1).describe("O que nunca deve aparecer na comunica\xE7\xE3o."),
+    logo_url: z4.string().url().describe("URL p\xFAblica do logo principal (PNG/SVG/PDF)."),
+    responsible: z4.string().optional().describe("Nome do respons\xE1vel pela marca (default: nome do usu\xE1rio)."),
+    keywords: z4.string().optional().describe("Palavras-chave que representam a marca."),
+    inspirations: z4.string().optional().describe("Marcas/perfis de refer\xEAncia e o que se admira."),
+    special_dates: z4.string().optional().describe("Datas ou per\xEDodos importantes para o neg\xF3cio."),
+    brand_references: z4.string().optional().describe("Conte\xFAdos de refer\xEAncia (links, campanhas, estilo)."),
+    goals: z4.string().optional().describe("Objetivos de neg\xF3cio ou comunica\xE7\xE3o."),
+    promise: z4.string().optional().describe("Promessa da marca."),
+    brand_color: z4.string().optional().describe("Cor principal em hex (#RRGGBB).")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const supabase = supabaseForUser3(ctx);
+    const userId = ctx.getUserId();
+    const { data: profile } = await supabase.from("profiles").select("name, team_id, current_workspace_id").eq("id", userId).maybeSingle();
+    const { data, error } = await supabase.from("brands").insert({
+      user_id: userId,
+      team_id: profile?.team_id ?? null,
+      workspace_id: profile?.current_workspace_id ?? null,
+      name: input.name,
+      segment: input.segment,
+      values: input.values,
+      success_metrics: input.success_metrics,
+      restrictions: input.restrictions,
+      logo: { url: input.logo_url },
+      responsible: input.responsible ?? profile?.name ?? "\u2014",
+      keywords: input.keywords ?? null,
+      inspirations: input.inspirations ?? null,
+      special_dates: input.special_dates ?? null,
+      brand_references: input.brand_references ?? null,
+      goals: input.goals ?? null,
+      promise: input.promise ?? null,
+      brand_color: input.brand_color ?? null
+    }).select().single();
+    if (error) return errorResult(error.message);
+    return okResult(data, "brand");
+  }
+});
+
+// src/lib/mcp/tools/brands/update-brand.ts
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z5 } from "npm:zod@^4.4.3";
+var update_brand_default = defineTool6({
+  name: "update_brand",
+  title: "Atualizar marca",
+  description: "Atualiza campos parciais de uma marca existente.",
+  inputSchema: {
+    id: z5.string().uuid().describe("ID da marca."),
+    name: z5.string().optional(),
+    segment: z5.string().optional(),
+    values: z5.string().optional(),
+    keywords: z5.string().optional(),
+    goals: z5.string().optional(),
+    inspirations: z5.string().optional(),
+    success_metrics: z5.string().optional(),
+    brand_references: z5.string().optional(),
+    special_dates: z5.string().optional(),
+    promise: z5.string().optional(),
+    restrictions: z5.string().optional(),
+    brand_color: z5.string().optional(),
+    logo_url: z5.string().url().optional().describe("Se informado, substitui o logo.")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ id, logo_url, ...rest }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const patch = { ...rest };
+    if (logo_url) patch.logo = { url: logo_url };
+    if (Object.keys(patch).length === 0) return errorResult("Nada para atualizar.");
+    const { data, error } = await supabaseForUser3(ctx).from("brands").update(patch).eq("id", id).select().single();
+    if (error) return errorResult(error.message);
+    return okResult(data, "brand");
+  }
+});
+
+// src/lib/mcp/tools/brands/delete-brand.ts
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z6 } from "npm:zod@^4.4.3";
+var delete_brand_default = defineTool7({
+  name: "delete_brand",
+  title: "Excluir marca",
+  description: "Remove uma marca definitivamente. A marca sai imediatamente da lista.",
+  inputSchema: { id: z6.string().uuid().describe("ID da marca.") },
+  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const { error } = await supabaseForUser3(ctx).from("brands").delete().eq("id", id);
+    if (error) return errorResult(error.message);
+    return okResult({ id, deleted: true }, "brand");
+  }
+});
+
+// src/lib/mcp/tools/personas/list-personas.ts
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z7 } from "npm:zod@^4.4.3";
+var list_personas_default = defineTool8({
+  name: "list_personas",
+  title: "Listar personas",
+  description: "Lista as personas acess\xEDveis pelo usu\xE1rio. Filtra por marca opcionalmente.",
+  inputSchema: {
+    brand_id: z7.string().uuid().optional().describe("Filtra personas de uma marca."),
+    limit: z7.number().int().min(1).max(100).optional().describe("M\xE1x. de linhas (padr\xE3o 25).")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    let q = supabaseForUser3(ctx).from("personas").select("id, name, age, gender, location, main_goal, brand_id, created_at").order("created_at", { ascending: false }).limit(limit ?? 25);
+    if (brand_id) q = q.eq("brand_id", brand_id);
+    const { data, error } = await q;
+    if (error) return errorResult(error.message);
+    return okResult(data ?? [], "personas");
+  }
+});
+
+// src/lib/mcp/tools/personas/get-persona.ts
+import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z8 } from "npm:zod@^4.4.3";
+var get_persona_default = defineTool9({
+  name: "get_persona",
+  title: "Obter persona",
+  description: "Retorna os dados completos de uma persona pelo id.",
+  inputSchema: { id: z8.string().uuid() },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const { data, error } = await supabaseForUser3(ctx).from("personas").select("*").eq("id", id).maybeSingle();
+    if (error) return errorResult(error.message);
+    if (!data) return errorResult("Persona n\xE3o encontrada.");
+    return okResult(data, "persona");
+  }
+});
+
+// src/lib/mcp/tools/personas/create-persona.ts
+import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z9 } from "npm:zod@^4.4.3";
+var create_persona_default = defineTool10({
+  name: "create_persona",
+  title: "Criar persona",
+  description: "Cria uma persona associada opcionalmente a uma marca.",
+  inputSchema: {
+    name: z9.string().min(1).describe("Nome da persona (ex.: 'Empreendedora Beleza 25-34')."),
+    brand_id: z9.string().uuid().optional().describe("Marca associada."),
+    age: z9.string().optional(),
+    gender: z9.string().optional(),
+    location: z9.string().optional(),
+    professional_context: z9.string().optional(),
+    beliefs_and_interests: z9.string().optional(),
+    content_consumption_routine: z9.string().optional(),
+    main_goal: z9.string().optional().describe("Principal objetivo/desejo."),
+    challenges: z9.string().optional().describe("Dores/desafios."),
+    preferred_tone_of_voice: z9.string().optional(),
+    purchase_journey_stage: z9.string().optional(),
+    interest_triggers: z9.string().optional(),
+    income_and_purchase_habits: z9.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const supabase = supabaseForUser3(ctx);
+    const userId = ctx.getUserId();
+    const { data: profile } = await supabase.from("profiles").select("team_id, current_workspace_id").eq("id", userId).maybeSingle();
+    const { data, error } = await supabase.from("personas").insert({
+      user_id: userId,
+      team_id: profile?.team_id ?? null,
+      workspace_id: profile?.current_workspace_id ?? null,
+      ...input
+    }).select().single();
+    if (error) return errorResult(error.message);
+    return okResult(data, "persona");
+  }
+});
+
+// src/lib/mcp/tools/personas/update-persona.ts
+import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z10 } from "npm:zod@^4.4.3";
+var update_persona_default = defineTool11({
+  name: "update_persona",
+  title: "Atualizar persona",
+  description: "Atualiza campos parciais de uma persona.",
+  inputSchema: {
+    id: z10.string().uuid(),
+    name: z10.string().optional(),
+    brand_id: z10.string().uuid().optional(),
+    age: z10.string().optional(),
+    gender: z10.string().optional(),
+    location: z10.string().optional(),
+    professional_context: z10.string().optional(),
+    beliefs_and_interests: z10.string().optional(),
+    content_consumption_routine: z10.string().optional(),
+    main_goal: z10.string().optional(),
+    challenges: z10.string().optional(),
+    preferred_tone_of_voice: z10.string().optional(),
+    purchase_journey_stage: z10.string().optional(),
+    interest_triggers: z10.string().optional(),
+    income_and_purchase_habits: z10.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ id, ...patch }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const clean = {};
+    for (const [k, v] of Object.entries(patch)) if (v !== void 0) clean[k] = v;
+    if (Object.keys(clean).length === 0) return errorResult("Nada para atualizar.");
+    const { data, error } = await supabaseForUser3(ctx).from("personas").update(clean).eq("id", id).select().single();
+    if (error) return errorResult(error.message);
+    return okResult(data, "persona");
+  }
+});
+
+// src/lib/mcp/tools/personas/delete-persona.ts
+import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z11 } from "npm:zod@^4.4.3";
+var delete_persona_default = defineTool12({
+  name: "delete_persona",
+  title: "Excluir persona",
+  description: "Remove uma persona.",
+  inputSchema: { id: z11.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const { error } = await supabaseForUser3(ctx).from("personas").delete().eq("id", id);
+    if (error) return errorResult(error.message);
+    return okResult({ id, deleted: true }, "persona");
+  }
+});
+
+// src/lib/mcp/tools/themes/list-themes.ts
+import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z12 } from "npm:zod@^4.4.3";
+var list_themes_default = defineTool13({
+  name: "list_themes",
+  title: "Listar temas estrat\xE9gicos",
+  description: "Lista as editorias/temas estrat\xE9gicos acess\xEDveis. Filtra por marca opcionalmente.",
+  inputSchema: {
+    brand_id: z12.string().uuid().optional(),
+    limit: z12.number().int().min(1).max(100).optional()
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    let q = supabaseForUser3(ctx).from("strategic_themes").select("id, title, description, brand_id, tone_of_voice, macro_themes, created_at").order("created_at", { ascending: false }).limit(limit ?? 25);
+    if (brand_id) q = q.eq("brand_id", brand_id);
+    const { data, error } = await q;
+    if (error) return errorResult(error.message);
+    return okResult(data ?? [], "themes");
+  }
+});
+
+// src/lib/mcp/tools/themes/get-theme.ts
+import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z13 } from "npm:zod@^4.4.3";
+var get_theme_default = defineTool14({
+  name: "get_theme",
+  title: "Obter tema estrat\xE9gico",
+  description: "Retorna os dados completos de um tema estrat\xE9gico pelo id.",
+  inputSchema: { id: z13.string().uuid() },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const { data, error } = await supabaseForUser3(ctx).from("strategic_themes").select("*").eq("id", id).maybeSingle();
+    if (error) return errorResult(error.message);
+    if (!data) return errorResult("Tema n\xE3o encontrado.");
+    return okResult(data, "theme");
+  }
+});
+
+// src/lib/mcp/tools/themes/create-theme.ts
+import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z14 } from "npm:zod@^4.4.3";
+var create_theme_default = defineTool15({
+  name: "create_theme",
+  title: "Criar tema estrat\xE9gico",
+  description: "Cria um tema/editoria associado a uma marca.",
+  inputSchema: {
+    title: z14.string().min(1).describe("T\xEDtulo do tema/editoria."),
+    brand_id: z14.string().uuid().describe("Marca associada."),
+    description: z14.string().optional(),
+    tone_of_voice: z14.string().optional().describe("Ex.: 'Inspirador; Profissional'."),
+    target_audience: z14.string().optional(),
+    objectives: z14.string().optional(),
+    macro_themes: z14.string().optional(),
+    best_formats: z14.string().optional(),
+    platforms: z14.string().optional(),
+    hashtags: z14.string().optional(),
+    expected_action: z14.string().optional(),
+    color_palette: z14.string().optional(),
+    additional_info: z14.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const supabase = supabaseForUser3(ctx);
+    const userId = ctx.getUserId();
+    const { data: profile } = await supabase.from("profiles").select("team_id, current_workspace_id").eq("id", userId).maybeSingle();
+    const { data, error } = await supabase.from("strategic_themes").insert({
+      user_id: userId,
+      team_id: profile?.team_id ?? null,
+      workspace_id: profile?.current_workspace_id ?? null,
+      ...input
+    }).select().single();
+    if (error) return errorResult(error.message);
+    return okResult(data, "theme");
+  }
+});
+
+// src/lib/mcp/tools/themes/update-theme.ts
+import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z15 } from "npm:zod@^4.4.3";
+var update_theme_default = defineTool16({
+  name: "update_theme",
+  title: "Atualizar tema estrat\xE9gico",
+  description: "Atualiza campos parciais de um tema estrat\xE9gico.",
+  inputSchema: {
+    id: z15.string().uuid(),
+    title: z15.string().optional(),
+    description: z15.string().optional(),
+    tone_of_voice: z15.string().optional(),
+    target_audience: z15.string().optional(),
+    objectives: z15.string().optional(),
+    macro_themes: z15.string().optional(),
+    best_formats: z15.string().optional(),
+    platforms: z15.string().optional(),
+    hashtags: z15.string().optional(),
+    expected_action: z15.string().optional(),
+    color_palette: z15.string().optional(),
+    additional_info: z15.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ id, ...patch }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const clean = {};
+    for (const [k, v] of Object.entries(patch)) if (v !== void 0) clean[k] = v;
+    if (Object.keys(clean).length === 0) return errorResult("Nada para atualizar.");
+    const { data, error } = await supabaseForUser3(ctx).from("strategic_themes").update(clean).eq("id", id).select().single();
+    if (error) return errorResult(error.message);
+    return okResult(data, "theme");
+  }
+});
+
+// src/lib/mcp/tools/themes/delete-theme.ts
+import { defineTool as defineTool17 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z16 } from "npm:zod@^4.4.3";
+var delete_theme_default = defineTool17({
+  name: "delete_theme",
+  title: "Excluir tema estrat\xE9gico",
+  description: "Remove um tema estrat\xE9gico.",
+  inputSchema: { id: z16.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const { error } = await supabaseForUser3(ctx).from("strategic_themes").delete().eq("id", id);
+    if (error) return errorResult(error.message);
+    return okResult({ id, deleted: true }, "theme");
+  }
+});
+
+// src/lib/mcp/tools/content/create-image-content.ts
+import { defineTool as defineTool18 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z17 } from "npm:zod@^4.4.3";
+var create_image_content_default = defineTool18({
+  name: "create_image_content",
+  title: "Criar imagem (pipeline completo)",
+  description: "Gera uma imagem usando o pipeline completo do Creator (marca, persona, tema, tom de voz, plataforma). Retorna a URL da imagem e o id da action.",
+  inputSchema: {
+    brand_id: z17.string().uuid().describe("ID da marca (obrigat\xF3rio para contexto)."),
+    description: z17.string().min(1).describe("Descri\xE7\xE3o da cena a ser gerada."),
+    persona_id: z17.string().uuid().optional(),
+    theme_id: z17.string().uuid().optional(),
+    narrative: z17.string().optional().describe("Narrativa a contar para a persona."),
+    tone: z17.array(z17.string()).max(4).optional().describe("Tons de voz (at\xE9 4). Ex.: ['inspirador','profissional']."),
+    platform: z17.string().optional().describe("Plataforma alvo (ex.: 'instagram_feed')."),
+    aspect_ratio: z17.string().optional().describe("Ex.: '1:1', '4:5', '9:16'."),
+    include_text: z17.boolean().optional().describe("Se deve incluir texto sobre a imagem."),
+    text_content: z17.string().optional().describe("Texto a aparecer na imagem."),
+    content_type: z17.enum(["organic", "paid"]).optional(),
+    campaign_context: z17.string().optional().describe("Bloco de campanha (nome, objetivo, posicionamento)."),
+    visual_style: z17.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const supabase = supabaseForUser3(ctx);
+    const body = {
+      brandId: input.brand_id,
+      description: input.description,
+      personaId: input.persona_id,
+      themeId: input.theme_id,
+      narrative: input.narrative,
+      tone: input.tone ?? [],
+      platform: input.platform,
+      aspectRatio: input.aspect_ratio,
+      includeText: input.include_text ?? Boolean(input.text_content),
+      textContent: input.text_content,
+      contentType: input.content_type ?? "organic",
+      campaignContext: input.campaign_context,
+      visualStyle: input.visual_style ?? "realistic",
+      objective: input.description
+    };
+    const { data, error } = await supabase.functions.invoke("generate-image", { body });
+    if (error) return errorResult(error.message);
+    return okResult(data, "result");
+  }
+});
+
+// src/lib/mcp/tools/content/create-quick-content.ts
+import { defineTool as defineTool19 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z18 } from "npm:zod@^4.4.3";
+var create_quick_content_default = defineTool19({
+  name: "create_quick_content",
+  title: "Criar conte\xFAdo r\xE1pido",
+  description: "Fluxo r\xE1pido de gera\xE7\xE3o de imagem a partir de um prompt livre (sem contexto de marca obrigat\xF3rio).",
+  inputSchema: {
+    prompt: z18.string().min(1).max(5e3).describe("Prompt livre descrevendo a imagem desejada."),
+    aspect_ratio: z18.string().optional().describe("Ex.: '1:1', '4:5', '9:16'."),
+    platform: z18.string().optional(),
+    brand_id: z18.string().uuid().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  handler: async ({ prompt, aspect_ratio, platform, brand_id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const { data, error } = await supabaseForUser3(ctx).functions.invoke("generate-quick-content", {
+      body: { prompt, aspectRatio: aspect_ratio, platform, brandId: brand_id }
+    });
+    if (error) return errorResult(error.message);
+    return okResult(data, "result");
+  }
+});
+
+// src/lib/mcp/tools/content/generate-caption.ts
+import { defineTool as defineTool20 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z19 } from "npm:zod@^4.4.3";
+var generate_caption_default = defineTool20({
+  name: "generate_caption",
+  title: "Gerar legenda",
+  description: "Gera legenda para uma imagem/conte\xFAdo, usando contexto de marca e persona se fornecido.",
+  inputSchema: {
+    prompt: z19.string().min(1).describe("Instru\xE7\xE3o ou contexto para a legenda."),
+    image_url: z19.string().url().optional().describe("URL da imagem base."),
+    brand_id: z19.string().uuid().optional(),
+    persona_id: z19.string().uuid().optional(),
+    theme_id: z19.string().uuid().optional(),
+    platform: z19.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const { data, error } = await supabaseForUser3(ctx).functions.invoke("generate-caption", {
+      body: {
+        prompt: input.prompt,
+        imageUrl: input.image_url,
+        brandId: input.brand_id,
+        personaId: input.persona_id,
+        themeId: input.theme_id,
+        platform: input.platform
+      }
+    });
+    if (error) return errorResult(error.message);
+    return okResult(data, "caption");
+  }
+});
+
+// src/lib/mcp/tools/content/create-content-plan.ts
+import { defineTool as defineTool21 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z20 } from "npm:zod@^4.4.3";
+var create_content_plan_default = defineTool21({
+  name: "create_content_plan",
+  title: "Criar calend\xE1rio de conte\xFAdo",
+  description: "Cria um calend\xE1rio de conte\xFAdo (planejamento) para uma marca, com quantidade, plataformas e objetivo.",
+  inputSchema: {
+    brand_id: z20.string().uuid().describe("Marca do planejamento."),
+    quantity: z20.number().int().min(1).max(60).describe("Quantidade de pe\xE7as a planejar."),
+    objective: z20.string().min(1).describe("Objetivo do planejamento."),
+    themes: z20.array(z20.string()).optional().describe("Temas/editorias a distribuir."),
+    platforms: z20.array(z20.string()).optional().describe("Plataformas alvo (ex.: instagram, linkedin)."),
+    platform: z20.string().optional().describe("Plataforma \xFAnica (retrocompat.)."),
+    additional_info: z20.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const supabase = supabaseForUser3(ctx);
+    const userId = ctx.getUserId();
+    const { data: profile } = await supabase.from("profiles").select("team_id").eq("id", userId).maybeSingle();
+    const { data: brand } = await supabase.from("brands").select("*").eq("id", input.brand_id).maybeSingle();
+    const { data, error } = await supabase.functions.invoke("generate-plan", {
+      body: {
+        brand,
+        themes: input.themes ?? [],
+        platform: input.platform,
+        platforms: input.platforms,
+        quantity: input.quantity,
+        objective: input.objective,
+        additionalInfo: input.additional_info,
+        userId,
+        teamId: profile?.team_id ?? null
+      }
+    });
+    if (error) return errorResult(error.message);
+    return okResult(data, "plan");
+  }
+});
+
+// src/lib/mcp/tools/review/review-image.ts
+import { defineTool as defineTool22 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z21 } from "npm:zod@^4.4.3";
+var review_image_default = defineTool22({
+  name: "review_image",
+  title: "Revisar/ajustar imagem",
+  description: "Aplica ajustes descritos em linguagem natural a uma imagem existente.",
+  inputSchema: {
+    image_url: z21.string().url().describe("URL da imagem base a ser ajustada."),
+    prompt: z21.string().min(1).describe("Instru\xE7\xF5es de ajuste."),
+    brand_id: z21.string().uuid().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  handler: async ({ image_url, prompt, brand_id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const supabase = supabaseForUser3(ctx);
+    let brandName;
+    if (brand_id) {
+      const { data: b } = await supabase.from("brands").select("name").eq("id", brand_id).maybeSingle();
+      brandName = b?.name;
+    }
+    const { data, error } = await supabase.functions.invoke("review-image", {
+      body: { image: image_url, prompt, brandId: brand_id, brandName, source: "mcp" }
+    });
+    if (error) return errorResult(error.message);
+    return okResult(data, "result");
+  }
+});
+
+// src/lib/mcp/tools/review/review-caption.ts
+import { defineTool as defineTool23 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z22 } from "npm:zod@^4.4.3";
+var review_caption_default = defineTool23({
+  name: "review_caption",
+  title: "Revisar/ajustar legenda",
+  description: "Aplica ajustes descritos em linguagem natural a uma legenda existente.",
+  inputSchema: {
+    caption: z22.string().min(1).describe("Legenda original."),
+    prompt: z22.string().min(1).describe("Instru\xE7\xF5es de ajuste."),
+    brand_id: z22.string().uuid().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  handler: async ({ caption, prompt, brand_id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const supabase = supabaseForUser3(ctx);
+    let brandName;
+    if (brand_id) {
+      const { data: b } = await supabase.from("brands").select("name").eq("id", brand_id).maybeSingle();
+      brandName = b?.name;
+    }
+    const { data, error } = await supabase.functions.invoke("review-caption", {
+      body: { caption, prompt, brandId: brand_id, brandName }
+    });
+    if (error) return errorResult(error.message);
+    return okResult(data, "result");
+  }
+});
+
+// src/lib/mcp/tools/review/review-text-for-image.ts
+import { defineTool as defineTool24 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z23 } from "npm:zod@^4.4.3";
+var review_text_for_image_default = defineTool24({
+  name: "review_text_for_image",
+  title: "Revisar texto sobre imagem",
+  description: "Aplica ajustes ao texto que aparece sobre uma imagem (headline, CTA, disclaimer).",
+  inputSchema: {
+    text: z23.string().min(1).describe("Texto atual sobre a imagem."),
+    prompt: z23.string().min(1).describe("Instru\xE7\xF5es de ajuste."),
+    brand_id: z23.string().uuid().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  handler: async ({ text, prompt, brand_id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const supabase = supabaseForUser3(ctx);
+    let brandName;
+    if (brand_id) {
+      const { data: b } = await supabase.from("brands").select("name").eq("id", brand_id).maybeSingle();
+      brandName = b?.name;
+    }
+    const { data, error } = await supabase.functions.invoke("review-text-for-image", {
+      body: { text, prompt, brandId: brand_id, brandName }
+    });
+    if (error) return errorResult(error.message);
+    return okResult(data, "result");
+  }
+});
+
+// src/lib/mcp/tools/context/get-credit-balance.ts
+import { defineTool as defineTool25 } from "npm:@lovable.dev/mcp-js@0.22.2";
+var get_credit_balance_default = defineTool25({
+  name: "get_credit_balance",
+  title: "Saldo de cr\xE9ditos",
+  description: "Retorna o saldo atual de cr\xE9ditos do usu\xE1rio.",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_i, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const { data, error } = await supabaseForUser3(ctx).from("profiles").select("credits, max_credits, credits_expire_at").eq("id", ctx.getUserId()).maybeSingle();
+    if (error) return errorResult(error.message);
+    return okResult(data ?? { credits: 0 }, "balance");
+  }
+});
+
+// src/lib/mcp/tools/context/list-calendars.ts
+import { defineTool as defineTool26 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z24 } from "npm:zod@^4.4.3";
+var list_calendars_default = defineTool26({
+  name: "list_calendars",
+  title: "Listar calend\xE1rios de conte\xFAdo",
+  description: "Lista os calend\xE1rios de conte\xFAdo acess\xEDveis pelo usu\xE1rio.",
+  inputSchema: {
+    brand_id: z24.string().uuid().optional(),
+    limit: z24.number().int().min(1).max(100).optional()
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    let q = supabaseForUser3(ctx).from("content_calendars").select("id, name, description, brand_id, persona_id, theme_id, status, reference_month, created_at").order("created_at", { ascending: false }).limit(limit ?? 25);
+    if (brand_id) q = q.eq("brand_id", brand_id);
+    const { data, error } = await q;
+    if (error) return errorResult(error.message);
+    return okResult(data ?? [], "calendars");
+  }
+});
+
+// src/lib/mcp/tools/context/list-calendar-items.ts
+import { defineTool as defineTool27 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z25 } from "npm:zod@^4.4.3";
+var list_calendar_items_default = defineTool27({
+  name: "list_calendar_items",
+  title: "Listar itens de um calend\xE1rio",
+  description: "Lista os itens de um calend\xE1rio de conte\xFAdo (t\xEDtulo, tema, data agendada, est\xE1gio).",
+  inputSchema: {
+    calendar_id: z25.string().uuid(),
+    limit: z25.number().int().min(1).max(200).optional()
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ calendar_id, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const { data, error } = await supabaseForUser3(ctx).from("calendar_items").select(
+      "id, title, theme, scheduled_date, position, stage, calendar_approved, briefing_approved"
+    ).eq("calendar_id", calendar_id).order("position", { ascending: true }).limit(limit ?? 100);
+    if (error) return errorResult(error.message);
+    return okResult(data ?? [], "items");
+  }
+});
+
+// src/lib/mcp/tools/context/list-actions.ts
+import { defineTool as defineTool28 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z26 } from "npm:zod@^4.4.3";
+var list_actions_default = defineTool28({
+  name: "list_actions",
+  title: "Listar pe\xE7as criadas (hist\xF3rico)",
+  description: "Lista as pe\xE7as (actions) criadas pelo usu\xE1rio, com filtros por marca e tipo.",
+  inputSchema: {
+    brand_id: z26.string().uuid().optional(),
+    type: z26.string().optional().describe("Tipo da action (ex.: 'image', 'video', 'quick')."),
+    limit: z26.number().int().min(1).max(100).optional()
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id, type, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    let q = supabaseForUser3(ctx).from("actions").select("id, type, status, approved, brand_id, created_at, details, result").is("deleted_at", null).is("parent_action_id", null).order("created_at", { ascending: false }).limit(limit ?? 25);
+    if (brand_id) q = q.eq("brand_id", brand_id);
+    if (type) q = q.eq("type", type);
+    const { data, error } = await q;
+    if (error) return errorResult(error.message);
+    return okResult(data ?? [], "actions");
+  }
+});
+
+// src/lib/mcp/tools/context/get-action.ts
+import { defineTool as defineTool29 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z27 } from "npm:zod@^4.4.3";
+var get_action_default = defineTool29({
+  name: "get_action",
+  title: "Obter pe\xE7a (action)",
+  description: "Retorna os dados completos de uma action (imagem/v\xEDdeo/quick) pelo id.",
+  inputSchema: { id: z27.string().uuid() },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthenticated();
+    const { data, error } = await supabaseForUser3(ctx).from("actions").select("*").eq("id", id).maybeSingle();
+    if (error) return errorResult(error.message);
+    if (!data) return errorResult("Action n\xE3o encontrada.");
+    return okResult(data, "action");
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "lcpmqnkorcsclmpfbizr";
 var mcp_default = defineMcp({
   name: "creator-mcp",
   title: "Creator MCP",
-  version: "0.1.0",
-  instructions: "Tools for the Creator app. Use `echo` to verify connectivity, `get_profile` to read the signed-in user's profile, and `list_brands` to list their brands.",
+  version: "1.0.0",
+  instructions: "Ferramentas do Creator para agentes de marketing. Antes de gerar qualquer pe\xE7a, verifique se a marca j\xE1 existe com list_brands; se n\xE3o existir, use create_brand. Depois consulte list_personas e list_themes para contexto. Use create_image_content para o pipeline completo (com marca/persona/tema/tom) ou create_quick_content para prompt livre. generate_caption produz legendas; review_image, review_caption e review_text_for_image aplicam ajustes. create_content_plan gera um calend\xE1rio de conte\xFAdo.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
   }),
-  tools: [echo_default, get_profile_default, list_brands_default]
+  tools: [
+    echo_default,
+    get_profile_default,
+    // marcas
+    list_brands_default,
+    get_brand_default,
+    create_brand_default,
+    update_brand_default,
+    delete_brand_default,
+    // personas
+    list_personas_default,
+    get_persona_default,
+    create_persona_default,
+    update_persona_default,
+    delete_persona_default,
+    // temas
+    list_themes_default,
+    get_theme_default,
+    create_theme_default,
+    update_theme_default,
+    delete_theme_default,
+    // criação
+    create_image_content_default,
+    create_quick_content_default,
+    generate_caption_default,
+    create_content_plan_default,
+    // revisão
+    review_image_default,
+    review_caption_default,
+    review_text_for_image_default,
+    // contexto
+    get_credit_balance_default,
+    list_calendars_default,
+    list_calendar_items_default,
+    list_actions_default,
+    get_action_default
+  ]
 });
 
 // lovable-mcp-supabase-entry.ts

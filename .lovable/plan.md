@@ -1,54 +1,109 @@
-# Remoção completa do MCP
+# MCP Creator — Configuração Completa
 
-Objetivo: deixar o projeto sem nenhum vestígio do servidor MCP e do fluxo OAuth associado a ele, para reconstruir do zero em seguida. **Nenhuma edge function existente será apagada** (apenas a função `mcp` gerada automaticamente pelo plugin). Nada de créditos, marcas, personas, ações, auth do app etc. será alterado.
+Objetivo: expor via MCP as funcionalidades essenciais do Creator para que o "Marketing OS" (outro projeto Lovable) consiga executar o roteiro conversacional do Anexo D — desde verificar/criar marca, ler personas e temas, até gerar e revisar conteúdo.
 
-## O que será removido
+Base atual: já existem `echo`, `get_profile`, `list_brands` em `src/lib/mcp/tools/`, OAuth ativo em `https://<ref>.supabase.co/auth/v1`, consent em `/.lovable/oauth/consent`. Vamos expandir sobre essa base.
 
-**Código-fonte do MCP (`src/lib/mcp/`)**
-- Apagar diretório inteiro: `index.ts`, `authUser.ts`, `deepLink.ts`, `supabaseClient.ts` e a pasta `tools/` (com todas as 24 tools).
+## Ferramentas MCP a criar
 
-**Plugin no build**
-- `vite.config.ts`: remover o import `mcpPlugin` de `@lovable.dev/mcp-js/stacks/supabase/vite` e a entrada `mcpPlugin()` do array `plugins`.
+Todas usam o token OAuth do usuário (`ctx.getToken()`) e respeitam RLS. Nomes, títulos e descrições ficam em português curto — é o que o Marketing OS vai ler para escolher a tool.
 
-**Dependência npm**
-- Remover `@lovable.dev/mcp-js` do `package.json`.
+### Marcas (CRUD)
+- `list_brands` (já existe — manter)
+- `get_brand` — lê marca por id, retorna campos completos (identidade visual, valores, restrições, etc.)
+- `create_brand` — cadastra marca nova. Inputs alinhados ao formulário de cadastro do roteiro (nome, segmento, valores, palavras-chave, indicadores, referências, datas importantes, links, restrições, logo_url). Obrigatórios: name, segment, values, success_indicators, restrictions, logo_url.
+- `update_brand` — atualiza campos parciais de uma marca existente
+- `delete_brand` — soft delete (`deleted_at`)
 
-**Página de consentimento OAuth (existe só para o MCP)**
-- Apagar `src/pages/OAuthConsent.tsx`.
-- `src/App.tsx`: remover o `lazy import` de `OAuthConsent` (linha 32) e a `<Route path="/.lovable/oauth/consent" ...>` (linha 138).
+### Personas (CRUD)
+- `list_personas` — lista personas do usuário/equipe, filtro opcional `brand_id`
+- `get_persona` — detalhes completos
+- `create_persona` — cria persona (nome, faixa etária, descrição, dores, desejos, brand_id opcional)
+- `update_persona` — atualização parcial
+- `delete_persona` — soft delete
 
-**Edge function gerada pelo plugin**
-- Apagar `supabase/functions/mcp/` (arquivo `index.ts` auto-gerado) via `rm` no shell.
-- Rodar `supabase--delete_edge_functions` para remover a função `mcp` já deployada em Test e Production, para o endpoint `/functions/v1/mcp` deixar de responder.
+### Temas Estratégicos / Editorias (CRUD)
+- `list_themes` — lista temas, filtro opcional `brand_id`
+- `get_theme` — detalhes
+- `create_theme` — cria tema (nome, descrição, narrativa, brand_id)
+- `update_theme` — atualização parcial
+- `delete_theme` — soft delete
 
-**Manifesto e docs internas do MCP**
-- Apagar `.lovable/mcp/manifest.json` (e a pasta `.lovable/mcp/` se ficar vazia).
-- Apagar `docs/MCP_POSSIBILIDADES.md`.
-- `OAUTH_SETUP.md` foi criado para o MCP: revisar e apagar se descrever apenas o fluxo OAuth do MCP.
+### Criação de conteúdo
+- `create_image_content` — dispara pipeline completo de geração de imagem invocando a edge function `generate-image`. Inputs: brand_id (obrigatório), persona_id, theme_id, narrative, tone_of_voice[] (até 4), platform, format/aspect_ratio, has_text_on_image, scene_description opcional, campaign_context opcional. Retorna action_id + URL da imagem.
+- `create_quick_content` — versão simplificada usando `generate-quick-content` (fluxo rápido do Creator)
+- `generate_caption` — chama `generate-caption` para produzir legenda a partir de uma imagem/contexto
+- `create_content_plan` — chama `generate-plan` para calendário de conteúdo (inputs: brand_id, período, plataformas, objetivo, campanha opcional)
 
-## O que NÃO será tocado
+### Revisão de conteúdo
+- `review_image` — chama `review-image` (aceita image_url + instruções de ajuste)
+- `review_caption` — chama `review-caption` (texto + instruções)
+- `review_text_for_image` — chama `review-text-for-image`
 
-- Todas as demais edge functions em `supabase/functions/` (compliance, geração de imagem, Stripe, RD Station, etc.).
-- Tabelas, RLS, migrations, secrets do banco.
-- `AuthContext`, login/registro, Google OAuth do app (usado para o login normal, não é do MCP).
-- Hooks, componentes, páginas de negócio (marcas, personas, temas, actions, calendário, etc.).
-- Configuração de OAuth server do Supabase — o Supabase mantém a configuração ativa mesmo sem MCP; ela pode ser reutilizada quando reconstruirmos. Se você preferir também desativar, me avise e eu incluo no plano.
+### Utilitários de contexto
+- `get_profile` (já existe — manter)
+- `get_credit_balance` — retorna créditos do usuário (leitura de `profiles.credits`)
+- `list_calendars` — lista `content_calendars` do usuário
+- `list_calendar_items` — itens de um calendário
+- `list_actions` — lista peças criadas (histórico), filtros por brand_id/status
+- `get_action` — detalhes de uma action pelo id
 
-## Ordem de execução
+Total: ~24 tools organizadas em 5 grupos.
 
-1. Editar `vite.config.ts` (retirar o plugin).
-2. Editar `src/App.tsx` (retirar import + rota do consent).
-3. Apagar `src/pages/OAuthConsent.tsx`.
-4. Apagar `src/lib/mcp/` inteiro.
-5. Apagar `supabase/functions/mcp/` e chamar `supabase--delete_edge_functions` para `mcp`.
-6. Apagar `.lovable/mcp/manifest.json`, `docs/MCP_POSSIBILIDADES.md`, `OAUTH_SETUP.md` (se for só do MCP).
-7. Remover `@lovable.dev/mcp-js` do `package.json` via `bun remove`.
-8. Rodar typecheck para garantir que nada mais referencia MCP.
+## Estrutura de arquivos
 
-## Verificação final
+```text
+src/lib/mcp/
+├── index.ts                    # defineMcp com todas as tools importadas
+├── _shared/
+│   └── supabase.ts             # helper supabaseForUser(ctx) reaproveitado
+└── tools/
+    ├── echo.ts
+    ├── brands/                 # list, get, create, update, delete
+    ├── personas/
+    ├── themes/
+    ├── content/                # create-image, quick, caption, plan
+    ├── review/                 # image, caption, text-for-image
+    └── context/                # profile, credits, calendars, actions
+```
 
-- `rg -n "mcp|OAuthConsent|@lovable.dev/mcp-js"` no repositório não deve retornar nada em código do app (apenas eventualmente em memórias/knowledge, o que é esperado).
-- Build passa.
-- Endpoint `https://<ref>.supabase.co/functions/v1/mcp` retorna 404 após o delete.
+Cada tool: um arquivo, um `defineTool` default-exportado, `inputSchema` em Zod, `annotations` corretas (readOnlyHint para leituras; destructiveHint para deletes), descrição de uma frase em pt-BR.
 
-Confirma que posso prosseguir com essa remoção?
+## Segurança e RLS
+
+- Todas as tools que gravam usam `ctx.getUserId()` — nunca aceitam `user_id` como input.
+- Todas as consultas usam cliente Supabase com `Authorization: Bearer ${ctx.getToken()}`, então RLS existente (marcas, personas, temas, actions) já aplica.
+- Tools de criação/revisão que hoje descontam créditos via edge function continuam descontando normalmente — a edge function já valida saldo.
+- Delete é sempre soft delete (`deleted_at`) seguindo o padrão do projeto.
+
+## Documentação
+
+- `docs/MCP_CREATOR.md` novo, cobrindo:
+  - Lista de tools com descrição, inputs, outputs, exemplos JSON
+  - Mapeamento pergunta do roteiro → tool MCP (tabela do Anexo D)
+  - Fluxo típico do Marketing OS: `list_brands` → (se não existe) `create_brand` → `list_personas` → `list_themes` → `create_image_content` → `generate_caption`
+  - Como conectar (URL do endpoint, OAuth flow, DCR)
+  - Limitações conhecidas: geração de vídeo continua no app (long-running), abertura de questões no Discourse não faz parte deste MCP
+
+## Passos de execução
+
+1. Criar `_shared/supabase.ts` (helper import-safe: lê env dentro do handler, não no top level).
+2. Criar as 24 tools em paralelo, agrupadas por pasta.
+3. Atualizar `src/lib/mcp/index.ts` importando e listando todas.
+4. Rodar `app_mcp_server--extract_mcp_manifest` para regenerar o manifest e capturar erros.
+5. Deploy: `supabase--deploy_edge_functions(["mcp"])`.
+6. Escrever `docs/MCP_CREATOR.md`.
+7. Sugerir publish no final para o Marketing OS enxergar as novas tools.
+
+## Detalhes técnicos importantes
+
+- Handlers de criação de imagem/vídeo/caption **invocam edge functions existentes** via `supabase.functions.invoke(name, { body })` com o token do usuário. Não duplicam lógica de geração — apenas fazem o pedido e devolvem o resultado.
+- Handlers devem retornar rápido. Geração de imagem no Creator hoje leva ~15-30s; fica no limite do timeout MCP mas é o padrão que já funciona no app. Se houver risco de estouro, documentar como limitação e recomendar polling via `get_action`.
+- `create_content_plan` (calendário) pode ser longo — devolver o `calendar_id` imediatamente e deixar o Marketing OS consultar via `list_calendar_items` quando quiser.
+- Zod schemas usam `.describe()` em todos os campos: essa string aparece para o Marketing OS na hora de escolher os inputs.
+
+## Fora do escopo (agora)
+
+- Geração de vídeo síncrona via MCP (usa `generate-video`, é assíncrona e demorada — mantém no app).
+- Abertura de tópicos no Discourse (não faz parte deste projeto).
+- Upload de logo/imagem via MCP — o Marketing OS deve enviar uma URL pública; upload direto de bytes fica para uma segunda iteração.
