@@ -23,11 +23,37 @@ function supabaseForUser(ctx) {
   });
 }
 
+// src/lib/mcp/deepLink.ts
+var BASE = "https://pla.creator.lefil.com.br";
+function buildDeepLink(kind, id) {
+  switch (kind) {
+    case "action":
+      return `${BASE}/historico/${id}`;
+    case "brand":
+      return `${BASE}/marcas/${id}`;
+    case "persona":
+      return `${BASE}/personas/${id}`;
+    case "theme":
+      return `${BASE}/temas/${id}`;
+    case "calendar":
+      return `${BASE}/calendario/${id}`;
+    case "calendar_item":
+      return `${BASE}/calendario/item/${id}`;
+    case "category":
+      return `${BASE}/categorias/${id}`;
+    case "profile":
+      return `${BASE}/perfil/${id}`;
+  }
+}
+function withDeepLinks(rows, kind) {
+  return (rows ?? []).map((r) => ({ ...r, deep_link: buildDeepLink(kind, r.id) }));
+}
+
 // src/lib/mcp/tools/list-brands.ts
 var list_brands_default = defineTool({
   name: "list_brands",
   title: "Listar marcas",
-  description: "Lista as marcas que o usu\xE1rio autenticado tem acesso (respeita RLS e equipe).",
+  description: "Lista as marcas (workspaces/brands do vocabul\xE1rio AEIOU) que o usu\xE1rio autenticado pode acessar. Respeita RLS e time. Cada item traz `deep_link` para o Creator.",
   inputSchema: {
     limit: z.number().int().min(1).max(100).optional().describe("M\xE1ximo de marcas a retornar. Padr\xE3o 50.")
   },
@@ -37,27 +63,65 @@ var list_brands_default = defineTool({
       return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
     }
     const supabase = supabaseForUser(ctx);
-    const { data, error } = await supabase.from("brands").select("id, name, segment, brand_color, created_at").order("name").limit(limit ?? 50);
+    const { data, error } = await supabase.from("brands").select("id, name, segment, brand_color, avatar_url, created_at").order("name").limit(limit ?? 50);
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
+    const brands = withDeepLinks(data, "brand");
     return {
-      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
-      structuredContent: { brands: data ?? [] }
+      content: [{ type: "text", text: JSON.stringify(brands, null, 2) }],
+      structuredContent: { brands }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-brand.ts
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z2 } from "npm:zod@^3.25.76";
+var get_brand_default = defineTool2({
+  name: "get_brand",
+  title: "Detalhar marca",
+  description: "Retorna dados completos de uma marca (identidade visual, valores, restri\xE7\xF5es, moodboard) e o resumo de estilo aprendido a partir do feedback (`brand_style_preferences`). Use antes de criar entreg\xE1veis (caption/imagem) para o orquestrador montar briefings coerentes.",
+  inputSchema: {
+    brand_id: z2.string().uuid().describe("ID da marca.")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data: brand, error } = await supabase.from("brands").select(
+      "id, name, segment, responsible, values, keywords, goals, promise, restrictions, brand_color, avatar_url, moodboard, color_palette, brand_references, created_at"
+    ).eq("id", brand_id).maybeSingle();
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    if (!brand) {
+      return { content: [{ type: "text", text: "Marca n\xE3o encontrada ou sem acesso." }], isError: true };
+    }
+    const { data: stylePrefs } = await supabase.from("brand_style_preferences").select("style_summary, total_positive, total_negative, last_updated_from_feedback_at").eq("brand_id", brand_id).maybeSingle();
+    const payload = {
+      brand: { ...brand, deep_link: buildDeepLink("brand", brand.id) },
+      style_preferences: stylePrefs ?? null
+    };
+    return {
+      content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
+      structuredContent: payload
     };
   }
 });
 
 // src/lib/mcp/tools/list-personas.ts
-import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z2 } from "npm:zod@^3.25.76";
-var list_personas_default = defineTool2({
+import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z3 } from "npm:zod@^3.25.76";
+var list_personas_default = defineTool3({
   name: "list_personas",
   title: "Listar personas",
   description: "Lista as personas do usu\xE1rio autenticado. Filtra opcionalmente por marca.",
   inputSchema: {
-    brand_id: z2.string().uuid().optional().describe("Se informado, retorna somente personas dessa marca."),
-    limit: z2.number().int().min(1).max(100).optional()
+    brand_id: z3.string().uuid().optional().describe("Se informado, retorna somente personas dessa marca."),
+    limit: z3.number().int().min(1).max(100).optional()
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ brand_id, limit }, ctx) => {
@@ -71,23 +135,24 @@ var list_personas_default = defineTool2({
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
+    const personas = withDeepLinks(data, "persona");
     return {
-      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
-      structuredContent: { personas: data ?? [] }
+      content: [{ type: "text", text: JSON.stringify(personas, null, 2) }],
+      structuredContent: { personas }
     };
   }
 });
 
 // src/lib/mcp/tools/list-strategic-themes.ts
-import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z3 } from "npm:zod@^3.25.76";
-var list_strategic_themes_default = defineTool3({
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z4 } from "npm:zod@^3.25.76";
+var list_strategic_themes_default = defineTool4({
   name: "list_strategic_themes",
   title: "Listar temas estrat\xE9gicos",
-  description: "Lista os temas estrat\xE9gicos do usu\xE1rio. Filtra opcionalmente por marca.",
+  description: "Lista os temas estrat\xE9gicos do usu\xE1rio. Filtra opcionalmente por marca. Cada item traz `deep_link` para o Creator.",
   inputSchema: {
-    brand_id: z3.string().uuid().optional(),
-    limit: z3.number().int().min(1).max(100).optional()
+    brand_id: z4.string().uuid().optional(),
+    limit: z4.number().int().min(1).max(100).optional()
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ brand_id, limit }, ctx) => {
@@ -101,46 +166,177 @@ var list_strategic_themes_default = defineTool3({
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
+    const themes = withDeepLinks(data, "theme");
     return {
-      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
-      structuredContent: { themes: data ?? [] }
+      content: [{ type: "text", text: JSON.stringify(themes, null, 2) }],
+      structuredContent: { themes }
     };
   }
 });
 
-// src/lib/mcp/tools/list-recent-actions.ts
-import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z4 } from "npm:zod@^3.25.76";
-var list_recent_actions_default = defineTool4({
-  name: "list_recent_actions",
-  title: "Listar a\xE7\xF5es recentes",
-  description: "Lista as a\xE7\xF5es recentes do usu\xE1rio (conte\xFAdos, revis\xF5es, planos, v\xEDdeos) ainda n\xE3o exclu\xEDdas.",
+// src/lib/mcp/tools/list-deliverables.ts
+import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z5 } from "npm:zod@^3.25.76";
+var list_deliverables_default = defineTool5({
+  name: "list_deliverables",
+  title: "Listar entreg\xE1veis",
+  description: "Lista os entreg\xE1veis recentes do usu\xE1rio (conte\xFAdos, revis\xF5es, planos, v\xEDdeos). Corresponde \xE0 tabela `actions`. Cada item traz `deep_link` para abrir no Creator.",
   inputSchema: {
-    action_type: z4.string().optional().describe("Filtra por tipo (ex.: 'CONTENT', 'QUICK_CONTENT', 'VIDEO', 'REVIEW')."),
-    limit: z4.number().int().min(1).max(50).optional().describe("Padr\xE3o 20.")
+    action_type: z5.string().optional().describe(
+      "Filtra por tipo (ex.: 'CRIAR_CONTEUDO', 'CRIAR_CONTEUDO_RAPIDO', 'REVISAR_CONTEUDO', 'PLANEJAR_CONTEUDO', 'GERAR_VIDEO')."
+    ),
+    brand_id: z5.string().uuid().optional().describe("Filtra por marca."),
+    limit: z5.number().int().min(1).max(50).optional().describe("Padr\xE3o 20.")
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async ({ action_type, limit }, ctx) => {
+  handler: async ({ action_type, brand_id, limit }, ctx) => {
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
     }
     const supabase = supabaseForUser(ctx);
     let q = supabase.from("actions").select("id, action_type, title, brand_id, created_at, status").is("deleted_at", null).order("created_at", { ascending: false }).limit(limit ?? 20);
     if (action_type) q = q.eq("action_type", action_type);
+    if (brand_id) q = q.eq("brand_id", brand_id);
     const { data, error } = await q;
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
+    const deliverables = withDeepLinks(data, "action");
     return {
-      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
-      structuredContent: { actions: data ?? [] }
+      content: [{ type: "text", text: JSON.stringify(deliverables, null, 2) }],
+      structuredContent: { deliverables }
+    };
+  }
+});
+
+// src/lib/mcp/tools/list-categories.ts
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z6 } from "npm:zod@^3.25.76";
+var list_categories_default = defineTool6({
+  name: "list_categories",
+  title: "Listar categorias",
+  description: "Lista as categorias de a\xE7\xF5es \xE0s quais o usu\xE1rio tem acesso (Dono/Editor/Leitor). Categorias organizam entreg\xE1veis por tema/projeto dentro de uma marca.",
+  inputSchema: {
+    limit: z6.number().int().min(1).max(100).optional()
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ limit }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("action_categories").select("id, name, description, color, visibility, created_at").order("name").limit(limit ?? 50);
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    const categories = withDeepLinks(data, "category");
+    return {
+      content: [{ type: "text", text: JSON.stringify(categories, null, 2) }],
+      structuredContent: { categories }
+    };
+  }
+});
+
+// src/lib/mcp/tools/list-favorites.ts
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z7 } from "npm:zod@^3.25.76";
+var list_favorites_default = defineTool7({
+  name: "list_favorites",
+  title: "Listar favoritos",
+  description: "Lista os entreg\xE1veis favoritados pelo usu\xE1rio. `scope='me'` traz favoritos pessoais; `scope='team'` traz favoritos compartilhados com a equipe. \xDAteis como refer\xEAncia de estilo para o orquestrador antes de gerar novos conte\xFAdos.",
+  inputSchema: {
+    scope: z7.enum(["me", "team"]).optional().describe("Escopo do favorito. Padr\xE3o 'me'."),
+    limit: z7.number().int().min(1).max(50).optional()
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ scope, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("action_favorites").select("id, action_id, scope, created_at").eq("scope", scope ?? "me").order("created_at", { ascending: false }).limit(limit ?? 20);
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    const favorites = (data ?? []).map((f) => ({
+      ...f,
+      deep_link: buildDeepLink("action", f.action_id)
+    }));
+    return {
+      content: [{ type: "text", text: JSON.stringify(favorites, null, 2) }],
+      structuredContent: { favorites }
+    };
+  }
+});
+
+// src/lib/mcp/tools/list-calendars.ts
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z8 } from "npm:zod@^3.25.76";
+var list_calendars_default = defineTool8({
+  name: "list_calendars",
+  title: "Listar calend\xE1rios de conte\xFAdo",
+  description: "Lista os calend\xE1rios de conte\xFAdo do usu\xE1rio. Cada calend\xE1rio agrupa itens que percorrem as etapas calendar \u2192 briefing \u2192 design \u2192 review \u2192 done.",
+  inputSchema: {
+    brand_id: z8.string().uuid().optional(),
+    limit: z8.number().int().min(1).max(50).optional()
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    let q = supabase.from("content_calendars").select("id, name, description, brand_id, persona_id, theme_id, reference_month, status, created_at").order("created_at", { ascending: false }).limit(limit ?? 20);
+    if (brand_id) q = q.eq("brand_id", brand_id);
+    const { data, error } = await q;
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    const calendars = withDeepLinks(data, "calendar");
+    return {
+      content: [{ type: "text", text: JSON.stringify(calendars, null, 2) }],
+      structuredContent: { calendars }
+    };
+  }
+});
+
+// src/lib/mcp/tools/list-calendar-items.ts
+import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z9 } from "npm:zod@^3.25.76";
+var list_calendar_items_default = defineTool9({
+  name: "list_calendar_items",
+  title: "Listar itens do calend\xE1rio",
+  description: "Lista os itens de um calend\xE1rio de conte\xFAdo, opcionalmente filtrando por etapa (`calendar`, `briefing`, `design`, `review`, `done`).",
+  inputSchema: {
+    calendar_id: z9.string().uuid().describe("ID do calend\xE1rio."),
+    stage: z9.enum(["calendar", "briefing", "design", "review", "done"]).optional().describe("Etapa do fluxo AEIOU dentro do calend\xE1rio."),
+    limit: z9.number().int().min(1).max(100).optional()
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ calendar_id, stage, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    let q = supabase.from("calendar_items").select(
+      "id, calendar_id, title, theme, scheduled_date, position, stage, calendar_approved, briefing_approved, design_action_id, design_approved, final_approved, created_at"
+    ).eq("calendar_id", calendar_id).order("position").limit(limit ?? 50);
+    if (stage) q = q.eq("stage", stage);
+    const { data, error } = await q;
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    const items = withDeepLinks(data, "calendar_item");
+    return {
+      content: [{ type: "text", text: JSON.stringify(items, null, 2) }],
+      structuredContent: { items }
     };
   }
 });
 
 // src/lib/mcp/tools/get-credit-balance.ts
-import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.22.2";
-var get_credit_balance_default = defineTool5({
+import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@0.22.2";
+var get_credit_balance_default = defineTool10({
   name: "get_credit_balance",
   title: "Consultar saldo de cr\xE9ditos",
   description: "Retorna o saldo pessoal de cr\xE9ditos do usu\xE1rio autenticado, incluindo cr\xE9ditos totais e limite.",
@@ -163,8 +359,8 @@ var get_credit_balance_default = defineTool5({
 });
 
 // src/lib/mcp/tools/get-profile.ts
-import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.22.2";
-var get_profile_default = defineTool6({
+import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@0.22.2";
+var get_profile_default = defineTool11({
   name: "get_profile",
   title: "Obter perfil",
   description: "Retorna dados do perfil do usu\xE1rio autenticado.",
@@ -186,24 +382,291 @@ var get_profile_default = defineTool6({
   }
 });
 
+// src/lib/mcp/tools/create-caption.ts
+import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z10 } from "npm:zod@^3.25.76";
+var create_caption_default = defineTool12({
+  name: "create_caption",
+  title: "Criar legenda (entreg\xE1vel)",
+  description: "Gera uma legenda para uma marca e plataforma. Custa ~1 cr\xE9dito. Delega para a Edge Function `generate-caption`, respeitando compliance e cobran\xE7a do usu\xE1rio. Retorna `action_id` e `deep_link` para materializar como entreg\xE1vel no Ciclo AEIOU.",
+  inputSchema: {
+    brand_id: z10.string().uuid().describe("ID da marca."),
+    theme: z10.string().optional().describe("Tema/assunto do post."),
+    platform: z10.string().describe("Plataforma alvo: instagram, facebook, linkedin, twitter, tiktok."),
+    objective: z10.string().describe("Objetivo (ex.: engajamento, venda, autoridade)."),
+    image_description: z10.string().describe("Descri\xE7\xE3o da imagem/situa\xE7\xE3o."),
+    audience: z10.string().optional(),
+    tone: z10.string().optional(),
+    persona: z10.string().optional(),
+    additional_info: z10.string().optional(),
+    content_type: z10.enum(["organic", "ads"]).optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.functions.invoke("generate-caption", {
+      body: {
+        brandId: input.brand_id,
+        theme: input.theme,
+        platform: input.platform,
+        objective: input.objective,
+        imageDescription: input.image_description,
+        audience: input.audience,
+        tone: input.tone,
+        persona: input.persona,
+        additionalInfo: input.additional_info,
+        contentType: input.content_type ?? "organic",
+        userId: ctx.getUserId()
+      }
+    });
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    const actionId = data?.actionId ?? data?.action_id;
+    const payload = {
+      action_id: actionId ?? null,
+      caption: data?.caption ?? data?.text ?? null,
+      hashtags: data?.hashtags ?? null,
+      credits_used: data?.creditsUsed ?? 1,
+      credits_remaining: data?.creditsRemaining ?? null,
+      deep_link: actionId ? buildDeepLink("action", actionId) : null,
+      raw: data
+    };
+    return {
+      content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
+      structuredContent: payload
+    };
+  }
+});
+
+// src/lib/mcp/tools/review-caption.ts
+import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z11 } from "npm:zod@^3.25.76";
+var review_caption_default = defineTool13({
+  name: "review_caption",
+  title: "Revisar legenda",
+  description: "Analisa uma legenda em rela\xE7\xE3o a uma marca e retorna feedback textual (fortalezas, ajustes, riscos). Custa ~1 cr\xE9dito. Delega para a Edge Function `review-caption`.",
+  inputSchema: {
+    brand_id: z11.string().uuid().describe("ID da marca de refer\xEAncia."),
+    caption: z11.string().describe("Texto da legenda a ser revisada."),
+    prompt: z11.string().optional().describe("Prompt/briefing original, se houver."),
+    theme_name: z11.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ brand_id, caption, prompt, theme_name }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.functions.invoke("review-caption", {
+      body: { brandId: brand_id, caption, prompt, themeName: theme_name }
+    });
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    const actionId = data?.actionId ?? data?.action_id;
+    const payload = {
+      action_id: actionId ?? null,
+      feedback: data?.feedback ?? data?.review ?? null,
+      credits_used: data?.creditsUsed ?? 1,
+      credits_remaining: data?.creditsRemaining ?? null,
+      deep_link: actionId ? buildDeepLink("action", actionId) : null,
+      raw: data
+    };
+    return {
+      content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
+      structuredContent: payload
+    };
+  }
+});
+
+// src/lib/mcp/tools/create-content-plan.ts
+import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z12 } from "npm:zod@^3.25.76";
+var create_content_plan_default = defineTool14({
+  name: "create_content_plan",
+  title: "Criar plano de conte\xFAdo",
+  description: "Gera um planejamento de conte\xFAdo (Calend\xE1rio) para uma marca a partir de temas e plataformas. Custa ~5 cr\xE9ditos. Delega para a Edge Function `generate-plan`. Retorna um entreg\xE1vel (`action_id`) com o plano em markdown.",
+  inputSchema: {
+    brand: z12.string().describe("Nome da marca."),
+    themes: z12.array(z12.string()).min(1).max(10).describe("Lista de temas estrat\xE9gicos."),
+    platforms: z12.array(z12.enum(["instagram", "linkedin", "facebook", "twitter", "tiktok"])).min(1).describe("Plataformas alvo."),
+    quantity: z12.number().int().min(1).max(30).optional().describe("Quantidade de posts."),
+    objective: z12.string().optional(),
+    additional_info: z12.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.functions.invoke("generate-plan", {
+      body: {
+        brand: input.brand,
+        themes: input.themes,
+        platforms: input.platforms,
+        quantity: input.quantity ?? 5,
+        objective: input.objective,
+        additionalInfo: input.additional_info,
+        userId: ctx.getUserId()
+      }
+    });
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    const actionId = data?.actionId ?? data?.action_id;
+    const payload = {
+      action_id: actionId ?? null,
+      plan_markdown: data?.plan ?? data?.plan_markdown ?? null,
+      credits_used: data?.creditsUsed ?? 5,
+      credits_remaining: data?.creditsRemaining ?? null,
+      deep_link: actionId ? buildDeepLink("action", actionId) : null,
+      raw: data
+    };
+    return {
+      content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
+      structuredContent: payload
+    };
+  }
+});
+
+// src/lib/mcp/tools/create-image.ts
+import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z13 } from "npm:zod@^3.25.76";
+var create_image_default = defineTool15({
+  name: "create_image",
+  title: "Criar imagem (entreg\xE1vel)",
+  description: "Gera uma imagem para uma marca via Gemini. Custa ~8 cr\xE9ditos. ATEN\xC7\xC3O: entrega a imagem crua \u2014 o overlay de texto (headline/CTA) s\xF3 \xE9 aplicado quando o usu\xE1rio abre o Creator no navegador (Canvas 2D). O campo `overlay_status='pending'` indica que o entreg\xE1vel ainda precisa ser finalizado no app.",
+  inputSchema: {
+    brand_id: z13.string().uuid().describe("ID da marca."),
+    description: z13.string().describe("Descri\xE7\xE3o/briefing visual do que gerar."),
+    platform: z13.string().optional().describe("Plataforma alvo (define aspect ratio). Opcional se `aspect_ratio` for informado."),
+    aspect_ratio: z13.string().optional().describe("Ex.: '1:1', '9:16', '16:9'."),
+    persona_id: z13.string().uuid().optional(),
+    theme_id: z13.string().uuid().optional(),
+    additional_info: z13.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.functions.invoke("generate-image", {
+      body: {
+        brandId: input.brand_id,
+        description: input.description,
+        platform: input.platform,
+        aspectRatio: input.aspect_ratio,
+        personaId: input.persona_id,
+        themeId: input.theme_id,
+        additionalInfo: input.additional_info,
+        userId: ctx.getUserId()
+      }
+    });
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    const actionId = data?.actionId ?? data?.action_id;
+    const payload = {
+      action_id: actionId ?? null,
+      image_url: data?.imageUrl ?? data?.image_url ?? null,
+      overlay_status: data?.overlayStatus ?? data?.overlay_status ?? "pending",
+      overlay_note: "O overlay de texto (headline/CTA) \xE9 aplicado no navegador quando o usu\xE1rio abre a a\xE7\xE3o no Creator. Via MCP, a imagem entregue n\xE3o cont\xE9m o texto queimado.",
+      credits_used: data?.creditsUsed ?? 8,
+      credits_remaining: data?.creditsRemaining ?? null,
+      deep_link: actionId ? buildDeepLink("action", actionId) : null,
+      raw: data
+    };
+    return {
+      content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
+      structuredContent: payload
+    };
+  }
+});
+
+// src/lib/mcp/tools/review-image.ts
+import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z14 } from "npm:zod@^3.25.76";
+var review_image_default = defineTool16({
+  name: "review_image",
+  title: "Revisar imagem",
+  description: "Analisa uma imagem (via URL p\xFAblica) em rela\xE7\xE3o a uma marca e devolve feedback textual (Gemini Vision). Custa ~2 cr\xE9ditos. Delega para a Edge Function `review-image`.",
+  inputSchema: {
+    brand_id: z14.string().uuid().describe("ID da marca de refer\xEAncia."),
+    image_url: z14.string().url().describe("URL p\xFAblica da imagem a analisar."),
+    context: z14.string().optional().describe("Contexto adicional (briefing, objetivo).")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ brand_id, image_url, context }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.functions.invoke("review-image", {
+      body: { brandId: brand_id, imageUrl: image_url, context }
+    });
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    const actionId = data?.actionId ?? data?.action_id;
+    const payload = {
+      action_id: actionId ?? null,
+      feedback: data?.feedback ?? data?.review ?? null,
+      credits_used: data?.creditsUsed ?? 2,
+      credits_remaining: data?.creditsRemaining ?? null,
+      deep_link: actionId ? buildDeepLink("action", actionId) : null,
+      raw: data
+    };
+    return {
+      content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
+      structuredContent: payload
+    };
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "lcpmqnkorcsclmpfbizr";
 var mcp_default = defineMcp({
   name: "creator-mcp",
   title: "Creator MCP",
-  version: "0.1.0",
-  instructions: "Ferramentas do Creator: leia marcas, personas, temas estrat\xE9gicos, a\xE7\xF5es recentes, saldo de cr\xE9ditos e perfil do usu\xE1rio autenticado. Todas as ferramentas respeitam as pol\xEDticas de acesso (RLS) do Creator e agem como o usu\xE1rio conectado.",
+  version: "0.2.0",
+  instructions: [
+    "Servidor MCP do Creator \u2014 aplica\xE7\xE3o do pilar I (Intera\xE7\xF5es) do m\xE9todo AEIOU dentro do Marketing OS.",
+    "Toda opera\xE7\xE3o age como o usu\xE1rio conectado, respeitando marca, RLS, cobran\xE7a de cr\xE9ditos e compliance da plataforma.",
+    "Tools de LEITURA (list_*, get_*) retornam entidades com `deep_link` \u2014 use-os para abrir o objeto no Creator em vez de tentar embutir a UI.",
+    "Tools de CRIA\xC7\xC3O (create_*, review_*) devolvem sempre `action_id`, `deep_link` e `credits_used`. Cada `action_id` \xE9 um Entreg\xE1vel que pode ser anexado a um Ciclo AEIOU no Shell.",
+    "Custos aproximados: create_caption ~1, review_caption ~1, review_image ~2, create_content_plan ~5, create_image ~8. Se os cr\xE9ditos forem insuficientes a tool retorna `isError: true` com a mensagem.",
+    "Limita\xE7\xE3o conhecida: create_image entrega a imagem CRUA \u2014 o overlay de texto (headline/CTA) s\xF3 \xE9 queimado quando o usu\xE1rio abre a a\xE7\xE3o no Creator (Canvas 2D roda no navegador).",
+    "V\xEDdeo, edi\xE7\xE3o de imagem e escrita destrutiva (delete/restore/create_brand) ainda n\xE3o est\xE3o expostos por MCP \u2014 abra o Creator para essas opera\xE7\xF5es."
+  ].join(" "),
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
   }),
   tools: [
+    // Leitura
     list_brands_default,
+    get_brand_default,
     list_personas_default,
     list_strategic_themes_default,
-    list_recent_actions_default,
+    list_deliverables_default,
+    list_categories_default,
+    list_favorites_default,
+    list_calendars_default,
+    list_calendar_items_default,
     get_credit_balance_default,
-    get_profile_default
+    get_profile_default,
+    // Criação (pilar I — Interações)
+    create_caption_default,
+    review_caption_default,
+    create_content_plan_default,
+    create_image_default,
+    review_image_default
   ]
 });
 

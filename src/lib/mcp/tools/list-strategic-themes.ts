@@ -1,12 +1,13 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 import { supabaseForUser } from "../supabaseClient";
+import { withDeepLinks } from "../deepLink";
 
 export default defineTool({
   name: "list_strategic_themes",
   title: "Listar temas estratégicos",
   description:
-    "Lista os temas estratégicos do usuário. Filtra opcionalmente por marca.",
+    "Lista os temas estratégicos do usuário. Filtra opcionalmente por marca. Cada item traz `deep_link` para o Creator.",
   inputSchema: {
     brand_id: z.string().uuid().optional(),
     limit: z.number().int().min(1).max(100).optional(),
@@ -27,9 +28,10 @@ export default defineTool({
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
+    const themes = withDeepLinks(data, "theme");
     return {
-      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
-      structuredContent: { themes: data ?? [] },
+      content: [{ type: "text", text: JSON.stringify(themes, null, 2) }],
+      structuredContent: { themes },
     };
   },
 });

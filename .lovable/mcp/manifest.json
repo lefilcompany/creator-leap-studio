@@ -12,14 +12,14 @@
   "mcp": {
     "server": {
       "name": "creator-mcp",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "title": "Creator MCP"
     },
     "tools": [
       {
         "name": "list_brands",
         "title": "Listar marcas",
-        "description": "Lista as marcas que o usuário autenticado tem acesso (respeita RLS e equipe).",
+        "description": "Lista as marcas (workspaces/brands do vocabulário AEIOU) que o usuário autenticado pode acessar. Respeita RLS e time. Cada item traz `deep_link` para o Creator.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -35,6 +35,32 @@
               "description": "Máximo de marcas a retornar. Padrão 50."
             }
           },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_brand",
+        "title": "Detalhar marca",
+        "description": "Retorna dados completos de uma marca (identidade visual, valores, restrições, moodboard) e o resumo de estilo aprendido a partir do feedback (`brand_style_preferences`). Use antes de criar entregáveis (caption/imagem) para o orquestrador montar briefings coerentes.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID da marca."
+            }
+          },
+          "required": [
+            "brand_id"
+          ],
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
         },
@@ -71,7 +97,7 @@
       {
         "name": "list_strategic_themes",
         "title": "Listar temas estratégicos",
-        "description": "Lista os temas estratégicos do usuário. Filtra opcionalmente por marca.",
+        "description": "Lista os temas estratégicos do usuário. Filtra opcionalmente por marca. Cada item traz `deep_link` para o Creator.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -96,9 +122,9 @@
         "outputSchema": null
       },
       {
-        "name": "list_recent_actions",
-        "title": "Listar ações recentes",
-        "description": "Lista as ações recentes do usuário (conteúdos, revisões, planos, vídeos) ainda não excluídas.",
+        "name": "list_deliverables",
+        "title": "Listar entregáveis",
+        "description": "Lista os entregáveis recentes do usuário (conteúdos, revisões, planos, vídeos). Corresponde à tabela `actions`. Cada item traz `deep_link` para abrir no Creator.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -109,7 +135,12 @@
           "properties": {
             "action_type": {
               "type": "string",
-              "description": "Filtra por tipo (ex.: 'CONTENT', 'QUICK_CONTENT', 'VIDEO', 'REVIEW')."
+              "description": "Filtra por tipo (ex.: 'CRIAR_CONTEUDO', 'CRIAR_CONTEUDO_RAPIDO', 'REVISAR_CONTEUDO', 'PLANEJAR_CONTEUDO', 'GERAR_VIDEO')."
+            },
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Filtra por marca."
             },
             "limit": {
               "type": "integer",
@@ -118,6 +149,129 @@
               "description": "Padrão 20."
             }
           },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_categories",
+        "title": "Listar categorias",
+        "description": "Lista as categorias de ações às quais o usuário tem acesso (Dono/Editor/Leitor). Categorias organizam entregáveis por tema/projeto dentro de uma marca.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_favorites",
+        "title": "Listar favoritos",
+        "description": "Lista os entregáveis favoritados pelo usuário. `scope='me'` traz favoritos pessoais; `scope='team'` traz favoritos compartilhados com a equipe. Úteis como referência de estilo para o orquestrador antes de gerar novos conteúdos.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "scope": {
+              "type": "string",
+              "enum": [
+                "me",
+                "team"
+              ],
+              "description": "Escopo do favorito. Padrão 'me'."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_calendars",
+        "title": "Listar calendários de conteúdo",
+        "description": "Lista os calendários de conteúdo do usuário. Cada calendário agrupa itens que percorrem as etapas calendar → briefing → design → review → done.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_calendar_items",
+        "title": "Listar itens do calendário",
+        "description": "Lista os itens de um calendário de conteúdo, opcionalmente filtrando por etapa (`calendar`, `briefing`, `design`, `review`, `done`).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "calendar_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID do calendário."
+            },
+            "stage": {
+              "type": "string",
+              "enum": [
+                "calendar",
+                "briefing",
+                "design",
+                "review",
+                "done"
+              ],
+              "description": "Etapa do fluxo AEIOU dentro do calendário."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "calendar_id"
+          ],
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
         },
@@ -152,6 +306,257 @@
           "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_caption",
+        "title": "Criar legenda (entregável)",
+        "description": "Gera uma legenda para uma marca e plataforma. Custa ~1 crédito. Delega para a Edge Function `generate-caption`, respeitando compliance e cobrança do usuário. Retorna `action_id` e `deep_link` para materializar como entregável no Ciclo AEIOU.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID da marca."
+            },
+            "theme": {
+              "type": "string",
+              "description": "Tema/assunto do post."
+            },
+            "platform": {
+              "type": "string",
+              "description": "Plataforma alvo: instagram, facebook, linkedin, twitter, tiktok."
+            },
+            "objective": {
+              "type": "string",
+              "description": "Objetivo (ex.: engajamento, venda, autoridade)."
+            },
+            "image_description": {
+              "type": "string",
+              "description": "Descrição da imagem/situação."
+            },
+            "audience": {
+              "type": "string"
+            },
+            "tone": {
+              "type": "string"
+            },
+            "persona": {
+              "type": "string"
+            },
+            "additional_info": {
+              "type": "string"
+            },
+            "content_type": {
+              "type": "string",
+              "enum": [
+                "organic",
+                "ads"
+              ]
+            }
+          },
+          "required": [
+            "brand_id",
+            "platform",
+            "objective",
+            "image_description"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "review_caption",
+        "title": "Revisar legenda",
+        "description": "Analisa uma legenda em relação a uma marca e retorna feedback textual (fortalezas, ajustes, riscos). Custa ~1 crédito. Delega para a Edge Function `review-caption`.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID da marca de referência."
+            },
+            "caption": {
+              "type": "string",
+              "description": "Texto da legenda a ser revisada."
+            },
+            "prompt": {
+              "type": "string",
+              "description": "Prompt/briefing original, se houver."
+            },
+            "theme_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "brand_id",
+            "caption"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_content_plan",
+        "title": "Criar plano de conteúdo",
+        "description": "Gera um planejamento de conteúdo (Calendário) para uma marca a partir de temas e plataformas. Custa ~5 créditos. Delega para a Edge Function `generate-plan`. Retorna um entregável (`action_id`) com o plano em markdown.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand": {
+              "type": "string",
+              "description": "Nome da marca."
+            },
+            "themes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 10,
+              "description": "Lista de temas estratégicos."
+            },
+            "platforms": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "instagram",
+                  "linkedin",
+                  "facebook",
+                  "twitter",
+                  "tiktok"
+                ]
+              },
+              "minItems": 1,
+              "description": "Plataformas alvo."
+            },
+            "quantity": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "description": "Quantidade de posts."
+            },
+            "objective": {
+              "type": "string"
+            },
+            "additional_info": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "brand",
+            "themes",
+            "platforms"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_image",
+        "title": "Criar imagem (entregável)",
+        "description": "Gera uma imagem para uma marca via Gemini. Custa ~8 créditos. ATENÇÃO: entrega a imagem crua — o overlay de texto (headline/CTA) só é aplicado quando o usuário abre o Creator no navegador (Canvas 2D). O campo `overlay_status='pending'` indica que o entregável ainda precisa ser finalizado no app.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID da marca."
+            },
+            "description": {
+              "type": "string",
+              "description": "Descrição/briefing visual do que gerar."
+            },
+            "platform": {
+              "type": "string",
+              "description": "Plataforma alvo (define aspect ratio). Opcional se `aspect_ratio` for informado."
+            },
+            "aspect_ratio": {
+              "type": "string",
+              "description": "Ex.: '1:1', '9:16', '16:9'."
+            },
+            "persona_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "theme_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "additional_info": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "brand_id",
+            "description"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "review_image",
+        "title": "Revisar imagem",
+        "description": "Analisa uma imagem (via URL pública) em relação a uma marca e devolve feedback textual (Gemini Vision). Custa ~2 créditos. Delega para a Edge Function `review-image`.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID da marca de referência."
+            },
+            "image_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL pública da imagem a analisar."
+            },
+            "context": {
+              "type": "string",
+              "description": "Contexto adicional (briefing, objetivo)."
+            }
+          },
+          "required": [
+            "brand_id",
+            "image_url"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       }
