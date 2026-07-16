@@ -95,6 +95,31 @@
         "outputSchema": null
       },
       {
+        "name": "get_persona",
+        "title": "Detalhar persona",
+        "description": "Retorna todos os campos de uma persona. Útil para o Shell montar briefings ricos antes de gerar entregáveis.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "persona_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "persona_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
         "name": "list_strategic_themes",
         "title": "Listar temas estratégicos",
         "description": "Lista os temas estratégicos do usuário. Filtra opcionalmente por marca. Cada item traz `deep_link` para o Creator.",
@@ -116,6 +141,31 @@
               "maximum": 100
             }
           },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_strategic_theme",
+        "title": "Detalhar tema estratégico",
+        "description": "Retorna todos os campos de um tema estratégico.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "theme_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "theme_id"
+          ],
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
         },
@@ -306,6 +356,557 @@
           "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_brand",
+        "title": "Criar marca",
+        "description": "Cria uma nova marca (brand) para o usuário autenticado. Preencha os campos de identidade — apenas `name`, `responsible` e `segment` são obrigatórios; os demais enriquecem o briefing e melhoram entregáveis. Retorna o registro criado com `deep_link` para o Creator.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "responsible": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Pessoa/área responsável pela marca."
+            },
+            "segment": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Segmento/nicho da marca."
+            },
+            "values": {
+              "type": "string"
+            },
+            "keywords": {
+              "type": "string"
+            },
+            "goals": {
+              "type": "string"
+            },
+            "promise": {
+              "type": "string"
+            },
+            "restrictions": {
+              "type": "string"
+            },
+            "inspirations": {
+              "type": "string"
+            },
+            "success_metrics": {
+              "type": "string"
+            },
+            "brand_references": {
+              "type": "string"
+            },
+            "special_dates": {
+              "type": "string"
+            },
+            "crisis_info": {
+              "type": "string"
+            },
+            "milestones": {
+              "type": "string"
+            },
+            "collaborations": {
+              "type": "string"
+            },
+            "brand_color": {
+              "type": "string",
+              "description": "Cor primária em hex, ex: #FF6600."
+            },
+            "avatar_url": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "name",
+            "responsible",
+            "segment"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_brand",
+        "title": "Atualizar marca",
+        "description": "Atualiza campos de uma marca existente. Envie apenas os campos que deseja alterar. RLS garante que só o dono/time/workspace pode editar.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "responsible": {
+              "type": "string"
+            },
+            "segment": {
+              "type": "string"
+            },
+            "values": {
+              "type": "string"
+            },
+            "keywords": {
+              "type": "string"
+            },
+            "goals": {
+              "type": "string"
+            },
+            "promise": {
+              "type": "string"
+            },
+            "restrictions": {
+              "type": "string"
+            },
+            "inspirations": {
+              "type": "string"
+            },
+            "success_metrics": {
+              "type": "string"
+            },
+            "brand_references": {
+              "type": "string"
+            },
+            "special_dates": {
+              "type": "string"
+            },
+            "crisis_info": {
+              "type": "string"
+            },
+            "milestones": {
+              "type": "string"
+            },
+            "collaborations": {
+              "type": "string"
+            },
+            "brand_color": {
+              "type": "string"
+            },
+            "avatar_url": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "brand_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "delete_brand",
+        "title": "Excluir marca",
+        "description": "Exclui definitivamente uma marca (e por cascade suas personas, temas, templates e entregáveis). Operação destrutiva — confirme com o usuário antes de invocar.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "brand_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_persona",
+        "title": "Criar persona",
+        "description": "Cria uma persona vinculada a uma marca. Todos os campos textuais são obrigatórios porque alimentam o briefing dos entregáveis (caption, imagem, plano). Se algum dado for desconhecido, envie uma descrição curta como `\"a definir\"` em vez de string vazia.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "gender": {
+              "type": "string",
+              "minLength": 1
+            },
+            "age": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Faixa etária, ex: '25-34'."
+            },
+            "location": {
+              "type": "string",
+              "minLength": 1
+            },
+            "professional_context": {
+              "type": "string",
+              "minLength": 1
+            },
+            "beliefs_and_interests": {
+              "type": "string",
+              "minLength": 1
+            },
+            "content_consumption_routine": {
+              "type": "string",
+              "minLength": 1
+            },
+            "main_goal": {
+              "type": "string",
+              "minLength": 1
+            },
+            "challenges": {
+              "type": "string",
+              "minLength": 1
+            },
+            "preferred_tone_of_voice": {
+              "type": "string",
+              "minLength": 1
+            },
+            "purchase_journey_stage": {
+              "type": "string",
+              "minLength": 1
+            },
+            "interest_triggers": {
+              "type": "string",
+              "minLength": 1
+            },
+            "income_and_purchase_habits": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "brand_id",
+            "name",
+            "gender",
+            "age",
+            "location",
+            "professional_context",
+            "beliefs_and_interests",
+            "content_consumption_routine",
+            "main_goal",
+            "challenges",
+            "preferred_tone_of_voice",
+            "purchase_journey_stage",
+            "interest_triggers"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_persona",
+        "title": "Atualizar persona",
+        "description": "Atualiza uma persona existente. Envie apenas os campos que deseja alterar.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "persona_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "name": {
+              "type": "string"
+            },
+            "gender": {
+              "type": "string"
+            },
+            "age": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "professional_context": {
+              "type": "string"
+            },
+            "beliefs_and_interests": {
+              "type": "string"
+            },
+            "content_consumption_routine": {
+              "type": "string"
+            },
+            "main_goal": {
+              "type": "string"
+            },
+            "challenges": {
+              "type": "string"
+            },
+            "preferred_tone_of_voice": {
+              "type": "string"
+            },
+            "purchase_journey_stage": {
+              "type": "string"
+            },
+            "interest_triggers": {
+              "type": "string"
+            },
+            "income_and_purchase_habits": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "persona_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "delete_persona",
+        "title": "Excluir persona",
+        "description": "Exclui uma persona. Operação destrutiva — confirme com o usuário antes de invocar.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "persona_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "persona_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_strategic_theme",
+        "title": "Criar tema estratégico",
+        "description": "Cria um tema estratégico vinculado a uma marca. Os campos textuais são obrigatórios porque estruturam o briefing usado por captions/imagens/planos. Envie 'a definir' em campos que ainda não estejam claros.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1
+            },
+            "color_palette": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Descrição textual da paleta, ex: 'tons quentes: laranja, vermelho'."
+            },
+            "tone_of_voice": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target_audience": {
+              "type": "string",
+              "minLength": 1
+            },
+            "hashtags": {
+              "type": "string",
+              "minLength": 1
+            },
+            "objectives": {
+              "type": "string",
+              "minLength": 1
+            },
+            "content_format": {
+              "type": "string",
+              "minLength": 1
+            },
+            "macro_themes": {
+              "type": "string",
+              "minLength": 1
+            },
+            "best_formats": {
+              "type": "string",
+              "minLength": 1
+            },
+            "platforms": {
+              "type": "string",
+              "minLength": 1
+            },
+            "expected_action": {
+              "type": "string",
+              "minLength": 1
+            },
+            "additional_info": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "brand_id",
+            "title",
+            "description",
+            "color_palette",
+            "tone_of_voice",
+            "target_audience",
+            "hashtags",
+            "objectives",
+            "content_format",
+            "macro_themes",
+            "best_formats",
+            "platforms",
+            "expected_action"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_strategic_theme",
+        "title": "Atualizar tema estratégico",
+        "description": "Atualiza um tema estratégico existente. Envie apenas os campos a alterar.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "theme_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "color_palette": {
+              "type": "string"
+            },
+            "tone_of_voice": {
+              "type": "string"
+            },
+            "target_audience": {
+              "type": "string"
+            },
+            "hashtags": {
+              "type": "string"
+            },
+            "objectives": {
+              "type": "string"
+            },
+            "content_format": {
+              "type": "string"
+            },
+            "macro_themes": {
+              "type": "string"
+            },
+            "best_formats": {
+              "type": "string"
+            },
+            "platforms": {
+              "type": "string"
+            },
+            "expected_action": {
+              "type": "string"
+            },
+            "additional_info": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "theme_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "delete_strategic_theme",
+        "title": "Excluir tema estratégico",
+        "description": "Exclui um tema estratégico. Operação destrutiva — confirme com o usuário antes de invocar.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "theme_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "theme_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       },
