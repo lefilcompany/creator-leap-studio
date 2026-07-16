@@ -849,14 +849,25 @@ var get_action_default = defineTool29({
 });
 
 // src/lib/mcp/index.ts
-var projectRef = "lcpmqnkorcsclmpfbizr";
+function resolveOauthIssuer() {
+  try {
+    const runtimeUrl = typeof process !== "undefined" ? process.env?.SUPABASE_URL : void 0;
+    if (runtimeUrl) {
+      const ref = new URL(runtimeUrl).hostname.split(".")[0];
+      return `https://${ref}.supabase.co/auth/v1`;
+    }
+  } catch {
+  }
+  const buildRef = "lcpmqnkorcsclmpfbizr";
+  return `https://${buildRef}.supabase.co/auth/v1`;
+}
 var mcp_default = defineMcp({
   name: "creator-mcp",
   title: "Creator MCP",
   version: "1.0.0",
   instructions: "Ferramentas do Creator para agentes de marketing. Antes de gerar qualquer pe\xE7a, verifique se a marca j\xE1 existe com list_brands; se n\xE3o existir, use create_brand. Depois consulte list_personas e list_themes para contexto. Use create_image_content para o pipeline completo (com marca/persona/tema/tom) ou create_quick_content para prompt livre. generate_caption produz legendas; review_image, review_caption e review_text_for_image aplicam ajustes. create_content_plan gera um calend\xE1rio de conte\xFAdo.",
   auth: auth.oauth.issuer({
-    issuer: `https://${projectRef}.supabase.co/auth/v1`,
+    issuer: resolveOauthIssuer(),
     acceptedAudiences: "authenticated"
   }),
   tools: [

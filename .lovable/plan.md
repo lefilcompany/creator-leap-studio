@@ -1,43 +1,60 @@
-# Igualar o padrão de código do MCP ao LEKPIS V3
+## Diagnóstico
 
-Objetivo: deixar `src/lib/mcp/index.ts`, `src/lib/mcp/tools/echo.ts` e `vite.config.ts` visualmente/estruturalmente idênticos ao LEKPIS V3. **Nenhuma ferramenta é criada, removida ou renomeada.** As 29 ferramentas atuais e a estrutura de pastas (`brands/`, `personas/`, `themes/`, `content/`, `review/`, `context/`, `_shared/`) permanecem intactas.
+- `.env` deste repositório aponta para o projeto **Test** `lcpmqnkorcsclmpfbizr` (`VITE_SUPABASE_PROJECT_ID`).
+- A função `mcp` publicada está no projeto **Live** `afxwqkrneraatgovhpkb`, mas foi buildada com o `VITE_SUPABASE_PROJECT_ID` do Test.
+- Resultado: `/.well-known/oauth-protected-resource` anuncia `authorization_servers: ["https://lcpmqnkorcsclmpfbizr.supabase.co/auth/v1"]`, enquanto o app Creator (pla.creator.lefil.com.br) e a tela de consent falam com `afxwqkrneraatgovhpkb.supabase.co`. O cliente MCP pede token no issuer errado e o consent nunca casa com a autorização.
 
-## Diferenças detectadas hoje vs. LEKPIS
+Alvo canônico: **usar sempre o projeto Supabase onde a função MCP está rodando** (o mesmo que autentica os usuários do app). No caso do Creator publicado isso é `afxwqkrneraatgovhpkb.supabase.co`.
 
-1. `src/lib/mcp/tools/echo.ts` — LEKPIS retorna `structuredContent` com `echoed`, `authenticated`, `userId`, `timestamp` e usa `title: "LeKPIs — Echo"` + descrição longa. O Creator tem uma versão minimalista que só devolve o texto.
-2. `src/lib/mcp/index.ts` — LEKPIS usa comentário curto ("Build-time literal — keeps the entry import-safe…") acima do `projectRef`. O Creator usa um comentário em PT diferente. Ordem de imports e formatação do array `tools` também diferem.
-3. `vite.config.ts` — LEKPIS tem `dedupe: ["react", "react-dom", "react/jsx-runtime"]` e não usa `optimizeDeps`. O Creator tem `dedupe: ["react", "react-dom"]` + `optimizeDeps.include`.
+## Correções
 
-## Mudanças propostas
+### 1. `src/lib/mcp/index.ts` — derivar o issuer em runtime do próprio edge
+Substituir o `projectRef` vindo de `import.meta.env.VITE_SUPABASE_PROJECT_ID` (literal de build, sempre o Test) por uma leitura em runtime dentro da edge function, com fallback seguro no eval do extractor de manifesto:
 
-### 1. `src/lib/mcp/tools/echo.ts`
-Reescrever igual ao LEKPIS, adaptando só o título para o produto:
-- `title: "Creator — Echo"`
-- descrição longa explicando que serve para verificar fluxo de argumentos e OAuth
-- handler recebendo `(text, ctx)` e retornando `structuredContent` com `echoed`, `authenticated`, `userId`, `timestamp`
-- annotations `readOnlyHint`, `idempotentHint`, `openWorldHint: false` (já iguais)
+```ts
+function resolveOauthIssuer(): string {
+  // Runtime (edge): SUPABASE_URL é o projeto real onde a função roda.
+  const runtimeUrl =
+    typeof process !== "undefined" ? process.env?.SUPABASE_URL : undefined;
+  if (runtimeUrl) {
+    // Normaliza .lovable.cloud -> issuer direto <ref>.supabase.co/auth/v1
+    const ref = new URL(runtimeUrl).hostname.split(".")[0];
+    return `https://${ref}.supabase.co/auth/v1`;
+  }
+  // Build-time / manifest-extract fallback (não usado para verificar tokens reais)
+  const buildRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
+  return `https://${buildRef}.supabase.co/auth/v1`;
+}
 
-### 2. `src/lib/mcp/index.ts`
-Reformatar mantendo TODOS os 29 imports e todas as entradas do array `tools`:
-- Ajustar o comentário acima do `projectRef` para o texto do LEKPIS ("Build-time literal — keeps the entry import-safe (no runtime env reads at eval).")
-- Manter `name: "creator-mcp"`, `title: "Creator MCP"`, `version: "1.0.0"` e o mesmo bloco `auth: auth.oauth.issuer({...})`
-- Manter as `instructions` atuais do Creator (elas descrevem o produto — trocar por texto do LEKPIS quebraria a UX do agente)
-- Manter a organização de imports por categoria (marcas, personas, temas, criação, revisão, contexto) — só é reformatação cosmética se necessário para bater com o estilo do LEKPIS
+auth: auth.oauth.issuer({
+  issuer: resolveOauthIssuer(),
+  acceptedAudiences: "authenticated",
+}),
+```
 
-### 3. `vite.config.ts`
-- Trocar `dedupe: ["react", "react-dom"]` por `dedupe: ["react", "react-dom", "react/jsx-runtime"]`
-- Remover o bloco `optimizeDeps: { include: ["react", "react-dom"] }` (o LEKPIS não usa)
-- Manter `mcpPlugin()` já presente
+Efeito: a função publicada em `afxwqkrneraatgovhpkb` passa a anunciar e verificar tokens contra `https://afxwqkrneraatgovhpkb.supabase.co/auth/v1`, sem depender de qual `.env` foi usado no build.
 
-## O que NÃO muda
+### 2. Redeploy da função `mcp` no projeto Live
+- `supabase--deploy_edge_functions` com `["mcp"]` para propagar a alteração.
+- Depois validar via curl:
+  - `GET https://afxwqkrneraatgovhpkb.supabase.co/functions/v1/mcp/.well-known/oauth-protected-resource` deve trazer `authorization_servers` com o issuer `afxwqkrneraatgovhpkb.supabase.co/auth/v1`.
+  - `GET https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/.well-known/openid-configuration` deve reportar o mesmo `issuer`.
 
-- Nenhuma ferramenta é apagada, renomeada ou movida.
-- `_shared/`, `brands/`, `personas/`, `themes/`, `content/`, `review/`, `context/`, `get-profile.ts`, `list-brands.ts` — todos intactos.
-- `supabase/functions/mcp/index.ts` continua sendo gerado pelo `mcpPlugin()` no build.
-- Nenhuma mudança em auth, DB, RLS ou secrets.
+### 3. Ativar/validar OAuth 2.1 no projeto Live
+- Rodar `supabase--configure_oauth_server` **com `environment: production`** para garantir DCR + consent path no projeto correto (`afxwqkrneraatgovhpkb`).
+- Rodar `supabase--debug_oauth_server` para confirmar Site URL = `https://pla.creator.lefil.com.br`, consent = `/.lovable/oauth/consent`, e que existem chaves assimétricas no JWKS. Se JWKS estiver vazio, rodar `supabase--migrate_signing_keys` com `environment: production`.
 
-## Pós-implementação
+### 4. Consent route (`src/pages/OAuthConsent.tsx`)
+- Já usa o cliente Supabase do app (mesmo projeto que emitiu a autorização), então nenhuma mudança de código é necessária.
+- Melhorar a mensagem quando `getAuthorizationDetails` retorna `authorization not found`: mostrar "Esta solicitação de autorização expirou ou não existe mais. Volte ao cliente e tente conectar novamente." em vez do erro cru.
 
-- Rodar `app_mcp_server--extract_mcp_manifest` para revalidar o manifest (a mudança em `echo.ts` altera título/descrição).
-- Deploy da função `mcp` via `supabase--deploy_edge_functions` para propagar o novo `echo` para clientes conectados.
-- O 401 discutido nos turnos anteriores **não é resolvido por essa mudança** — é uma decisão de autorização dentro da edge function; segue como issue separado.
+### 5. Preservar `next` no login (bug do print)
+- Confirmar que `Auth.tsx` (rota `/login`) prioriza `?next=/.lovable/oauth/consent?...` antes de redirecionar para `/dashboard` ou `/system` — já está implementado; sem mudança adicional, exceto se aparecer regressão.
+
+## Fora do escopo
+- Não trocar quais tools o MCP expõe.
+- Não mexer em RLS, tabelas, ou provisionamento de usuários.
+- Não trocar o app do Creator para o projeto `lcpmqnkorcsclmpfbizr`; a direção certa é alinhar o MCP ao projeto que já autentica os usuários.
+
+## Critério de sucesso
+- Cliente MCP (ChatGPT/Claude) descobre issuer `afxwqkrneraatgovhpkb.supabase.co`, faz DCR, é redirecionado ao consent do Creator, o usuário aprova, recebe token válido e as tools passam a responder autenticadas.

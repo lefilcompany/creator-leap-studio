@@ -43,8 +43,22 @@ import listCalendarItemsTool from "./tools/context/list-calendar-items";
 import listActionsTool from "./tools/context/list-actions";
 import getActionTool from "./tools/context/get-action";
 
-// Build-time literal — keeps the entry import-safe (no runtime env reads at eval).
-const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
+// Runtime resolver — usa o SUPABASE_URL da edge (projeto real onde a função roda),
+// caindo para VITE_SUPABASE_PROJECT_ID apenas durante o eval do extractor de manifesto.
+function resolveOauthIssuer(): string {
+  try {
+    const runtimeUrl =
+      typeof process !== "undefined" ? process.env?.SUPABASE_URL : undefined;
+    if (runtimeUrl) {
+      const ref = new URL(runtimeUrl).hostname.split(".")[0];
+      return `https://${ref}.supabase.co/auth/v1`;
+    }
+  } catch {
+    // ignore — cai no fallback de build
+  }
+  const buildRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
+  return `https://${buildRef}.supabase.co/auth/v1`;
+}
 
 export default defineMcp({
   name: "creator-mcp",
@@ -53,7 +67,7 @@ export default defineMcp({
   instructions:
     "Ferramentas do Creator para agentes de marketing. Antes de gerar qualquer peça, verifique se a marca já existe com list_brands; se não existir, use create_brand. Depois consulte list_personas e list_themes para contexto. Use create_image_content para o pipeline completo (com marca/persona/tema/tom) ou create_quick_content para prompt livre. generate_caption produz legendas; review_image, review_caption e review_text_for_image aplicam ajustes. create_content_plan gera um calendário de conteúdo.",
   auth: auth.oauth.issuer({
-    issuer: `https://${projectRef}.supabase.co/auth/v1`,
+    issuer: resolveOauthIssuer(),
     acceptedAudiences: "authenticated",
   }),
   tools: [
