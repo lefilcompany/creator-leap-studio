@@ -1,41 +1,54 @@
-## Diagnóstico
+# Remoção completa do MCP
 
-O erro `Cannot read properties of undefined (reading 'getAuthorizationDetails')` na tela `/.lovable/oauth/consent` acontece porque o wrapper em `src/pages/OAuthConsent.tsx` faz:
+Objetivo: deixar o projeto sem nenhum vestígio do servidor MCP e do fluxo OAuth associado a ele, para reconstruir do zero em seguida. **Nenhuma edge function existente será apagada** (apenas a função `mcp` gerada automaticamente pelo plugin). Nada de créditos, marcas, personas, ações, auth do app etc. será alterado.
 
-```ts
-const oauth = (supabase.auth as unknown as { oauth: {...} }).oauth;
-```
+## O que será removido
 
-e depois chama `oauth.getAuthorizationDetails(...)`. Em runtime, `supabase.auth.oauth` é `undefined`, então a chamada explode.
+**Código-fonte do MCP (`src/lib/mcp/`)**
+- Apagar diretório inteiro: `index.ts`, `authUser.ts`, `deepLink.ts`, `supabaseClient.ts` e a pasta `tools/` (com todas as 24 tools).
 
-Causa raiz: a versão instalada de `@supabase/supabase-js` é `2.58.0`, que arrasta `@supabase/auth-js@2.72.0`. O namespace `supabase.auth.oauth` (com `getAuthorizationDetails`, `approveAuthorization`, `denyAuthorization`) só passou a existir em `@supabase/auth-js` a partir da linha 2.110.x. Verifiquei o pacote publicado 2.110.6 e ele já expõe `this.oauth = { getAuthorizationDetails, approveAuthorization, denyAuthorization }` no `GoTrueClient`.
+**Plugin no build**
+- `vite.config.ts`: remover o import `mcpPlugin` de `@lovable.dev/mcp-js/stacks/supabase/vite` e a entrada `mcpPlugin()` do array `plugins`.
 
-Portanto o consent nunca vai funcionar com a versão atual — não é bug do fluxo, é dependência desatualizada. Também não adianta tentar chamar endpoints REST crus: o caminho oficial documentado (e recomendado pela knowledge do Lovable) é usar `supabase.auth.oauth`.
+**Dependência npm**
+- Remover `@lovable.dev/mcp-js` do `package.json`.
 
-## Plano de correção
+**Página de consentimento OAuth (existe só para o MCP)**
+- Apagar `src/pages/OAuthConsent.tsx`.
+- `src/App.tsx`: remover o `lazy import` de `OAuthConsent` (linha 32) e a `<Route path="/.lovable/oauth/consent" ...>` (linha 138).
 
-Mudança única e cirúrgica — só destrava o consent do OAuth server gerenciado, sem tocar em nenhuma outra lógica de auth, MCP, tools ou UI.
+**Edge function gerada pelo plugin**
+- Apagar `supabase/functions/mcp/` (arquivo `index.ts` auto-gerado) via `rm` no shell.
+- Rodar `supabase--delete_edge_functions` para remover a função `mcp` já deployada em Test e Production, para o endpoint `/functions/v1/mcp` deixar de responder.
 
-1. **Atualizar `@supabase/supabase-js`** de `^2.58.0` para `^2.110.6` em `package.json`. Isso puxa `@supabase/auth-js@2.110.6`, que já traz o namespace `supabase.auth.oauth`.
-   - É uma minor bump dentro do major 2.x — API pública que o app já usa (`auth.getSession`, `auth.getUser`, `auth.signInWithPassword`, `auth.signInWithOAuth`, `from(...)`, `functions.invoke`, `channel`, etc.) permanece compatível.
-   - O client gerado em `src/integrations/supabase/client.ts` não precisa ser editado (e não pode, é auto-gerado).
+**Manifesto e docs internas do MCP**
+- Apagar `.lovable/mcp/manifest.json` (e a pasta `.lovable/mcp/` se ficar vazia).
+- Apagar `docs/MCP_POSSIBILIDADES.md`.
+- `OAUTH_SETUP.md` foi criado para o MCP: revisar e apagar se descrever apenas o fluxo OAuth do MCP.
 
-2. **Não alterar `src/pages/OAuthConsent.tsx`**. O wrapper tipado local já foi escrito exatamente com a forma dos métodos disponíveis em 2.110.x (`getAuthorizationDetails`, `approveAuthorization`, `denyAuthorization`). Depois do bump, `supabase.auth.oauth` existirá em runtime e as chamadas passam a resolver.
+## O que NÃO será tocado
 
-3. **Validar depois do bump**:
-   - `npm install` roda automaticamente no sandbox.
-   - Abrir o preview e confirmar que a página `/.lovable/oauth/consent?authorization_id=...` renderiza o card com nome do cliente + botões Aprovar/Recusar em vez do erro atual.
-   - Rodar o fluxo real de conectar o MCP a partir do Marketing OS Shell (ou de qualquer cliente MCP) e verificar que o token OAuth chega até o `mcp` edge function e as tools de CRUD (marca/persona/tema) executam.
+- Todas as demais edge functions em `supabase/functions/` (compliance, geração de imagem, Stripe, RD Station, etc.).
+- Tabelas, RLS, migrations, secrets do banco.
+- `AuthContext`, login/registro, Google OAuth do app (usado para o login normal, não é do MCP).
+- Hooks, componentes, páginas de negócio (marcas, personas, temas, actions, calendário, etc.).
+- Configuração de OAuth server do Supabase — o Supabase mantém a configuração ativa mesmo sem MCP; ela pode ser reutilizada quando reconstruirmos. Se você preferir também desativar, me avise e eu incluo no plano.
 
-## Fora de escopo
+## Ordem de execução
 
-- Não mudar `src/lib/mcp/**` (tools, issuer, deep-links) — o problema é 100% no front-end de consent, não no resource server.
-- Não mudar `supabase/functions/mcp/index.ts` (é auto-gerado pelo `mcpPlugin`).
-- Não mexer em `.env`, no client Supabase gerado, ou em rotas de auth (`/login`, `/register`) — o `next` já está preservado corretamente.
-- Não adicionar novas tools nem tocar CRUD de personas/marcas/temas nesta rodada.
+1. Editar `vite.config.ts` (retirar o plugin).
+2. Editar `src/App.tsx` (retirar import + rota do consent).
+3. Apagar `src/pages/OAuthConsent.tsx`.
+4. Apagar `src/lib/mcp/` inteiro.
+5. Apagar `supabase/functions/mcp/` e chamar `supabase--delete_edge_functions` para `mcp`.
+6. Apagar `.lovable/mcp/manifest.json`, `docs/MCP_POSSIBILIDADES.md`, `OAUTH_SETUP.md` (se for só do MCP).
+7. Remover `@lovable.dev/mcp-js` do `package.json` via `bun remove`.
+8. Rodar typecheck para garantir que nada mais referencia MCP.
 
-## Detalhe técnico (para referência)
+## Verificação final
 
-- Versão atual instalada: `@supabase/supabase-js@2.58.0` → `@supabase/auth-js@2.72.0` (sem `oauth`).
-- Versão alvo: `@supabase/supabase-js@^2.110.6` → `@supabase/auth-js@2.110.6` (com `oauth.getAuthorizationDetails`, `oauth.approveAuthorization`, `oauth.denyAuthorization` no `GoTrueClient`).
-- Confirmado inspecionando o tarball publicado no npm: `package/dist/module/GoTrueClient.js` contém `this.oauth = { getAuthorizationDetails: this._getAuthorizationDetails.bind(this), approveAuthorization: this._approveAuthorization.bind(this), ... }`.
+- `rg -n "mcp|OAuthConsent|@lovable.dev/mcp-js"` no repositório não deve retornar nada em código do app (apenas eventualmente em memórias/knowledge, o que é esperado).
+- Build passa.
+- Endpoint `https://<ref>.supabase.co/functions/v1/mcp` retorna 404 após o delete.
+
+Confirma que posso prosseguir com essa remoção?
