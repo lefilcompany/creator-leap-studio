@@ -48,7 +48,7 @@ export default defineMcp({
     "Tools de CRIAÇÃO (create_*, review_*) devolvem sempre `action_id`, `deep_link` e `credits_used`. Cada `action_id` é um Entregável que pode ser anexado a um Ciclo AEIOU no Shell.",
     "Custos aproximados: create_caption ~1, review_caption ~1, review_image ~2, create_content_plan ~5, create_image ~8. Se os créditos forem insuficientes a tool retorna `isError: true` com a mensagem.",
     "Limitação conhecida: create_image entrega a imagem CRUA — o overlay de texto (headline/CTA) só é queimado quando o usuário abre a ação no Creator (Canvas 2D roda no navegador).",
-    "CRUD de contexto: create_brand/update_brand/delete_brand, create_persona/update_persona/delete_persona e create_strategic_theme/update_strategic_theme/delete_strategic_theme permitem o Shell montar toda a base do briefing sem abrir o Creator. Personas e temas exigem os campos textuais obrigatórios — se algum dado for desconhecido, envie 'a definir' em vez de string vazia. Tools delete_* são destrutivas: confirme com o usuário antes de invocar.",
+    "CRUD de contexto: create_brand/update_brand, create_persona/update_persona e create_strategic_theme/update_strategic_theme permitem o Shell montar toda a base do briefing sem abrir o Creator. Não há tools de exclusão via MCP — para deletar marcas, personas ou temas o usuário precisa abrir o Creator. Personas e temas exigem os campos textuais obrigatórios — se algum dado for desconhecido, envie 'a definir' em vez de string vazia.",
     "Vídeo e edição binária de imagem ainda não estão expostos por MCP — abra o Creator para essas operações.",
   ].join(" "),
   auth: auth.oauth.issuer({

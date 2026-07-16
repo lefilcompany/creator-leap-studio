@@ -974,7 +974,7 @@ var mcp_default = defineMcp({
     "Tools de CRIA\xC7\xC3O (create_*, review_*) devolvem sempre `action_id`, `deep_link` e `credits_used`. Cada `action_id` \xE9 um Entreg\xE1vel que pode ser anexado a um Ciclo AEIOU no Shell.",
     "Custos aproximados: create_caption ~1, review_caption ~1, review_image ~2, create_content_plan ~5, create_image ~8. Se os cr\xE9ditos forem insuficientes a tool retorna `isError: true` com a mensagem.",
     "Limita\xE7\xE3o conhecida: create_image entrega a imagem CRUA \u2014 o overlay de texto (headline/CTA) s\xF3 \xE9 queimado quando o usu\xE1rio abre a a\xE7\xE3o no Creator (Canvas 2D roda no navegador).",
-    "CRUD de contexto: create_brand/update_brand/delete_brand, create_persona/update_persona/delete_persona e create_strategic_theme/update_strategic_theme/delete_strategic_theme permitem o Shell montar toda a base do briefing sem abrir o Creator. Personas e temas exigem os campos textuais obrigat\xF3rios \u2014 se algum dado for desconhecido, envie 'a definir' em vez de string vazia. Tools delete_* s\xE3o destrutivas: confirme com o usu\xE1rio antes de invocar.",
+    "CRUD de contexto: create_brand/update_brand, create_persona/update_persona e create_strategic_theme/update_strategic_theme permitem o Shell montar toda a base do briefing sem abrir o Creator. N\xE3o h\xE1 tools de exclus\xE3o via MCP \u2014 para deletar marcas, personas ou temas o usu\xE1rio precisa abrir o Creator. Personas e temas exigem os campos textuais obrigat\xF3rios \u2014 se algum dado for desconhecido, envie 'a definir' em vez de string vazia.",
     "V\xEDdeo e edi\xE7\xE3o bin\xE1ria de imagem ainda n\xE3o est\xE3o expostos por MCP \u2014 abra o Creator para essas opera\xE7\xF5es."
   ].join(" "),
   auth: auth.oauth.issuer({
