@@ -70,16 +70,13 @@ export default defineMcp({
     listCalendarItemsTool,
     getCreditBalanceTool,
     getProfileTool,
-    // CRUD contexto (marcas, personas, temas)
+    // CRUD contexto (marcas, personas, temas) — sem delete
     createBrandTool,
     updateBrandTool,
-    deleteBrandTool,
     createPersonaTool,
     updatePersonaTool,
-    deletePersonaTool,
     createStrategicThemeTool,
     updateStrategicThemeTool,
-    deleteStrategicThemeTool,
     // Criação (pilar I — Interações)
     createCaptionTool,
     reviewCaptionTool,

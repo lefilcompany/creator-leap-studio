@@ -996,16 +996,13 @@ var mcp_default = defineMcp({
     list_calendar_items_default,
     get_credit_balance_default,
     get_profile_default,
-    // CRUD contexto (marcas, personas, temas)
+    // CRUD contexto (marcas, personas, temas) — sem delete
     create_brand_default,
     update_brand_default,
-    deleteBrandTool,
     create_persona_default,
     update_persona_default,
-    deletePersonaTool,
     create_strategic_theme_default,
     update_strategic_theme_default,
-    deleteStrategicThemeTool,
     // Criação (pilar I — Interações)
     create_caption_default,
     review_caption_default,
