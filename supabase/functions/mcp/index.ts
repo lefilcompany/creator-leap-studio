@@ -143,16 +143,41 @@ var list_personas_default = defineTool3({
   }
 });
 
-// src/lib/mcp/tools/list-strategic-themes.ts
+// src/lib/mcp/tools/get-persona.ts
 import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z as z4 } from "npm:zod@^3.25.76";
-var list_strategic_themes_default = defineTool4({
+var get_persona_default = defineTool4({
+  name: "get_persona",
+  title: "Detalhar persona",
+  description: "Retorna todos os campos de uma persona. \xDAtil para o Shell montar briefings ricos antes de gerar entreg\xE1veis.",
+  inputSchema: { persona_id: z4.string().uuid() },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ persona_id }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("personas").select("*").eq("id", persona_id).maybeSingle();
+    if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+    if (!data) return { content: [{ type: "text", text: "Persona n\xE3o encontrada." }], isError: true };
+    const persona = { ...data, deep_link: buildDeepLink("persona", data.id) };
+    return {
+      content: [{ type: "text", text: JSON.stringify(persona, null, 2) }],
+      structuredContent: { persona }
+    };
+  }
+});
+
+// src/lib/mcp/tools/list-strategic-themes.ts
+import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z5 } from "npm:zod@^3.25.76";
+var list_strategic_themes_default = defineTool5({
   name: "list_strategic_themes",
   title: "Listar temas estrat\xE9gicos",
   description: "Lista os temas estrat\xE9gicos do usu\xE1rio. Filtra opcionalmente por marca. Cada item traz `deep_link` para o Creator.",
   inputSchema: {
-    brand_id: z4.string().uuid().optional(),
-    limit: z4.number().int().min(1).max(100).optional()
+    brand_id: z5.string().uuid().optional(),
+    limit: z5.number().int().min(1).max(100).optional()
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ brand_id, limit }, ctx) => {
@@ -174,19 +199,44 @@ var list_strategic_themes_default = defineTool4({
   }
 });
 
+// src/lib/mcp/tools/get-strategic-theme.ts
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z6 } from "npm:zod@^3.25.76";
+var get_strategic_theme_default = defineTool6({
+  name: "get_strategic_theme",
+  title: "Detalhar tema estrat\xE9gico",
+  description: "Retorna todos os campos de um tema estrat\xE9gico.",
+  inputSchema: { theme_id: z6.string().uuid() },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ theme_id }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("strategic_themes").select("*").eq("id", theme_id).maybeSingle();
+    if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+    if (!data) return { content: [{ type: "text", text: "Tema n\xE3o encontrado." }], isError: true };
+    const theme = { ...data, deep_link: buildDeepLink("theme", data.id) };
+    return {
+      content: [{ type: "text", text: JSON.stringify(theme, null, 2) }],
+      structuredContent: { theme }
+    };
+  }
+});
+
 // src/lib/mcp/tools/list-deliverables.ts
-import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z5 } from "npm:zod@^3.25.76";
-var list_deliverables_default = defineTool5({
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z7 } from "npm:zod@^3.25.76";
+var list_deliverables_default = defineTool7({
   name: "list_deliverables",
   title: "Listar entreg\xE1veis",
   description: "Lista os entreg\xE1veis recentes do usu\xE1rio (conte\xFAdos, revis\xF5es, planos, v\xEDdeos). Corresponde \xE0 tabela `actions`. Cada item traz `deep_link` para abrir no Creator.",
   inputSchema: {
-    action_type: z5.string().optional().describe(
+    action_type: z7.string().optional().describe(
       "Filtra por tipo (ex.: 'CRIAR_CONTEUDO', 'CRIAR_CONTEUDO_RAPIDO', 'REVISAR_CONTEUDO', 'PLANEJAR_CONTEUDO', 'GERAR_VIDEO')."
     ),
-    brand_id: z5.string().uuid().optional().describe("Filtra por marca."),
-    limit: z5.number().int().min(1).max(50).optional().describe("Padr\xE3o 20.")
+    brand_id: z7.string().uuid().optional().describe("Filtra por marca."),
+    limit: z7.number().int().min(1).max(50).optional().describe("Padr\xE3o 20.")
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ action_type, brand_id, limit }, ctx) => {
@@ -210,14 +260,14 @@ var list_deliverables_default = defineTool5({
 });
 
 // src/lib/mcp/tools/list-categories.ts
-import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z6 } from "npm:zod@^3.25.76";
-var list_categories_default = defineTool6({
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z8 } from "npm:zod@^3.25.76";
+var list_categories_default = defineTool8({
   name: "list_categories",
   title: "Listar categorias",
   description: "Lista as categorias de a\xE7\xF5es \xE0s quais o usu\xE1rio tem acesso (Dono/Editor/Leitor). Categorias organizam entreg\xE1veis por tema/projeto dentro de uma marca.",
   inputSchema: {
-    limit: z6.number().int().min(1).max(100).optional()
+    limit: z8.number().int().min(1).max(100).optional()
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ limit }, ctx) => {
@@ -238,15 +288,15 @@ var list_categories_default = defineTool6({
 });
 
 // src/lib/mcp/tools/list-favorites.ts
-import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z7 } from "npm:zod@^3.25.76";
-var list_favorites_default = defineTool7({
+import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z9 } from "npm:zod@^3.25.76";
+var list_favorites_default = defineTool9({
   name: "list_favorites",
   title: "Listar favoritos",
   description: "Lista os entreg\xE1veis favoritados pelo usu\xE1rio. `scope='me'` traz favoritos pessoais; `scope='team'` traz favoritos compartilhados com a equipe. \xDAteis como refer\xEAncia de estilo para o orquestrador antes de gerar novos conte\xFAdos.",
   inputSchema: {
-    scope: z7.enum(["me", "team"]).optional().describe("Escopo do favorito. Padr\xE3o 'me'."),
-    limit: z7.number().int().min(1).max(50).optional()
+    scope: z9.enum(["me", "team"]).optional().describe("Escopo do favorito. Padr\xE3o 'me'."),
+    limit: z9.number().int().min(1).max(50).optional()
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ scope, limit }, ctx) => {
@@ -270,15 +320,15 @@ var list_favorites_default = defineTool7({
 });
 
 // src/lib/mcp/tools/list-calendars.ts
-import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z8 } from "npm:zod@^3.25.76";
-var list_calendars_default = defineTool8({
+import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z10 } from "npm:zod@^3.25.76";
+var list_calendars_default = defineTool10({
   name: "list_calendars",
   title: "Listar calend\xE1rios de conte\xFAdo",
   description: "Lista os calend\xE1rios de conte\xFAdo do usu\xE1rio. Cada calend\xE1rio agrupa itens que percorrem as etapas calendar \u2192 briefing \u2192 design \u2192 review \u2192 done.",
   inputSchema: {
-    brand_id: z8.string().uuid().optional(),
-    limit: z8.number().int().min(1).max(50).optional()
+    brand_id: z10.string().uuid().optional(),
+    limit: z10.number().int().min(1).max(50).optional()
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ brand_id, limit }, ctx) => {
@@ -301,16 +351,16 @@ var list_calendars_default = defineTool8({
 });
 
 // src/lib/mcp/tools/list-calendar-items.ts
-import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z9 } from "npm:zod@^3.25.76";
-var list_calendar_items_default = defineTool9({
+import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z11 } from "npm:zod@^3.25.76";
+var list_calendar_items_default = defineTool11({
   name: "list_calendar_items",
   title: "Listar itens do calend\xE1rio",
   description: "Lista os itens de um calend\xE1rio de conte\xFAdo, opcionalmente filtrando por etapa (`calendar`, `briefing`, `design`, `review`, `done`).",
   inputSchema: {
-    calendar_id: z9.string().uuid().describe("ID do calend\xE1rio."),
-    stage: z9.enum(["calendar", "briefing", "design", "review", "done"]).optional().describe("Etapa do fluxo AEIOU dentro do calend\xE1rio."),
-    limit: z9.number().int().min(1).max(100).optional()
+    calendar_id: z11.string().uuid().describe("ID do calend\xE1rio."),
+    stage: z11.enum(["calendar", "briefing", "design", "review", "done"]).optional().describe("Etapa do fluxo AEIOU dentro do calend\xE1rio."),
+    limit: z11.number().int().min(1).max(100).optional()
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ calendar_id, stage, limit }, ctx) => {
@@ -335,8 +385,8 @@ var list_calendar_items_default = defineTool9({
 });
 
 // src/lib/mcp/tools/get-credit-balance.ts
-import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@0.22.2";
-var get_credit_balance_default = defineTool10({
+import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@0.22.2";
+var get_credit_balance_default = defineTool12({
   name: "get_credit_balance",
   title: "Consultar saldo de cr\xE9ditos",
   description: "Retorna o saldo pessoal de cr\xE9ditos do usu\xE1rio autenticado, incluindo cr\xE9ditos totais e limite.",
@@ -359,8 +409,8 @@ var get_credit_balance_default = defineTool10({
 });
 
 // src/lib/mcp/tools/get-profile.ts
-import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@0.22.2";
-var get_profile_default = defineTool11({
+import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@0.22.2";
+var get_profile_default = defineTool13({
   name: "get_profile",
   title: "Obter perfil",
   description: "Retorna dados do perfil do usu\xE1rio autenticado.",
@@ -382,24 +432,378 @@ var get_profile_default = defineTool11({
   }
 });
 
+// src/lib/mcp/tools/create-brand.ts
+import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z12 } from "npm:zod@^3.25.76";
+
+// src/lib/mcp/authUser.ts
+async function getAuthUserId(supabase) {
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user?.id) {
+    throw new Error("N\xE3o foi poss\xEDvel resolver o usu\xE1rio autenticado");
+  }
+  return data.user.id;
+}
+
+// src/lib/mcp/tools/create-brand.ts
+var create_brand_default = defineTool14({
+  name: "create_brand",
+  title: "Criar marca",
+  description: "Cria uma nova marca (brand) para o usu\xE1rio autenticado. Preencha os campos de identidade \u2014 apenas `name`, `responsible` e `segment` s\xE3o obrigat\xF3rios; os demais enriquecem o briefing e melhoram entreg\xE1veis. Retorna o registro criado com `deep_link` para o Creator.",
+  inputSchema: {
+    name: z12.string().min(1).max(120),
+    responsible: z12.string().min(1).describe("Pessoa/\xE1rea respons\xE1vel pela marca."),
+    segment: z12.string().min(1).describe("Segmento/nicho da marca."),
+    values: z12.string().optional(),
+    keywords: z12.string().optional(),
+    goals: z12.string().optional(),
+    promise: z12.string().optional(),
+    restrictions: z12.string().optional(),
+    inspirations: z12.string().optional(),
+    success_metrics: z12.string().optional(),
+    brand_references: z12.string().optional(),
+    special_dates: z12.string().optional(),
+    crisis_info: z12.string().optional(),
+    milestones: z12.string().optional(),
+    collaborations: z12.string().optional(),
+    brand_color: z12.string().optional().describe("Cor prim\xE1ria em hex, ex: #FF6600."),
+    avatar_url: z12.string().url().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    try {
+      const userId = await getAuthUserId(supabase);
+      const { data: profile } = await supabase.from("profiles").select("team_id").eq("id", userId).maybeSingle();
+      const { data, error } = await supabase.from("brands").insert({ ...input, user_id: userId, team_id: profile?.team_id ?? null }).select("id, name, segment, brand_color, avatar_url, created_at").single();
+      if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+      const brand = { ...data, deep_link: buildDeepLink("brand", data.id) };
+      return {
+        content: [{ type: "text", text: JSON.stringify(brand, null, 2) }],
+        structuredContent: { brand }
+      };
+    } catch (e) {
+      return { content: [{ type: "text", text: e.message }], isError: true };
+    }
+  }
+});
+
+// src/lib/mcp/tools/update-brand.ts
+import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z13 } from "npm:zod@^3.25.76";
+var update_brand_default = defineTool15({
+  name: "update_brand",
+  title: "Atualizar marca",
+  description: "Atualiza campos de uma marca existente. Envie apenas os campos que deseja alterar. RLS garante que s\xF3 o dono/time/workspace pode editar.",
+  inputSchema: {
+    brand_id: z13.string().uuid(),
+    name: z13.string().min(1).max(120).optional(),
+    responsible: z13.string().optional(),
+    segment: z13.string().optional(),
+    values: z13.string().optional(),
+    keywords: z13.string().optional(),
+    goals: z13.string().optional(),
+    promise: z13.string().optional(),
+    restrictions: z13.string().optional(),
+    inspirations: z13.string().optional(),
+    success_metrics: z13.string().optional(),
+    brand_references: z13.string().optional(),
+    special_dates: z13.string().optional(),
+    crisis_info: z13.string().optional(),
+    milestones: z13.string().optional(),
+    collaborations: z13.string().optional(),
+    brand_color: z13.string().optional(),
+    avatar_url: z13.string().url().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id, ...patch }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    if (Object.values(patch).every((v) => v === void 0)) {
+      return { content: [{ type: "text", text: "Nenhum campo para atualizar." }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("brands").update(patch).eq("id", brand_id).select("id, name, segment, brand_color, avatar_url, updated_at").maybeSingle();
+    if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+    if (!data) return { content: [{ type: "text", text: "Marca n\xE3o encontrada ou sem permiss\xE3o." }], isError: true };
+    const brand = { ...data, deep_link: buildDeepLink("brand", data.id) };
+    return {
+      content: [{ type: "text", text: JSON.stringify(brand, null, 2) }],
+      structuredContent: { brand }
+    };
+  }
+});
+
+// src/lib/mcp/tools/delete-brand.ts
+import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z14 } from "npm:zod@^3.25.76";
+var delete_brand_default = defineTool16({
+  name: "delete_brand",
+  title: "Excluir marca",
+  description: "Exclui definitivamente uma marca (e por cascade suas personas, temas, templates e entreg\xE1veis). Opera\xE7\xE3o destrutiva \u2014 confirme com o usu\xE1rio antes de invocar.",
+  inputSchema: { brand_id: z14.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ brand_id }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { error, count } = await supabase.from("brands").delete({ count: "exact" }).eq("id", brand_id);
+    if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+    if (!count) return { content: [{ type: "text", text: "Marca n\xE3o encontrada ou sem permiss\xE3o." }], isError: true };
+    return {
+      content: [{ type: "text", text: `Marca ${brand_id} exclu\xEDda.` }],
+      structuredContent: { deleted: true, brand_id }
+    };
+  }
+});
+
+// src/lib/mcp/tools/create-persona.ts
+import { defineTool as defineTool17 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z15 } from "npm:zod@^3.25.76";
+var create_persona_default = defineTool17({
+  name: "create_persona",
+  title: "Criar persona",
+  description: 'Cria uma persona vinculada a uma marca. Todos os campos textuais s\xE3o obrigat\xF3rios porque alimentam o briefing dos entreg\xE1veis (caption, imagem, plano). Se algum dado for desconhecido, envie uma descri\xE7\xE3o curta como `"a definir"` em vez de string vazia.',
+  inputSchema: {
+    brand_id: z15.string().uuid(),
+    name: z15.string().min(1),
+    gender: z15.string().min(1),
+    age: z15.string().min(1).describe("Faixa et\xE1ria, ex: '25-34'."),
+    location: z15.string().min(1),
+    professional_context: z15.string().min(1),
+    beliefs_and_interests: z15.string().min(1),
+    content_consumption_routine: z15.string().min(1),
+    main_goal: z15.string().min(1),
+    challenges: z15.string().min(1),
+    preferred_tone_of_voice: z15.string().min(1),
+    purchase_journey_stage: z15.string().min(1),
+    interest_triggers: z15.string().min(1),
+    income_and_purchase_habits: z15.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    try {
+      const userId = await getAuthUserId(supabase);
+      const { data: profile } = await supabase.from("profiles").select("team_id").eq("id", userId).maybeSingle();
+      const { data, error } = await supabase.from("personas").insert({ ...input, user_id: userId, team_id: profile?.team_id ?? null }).select("id, name, gender, age, location, brand_id, created_at").single();
+      if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+      const persona = { ...data, deep_link: buildDeepLink("persona", data.id) };
+      return {
+        content: [{ type: "text", text: JSON.stringify(persona, null, 2) }],
+        structuredContent: { persona }
+      };
+    } catch (e) {
+      return { content: [{ type: "text", text: e.message }], isError: true };
+    }
+  }
+});
+
+// src/lib/mcp/tools/update-persona.ts
+import { defineTool as defineTool18 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z16 } from "npm:zod@^3.25.76";
+var update_persona_default = defineTool18({
+  name: "update_persona",
+  title: "Atualizar persona",
+  description: "Atualiza uma persona existente. Envie apenas os campos que deseja alterar.",
+  inputSchema: {
+    persona_id: z16.string().uuid(),
+    name: z16.string().optional(),
+    gender: z16.string().optional(),
+    age: z16.string().optional(),
+    location: z16.string().optional(),
+    professional_context: z16.string().optional(),
+    beliefs_and_interests: z16.string().optional(),
+    content_consumption_routine: z16.string().optional(),
+    main_goal: z16.string().optional(),
+    challenges: z16.string().optional(),
+    preferred_tone_of_voice: z16.string().optional(),
+    purchase_journey_stage: z16.string().optional(),
+    interest_triggers: z16.string().optional(),
+    income_and_purchase_habits: z16.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ persona_id, ...patch }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    if (Object.values(patch).every((v) => v === void 0)) {
+      return { content: [{ type: "text", text: "Nenhum campo para atualizar." }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("personas").update(patch).eq("id", persona_id).select("id, name, gender, age, location, brand_id, updated_at").maybeSingle();
+    if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+    if (!data) return { content: [{ type: "text", text: "Persona n\xE3o encontrada ou sem permiss\xE3o." }], isError: true };
+    const persona = { ...data, deep_link: buildDeepLink("persona", data.id) };
+    return {
+      content: [{ type: "text", text: JSON.stringify(persona, null, 2) }],
+      structuredContent: { persona }
+    };
+  }
+});
+
+// src/lib/mcp/tools/delete-persona.ts
+import { defineTool as defineTool19 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z17 } from "npm:zod@^3.25.76";
+var delete_persona_default = defineTool19({
+  name: "delete_persona",
+  title: "Excluir persona",
+  description: "Exclui uma persona. Opera\xE7\xE3o destrutiva \u2014 confirme com o usu\xE1rio antes de invocar.",
+  inputSchema: { persona_id: z17.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ persona_id }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { error, count } = await supabase.from("personas").delete({ count: "exact" }).eq("id", persona_id);
+    if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+    if (!count) return { content: [{ type: "text", text: "Persona n\xE3o encontrada ou sem permiss\xE3o." }], isError: true };
+    return {
+      content: [{ type: "text", text: `Persona ${persona_id} exclu\xEDda.` }],
+      structuredContent: { deleted: true, persona_id }
+    };
+  }
+});
+
+// src/lib/mcp/tools/create-strategic-theme.ts
+import { defineTool as defineTool20 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z18 } from "npm:zod@^3.25.76";
+var create_strategic_theme_default = defineTool20({
+  name: "create_strategic_theme",
+  title: "Criar tema estrat\xE9gico",
+  description: "Cria um tema estrat\xE9gico vinculado a uma marca. Os campos textuais s\xE3o obrigat\xF3rios porque estruturam o briefing usado por captions/imagens/planos. Envie 'a definir' em campos que ainda n\xE3o estejam claros.",
+  inputSchema: {
+    brand_id: z18.string().uuid(),
+    title: z18.string().min(1),
+    description: z18.string().min(1),
+    color_palette: z18.string().min(1).describe("Descri\xE7\xE3o textual da paleta, ex: 'tons quentes: laranja, vermelho'."),
+    tone_of_voice: z18.string().min(1),
+    target_audience: z18.string().min(1),
+    hashtags: z18.string().min(1),
+    objectives: z18.string().min(1),
+    content_format: z18.string().min(1),
+    macro_themes: z18.string().min(1),
+    best_formats: z18.string().min(1),
+    platforms: z18.string().min(1),
+    expected_action: z18.string().min(1),
+    additional_info: z18.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    try {
+      const userId = await getAuthUserId(supabase);
+      const { data: profile } = await supabase.from("profiles").select("team_id").eq("id", userId).maybeSingle();
+      const { data, error } = await supabase.from("strategic_themes").insert({ ...input, user_id: userId, team_id: profile?.team_id ?? null }).select("id, title, description, brand_id, target_audience, created_at").single();
+      if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+      const theme = { ...data, deep_link: buildDeepLink("theme", data.id) };
+      return {
+        content: [{ type: "text", text: JSON.stringify(theme, null, 2) }],
+        structuredContent: { theme }
+      };
+    } catch (e) {
+      return { content: [{ type: "text", text: e.message }], isError: true };
+    }
+  }
+});
+
+// src/lib/mcp/tools/update-strategic-theme.ts
+import { defineTool as defineTool21 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z19 } from "npm:zod@^3.25.76";
+var update_strategic_theme_default = defineTool21({
+  name: "update_strategic_theme",
+  title: "Atualizar tema estrat\xE9gico",
+  description: "Atualiza um tema estrat\xE9gico existente. Envie apenas os campos a alterar.",
+  inputSchema: {
+    theme_id: z19.string().uuid(),
+    title: z19.string().optional(),
+    description: z19.string().optional(),
+    color_palette: z19.string().optional(),
+    tone_of_voice: z19.string().optional(),
+    target_audience: z19.string().optional(),
+    hashtags: z19.string().optional(),
+    objectives: z19.string().optional(),
+    content_format: z19.string().optional(),
+    macro_themes: z19.string().optional(),
+    best_formats: z19.string().optional(),
+    platforms: z19.string().optional(),
+    expected_action: z19.string().optional(),
+    additional_info: z19.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ theme_id, ...patch }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    if (Object.values(patch).every((v) => v === void 0)) {
+      return { content: [{ type: "text", text: "Nenhum campo para atualizar." }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("strategic_themes").update(patch).eq("id", theme_id).select("id, title, description, brand_id, target_audience, updated_at").maybeSingle();
+    if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+    if (!data) return { content: [{ type: "text", text: "Tema n\xE3o encontrado ou sem permiss\xE3o." }], isError: true };
+    const theme = { ...data, deep_link: buildDeepLink("theme", data.id) };
+    return {
+      content: [{ type: "text", text: JSON.stringify(theme, null, 2) }],
+      structuredContent: { theme }
+    };
+  }
+});
+
+// src/lib/mcp/tools/delete-strategic-theme.ts
+import { defineTool as defineTool22 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z20 } from "npm:zod@^3.25.76";
+var delete_strategic_theme_default = defineTool22({
+  name: "delete_strategic_theme",
+  title: "Excluir tema estrat\xE9gico",
+  description: "Exclui um tema estrat\xE9gico. Opera\xE7\xE3o destrutiva \u2014 confirme com o usu\xE1rio antes de invocar.",
+  inputSchema: { theme_id: z20.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ theme_id }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
+    }
+    const supabase = supabaseForUser(ctx);
+    const { error, count } = await supabase.from("strategic_themes").delete({ count: "exact" }).eq("id", theme_id);
+    if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+    if (!count) return { content: [{ type: "text", text: "Tema n\xE3o encontrado ou sem permiss\xE3o." }], isError: true };
+    return {
+      content: [{ type: "text", text: `Tema ${theme_id} exclu\xEDdo.` }],
+      structuredContent: { deleted: true, theme_id }
+    };
+  }
+});
+
 // src/lib/mcp/tools/create-caption.ts
-import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z10 } from "npm:zod@^3.25.76";
-var create_caption_default = defineTool12({
+import { defineTool as defineTool23 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z21 } from "npm:zod@^3.25.76";
+var create_caption_default = defineTool23({
   name: "create_caption",
   title: "Criar legenda (entreg\xE1vel)",
   description: "Gera uma legenda para uma marca e plataforma. Custa ~1 cr\xE9dito. Delega para a Edge Function `generate-caption`, respeitando compliance e cobran\xE7a do usu\xE1rio. Retorna `action_id` e `deep_link` para materializar como entreg\xE1vel no Ciclo AEIOU.",
   inputSchema: {
-    brand_id: z10.string().uuid().describe("ID da marca."),
-    theme: z10.string().optional().describe("Tema/assunto do post."),
-    platform: z10.string().describe("Plataforma alvo: instagram, facebook, linkedin, twitter, tiktok."),
-    objective: z10.string().describe("Objetivo (ex.: engajamento, venda, autoridade)."),
-    image_description: z10.string().describe("Descri\xE7\xE3o da imagem/situa\xE7\xE3o."),
-    audience: z10.string().optional(),
-    tone: z10.string().optional(),
-    persona: z10.string().optional(),
-    additional_info: z10.string().optional(),
-    content_type: z10.enum(["organic", "ads"]).optional()
+    brand_id: z21.string().uuid().describe("ID da marca."),
+    theme: z21.string().optional().describe("Tema/assunto do post."),
+    platform: z21.string().describe("Plataforma alvo: instagram, facebook, linkedin, twitter, tiktok."),
+    objective: z21.string().describe("Objetivo (ex.: engajamento, venda, autoridade)."),
+    image_description: z21.string().describe("Descri\xE7\xE3o da imagem/situa\xE7\xE3o."),
+    audience: z21.string().optional(),
+    tone: z21.string().optional(),
+    persona: z21.string().optional(),
+    additional_info: z21.string().optional(),
+    content_type: z21.enum(["organic", "ads"]).optional()
   },
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
   handler: async (input, ctx) => {
@@ -443,17 +847,17 @@ var create_caption_default = defineTool12({
 });
 
 // src/lib/mcp/tools/review-caption.ts
-import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z11 } from "npm:zod@^3.25.76";
-var review_caption_default = defineTool13({
+import { defineTool as defineTool24 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z22 } from "npm:zod@^3.25.76";
+var review_caption_default = defineTool24({
   name: "review_caption",
   title: "Revisar legenda",
   description: "Analisa uma legenda em rela\xE7\xE3o a uma marca e retorna feedback textual (fortalezas, ajustes, riscos). Custa ~1 cr\xE9dito. Delega para a Edge Function `review-caption`.",
   inputSchema: {
-    brand_id: z11.string().uuid().describe("ID da marca de refer\xEAncia."),
-    caption: z11.string().describe("Texto da legenda a ser revisada."),
-    prompt: z11.string().optional().describe("Prompt/briefing original, se houver."),
-    theme_name: z11.string().optional()
+    brand_id: z22.string().uuid().describe("ID da marca de refer\xEAncia."),
+    caption: z22.string().describe("Texto da legenda a ser revisada."),
+    prompt: z22.string().optional().describe("Prompt/briefing original, se houver."),
+    theme_name: z22.string().optional()
   },
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
   handler: async ({ brand_id, caption, prompt, theme_name }, ctx) => {
@@ -484,19 +888,19 @@ var review_caption_default = defineTool13({
 });
 
 // src/lib/mcp/tools/create-content-plan.ts
-import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z12 } from "npm:zod@^3.25.76";
-var create_content_plan_default = defineTool14({
+import { defineTool as defineTool25 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z23 } from "npm:zod@^3.25.76";
+var create_content_plan_default = defineTool25({
   name: "create_content_plan",
   title: "Criar plano de conte\xFAdo",
   description: "Gera um planejamento de conte\xFAdo (Calend\xE1rio) para uma marca a partir de temas e plataformas. Custa ~5 cr\xE9ditos. Delega para a Edge Function `generate-plan`. Retorna um entreg\xE1vel (`action_id`) com o plano em markdown.",
   inputSchema: {
-    brand: z12.string().describe("Nome da marca."),
-    themes: z12.array(z12.string()).min(1).max(10).describe("Lista de temas estrat\xE9gicos."),
-    platforms: z12.array(z12.enum(["instagram", "linkedin", "facebook", "twitter", "tiktok"])).min(1).describe("Plataformas alvo."),
-    quantity: z12.number().int().min(1).max(30).optional().describe("Quantidade de posts."),
-    objective: z12.string().optional(),
-    additional_info: z12.string().optional()
+    brand: z23.string().describe("Nome da marca."),
+    themes: z23.array(z23.string()).min(1).max(10).describe("Lista de temas estrat\xE9gicos."),
+    platforms: z23.array(z23.enum(["instagram", "linkedin", "facebook", "twitter", "tiktok"])).min(1).describe("Plataformas alvo."),
+    quantity: z23.number().int().min(1).max(30).optional().describe("Quantidade de posts."),
+    objective: z23.string().optional(),
+    additional_info: z23.string().optional()
   },
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
   handler: async (input, ctx) => {
@@ -535,20 +939,20 @@ var create_content_plan_default = defineTool14({
 });
 
 // src/lib/mcp/tools/create-image.ts
-import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z13 } from "npm:zod@^3.25.76";
-var create_image_default = defineTool15({
+import { defineTool as defineTool26 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z24 } from "npm:zod@^3.25.76";
+var create_image_default = defineTool26({
   name: "create_image",
   title: "Criar imagem (entreg\xE1vel)",
   description: "Gera uma imagem para uma marca via Gemini. Custa ~8 cr\xE9ditos. ATEN\xC7\xC3O: entrega a imagem crua \u2014 o overlay de texto (headline/CTA) s\xF3 \xE9 aplicado quando o usu\xE1rio abre o Creator no navegador (Canvas 2D). O campo `overlay_status='pending'` indica que o entreg\xE1vel ainda precisa ser finalizado no app.",
   inputSchema: {
-    brand_id: z13.string().uuid().describe("ID da marca."),
-    description: z13.string().describe("Descri\xE7\xE3o/briefing visual do que gerar."),
-    platform: z13.string().optional().describe("Plataforma alvo (define aspect ratio). Opcional se `aspect_ratio` for informado."),
-    aspect_ratio: z13.string().optional().describe("Ex.: '1:1', '9:16', '16:9'."),
-    persona_id: z13.string().uuid().optional(),
-    theme_id: z13.string().uuid().optional(),
-    additional_info: z13.string().optional()
+    brand_id: z24.string().uuid().describe("ID da marca."),
+    description: z24.string().describe("Descri\xE7\xE3o/briefing visual do que gerar."),
+    platform: z24.string().optional().describe("Plataforma alvo (define aspect ratio). Opcional se `aspect_ratio` for informado."),
+    aspect_ratio: z24.string().optional().describe("Ex.: '1:1', '9:16', '16:9'."),
+    persona_id: z24.string().uuid().optional(),
+    theme_id: z24.string().uuid().optional(),
+    additional_info: z24.string().optional()
   },
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
   handler: async (input, ctx) => {
@@ -590,16 +994,16 @@ var create_image_default = defineTool15({
 });
 
 // src/lib/mcp/tools/review-image.ts
-import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { z as z14 } from "npm:zod@^3.25.76";
-var review_image_default = defineTool16({
+import { defineTool as defineTool27 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z25 } from "npm:zod@^3.25.76";
+var review_image_default = defineTool27({
   name: "review_image",
   title: "Revisar imagem",
   description: "Analisa uma imagem (via URL p\xFAblica) em rela\xE7\xE3o a uma marca e devolve feedback textual (Gemini Vision). Custa ~2 cr\xE9ditos. Delega para a Edge Function `review-image`.",
   inputSchema: {
-    brand_id: z14.string().uuid().describe("ID da marca de refer\xEAncia."),
-    image_url: z14.string().url().describe("URL p\xFAblica da imagem a analisar."),
-    context: z14.string().optional().describe("Contexto adicional (briefing, objetivo).")
+    brand_id: z25.string().uuid().describe("ID da marca de refer\xEAncia."),
+    image_url: z25.string().url().describe("URL p\xFAblica da imagem a analisar."),
+    context: z25.string().optional().describe("Contexto adicional (briefing, objetivo).")
   },
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
   handler: async ({ brand_id, image_url, context }, ctx) => {
@@ -642,7 +1046,8 @@ var mcp_default = defineMcp({
     "Tools de CRIA\xC7\xC3O (create_*, review_*) devolvem sempre `action_id`, `deep_link` e `credits_used`. Cada `action_id` \xE9 um Entreg\xE1vel que pode ser anexado a um Ciclo AEIOU no Shell.",
     "Custos aproximados: create_caption ~1, review_caption ~1, review_image ~2, create_content_plan ~5, create_image ~8. Se os cr\xE9ditos forem insuficientes a tool retorna `isError: true` com a mensagem.",
     "Limita\xE7\xE3o conhecida: create_image entrega a imagem CRUA \u2014 o overlay de texto (headline/CTA) s\xF3 \xE9 queimado quando o usu\xE1rio abre a a\xE7\xE3o no Creator (Canvas 2D roda no navegador).",
-    "V\xEDdeo, edi\xE7\xE3o de imagem e escrita destrutiva (delete/restore/create_brand) ainda n\xE3o est\xE3o expostos por MCP \u2014 abra o Creator para essas opera\xE7\xF5es."
+    "CRUD de contexto: create_brand/update_brand/delete_brand, create_persona/update_persona/delete_persona e create_strategic_theme/update_strategic_theme/delete_strategic_theme permitem o Shell montar toda a base do briefing sem abrir o Creator. Personas e temas exigem os campos textuais obrigat\xF3rios \u2014 se algum dado for desconhecido, envie 'a definir' em vez de string vazia. Tools delete_* s\xE3o destrutivas: confirme com o usu\xE1rio antes de invocar.",
+    "V\xEDdeo e edi\xE7\xE3o bin\xE1ria de imagem ainda n\xE3o est\xE3o expostos por MCP \u2014 abra o Creator para essas opera\xE7\xF5es."
   ].join(" "),
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
@@ -653,7 +1058,9 @@ var mcp_default = defineMcp({
     list_brands_default,
     get_brand_default,
     list_personas_default,
+    get_persona_default,
     list_strategic_themes_default,
+    get_strategic_theme_default,
     list_deliverables_default,
     list_categories_default,
     list_favorites_default,
@@ -661,6 +1068,16 @@ var mcp_default = defineMcp({
     list_calendar_items_default,
     get_credit_balance_default,
     get_profile_default,
+    // CRUD contexto (marcas, personas, temas)
+    create_brand_default,
+    update_brand_default,
+    delete_brand_default,
+    create_persona_default,
+    update_persona_default,
+    delete_persona_default,
+    create_strategic_theme_default,
+    update_strategic_theme_default,
+    delete_strategic_theme_default,
     // Criação (pilar I — Interações)
     create_caption_default,
     review_caption_default,
