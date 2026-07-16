@@ -972,8 +972,7 @@ var review_image_default = defineTool24({
 });
 
 // src/lib/mcp/index.ts
-var runtimeSupabaseUrl = typeof process !== "undefined" ? process.env.SUPABASE_URL : void 0;
-var projectRef = runtimeSupabaseUrl?.match(/^https:\/\/([^.]+)\.supabase\.co(?:\/|$)/)?.[1] ?? "lcpmqnkorcsclmpfbizr" ?? "project-ref-unset";
+var projectRef = "afxwqkrneraatgovhpkb";
 var mcp_default = defineMcp({
   name: "creator-mcp",
   title: "Creator MCP",

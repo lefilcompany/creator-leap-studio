@@ -30,16 +30,11 @@ import createContentPlanTool from "./tools/create-content-plan";
 import createImageTool from "./tools/create-image";
 import reviewImageTool from "./tools/review-image";
 
-// Issuer OAuth: usar sempre o host Supabase direto (não proxy .lovable.cloud).
-// Em projetos com Test/Live separados, o bundle local pode carregar o project_id
-// de teste; por isso a função deriva o issuer do SUPABASE_URL em runtime quando
-// disponível e só usa import.meta como fallback para extração do manifesto.
-const runtimeSupabaseUrl =
-  typeof process !== "undefined" ? process.env.SUPABASE_URL : undefined;
-const projectRef =
-  runtimeSupabaseUrl?.match(/^https:\/\/([^.]+)\.supabase\.co(?:\/|$)/)?.[1] ??
-  import.meta.env.VITE_SUPABASE_PROJECT_ID ??
-  "project-ref-unset";
+// Issuer OAuth: deve apontar para o mesmo backend usado pelo domínio publicado.
+// O build local usa o Test DB, mas o MCP conectado por clientes externos roda no
+// app publicado; se o issuer ficar no Test, o consentimento live procura o
+// `authorization_id` no lugar errado e retorna “authorization not found”.
+const projectRef = "afxwqkrneraatgovhpkb";
 
 export default defineMcp({
   name: "creator-mcp",
