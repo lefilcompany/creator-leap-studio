@@ -1,35 +1,67 @@
 import { auth, defineMcp } from "@lovable.dev/mcp-js";
 
+// Leitura — contexto do usuário / marca / entregáveis
 import listBrandsTool from "./tools/list-brands";
+import getBrandTool from "./tools/get-brand";
 import listPersonasTool from "./tools/list-personas";
 import listStrategicThemesTool from "./tools/list-strategic-themes";
-import listRecentActionsTool from "./tools/list-recent-actions";
+import listDeliverablesTool from "./tools/list-deliverables";
+import listCategoriesTool from "./tools/list-categories";
+import listFavoritesTool from "./tools/list-favorites";
+import listCalendarsTool from "./tools/list-calendars";
+import listCalendarItemsTool from "./tools/list-calendar-items";
 import getCreditBalanceTool from "./tools/get-credit-balance";
 import getProfileTool from "./tools/get-profile";
 
-// Sempre use o host Supabase direto como issuer (não o proxy .lovable.cloud):
+// Criação de entregáveis — pilar I (Interações) do método AEIOU
+import createCaptionTool from "./tools/create-caption";
+import reviewCaptionTool from "./tools/review-caption";
+import createContentPlanTool from "./tools/create-content-plan";
+import createImageTool from "./tools/create-image";
+import reviewImageTool from "./tools/review-image";
+
+// Issuer OAuth: usar sempre o host Supabase direto (não o proxy .lovable.cloud).
 // mcp-js valida o issuer contra o discovery document, que publica o formato
 // https://<ref>.supabase.co. `VITE_SUPABASE_PROJECT_ID` é inlined pelo Vite
-// em tempo de build, então continua import-safe (nenhuma leitura runtime de env).
+// em tempo de build (import-safe — sem leitura runtime de env).
 const projectRef =
   import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
 
 export default defineMcp({
   name: "creator-mcp",
   title: "Creator MCP",
-  version: "0.1.0",
-  instructions:
-    "Ferramentas do Creator: leia marcas, personas, temas estratégicos, ações recentes, saldo de créditos e perfil do usuário autenticado. Todas as ferramentas respeitam as políticas de acesso (RLS) do Creator e agem como o usuário conectado.",
+  version: "0.2.0",
+  instructions: [
+    "Servidor MCP do Creator — aplicação do pilar I (Interações) do método AEIOU dentro do Marketing OS.",
+    "Toda operação age como o usuário conectado, respeitando marca, RLS, cobrança de créditos e compliance da plataforma.",
+    "Tools de LEITURA (list_*, get_*) retornam entidades com `deep_link` — use-os para abrir o objeto no Creator em vez de tentar embutir a UI.",
+    "Tools de CRIAÇÃO (create_*, review_*) devolvem sempre `action_id`, `deep_link` e `credits_used`. Cada `action_id` é um Entregável que pode ser anexado a um Ciclo AEIOU no Shell.",
+    "Custos aproximados: create_caption ~1, review_caption ~1, review_image ~2, create_content_plan ~5, create_image ~8. Se os créditos forem insuficientes a tool retorna `isError: true` com a mensagem.",
+    "Limitação conhecida: create_image entrega a imagem CRUA — o overlay de texto (headline/CTA) só é queimado quando o usuário abre a ação no Creator (Canvas 2D roda no navegador).",
+    "Vídeo, edição de imagem e escrita destrutiva (delete/restore/create_brand) ainda não estão expostos por MCP — abra o Creator para essas operações.",
+  ].join(" "),
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
   }),
   tools: [
+    // Leitura
     listBrandsTool,
+    getBrandTool,
     listPersonasTool,
     listStrategicThemesTool,
-    listRecentActionsTool,
+    listDeliverablesTool,
+    listCategoriesTool,
+    listFavoritesTool,
+    listCalendarsTool,
+    listCalendarItemsTool,
     getCreditBalanceTool,
     getProfileTool,
+    // Criação (pilar I — Interações)
+    createCaptionTool,
+    reviewCaptionTool,
+    createContentPlanTool,
+    createImageTool,
+    reviewImageTool,
   ],
 });
