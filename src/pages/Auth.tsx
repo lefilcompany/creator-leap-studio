@@ -25,7 +25,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/hooks/useAuth";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
-import { getEmailRedirectUrl } from "@/lib/auth-urls";
+import { getEmailRedirectUrl, validateReturnUrl } from "@/lib/auth-urls";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 
 import decorativeElement from "@/assets/decorative-element.png";
@@ -102,6 +102,10 @@ const Auth = () => {
   
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const nextPath = useMemo(() => {
+    const nextParam = searchParams.get("next");
+    return nextParam ? validateReturnUrl(nextParam) : null;
+  }, [searchParams]);
 
   // Captura parâmetros UTM da URL
   const utmParams = useMemo(() => {
@@ -130,14 +134,9 @@ const Auth = () => {
   useEffect(() => {
     if (!authLoading && user && !showChangePassword) {
       // Preserva ?next=/caminho para fluxos como consentimento OAuth do MCP
-      const nextParam = searchParams.get("next");
-      const safeNext =
-        nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")
-          ? nextParam
-          : null;
-      if (safeNext) {
-        console.log("[Auth] Auth complete, redirecting to preserved next:", safeNext);
-        navigate(safeNext, { replace: true });
+      if (nextPath) {
+        console.log("[Auth] Auth complete, redirecting to preserved next:", nextPath);
+        navigate(nextPath, { replace: true });
         return;
       }
       if (user.isAdmin) {
@@ -148,7 +147,7 @@ const Auth = () => {
       console.log("[Auth] Auth complete, redirecting to dashboard");
       navigate("/dashboard", { replace: true });
     }
-  }, [authLoading, user, showChangePassword, navigate, searchParams]);
+  }, [authLoading, user, showChangePassword, navigate, nextPath]);
 
   // Busca os estados do Brasil na API do IBGE
   useEffect(() => {
@@ -327,7 +326,7 @@ const Auth = () => {
             ...(normalizedCouponCode ? { coupon_code: normalizedCouponCode } : {}),
             ...(Object.keys(utmParams).length > 0 && { utm: utmParams }),
           },
-          emailRedirectTo: getEmailRedirectUrl('/dashboard'),
+          emailRedirectTo: getEmailRedirectUrl(nextPath ?? '/dashboard'),
         },
       });
 
@@ -393,8 +392,7 @@ const Auth = () => {
         setRegistrationStep("Tudo pronto! Redirecionando...");
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Redirecionar direto para o dashboard
-        navigate("/dashboard", { replace: true });
+        navigate(nextPath ?? "/dashboard", { replace: true });
       }
     } catch (err) {
       toast.error("Ocorreu um erro ao tentar se cadastrar.");

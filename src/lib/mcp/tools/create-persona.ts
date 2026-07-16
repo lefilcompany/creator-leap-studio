@@ -1,7 +1,6 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 import { supabaseForUser } from "../supabaseClient";
-import { getAuthUserId } from "../authUser";
 import { buildDeepLink } from "../deepLink";
 
 export default defineTool({
@@ -32,15 +31,20 @@ export default defineTool({
     }
     const supabase = supabaseForUser(ctx);
     try {
-      const userId = await getAuthUserId(supabase);
+      const userId = ctx.getUserId();
       const { data: profile } = await supabase
         .from("profiles")
-        .select("team_id")
+        .select("team_id, current_workspace_id")
         .eq("id", userId)
         .maybeSingle();
       const { data, error } = await supabase
         .from("personas")
-        .insert({ ...input, user_id: userId, team_id: profile?.team_id ?? null })
+        .insert({
+          ...input,
+          user_id: userId,
+          team_id: profile?.team_id ?? null,
+          workspace_id: profile?.current_workspace_id ?? null,
+        })
         .select("id, name, gender, age, location, brand_id, created_at")
         .single();
       if (error) return { content: [{ type: "text", text: error.message }], isError: true };

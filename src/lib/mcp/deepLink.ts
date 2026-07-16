@@ -17,21 +17,21 @@ export type DeepLinkKind =
 export function buildDeepLink(kind: DeepLinkKind, id: string): string {
   switch (kind) {
     case "action":
-      return `${BASE}/historico/${id}`;
+      return `${BASE}/action/${id}`;
     case "brand":
-      return `${BASE}/marcas/${id}`;
+      return `${BASE}/brands/${id}`;
     case "persona":
       return `${BASE}/personas/${id}`;
     case "theme":
-      return `${BASE}/temas/${id}`;
+      return `${BASE}/themes/${id}`;
     case "calendar":
       return `${BASE}/calendario/${id}`;
     case "calendar_item":
       return `${BASE}/calendario/item/${id}`;
     case "category":
-      return `${BASE}/categorias/${id}`;
+      return `${BASE}/categories/${id}`;
     case "profile":
-      return `${BASE}/perfil/${id}`;
+      return `${BASE}/profile/${id}`;
   }
 }
 

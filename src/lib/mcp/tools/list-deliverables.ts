@@ -28,17 +28,27 @@ export default defineTool({
     const supabase = supabaseForUser(ctx);
     let q = supabase
       .from("actions")
-      .select("id, action_type, title, brand_id, created_at, status")
+      .select("id, type, brand_id, created_at, status, approved, result, details, thumb_path")
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(limit ?? 20);
-    if (action_type) q = q.eq("action_type", action_type);
+    if (action_type) q = q.eq("type", action_type);
     if (brand_id) q = q.eq("brand_id", brand_id);
     const { data, error } = await q;
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
-    const deliverables = withDeepLinks(data, "action");
+    const deliverables = withDeepLinks(
+      (data ?? []).map((action) => ({
+        ...action,
+        title:
+          (action.result as Record<string, unknown> | null)?.title ??
+          (action.result as Record<string, unknown> | null)?.headline ??
+          (action.details as Record<string, unknown> | null)?.description ??
+          action.type,
+      })),
+      "action",
+    );
     return {
       content: [{ type: "text", text: JSON.stringify(deliverables, null, 2) }],
       structuredContent: { deliverables },

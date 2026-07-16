@@ -20,13 +20,22 @@ type OAuthDetails = {
   redirect_to?: string;
 };
 type OAuthResult = { data: OAuthDetails | null; error: { message: string } | null };
-const oauth = (supabase.auth as unknown as {
-  oauth: {
-    getAuthorizationDetails: (id: string) => Promise<OAuthResult>;
-    approveAuthorization: (id: string) => Promise<OAuthResult>;
-    denyAuthorization: (id: string) => Promise<OAuthResult>;
-  };
-}).oauth;
+
+type OAuthApi = {
+  getAuthorizationDetails: (id: string) => Promise<OAuthResult>;
+  approveAuthorization: (id: string) => Promise<OAuthResult>;
+  denyAuthorization: (id: string) => Promise<OAuthResult>;
+};
+
+function getOAuthApi(): OAuthApi {
+  const oauth = (supabase.auth as unknown as { oauth?: OAuthApi }).oauth;
+  if (!oauth?.getAuthorizationDetails || !oauth.approveAuthorization || !oauth.denyAuthorization) {
+    throw new Error(
+      "Cliente OAuth indisponível. Recarregue a página e tente conectar novamente.",
+    );
+  }
+  return oauth;
+}
 
 export default function OAuthConsent() {
   const [params] = useSearchParams();
@@ -50,7 +59,7 @@ export default function OAuthConsent() {
         return;
       }
       try {
-        const { data, error } = await oauth.getAuthorizationDetails(authorizationId);
+        const { data, error } = await getOAuthApi().getAuthorizationDetails(authorizationId);
         if (!active) return;
         if (error) {
           setError(error.message);
@@ -77,8 +86,8 @@ export default function OAuthConsent() {
     setError(null);
     try {
       const { data, error } = approve
-        ? await oauth.approveAuthorization(authorizationId)
-        : await oauth.denyAuthorization(authorizationId);
+        ? await getOAuthApi().approveAuthorization(authorizationId)
+        : await getOAuthApi().denyAuthorization(authorizationId);
       if (error) {
         setBusy(false);
         setError(error.message);

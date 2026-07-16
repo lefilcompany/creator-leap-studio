@@ -14,8 +14,8 @@ export default defineTool({
     const supabase = supabaseForUser(ctx);
     const { data, error } = await supabase
       .from("profiles")
-      .select("user_id, full_name, email, phone, city, state, team_id, avatar_url")
-      .eq("user_id", ctx.getUserId())
+      .select("id, name, email, phone, city, state, team_id, current_workspace_id, avatar_url")
+      .eq("id", ctx.getUserId())
       .maybeSingle();
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };

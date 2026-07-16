@@ -10,6 +10,22 @@ export function useOAuthCallback() {
   const [showTeamDialog, setShowTeamDialog] = useState(false);
   const isProcessing = useRef(false);
 
+  const getStoredReturnUrl = () => {
+    try {
+      return window.localStorage.getItem('auth_return_url');
+    } catch {
+      return null;
+    }
+  };
+
+  const clearStoredReturnUrl = () => {
+    try {
+      window.localStorage.removeItem('auth_return_url');
+    } catch {
+      // Ignore storage errors in restricted browser contexts.
+    }
+  };
+
   useEffect(() => {
     const handleOAuthCallback = async () => {
       if (isProcessing.current) return;
@@ -136,11 +152,23 @@ export function useOAuthCallback() {
           }
         }
 
+        const destination = validateReturnUrl(
+          searchParams.get('returnUrl') ?? searchParams.get('next') ?? getStoredReturnUrl(),
+        );
+        clearStoredReturnUrl();
+
         if (!profile) {
           // Profile might still be creating via trigger - don't sign out, redirect to dashboard
-          console.warn('[OAuth] Profile not found, redirecting to dashboard anyway');
+          console.warn('[OAuth] Profile not found, redirecting to destination anyway');
           toast.success('Bem-vindo(a)!');
-          navigate('/dashboard', { replace: true });
+          navigate(destination, { replace: true });
+          return;
+        }
+
+        if (destination !== '/dashboard') {
+          console.log('[OAuth] Redirecting to preserved destination:', destination);
+          toast.success(`Bem-vindo(a), ${profile.name}!`);
+          navigate(destination, { replace: true });
           return;
         }
 
@@ -148,7 +176,6 @@ export function useOAuthCallback() {
           console.log('[OAuth] User has no team, showing team dialog');
           setShowTeamDialog(true);
         } else {
-          const destination = validateReturnUrl(searchParams.get('returnUrl'));
           console.log('[OAuth] Redirecting to:', destination);
           toast.success(`Bem-vindo(a), ${profile.name}!`);
           navigate(destination, { replace: true });
@@ -165,7 +192,9 @@ export function useOAuthCallback() {
 
   const handleTeamDialogClose = () => {
     setShowTeamDialog(false);
-    navigate('/dashboard', { replace: true });
+    const destination = validateReturnUrl(searchParams.get('returnUrl') ?? searchParams.get('next') ?? getStoredReturnUrl());
+    clearStoredReturnUrl();
+    navigate(destination, { replace: true });
   };
 
   return {

@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { OnboardingContextType, OnboardingState, OnboardingTourType } from '@/types/onboarding';
 import { toast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
 export const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
@@ -70,7 +73,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ [fieldName]: true })
+        .update({ [fieldName]: true } as ProfileUpdate)
         .eq('id', user.id);
 
       if (error) throw error;
@@ -84,7 +87,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const resetAllTours = useCallback(async () => {
     if (!user?.id) return;
     try {
-      const resetState = Object.fromEntries(ONBOARDING_FIELDS.map(f => [f, false]));
+      const resetState = Object.fromEntries(ONBOARDING_FIELDS.map(f => [f, false])) as ProfileUpdate;
       const { error } = await supabase.from('profiles').update(resetState).eq('id', user.id);
       if (error) throw error;
       setState(initialState);
