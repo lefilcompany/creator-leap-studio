@@ -1,60 +1,43 @@
-## Plano
+# Igualar o padrão de código do MCP ao LEKPIS V3
 
-1. **Confirmar o diagnóstico atual**
-   - Considerar o token OAuth como válido: issuer correto, audience `authenticated`, `client_id` presente, `iat/exp` válidos e token emitido pelo Auth do próprio Creator.
-   - Tratar o `401 {"error":"unauthorized"}` como uma decisão de autorização feita dentro da edge function `mcp` do Creator, não como falha do handshake OAuth do Marketing OS.
+Objetivo: deixar `src/lib/mcp/index.ts`, `src/lib/mcp/tools/echo.ts` e `vite.config.ts` visualmente/estruturalmente idênticos ao LEKPIS V3. **Nenhuma ferramenta é criada, removida ou renomeada.** As 29 ferramentas atuais e a estrutura de pastas (`brands/`, `personas/`, `themes/`, `content/`, `review/`, `context/`, `_shared/`) permanecem intactas.
 
-2. **Enviar ao time do Creator os dados mínimos para correlação de logs**
-   - Endpoint: `POST /functions/v1/mcp`.
-   - Resposta: `401 unauthorized` já no `initialize`.
-   - Campos para buscar nos logs: `sub`, `email`, `client_id`, `iat`.
-   - Pedir explicitamente para localizar a linha exata onde a função `mcp` retorna `unauthorized`.
+## Diferenças detectadas hoje vs. LEKPIS
 
-3. **Pedir verificação dos três pontos prováveis no Creator**
-   - Se o usuário `emanuel.rodrigues@lefil.com.br` / `ecb55ace-66b9-4f69-92fe-977aaa5c7d30` existe e tem acesso/membership válido no Creator.
-   - Se o OAuth client `6f5a7496-f3b5-4641-9acf-0f741e3f7ac7` criado via DCR está ativo e permitido.
-   - Se a função `mcp` exige escopos, claims ou permissões adicionais além de `profile email`.
+1. `src/lib/mcp/tools/echo.ts` — LEKPIS retorna `structuredContent` com `echoed`, `authenticated`, `userId`, `timestamp` e usa `title: "LeKPIs — Echo"` + descrição longa. O Creator tem uma versão minimalista que só devolve o texto.
+2. `src/lib/mcp/index.ts` — LEKPIS usa comentário curto ("Build-time literal — keeps the entry import-safe…") acima do `projectRef`. O Creator usa um comentário em PT diferente. Ordem de imports e formatação do array `tools` também diferem.
+3. `vite.config.ts` — LEKPIS tem `dedupe: ["react", "react-dom", "react/jsx-runtime"]` e não usa `optimizeDeps`. O Creator tem `dedupe: ["react", "react-dom"]` + `optimizeDeps.include`.
 
-4. **Não alterar o lado Marketing OS agora**
-   - Não mexer em `mcp.server.ts`, `mcp.functions.ts`, card de UI ou fluxo OAuth.
-   - Não reconfigurar o handshake, porque o token está sendo emitido corretamente e chega ao Creator.
+## Mudanças propostas
 
-5. **Próxima ação só após resposta do Creator**
-   - Se o Creator indicar falta de membership, ajustar permissões/provisionamento lá.
-   - Se indicar `client_id` inválido/revogado, desconectar e reconectar o MCP para gerar novo client.
-   - Se indicar escopo/claim adicional, atualizar a configuração OAuth/MCP conforme a exigência real.
+### 1. `src/lib/mcp/tools/echo.ts`
+Reescrever igual ao LEKPIS, adaptando só o título para o produto:
+- `title: "Creator — Echo"`
+- descrição longa explicando que serve para verificar fluxo de argumentos e OAuth
+- handler recebendo `(text, ctx)` e retornando `structuredContent` com `echoed`, `authenticated`, `userId`, `timestamp`
+- annotations `readOnlyHint`, `idempotentHint`, `openWorldHint: false` (já iguais)
 
-## Mensagem sugerida para enviar ao time do Creator
+### 2. `src/lib/mcp/index.ts`
+Reformatar mantendo TODOS os 29 imports e todas as entradas do array `tools`:
+- Ajustar o comentário acima do `projectRef` para o texto do LEKPIS ("Build-time literal — keeps the entry import-safe (no runtime env reads at eval).")
+- Manter `name: "creator-mcp"`, `title: "Creator MCP"`, `version: "1.0.0"` e o mesmo bloco `auth: auth.oauth.issuer({...})`
+- Manter as `instructions` atuais do Creator (elas descrevem o produto — trocar por texto do LEKPIS quebraria a UX do agente)
+- Manter a organização de imports por categoria (marcas, personas, temas, criação, revisão, contexto) — só é reformatação cosmética se necessário para bater com o estilo do LEKPIS
 
-```text
-O endpoint MCP do Creator continua retornando 401 unauthorized na chamada initialize:
+### 3. `vite.config.ts`
+- Trocar `dedupe: ["react", "react-dom"]` por `dedupe: ["react", "react-dom", "react/jsx-runtime"]`
+- Remover o bloco `optimizeDeps: { include: ["react", "react-dom"] }` (o LEKPIS não usa)
+- Manter `mcpPlugin()` já presente
 
-POST https://afxwqkrneraatgovhpkb.supabase.co/functions/v1/mcp
-HTTP 401
-{"error":"unauthorized"}
+## O que NÃO muda
 
-O token OAuth recebido parece válido e foi emitido pelo Auth do próprio Creator:
+- Nenhuma ferramenta é apagada, renomeada ou movida.
+- `_shared/`, `brands/`, `personas/`, `themes/`, `content/`, `review/`, `context/`, `get-profile.ts`, `list-brands.ts` — todos intactos.
+- `supabase/functions/mcp/index.ts` continua sendo gerado pelo `mcpPlugin()` no build.
+- Nenhuma mudança em auth, DB, RLS ou secrets.
 
-iss: https://afxwqkrneraatgovhpkb.supabase.co/auth/v1
-aud: authenticated
-sub: ecb55ace-66b9-4f69-92fe-977aaa5c7d30
-email: emanuel.rodrigues@lefil.com.br
-client_id: 6f5a7496-f3b5-4641-9acf-0f741e3f7ac7
-scope: profile email
-iat: 1784234149
-exp: 1784237749
+## Pós-implementação
 
-Como o token está bem formado, recente, não expirado, com audience correta e client_id presente, precisamos que vocês verifiquem nos logs da edge function mcp do projeto Creator onde exatamente a autorização está negando.
-
-Por favor, chequem principalmente:
-
-1. Se o usuário ecb55ace-66b9-4f69-92fe-977aaa5c7d30 / emanuel.rodrigues@lefil.com.br está provisionado e tem membership/permissão no app Creator.
-2. Se o client_id 6f5a7496-f3b5-4641-9acf-0f741e3f7ac7 registrado via DCR está ativo, válido e não revogado.
-3. Se a função mcp exige algum scope, claim ou permissão adicional além de profile email.
-
-Do lado Marketing OS não parece haver alteração necessária no handshake OAuth: o token é emitido pelo Creator e enviado corretamente; a negação ocorre dentro do Creator.
-```
-
-## Critério de conclusão
-
-O problema só pode ser fechado quando o Creator retornar nos logs a causa exata do `unauthorized` ou quando, após ajuste de membership/client/scope no Creator, o `tools/list` passar a retornar as ferramentas em vez de `0 ferramentas`.
+- Rodar `app_mcp_server--extract_mcp_manifest` para revalidar o manifest (a mudança em `echo.ts` altera título/descrição).
+- Deploy da função `mcp` via `supabase--deploy_edge_functions` para propagar o novo `echo` para clientes conectados.
+- O 401 discutido nos turnos anteriores **não é resolvido por essa mudança** — é uma decisão de autorização dentro da edge function; segue como issue separado.

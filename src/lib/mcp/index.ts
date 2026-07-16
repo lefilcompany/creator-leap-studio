@@ -43,7 +43,7 @@ import listCalendarItemsTool from "./tools/context/list-calendar-items";
 import listActionsTool from "./tools/context/list-actions";
 import getActionTool from "./tools/context/get-action";
 
-// OAuth issuer precisa ser o host direto do Supabase (não o proxy .lovable.cloud).
+// Build-time literal — keeps the entry import-safe (no runtime env reads at eval).
 const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
 
 export default defineMcp({

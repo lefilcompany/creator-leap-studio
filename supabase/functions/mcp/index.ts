@@ -10,11 +10,29 @@ import { defineTool } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z } from "npm:zod@^4.4.3";
 var echo_default = defineTool({
   name: "echo",
-  title: "Echo",
-  description: "Echoes back the provided text. Useful to verify MCP connectivity.",
-  inputSchema: { text: z.string().min(1).describe("Text to echo back.") },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: ({ text }) => ({ content: [{ type: "text", text }] })
+  title: "Creator \u2014 Echo",
+  description: "Echoes back the provided text along with the authenticated user id and a timestamp. Use this to verify that arguments flow correctly from the MCP client to the server.",
+  inputSchema: {
+    text: z.string().min(1).describe("Texto que ser\xE1 ecoado de volta.")
+  },
+  annotations: {
+    readOnlyHint: true,
+    idempotentHint: true,
+    openWorldHint: false
+  },
+  handler: async ({ text }, ctx) => {
+    const authed = ctx.isAuthenticated();
+    const payload = {
+      echoed: text,
+      authenticated: authed,
+      userId: authed ? ctx.getUserId() : null,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    return {
+      content: [{ type: "text", text: JSON.stringify(payload) }],
+      structuredContent: payload
+    };
+  }
 });
 
 // src/lib/mcp/tools/get-profile.ts
