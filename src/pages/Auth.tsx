@@ -129,6 +129,17 @@ const Auth = () => {
   // Redireciona automaticamente quando autenticado (inclui retorno do OAuth)
   useEffect(() => {
     if (!authLoading && user && !showChangePassword) {
+      // Preserva ?next=/caminho para fluxos como consentimento OAuth do MCP
+      const nextParam = searchParams.get("next");
+      const safeNext =
+        nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")
+          ? nextParam
+          : null;
+      if (safeNext) {
+        console.log("[Auth] Auth complete, redirecting to preserved next:", safeNext);
+        navigate(safeNext, { replace: true });
+        return;
+      }
       if (user.isAdmin) {
         console.log("[Auth] System Admin authenticated, redirecting to /system");
         navigate("/system", { replace: true });
@@ -137,7 +148,7 @@ const Auth = () => {
       console.log("[Auth] Auth complete, redirecting to dashboard");
       navigate("/dashboard", { replace: true });
     }
-  }, [authLoading, user, showChangePassword, navigate]);
+  }, [authLoading, user, showChangePassword, navigate, searchParams]);
 
   // Busca os estados do Brasil na API do IBGE
   useEffect(() => {
