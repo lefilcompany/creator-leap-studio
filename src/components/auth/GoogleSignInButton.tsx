@@ -16,6 +16,10 @@ export function GoogleSignInButton({ label = "Continuar com Google", className }
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      const returnUrl = validateReturnUrl(new URLSearchParams(window.location.search).get("next"));
+      if (returnUrl !== "/dashboard") {
+        window.localStorage.setItem("auth_return_url", returnUrl);
+      }
       const { error } = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: getAuthBaseUrl(),
       });
