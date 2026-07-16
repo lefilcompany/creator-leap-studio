@@ -576,7 +576,7 @@ export default function BrandView() {
         currentAvatarUrl={brand.avatarUrl}
         onSave={async (color, avatarUrl) => {
           try {
-            const updates: Record<string, any> = {};
+            const updates: { brand_color?: string; avatar_url?: string | null } = {};
             if (color !== selectedBrandColor) {
               updates.brand_color = color;
               handleBrandColorChange(color);
