@@ -20,6 +20,7 @@ import { BackgroundTaskProvider } from "./contexts/BackgroundTaskContext";
 
 // Lazy loaded pages - Public
 const Auth = lazy(() => import("./pages/Auth"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -135,6 +136,7 @@ const App = () => (
                       <Route path="/onboarding/canceled" element={<SuspenseRoute><OnboardingCanceled /></SuspenseRoute>} />
                       <Route path="/payment-success" element={<SuspenseRoute><PaymentSuccess /></SuspenseRoute>} />
                       <Route path="/contact" element={<SuspenseRoute><Contact /></SuspenseRoute>} />
+                      <Route path="/.lovable/oauth/consent" element={<SuspenseRoute><OAuthConsent /></SuspenseRoute>} />
                       
                       
                       {/* Dashboard routes with sidebar layout */}
