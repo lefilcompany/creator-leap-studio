@@ -4,7 +4,9 @@ import { auth, defineMcp } from "@lovable.dev/mcp-js";
 import listBrandsTool from "./tools/list-brands";
 import getBrandTool from "./tools/get-brand";
 import listPersonasTool from "./tools/list-personas";
+import getPersonaTool from "./tools/get-persona";
 import listStrategicThemesTool from "./tools/list-strategic-themes";
+import getStrategicThemeTool from "./tools/get-strategic-theme";
 import listDeliverablesTool from "./tools/list-deliverables";
 import listCategoriesTool from "./tools/list-categories";
 import listFavoritesTool from "./tools/list-favorites";
@@ -12,6 +14,17 @@ import listCalendarsTool from "./tools/list-calendars";
 import listCalendarItemsTool from "./tools/list-calendar-items";
 import getCreditBalanceTool from "./tools/get-credit-balance";
 import getProfileTool from "./tools/get-profile";
+
+// CRUD — marcas, personas e temas
+import createBrandTool from "./tools/create-brand";
+import updateBrandTool from "./tools/update-brand";
+import deleteBrandTool from "./tools/delete-brand";
+import createPersonaTool from "./tools/create-persona";
+import updatePersonaTool from "./tools/update-persona";
+import deletePersonaTool from "./tools/delete-persona";
+import createStrategicThemeTool from "./tools/create-strategic-theme";
+import updateStrategicThemeTool from "./tools/update-strategic-theme";
+import deleteStrategicThemeTool from "./tools/delete-strategic-theme";
 
 // Criação de entregáveis — pilar I (Interações) do método AEIOU
 import createCaptionTool from "./tools/create-caption";
