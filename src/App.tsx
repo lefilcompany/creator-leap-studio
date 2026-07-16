@@ -29,7 +29,7 @@ const OnboardingSuccess = lazy(() => import("./pages/OnboardingSuccess"));
 const OnboardingCanceled = lazy(() => import("./pages/OnboardingCanceled"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+
 
 // Lazy loaded pages - Dashboard
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -135,7 +135,7 @@ const App = () => (
                       <Route path="/onboarding/canceled" element={<SuspenseRoute><OnboardingCanceled /></SuspenseRoute>} />
                       <Route path="/payment-success" element={<SuspenseRoute><PaymentSuccess /></SuspenseRoute>} />
                       <Route path="/contact" element={<SuspenseRoute><Contact /></SuspenseRoute>} />
-                      <Route path="/.lovable/oauth/consent" element={<SuspenseRoute><OAuthConsent /></SuspenseRoute>} />
+                      
                       
                       {/* Dashboard routes with sidebar layout */}
                       <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
