@@ -111,7 +111,11 @@ export default function OAuthConsent() {
         {error ? (
           <div className="space-y-4 text-center">
             <h1 className="text-xl font-semibold">Não foi possível carregar</h1>
-            <p className="text-sm text-muted-foreground">{error}</p>
+            <p className="text-sm text-muted-foreground">
+              {/authorization not found|not[_ ]found|expired|invalid/i.test(error)
+                ? "Esta solicitação de autorização expirou ou não existe mais. Volte ao seu cliente MCP e tente conectar novamente."
+                : error}
+            </p>
             <Button variant="outline" onClick={() => window.location.href = "/dashboard"}>Voltar</Button>
           </div>
         ) : !details ? (
