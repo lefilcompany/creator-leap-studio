@@ -29,6 +29,7 @@ const OnboardingSuccess = lazy(() => import("./pages/OnboardingSuccess"));
 const OnboardingCanceled = lazy(() => import("./pages/OnboardingCanceled"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
 // Lazy loaded pages - Dashboard
 const Dashboard = lazy(() => import("./pages/Dashboard"));
