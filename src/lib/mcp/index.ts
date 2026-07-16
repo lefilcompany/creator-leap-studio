@@ -30,12 +30,16 @@ import createContentPlanTool from "./tools/create-content-plan";
 import createImageTool from "./tools/create-image";
 import reviewImageTool from "./tools/review-image";
 
-// Issuer OAuth: usar sempre o host Supabase direto (não o proxy .lovable.cloud).
-// mcp-js valida o issuer contra o discovery document, que publica o formato
-// https://<ref>.supabase.co. `VITE_SUPABASE_PROJECT_ID` é inlined pelo Vite
-// em tempo de build (import-safe — sem leitura runtime de env).
+// Issuer OAuth: usar sempre o host Supabase direto (não proxy .lovable.cloud).
+// Em projetos com Test/Live separados, o bundle local pode carregar o project_id
+// de teste; por isso a função deriva o issuer do SUPABASE_URL em runtime quando
+// disponível e só usa import.meta como fallback para extração do manifesto.
+const runtimeSupabaseUrl =
+  typeof process !== "undefined" ? process.env.SUPABASE_URL : undefined;
 const projectRef =
-  import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
+  runtimeSupabaseUrl?.match(/^https:\/\/([^.]+)\.supabase\.co(?:\/|$)/)?.[1] ??
+  import.meta.env.VITE_SUPABASE_PROJECT_ID ??
+  "project-ref-unset";
 
 export default defineMcp({
   name: "creator-mcp",
