@@ -148,7 +148,7 @@ export function useOAuthCallback() {
           console.log('[OAuth] User has no team, showing team dialog');
           setShowTeamDialog(true);
         } else {
-          const destination = validateReturnUrl(searchParams.get('returnUrl'));
+          const destination = validateReturnUrl(searchParams.get('returnUrl') ?? searchParams.get('next'));
           console.log('[OAuth] Redirecting to:', destination);
           toast.success(`Bem-vindo(a), ${profile.name}!`);
           navigate(destination, { replace: true });

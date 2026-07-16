@@ -28,21 +28,21 @@ var BASE = "https://pla.creator.lefil.com.br";
 function buildDeepLink(kind, id) {
   switch (kind) {
     case "action":
-      return `${BASE}/historico/${id}`;
+      return `${BASE}/action/${id}`;
     case "brand":
-      return `${BASE}/marcas/${id}`;
+      return `${BASE}/brands/${id}`;
     case "persona":
       return `${BASE}/personas/${id}`;
     case "theme":
-      return `${BASE}/temas/${id}`;
+      return `${BASE}/themes/${id}`;
     case "calendar":
       return `${BASE}/calendario/${id}`;
     case "calendar_item":
       return `${BASE}/calendario/item/${id}`;
     case "category":
-      return `${BASE}/categorias/${id}`;
+      return `${BASE}/categories/${id}`;
     case "profile":
-      return `${BASE}/perfil/${id}`;
+      return `${BASE}/profile/${id}`;
   }
 }
 function withDeepLinks(rows, kind) {
@@ -244,14 +244,20 @@ var list_deliverables_default = defineTool7({
       return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
     }
     const supabase = supabaseForUser(ctx);
-    let q = supabase.from("actions").select("id, action_type, title, brand_id, created_at, status").is("deleted_at", null).order("created_at", { ascending: false }).limit(limit ?? 20);
-    if (action_type) q = q.eq("action_type", action_type);
+    let q = supabase.from("actions").select("id, type, brand_id, created_at, status, approved, result, details, thumb_path").is("deleted_at", null).order("created_at", { ascending: false }).limit(limit ?? 20);
+    if (action_type) q = q.eq("type", action_type);
     if (brand_id) q = q.eq("brand_id", brand_id);
     const { data, error } = await q;
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
-    const deliverables = withDeepLinks(data, "action");
+    const deliverables = withDeepLinks(
+      (data ?? []).map((action) => ({
+        ...action,
+        title: action.result?.title ?? action.result?.headline ?? action.details?.description ?? action.type
+      })),
+      "action"
+    );
     return {
       content: [{ type: "text", text: JSON.stringify(deliverables, null, 2) }],
       structuredContent: { deliverables }
@@ -397,7 +403,7 @@ var get_credit_balance_default = defineTool12({
       return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
     }
     const supabase = supabaseForUser(ctx);
-    const { data, error } = await supabase.from("profiles").select("credits, max_credits, credits_expires_at").eq("user_id", ctx.getUserId()).maybeSingle();
+    const { data, error } = await supabase.from("profiles").select("credits, max_credits, credits_expire_at").eq("id", ctx.getUserId()).maybeSingle();
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
@@ -421,7 +427,7 @@ var get_profile_default = defineTool13({
       return { content: [{ type: "text", text: "N\xE3o autenticado" }], isError: true };
     }
     const supabase = supabaseForUser(ctx);
-    const { data, error } = await supabase.from("profiles").select("user_id, full_name, email, phone, city, state, team_id, avatar_url").eq("user_id", ctx.getUserId()).maybeSingle();
+    const { data, error } = await supabase.from("profiles").select("id, name, email, phone, city, state, team_id, current_workspace_id, avatar_url").eq("id", ctx.getUserId()).maybeSingle();
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
@@ -435,17 +441,6 @@ var get_profile_default = defineTool13({
 // src/lib/mcp/tools/create-brand.ts
 import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z as z12 } from "npm:zod@^3.25.76";
-
-// src/lib/mcp/authUser.ts
-async function getAuthUserId(supabase) {
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user?.id) {
-    throw new Error("N\xE3o foi poss\xEDvel resolver o usu\xE1rio autenticado");
-  }
-  return data.user.id;
-}
-
-// src/lib/mcp/tools/create-brand.ts
 var create_brand_default = defineTool14({
   name: "create_brand",
   title: "Criar marca",
@@ -476,9 +471,14 @@ var create_brand_default = defineTool14({
     }
     const supabase = supabaseForUser(ctx);
     try {
-      const userId = await getAuthUserId(supabase);
-      const { data: profile } = await supabase.from("profiles").select("team_id").eq("id", userId).maybeSingle();
-      const { data, error } = await supabase.from("brands").insert({ ...input, user_id: userId, team_id: profile?.team_id ?? null }).select("id, name, segment, brand_color, avatar_url, created_at").single();
+      const userId = ctx.getUserId();
+      const { data: profile } = await supabase.from("profiles").select("team_id, current_workspace_id").eq("id", userId).maybeSingle();
+      const { data, error } = await supabase.from("brands").insert({
+        ...input,
+        user_id: userId,
+        team_id: profile?.team_id ?? null,
+        workspace_id: profile?.current_workspace_id ?? null
+      }).select("id, name, segment, brand_color, avatar_url, created_at").single();
       if (error) return { content: [{ type: "text", text: error.message }], isError: true };
       const brand = { ...data, deep_link: buildDeepLink("brand", data.id) };
       return {
@@ -568,9 +568,14 @@ var create_persona_default = defineTool16({
     }
     const supabase = supabaseForUser(ctx);
     try {
-      const userId = await getAuthUserId(supabase);
-      const { data: profile } = await supabase.from("profiles").select("team_id").eq("id", userId).maybeSingle();
-      const { data, error } = await supabase.from("personas").insert({ ...input, user_id: userId, team_id: profile?.team_id ?? null }).select("id, name, gender, age, location, brand_id, created_at").single();
+      const userId = ctx.getUserId();
+      const { data: profile } = await supabase.from("profiles").select("team_id, current_workspace_id").eq("id", userId).maybeSingle();
+      const { data, error } = await supabase.from("personas").insert({
+        ...input,
+        user_id: userId,
+        team_id: profile?.team_id ?? null,
+        workspace_id: profile?.current_workspace_id ?? null
+      }).select("id, name, gender, age, location, brand_id, created_at").single();
       if (error) return { content: [{ type: "text", text: error.message }], isError: true };
       const persona = { ...data, deep_link: buildDeepLink("persona", data.id) };
       return {
@@ -656,9 +661,14 @@ var create_strategic_theme_default = defineTool18({
     }
     const supabase = supabaseForUser(ctx);
     try {
-      const userId = await getAuthUserId(supabase);
-      const { data: profile } = await supabase.from("profiles").select("team_id").eq("id", userId).maybeSingle();
-      const { data, error } = await supabase.from("strategic_themes").insert({ ...input, user_id: userId, team_id: profile?.team_id ?? null }).select("id, title, description, brand_id, target_audience, created_at").single();
+      const userId = ctx.getUserId();
+      const { data: profile } = await supabase.from("profiles").select("team_id, current_workspace_id").eq("id", userId).maybeSingle();
+      const { data, error } = await supabase.from("strategic_themes").insert({
+        ...input,
+        user_id: userId,
+        team_id: profile?.team_id ?? null,
+        workspace_id: profile?.current_workspace_id ?? null
+      }).select("id, title, description, brand_id, target_audience, created_at").single();
       if (error) return { content: [{ type: "text", text: error.message }], isError: true };
       const theme = { ...data, deep_link: buildDeepLink("theme", data.id) };
       return {
