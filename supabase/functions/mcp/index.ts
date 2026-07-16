@@ -972,7 +972,7 @@ var review_image_default = defineTool24({
 });
 
 // src/lib/mcp/index.ts
-var projectRef = "lcpmqnkorcsclmpfbizr";
+var projectRef = "afxwqkrneraatgovhpkb";
 var mcp_default = defineMcp({
   name: "creator-mcp",
   title: "Creator MCP",
