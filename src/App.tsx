@@ -30,6 +30,7 @@ const OnboardingSuccess = lazy(() => import("./pages/OnboardingSuccess"));
 const OnboardingCanceled = lazy(() => import("./pages/OnboardingCanceled"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const McpDocs = lazy(() => import("./pages/McpDocs"));
 
 
 // Lazy loaded pages - Dashboard
@@ -136,6 +137,7 @@ const App = () => (
                       <Route path="/onboarding/canceled" element={<SuspenseRoute><OnboardingCanceled /></SuspenseRoute>} />
                       <Route path="/payment-success" element={<SuspenseRoute><PaymentSuccess /></SuspenseRoute>} />
                       <Route path="/contact" element={<SuspenseRoute><Contact /></SuspenseRoute>} />
+                      <Route path="/mcp-docs" element={<SuspenseRoute><McpDocs /></SuspenseRoute>} />
                       <Route path="/.lovable/oauth/consent" element={<SuspenseRoute><OAuthConsent /></SuspenseRoute>} />
                       
                       
