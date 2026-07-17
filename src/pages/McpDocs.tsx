@@ -7,8 +7,9 @@ import { McpAuthProvider } from "@/contexts/McpAuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, ShieldCheck } from "lucide-react";
+import { Download, Menu, ShieldCheck } from "lucide-react";
 import { CreatorLogo } from "@/components/CreatorLogo";
+import { buildMcpManifest } from "@/lib/mcp-docs/exports";
 
 
 // Toggle interno — quando o dono do projeto quiser expor URL do endpoint e instruções OAuth,
