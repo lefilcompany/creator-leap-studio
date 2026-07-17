@@ -69,6 +69,9 @@ export default defineMcp({
   auth: auth.oauth.issuer({
     issuer: resolveOauthIssuer(),
     acceptedAudiences: "authenticated",
+    // Aceita também sessões diretas do app (signInWithPassword) para o painel
+    // de teste em /mcp-docs. RLS continua sendo a proteção real dos dados.
+    requireOAuthClientClaim: false,
   }),
   tools: [
     echoTool,

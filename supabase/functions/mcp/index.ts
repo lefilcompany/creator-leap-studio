@@ -868,7 +868,10 @@ var mcp_default = defineMcp({
   instructions: "Ferramentas do Creator para agentes de marketing. Antes de gerar qualquer pe\xE7a, verifique se a marca j\xE1 existe com list_brands; se n\xE3o existir, use create_brand. Depois consulte list_personas e list_themes para contexto. Use create_image_content para o pipeline completo (com marca/persona/tema/tom) ou create_quick_content para prompt livre. generate_caption produz legendas; review_image, review_caption e review_text_for_image aplicam ajustes. create_content_plan gera um calend\xE1rio de conte\xFAdo.",
   auth: auth.oauth.issuer({
     issuer: resolveOauthIssuer(),
-    acceptedAudiences: "authenticated"
+    acceptedAudiences: "authenticated",
+    // Aceita também sessões diretas do app (signInWithPassword) para o painel
+    // de teste em /mcp-docs. RLS continua sendo a proteção real dos dados.
+    requireOAuthClientClaim: false
   }),
   tools: [
     echo_default,
