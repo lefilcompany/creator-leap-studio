@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Helmet } from "react-helmet-async";
 import { MCP_TOOLS } from "@/data/mcpToolsCatalog";
 import { ToolSidebar } from "@/components/mcp-docs/ToolSidebar";
 import { ToolDetail } from "@/components/mcp-docs/ToolDetail";
@@ -44,14 +43,6 @@ export default function McpDocs() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Helmet>
-        <title>Creator MCP — Documentação de API</title>
-        <meta
-          name="description"
-          content="Referência interativa das ferramentas MCP do Creator: CRUD de marcas, personas, temas e geração/revisão de conteúdo."
-        />
-        <meta name="robots" content="index,follow" />
-      </Helmet>
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur">
