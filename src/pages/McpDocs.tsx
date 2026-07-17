@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { MCP_TOOLS } from "@/data/mcpToolsCatalog";
 import { ToolSidebar } from "@/components/mcp-docs/ToolSidebar";
 import { ToolDetail } from "@/components/mcp-docs/ToolDetail";
+import { AuthPanel } from "@/components/mcp-docs/AuthPanel";
+import { McpAuthProvider } from "@/contexts/McpAuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
