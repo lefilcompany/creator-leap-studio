@@ -116,10 +116,15 @@ export default function McpDocs() {
               )}
             </section>
 
+            <div className="mb-8">
+              <AuthPanel />
+            </div>
+
             {tool ? <ToolDetail key={tool.name} tool={tool} /> : null}
           </main>
         </div>
       </div>
     </div>
+    </McpAuthProvider>
   );
 }
