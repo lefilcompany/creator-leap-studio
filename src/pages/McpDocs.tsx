@@ -111,8 +111,8 @@ export default function McpDocs() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="grid lg:grid-cols-[16rem_minmax(0,1fr)] gap-6">
+      <div className="mx-auto max-w-7xl px-4 flex-1 overflow-hidden">
+        <div className="grid lg:grid-cols-[16rem_minmax(0,1fr)] gap-6 h-full">
           {/* Sidebar desktop */}
           <aside className="hidden lg:block border-r border-border pr-2 sticky top-[3.75rem] h-[calc(100vh-3.75rem)] overflow-y-auto">
             <ToolSidebar selected={selected} onSelect={handleSelect} />
