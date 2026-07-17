@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Play, Loader2, AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Play, Loader2, AlertTriangle, Ban } from "lucide-react";
 import type { McpToolDoc } from "@/data/mcpToolsCatalog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CodeBlock } from "./CodeBlock";
+import { useMcpAuth } from "@/contexts/McpAuthContext";
 
 // Endpoint interno do MCP — NÃO renderizar em nenhuma UI enquanto SHOW_CONNECTION_INFO = false.
 const MCP_ENDPOINT = "https://lcpmqnkorcsclmpfbizr.supabase.co/functions/v1/mcp";
@@ -20,11 +21,19 @@ interface RunResult {
 }
 
 export function ToolPlayground({ tool }: ToolPlaygroundProps) {
-  const [token, setToken] = useState("");
+  const { token: contextToken } = useMcpAuth();
+  const [token, setToken] = useState(contextToken ?? "");
   const [body, setBody] = useState(JSON.stringify(tool.exampleRequest, null, 2));
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Sincroniza o token quando o usuário loga/desloga no painel de auth.
+  useEffect(() => {
+    if (contextToken) setToken(contextToken);
+  }, [contextToken]);
+
+  const costBlocked = !!tool.costCredits && tool.costCredits > 0;
 
   const run = async () => {
     setError(null);
@@ -79,18 +88,28 @@ export function ToolPlayground({ tool }: ToolPlaygroundProps) {
     setError(null);
   };
 
+  if (costBlocked) {
+    return (
+      <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-5 space-y-2">
+        <div className="flex items-center gap-2">
+          <Ban className="h-4 w-4 text-amber-600" />
+          <h4 className="text-sm font-semibold">Teste desabilitado</h4>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Esta ferramenta consome{" "}
+          <strong>
+            {tool.costCredits} crédito{tool.costCredits! > 1 ? "s" : ""}
+          </strong>{" "}
+          reais da conta autenticada. Para evitar débitos indevidos, o playground do
+          /mcp-docs não executa chamadas que gastem crédito. Use um cliente MCP
+          conectado (Claude, ChatGPT, etc.) se quiser rodá-la em ambiente real.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      {tool.costCredits ? (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm">
-          <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
-          <span>
-            Chamadas reais consomem <strong>{tool.costCredits} crédito{tool.costCredits > 1 ? "s" : ""}</strong>{" "}
-            da conta autenticada.
-          </span>
-        </div>
-      ) : null}
-
       {tool.destructive ? (
         <div className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm">
           <AlertTriangle className="h-4 w-4 mt-0.5 text-destructive shrink-0" />
