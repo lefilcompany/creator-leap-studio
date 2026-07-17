@@ -97,6 +97,16 @@ export default function McpDocs() {
             <Badge variant="secondary" className="gap-1">
               <ShieldCheck className="h-3 w-3" /> OAuth 2.1
             </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadManifest}
+              className="hidden sm:inline-flex"
+              title="Baixa um mcp.json com o catálogo completo (nome, description, inputSchema, annotations)."
+            >
+              <Download className="h-4 w-4 mr-1.5" />
+              mcp.json
+            </Button>
           </div>
         </div>
       </header>
