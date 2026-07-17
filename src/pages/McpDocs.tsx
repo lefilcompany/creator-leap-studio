@@ -73,7 +73,7 @@ export default function McpDocs() {
             <CreatorLogo className="!h-10" />
             <div className="border-l border-border pl-3">
               <h1 className="text-base font-semibold leading-tight">Creator MCP</h1>
-              <p className="text-xs text-muted-foreground leading-tight">Documentação de API</p>
+              <p className="text-xs text-muted-foreground leading-tight">Conecte agentes de IA ao Creator via MCP</p>
             </div>
           </div>
 
