@@ -21,11 +21,19 @@ interface RunResult {
 }
 
 export function ToolPlayground({ tool }: ToolPlaygroundProps) {
-  const [token, setToken] = useState("");
+  const { token: contextToken } = useMcpAuth();
+  const [token, setToken] = useState(contextToken ?? "");
   const [body, setBody] = useState(JSON.stringify(tool.exampleRequest, null, 2));
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Sincroniza o token quando o usuário loga/desloga no painel de auth.
+  useEffect(() => {
+    if (contextToken) setToken(contextToken);
+  }, [contextToken]);
+
+  const costBlocked = !!tool.costCredits && tool.costCredits > 0;
 
   const run = async () => {
     setError(null);
