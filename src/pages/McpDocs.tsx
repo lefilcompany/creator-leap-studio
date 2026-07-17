@@ -45,6 +45,7 @@ export default function McpDocs() {
   };
 
   return (
+    <McpAuthProvider>
     <div className="h-screen overflow-y-auto bg-background text-foreground">
 
       {/* Header */}
