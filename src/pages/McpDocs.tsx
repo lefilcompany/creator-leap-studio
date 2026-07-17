@@ -67,9 +67,9 @@ export default function McpDocs() {
             </SheetContent>
           </Sheet>
 
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary" />
-            <div>
+          <div className="flex items-center gap-3">
+            <CreatorLogo className="!h-10" />
+            <div className="border-l border-border pl-3">
               <h1 className="text-base font-semibold leading-tight">Creator MCP</h1>
               <p className="text-xs text-muted-foreground leading-tight">Documentação de API</p>
             </div>
