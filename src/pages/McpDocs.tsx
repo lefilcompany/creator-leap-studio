@@ -66,7 +66,7 @@ export default function McpDocs() {
     <div className="h-screen flex flex-col overflow-hidden bg-background text-foreground">
 
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur">
+      <header className="z-30 border-b border-border bg-card/80 backdrop-blur flex-shrink-0">
         <div className="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
