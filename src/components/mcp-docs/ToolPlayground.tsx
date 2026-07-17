@@ -10,6 +10,61 @@ import { useMcpAuth } from "@/contexts/McpAuthContext";
 // Endpoint interno do MCP — NÃO renderizar em nenhuma UI enquanto SHOW_CONNECTION_INFO = false.
 const MCP_ENDPOINT = "https://lcpmqnkorcsclmpfbizr.supabase.co/functions/v1/mcp";
 
+/**
+ * O endpoint MCP responde em Server-Sent Events (SSE): linhas `event: ...` seguidas
+ * de `data: <json>`. Aqui extraímos o(s) payload(s) JSON e devolvemos indentado.
+ * Também tentamos desserializar `result.content[].text` quando ele próprio é JSON,
+ * para que a resposta apareça como um objeto legível em vez de string escapada.
+ */
+function prettifyResponse(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return raw;
+
+  // Caso não seja SSE, tenta parsear direto.
+  if (!trimmed.startsWith("event:") && !trimmed.startsWith("data:")) {
+    try {
+      return JSON.stringify(unwrapMcpPayload(JSON.parse(trimmed)), null, 2);
+    } catch {
+      return raw;
+    }
+  }
+
+  const payloads: unknown[] = [];
+  for (const block of trimmed.split(/\n\n+/)) {
+    const dataLines = block
+      .split("\n")
+      .filter((l) => l.startsWith("data:"))
+      .map((l) => l.slice(5).trimStart());
+    if (dataLines.length === 0) continue;
+    const joined = dataLines.join("\n");
+    try {
+      payloads.push(unwrapMcpPayload(JSON.parse(joined)));
+    } catch {
+      payloads.push(joined);
+    }
+  }
+  if (payloads.length === 0) return raw;
+  if (payloads.length === 1) return JSON.stringify(payloads[0], null, 2);
+  return JSON.stringify(payloads, null, 2);
+}
+
+function unwrapMcpPayload(payload: any): unknown {
+  const content = payload?.result?.content;
+  if (Array.isArray(content)) {
+    payload.result.content = content.map((item: any) => {
+      if (item && item.type === "text" && typeof item.text === "string") {
+        try {
+          return { ...item, text: JSON.parse(item.text) };
+        } catch {
+          return item;
+        }
+      }
+      return item;
+    });
+  }
+  return payload;
+}
+
 interface ToolPlaygroundProps {
   tool: McpToolDoc;
 }
@@ -63,12 +118,7 @@ export function ToolPlayground({ tool }: ToolPlaygroundProps) {
       });
       const ms = Math.round(performance.now() - started);
       const text = await res.text();
-      let pretty = text;
-      try {
-        pretty = JSON.stringify(JSON.parse(text), null, 2);
-      } catch {
-        /* keep raw */
-      }
+      const pretty = prettifyResponse(text);
       setResult({ status: res.status, ms, body: pretty });
     } catch (e) {
       const ms = Math.round(performance.now() - started);
