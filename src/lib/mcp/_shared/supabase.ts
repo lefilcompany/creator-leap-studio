@@ -33,7 +33,7 @@ export function errorResult(message: string) {
 
 export function okResult<T>(data: T, key: string) {
   return {
-    content: [{ type: "text" as const, text: JSON.stringify(data) }],
+    content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
     structuredContent: { [key]: data } as Record<string, T>,
   };
 }
