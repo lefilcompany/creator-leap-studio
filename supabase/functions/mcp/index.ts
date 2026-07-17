@@ -29,7 +29,7 @@ var echo_default = defineTool({
       timestamp: (/* @__PURE__ */ new Date()).toISOString()
     };
     return {
-      content: [{ type: "text", text: JSON.stringify(payload) }],
+      content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
       structuredContent: payload
     };
   }
@@ -57,7 +57,7 @@ var get_profile_default = defineTool2({
     const { data, error } = await supabaseForUser(ctx).from("profiles").select("id, name, email, credits, team_id, city, state").eq("id", ctx.getUserId()).maybeSingle();
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
-      content: [{ type: "text", text: JSON.stringify(data) }],
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
       structuredContent: { profile: data }
     };
   }
@@ -88,7 +88,7 @@ var list_brands_default = defineTool3({
     const { data, error } = await supabaseForUser2(ctx).from("brands").select("id, name, brand_color, created_at").order("created_at", { ascending: false }).limit(limit ?? 25);
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
-      content: [{ type: "text", text: JSON.stringify(data) }],
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
       structuredContent: { brands: data ?? [] }
     };
   }

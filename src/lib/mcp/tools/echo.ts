@@ -24,7 +24,7 @@ export default defineTool({
       timestamp: new Date().toISOString(),
     };
     return {
-      content: [{ type: "text", text: JSON.stringify(payload) }],
+      content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
       structuredContent: payload,
     };
   },

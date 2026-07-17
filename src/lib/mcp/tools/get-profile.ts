@@ -25,7 +25,7 @@ export default defineTool({
       .maybeSingle();
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
-      content: [{ type: "text", text: JSON.stringify(data) }],
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
       structuredContent: { profile: data },
     };
   },
