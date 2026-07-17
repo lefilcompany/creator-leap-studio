@@ -28,7 +28,7 @@ export default defineTool({
       .limit(limit ?? 25);
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
-      content: [{ type: "text", text: JSON.stringify(data) }],
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
       structuredContent: { brands: data ?? [] },
     };
   },
