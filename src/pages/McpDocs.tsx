@@ -63,7 +63,7 @@ export default function McpDocs() {
 
   return (
     <McpAuthProvider>
-    <div className="h-screen overflow-y-auto bg-background text-foreground">
+    <div className="h-screen flex flex-col overflow-hidden bg-background text-foreground">
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur">
