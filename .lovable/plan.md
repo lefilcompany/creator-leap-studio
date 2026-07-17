@@ -1,60 +1,89 @@
-## Diagnóstico
+# Documentação pública do MCP do Creator (estilo Swagger)
 
-- `.env` deste repositório aponta para o projeto **Test** `lcpmqnkorcsclmpfbizr` (`VITE_SUPABASE_PROJECT_ID`).
-- A função `mcp` publicada está no projeto **Live** `afxwqkrneraatgovhpkb`, mas foi buildada com o `VITE_SUPABASE_PROJECT_ID` do Test.
-- Resultado: `/.well-known/oauth-protected-resource` anuncia `authorization_servers: ["https://lcpmqnkorcsclmpfbizr.supabase.co/auth/v1"]`, enquanto o app Creator (pla.creator.lefil.com.br) e a tela de consent falam com `afxwqkrneraatgovhpkb.supabase.co`. O cliente MCP pede token no issuer errado e o consent nunca casa com a autorização.
+Criar uma página pública `/mcp-docs` que documenta as 29 ferramentas do MCP do Creator no estilo Swagger/OpenAPI, com navegação lateral, exemplo de request/response para cada tool e um playground para testar chamadas reais — sem expor a URL de conexão do MCP por enquanto (fica atrás de uma flag para ativar depois).
 
-Alvo canônico: **usar sempre o projeto Supabase onde a função MCP está rodando** (o mesmo que autentica os usuários do app). No caso do Creator publicado isso é `afxwqkrneraatgovhpkb.supabase.co`.
+## Objetivo
 
-## Correções
+Servir de referência técnica para desenvolvedores do Marketing OS Orchestrator integrarem o Creator. Substitui/complementa `docs/MCP_CREATOR.md` com uma UI interativa navegável.
 
-### 1. `src/lib/mcp/index.ts` — derivar o issuer em runtime do próprio edge
-Substituir o `projectRef` vindo de `import.meta.env.VITE_SUPABASE_PROJECT_ID` (literal de build, sempre o Test) por uma leitura em runtime dentro da edge function, com fallback seguro no eval do extractor de manifesto:
+## Rota e acesso
 
-```ts
-function resolveOauthIssuer(): string {
-  // Runtime (edge): SUPABASE_URL é o projeto real onde a função roda.
-  const runtimeUrl =
-    typeof process !== "undefined" ? process.env?.SUPABASE_URL : undefined;
-  if (runtimeUrl) {
-    // Normaliza .lovable.cloud -> issuer direto <ref>.supabase.co/auth/v1
-    const ref = new URL(runtimeUrl).hostname.split(".")[0];
-    return `https://${ref}.supabase.co/auth/v1`;
-  }
-  // Build-time / manifest-extract fallback (não usado para verificar tokens reais)
-  const buildRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
-  return `https://${buildRef}.supabase.co/auth/v1`;
-}
+- Rota pública: `/mcp-docs` (adicionada em `src/App.tsx` fora do `ProtectedRoute`, no mesmo nível de `/privacy`).
+- Sem sidebar/dashboard — layout próprio full-width.
+- SEO: `<title>` "Creator MCP — Documentação de API" e meta description dedicada, H1 único, sem indexação bloqueada.
+- Sem menção da URL do endpoint MCP nem da anon key. Uma constante `SHOW_CONNECTION_INFO = false` controla a exibição futura de um bloco "Como conectar" (URL + instruções OAuth). Quando o usuário quiser expor, é um único toggle.
 
-auth: auth.oauth.issuer({
-  issuer: resolveOauthIssuer(),
-  acceptedAudiences: "authenticated",
-}),
+## Estrutura da página
+
+Layout Swagger-like em 3 áreas:
+
+```text
+┌───────────────────────────────────────────────────────┐
+│  Header: título + versão (1.0.0) + badge "OAuth 2.1"  │
+├──────────────┬────────────────────────────────────────┤
+│  Sidebar     │  Conteúdo da tool selecionada          │
+│  (grupos):   │  - Nome + descrição                    │
+│  • Perfil    │  - Tabela de parâmetros (nome, tipo,   │
+│  • Marcas    │    obrigatório, descrição)             │
+│  • Personas  │  - Exemplo de request (JSON-RPC)       │
+│  • Temas     │  - Exemplo de response                 │
+│  • Conteúdo  │  - Botão "Testar" (abre playground)    │
+│  • Revisão   │                                        │
+│  • Contexto  │                                        │
+└──────────────┴────────────────────────────────────────┘
 ```
 
-Efeito: a função publicada em `afxwqkrneraatgovhpkb` passa a anunciar e verificar tokens contra `https://afxwqkrneraatgovhpkb.supabase.co/auth/v1`, sem depender de qual `.env` foi usado no build.
+## Fonte dos dados
 
-### 2. Redeploy da função `mcp` no projeto Live
-- `supabase--deploy_edge_functions` com `["mcp"]` para propagar a alteração.
-- Depois validar via curl:
-  - `GET https://afxwqkrneraatgovhpkb.supabase.co/functions/v1/mcp/.well-known/oauth-protected-resource` deve trazer `authorization_servers` com o issuer `afxwqkrneraatgovhpkb.supabase.co/auth/v1`.
-  - `GET https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/.well-known/openid-configuration` deve reportar o mesmo `issuer`.
+Um único arquivo `src/data/mcpToolsCatalog.ts` descreve todas as 29 tools em formato tipado:
 
-### 3. Ativar/validar OAuth 2.1 no projeto Live
-- Rodar `supabase--configure_oauth_server` **com `environment: production`** para garantir DCR + consent path no projeto correto (`afxwqkrneraatgovhpkb`).
-- Rodar `supabase--debug_oauth_server` para confirmar Site URL = `https://pla.creator.lefil.com.br`, consent = `/.lovable/oauth/consent`, e que existem chaves assimétricas no JWKS. Se JWKS estiver vazio, rodar `supabase--migrate_signing_keys` com `environment: production`.
+```ts
+type McpToolDoc = {
+  name: string;
+  group: "Perfil" | "Marcas" | "Personas" | "Temas" | "Conteúdo" | "Revisão" | "Contexto";
+  title: string;
+  description: string;
+  params: { name: string; type: string; required: boolean; description: string }[];
+  exampleRequest: object;   // corpo JSON-RPC completo
+  exampleResponse: object;  // resposta MCP típica
+  costCredits?: number;     // quando aplicável
+  notes?: string;           // avisos (assíncrono, timeout, etc.)
+};
+```
 
-### 4. Consent route (`src/pages/OAuthConsent.tsx`)
-- Já usa o cliente Supabase do app (mesmo projeto que emitiu a autorização), então nenhuma mudança de código é necessária.
-- Melhorar a mensagem quando `getAuthorizationDetails` retorna `authorization not found`: mostrar "Esta solicitação de autorização expirou ou não existe mais. Volte ao cliente e tente conectar novamente." em vez do erro cru.
+Popular com as 29 tools atuais lendo os schemas Zod já existentes em `src/lib/mcp/tools/**` — os nomes, descrições e inputSchemas ficam sincronizados com a implementação real.
 
-### 5. Preservar `next` no login (bug do print)
-- Confirmar que `Auth.tsx` (rota `/login`) prioriza `?next=/.lovable/oauth/consent?...` antes de redirecionar para `/dashboard` ou `/system` — já está implementado; sem mudança adicional, exceto se aparecer regressão.
+## Playground de teste
 
-## Fora do escopo
-- Não trocar quais tools o MCP expõe.
-- Não mexer em RLS, tabelas, ou provisionamento de usuários.
-- Não trocar o app do Creator para o projeto `lcpmqnkorcsclmpfbizr`; a direção certa é alinhar o MCP ao projeto que já autentica os usuários.
+Painel colapsável abaixo do exemplo, com:
 
-## Critério de sucesso
-- Cliente MCP (ChatGPT/Claude) descobre issuer `afxwqkrneraatgovhpkb.supabase.co`, faz DCR, é redirecionado ao consent do Creator, o usuário aprova, recebe token válido e as tools passam a responder autenticadas.
+- Textarea editável já preenchido com o `exampleRequest`.
+- Campo "Bearer token" (senha) — o usuário cola manualmente o access token OAuth dele. Não persistimos nada (só `useState`).
+- Botão "Enviar" — faz `fetch` direto para o endpoint MCP em runtime; a URL vem de uma const interna e **não é renderizada em lugar nenhum da UI** enquanto `SHOW_CONNECTION_INFO = false`.
+- Área de resposta: status HTTP, tempo de resposta, JSON formatado com syntax highlight.
+- Aviso destacado: "Chamadas reais consomem créditos e afetam sua conta" nas tools com custo.
+
+## Componentes novos
+
+- `src/pages/McpDocs.tsx` — página principal, layout e roteamento interno da sidebar.
+- `src/components/mcp-docs/ToolSidebar.tsx` — navegação agrupada.
+- `src/components/mcp-docs/ToolDetail.tsx` — detalhes + tabela de params + exemplos.
+- `src/components/mcp-docs/ToolPlayground.tsx` — form de teste + fetch + render de resposta.
+- `src/components/mcp-docs/CodeBlock.tsx` — bloco de código com botão copiar (reaproveita `lucide-react` Copy).
+- `src/data/mcpToolsCatalog.ts` — catálogo das 29 tools.
+
+Reaproveita shadcn: `Tabs`, `Card`, `Badge`, `Button`, `Input`, `Textarea`, `ScrollArea`, `Collapsible`.
+
+## Fora de escopo
+
+- Não alterar nenhuma tool MCP, nenhuma edge function, nem `src/lib/mcp/**`.
+- Não expor URL do endpoint / anon key / string de conexão até o toggle ser ativado.
+- Não adicionar auth na rota — é 100% pública, sem consumir dados do usuário logado.
+- Sem geração automática do OpenAPI JSON nesta iteração (pode virar follow-up).
+
+## Detalhes técnicos
+
+- Design tokens do projeto (bg-card, rounded-2xl, sem cores hardcoded).
+- Responsivo: sidebar vira `Sheet` em mobile.
+- Syntax highlight leve com `<pre>` + classes Tailwind (sem adicionar libs pesadas tipo Prism).
+- Tipagem estrita no catálogo para o TS pegar tools faltantes.
