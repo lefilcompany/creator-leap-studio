@@ -7,8 +7,9 @@ import { McpAuthProvider } from "@/contexts/McpAuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, ShieldCheck } from "lucide-react";
+import { Download, Menu, ShieldCheck } from "lucide-react";
 import { CreatorLogo } from "@/components/CreatorLogo";
+import { buildMcpManifest } from "@/lib/mcp-docs/exports";
 
 
 // Toggle interno — quando o dono do projeto quiser expor URL do endpoint e instruções OAuth,
@@ -44,6 +45,20 @@ export default function McpDocs() {
     if (typeof window !== "undefined") {
       window.history.replaceState(null, "", `#${name}`);
     }
+  };
+  const downloadManifest = () => {
+    const manifest = buildMcpManifest(MCP_TOOLS);
+    const blob = new Blob([JSON.stringify(manifest, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "creator-mcp.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -82,6 +97,16 @@ export default function McpDocs() {
             <Badge variant="secondary" className="gap-1">
               <ShieldCheck className="h-3 w-3" /> OAuth 2.1
             </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadManifest}
+              className="hidden sm:inline-flex"
+              title="Baixa um mcp.json com o catálogo completo (nome, description, inputSchema, annotations)."
+            >
+              <Download className="h-4 w-4 mr-1.5" />
+              mcp.json
+            </Button>
           </div>
         </div>
       </header>
