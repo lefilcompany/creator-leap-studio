@@ -63,12 +63,7 @@ export function ToolPlayground({ tool }: ToolPlaygroundProps) {
       });
       const ms = Math.round(performance.now() - started);
       const text = await res.text();
-      let pretty = text;
-      try {
-        pretty = JSON.stringify(JSON.parse(text), null, 2);
-      } catch {
-        /* keep raw */
-      }
+      const pretty = prettifyResponse(text);
       setResult({ status: res.status, ms, body: pretty });
     } catch (e) {
       const ms = Math.round(performance.now() - started);
