@@ -46,6 +46,20 @@ export default function McpDocs() {
       window.history.replaceState(null, "", `#${name}`);
     }
   };
+  const downloadManifest = () => {
+    const manifest = buildMcpManifest(MCP_TOOLS);
+    const blob = new Blob([JSON.stringify(manifest, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "creator-mcp.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <McpAuthProvider>
