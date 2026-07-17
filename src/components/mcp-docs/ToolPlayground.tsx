@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Play, Loader2, AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Play, Loader2, AlertTriangle, Ban } from "lucide-react";
 import type { McpToolDoc } from "@/data/mcpToolsCatalog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CodeBlock } from "./CodeBlock";
+import { useMcpAuth } from "@/contexts/McpAuthContext";
 
 // Endpoint interno do MCP — NÃO renderizar em nenhuma UI enquanto SHOW_CONNECTION_INFO = false.
 const MCP_ENDPOINT = "https://lcpmqnkorcsclmpfbizr.supabase.co/functions/v1/mcp";
