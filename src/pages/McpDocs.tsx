@@ -63,10 +63,10 @@ export default function McpDocs() {
 
   return (
     <McpAuthProvider>
-    <div className="h-screen overflow-y-auto bg-background text-foreground">
+    <div className="h-screen flex flex-col overflow-hidden bg-background text-foreground">
 
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur">
+      <header className="z-30 border-b border-border bg-card/80 backdrop-blur flex-shrink-0">
         <div className="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
@@ -111,15 +111,15 @@ export default function McpDocs() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="grid lg:grid-cols-[16rem_minmax(0,1fr)] gap-6">
+      <div className="mx-auto max-w-7xl px-4 flex-1 overflow-hidden">
+        <div className="grid lg:grid-cols-[16rem_minmax(0,1fr)] gap-6 h-full">
           {/* Sidebar desktop */}
-          <aside className="hidden lg:block border-r border-border pr-2 sticky top-[3.75rem] h-[calc(100vh-3.75rem)] overflow-y-auto">
+          <aside className="hidden lg:block border-r border-border pr-2 h-full overflow-y-auto">
             <ToolSidebar selected={selected} onSelect={handleSelect} />
           </aside>
 
           {/* Content */}
-          <main className="py-6 pb-24 min-w-0">
+          <main className="py-6 pb-24 min-w-0 h-full overflow-y-auto">
             <section className="mb-8 rounded-2xl bg-card border border-border p-5 space-y-2">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 Sobre esta API
