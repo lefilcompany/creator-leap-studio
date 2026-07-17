@@ -7,7 +7,9 @@ import { McpAuthProvider } from "@/contexts/McpAuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, ShieldCheck, BookOpen } from "lucide-react";
+import { Menu, ShieldCheck } from "lucide-react";
+import { CreatorLogo } from "@/components/CreatorLogo";
+
 
 // Toggle interno — quando o dono do projeto quiser expor URL do endpoint e instruções OAuth,
 // basta mudar para `true`. Nada mais precisa ser tocado.
@@ -67,9 +69,9 @@ export default function McpDocs() {
             </SheetContent>
           </Sheet>
 
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary" />
-            <div>
+          <div className="flex items-center gap-3">
+            <CreatorLogo className="!h-10" />
+            <div className="border-l border-border pl-3">
               <h1 className="text-base font-semibold leading-tight">Creator MCP</h1>
               <p className="text-xs text-muted-foreground leading-tight">Documentação de API</p>
             </div>
