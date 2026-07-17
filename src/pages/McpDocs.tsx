@@ -17,6 +17,7 @@ export default function McpDocs() {
 
   // Hash sync: /mcp-docs#create_image_content
   useEffect(() => {
+    document.title = "Creator MCP — Documentação de API";
     const applyHash = () => {
       const hash = window.location.hash.replace("#", "");
       if (hash && MCP_TOOLS.some((t) => t.name === hash)) {
