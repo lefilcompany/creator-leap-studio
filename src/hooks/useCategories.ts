@@ -98,7 +98,7 @@ export function useCategories() {
     if (!user?.id) return;
 
     const channel = supabase
-      .channel('categories-realtime')
+      .channel(`categories-realtime-${user.id}-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         {
