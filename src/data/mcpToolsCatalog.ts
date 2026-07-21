@@ -373,6 +373,12 @@ export const MCP_TOOLS: McpToolDoc[] = [
     params: [
       { name: "brand_id", type: "uuid", required: true, description: "Marca (obrigatório para contexto)." },
       { name: "description", type: "string", required: true, description: "Descrição da cena." },
+      {
+        name: "reference_image_url",
+        type: "string (URL https ou data URL)",
+        required: true,
+        description: "Imagem de referência obrigatória que guia a geração (produto, composição, estilo).",
+      },
       { name: "persona_id", type: "uuid", required: false, description: "Persona-alvo." },
       { name: "theme_id", type: "uuid", required: false, description: "Tema/editoria." },
       { name: "narrative", type: "string", required: false, description: "Narrativa a contar." },
@@ -388,6 +394,7 @@ export const MCP_TOOLS: McpToolDoc[] = [
     exampleRequest: rpc("create_image_content", {
       brand_id: "b1e0…",
       description: "Foto de produto skincare em bancada de mármore com plantas ao fundo",
+      reference_image_url: "https://exemplo.com/referencias/produto.jpg",
       persona_id: "p1a…",
       theme_id: "t1x…",
       tone: ["inspirador", "próximo"],
