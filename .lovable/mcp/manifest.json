@@ -711,7 +711,7 @@
       {
         "name": "create_image_content",
         "title": "Criar imagem (pipeline completo)",
-        "description": "Gera uma imagem usando o pipeline completo do Creator (marca, persona, tema, tom de voz, plataforma). Retorna a URL da imagem e o id da action.",
+        "description": "Gera uma imagem via pipeline completo do Creator (marca, persona, tema, tom, plataforma, referências visuais). Consome créditos (COMPLETE_IMAGE = 8). Retorna imageUrl, action_id, headline/subtexto sugeridos e créditos consumidos.",
         "annotations": {
           "readOnlyHint": false,
           "destructiveHint": false,
@@ -725,69 +725,308 @@
               "type": "string",
               "format": "uuid",
               "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              "description": "ID da marca (obrigatório para contexto)."
+              "description": "OBRIGATÓRIO. UUID da marca — puxa identidade, paleta, restrições e feedback aprovado."
             },
             "description": {
               "type": "string",
               "minLength": 1,
-              "description": "Descrição da cena a ser gerada."
+              "maxLength": 2000,
+              "description": "OBRIGATÓRIO. Descrição livre da cena/peça a ser gerada (o 'briefing' bruto)."
             },
             "reference_image_url": {
               "type": "string",
               "format": "uri",
-              "description": "OBRIGATÓRIO. URL pública (https) de uma imagem de referência que guiará a geração (composição, produto, estilo). Aceita data URL base64 também."
+              "description": "OBRIGATÓRIO. URL https (ou data URL base64) da imagem de referência principal. Vai como userReferenceImages[0] no pipeline e guia composição/produto/pessoa."
             },
             "persona_id": {
+              "description": "UUID da persona-alvo.",
               "type": "string",
               "format": "uuid",
               "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
             },
             "theme_id": {
+              "description": "UUID do tema estratégico/editoria.",
               "type": "string",
               "format": "uuid",
               "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
             },
             "narrative": {
-              "description": "Narrativa a contar para a persona.",
-              "type": "string"
+              "description": "Narrativa/história a contar para a persona.",
+              "type": "string",
+              "maxLength": 2000
+            },
+            "campaign_context": {
+              "description": "Bloco de campanha (nome, objetivo, posicionamento) se a peça faz parte de uma campanha.",
+              "type": "string",
+              "maxLength": 2000
+            },
+            "objective": {
+              "description": "Objetivo específico da peça. Se omitido, usa `description`.",
+              "type": "string",
+              "maxLength": 500
             },
             "tone": {
               "description": "Tons de voz (até 4). Ex.: ['inspirador','profissional'].",
               "maxItems": 4,
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "maxLength": 50
               }
             },
             "platform": {
-              "description": "Plataforma alvo (ex.: 'instagram_feed').",
+              "description": "Plataforma alvo. Ex.: 'instagram_feed', 'instagram_stories', 'facebook_feed', 'linkedin_feed', 'tiktok'.",
               "type": "string"
             },
             "aspect_ratio": {
-              "description": "Ex.: '1:1', '4:5', '9:16'.",
-              "type": "string"
+              "description": "Proporção final da imagem. Se omitido, derivado de `platform`. Default: 1:1.",
+              "type": "string",
+              "enum": [
+                "1:1",
+                "4:5",
+                "9:16",
+                "16:9",
+                "3:4",
+                "4:3"
+              ]
             },
-            "include_text": {
-              "description": "Se deve incluir texto sobre a imagem.",
-              "type": "boolean"
+            "width": {
+              "description": "Largura em px (opcional; sobrepõe aspect_ratio).",
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
             },
-            "text_content": {
-              "description": "Texto a aparecer na imagem.",
-              "type": "string"
+            "height": {
+              "description": "Altura em px (opcional; sobrepõe aspect_ratio).",
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
             },
             "content_type": {
+              "description": "Tipo de conteúdo: orgânico ou tráfego pago. Default: 'organic'.",
               "type": "string",
               "enum": [
                 "organic",
                 "paid"
               ]
             },
-            "campaign_context": {
-              "description": "Bloco de campanha (nome, objetivo, posicionamento).",
-              "type": "string"
+            "brand_reference_images": {
+              "description": "Até 3 URLs adicionais da marca (moodboard, logo, packaging). Tratadas como 'preservar'.",
+              "maxItems": 3,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "style_reference_images": {
+              "description": "Até 5 URLs para inspiração de estilo/paleta (não precisam ser reproduzidas pixel-a-pixel).",
+              "maxItems": 5,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "preserve_image_indices": {
+              "description": "Índices (em style_reference_images) que também devem ser preservados pixel-perfect em vez de servirem só como estilo.",
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "include_text": {
+              "description": "Se deve incluir texto sobre a imagem. Default: true quando `text_content` é fornecido.",
+              "type": "boolean"
+            },
+            "text_content": {
+              "description": "Texto principal a aparecer na imagem (headline).",
+              "type": "string",
+              "maxLength": 200
+            },
+            "text_position": {
+              "description": "Posição do texto. Default: 'center'.",
+              "type": "string",
+              "enum": [
+                "top",
+                "center",
+                "bottom",
+                "top_left",
+                "top_right",
+                "bottom_left",
+                "bottom_right"
+              ]
+            },
+            "font_style": {
+              "description": "Estilo tipográfico. Default: 'modern'.",
+              "type": "string",
+              "enum": [
+                "modern",
+                "classic",
+                "handwritten",
+                "bold",
+                "elegant"
+              ]
+            },
+            "text_design_style": {
+              "description": "Tratamento visual do texto. Default: 'clean'.",
+              "type": "string",
+              "enum": [
+                "clean",
+                "highlighted",
+                "outlined",
+                "shadow",
+                "badge"
+              ]
+            },
+            "font_size": {
+              "description": "Tamanho da fonte em px (12-120).",
+              "type": "integer",
+              "minimum": 12,
+              "maximum": 120
+            },
+            "font_family": {
+              "description": "Nome da família tipográfica (ex.: 'Inter', 'Playfair').",
+              "type": "string",
+              "maxLength": 80
+            },
+            "font_weight": {
+              "description": "Peso da fonte.",
+              "type": "string",
+              "enum": [
+                "300",
+                "400",
+                "500",
+                "600",
+                "700",
+                "800",
+                "900"
+              ]
+            },
+            "font_italic": {
+              "description": "Se o texto deve ser itálico.",
+              "type": "boolean"
+            },
+            "cta_text": {
+              "description": "Texto de CTA (ex.: 'Compre agora').",
+              "type": "string",
+              "maxLength": 80
+            },
+            "ad_mode": {
+              "description": "'professional' ativa regras hierárquicas de anúncio (Headline Hero 30-40%).",
+              "type": "string",
+              "enum": [
+                "regular",
+                "professional"
+              ]
+            },
+            "price_text": {
+              "description": "Texto de preço a exibir (ex.: 'R$ 199').",
+              "type": "string",
+              "maxLength": 40
+            },
+            "include_brand_logo": {
+              "description": "Se o logo da marca deve ser aplicado na peça.",
+              "type": "boolean"
+            },
+            "disclaimer_text": {
+              "description": "Disclaimer/legal a incluir na peça.",
+              "type": "string",
+              "maxLength": 300
+            },
+            "disclaimer_style": {
+              "description": "Formato do disclaimer. Default: 'bottom_horizontal'.",
+              "type": "string",
+              "enum": [
+                "bottom_horizontal",
+                "bottom_vertical",
+                "top_horizontal",
+                "corner"
+              ]
             },
             "visual_style": {
-              "type": "string"
+              "description": "Estilo visual base. Default: 'realistic'.",
+              "type": "string",
+              "enum": [
+                "realistic",
+                "cinematic",
+                "editorial",
+                "minimalist",
+                "3d",
+                "illustration",
+                "flat",
+                "vintage",
+                "cyberpunk"
+              ]
+            },
+            "color_palette": {
+              "description": "Paleta ('auto', 'brand', 'warm', 'cool', 'monochrome', 'pastel', 'vivid'). Default: 'auto'.",
+              "type": "string",
+              "maxLength": 80
+            },
+            "lighting": {
+              "description": "Iluminação. Default: 'natural'.",
+              "type": "string",
+              "enum": [
+                "natural",
+                "studio",
+                "golden_hour",
+                "dramatic",
+                "soft",
+                "neon"
+              ]
+            },
+            "composition": {
+              "description": "Composição. Default: 'auto'.",
+              "type": "string",
+              "enum": [
+                "auto",
+                "rule_of_thirds",
+                "centered",
+                "symmetrical",
+                "diagonal",
+                "frame_within_frame"
+              ]
+            },
+            "camera_angle": {
+              "description": "Ângulo de câmera. Default: 'eye_level'.",
+              "type": "string",
+              "enum": [
+                "eye_level",
+                "low_angle",
+                "high_angle",
+                "birds_eye",
+                "dutch_angle",
+                "close_up",
+                "wide_shot"
+              ]
+            },
+            "detail_level": {
+              "description": "Nível de detalhe/renderização (0-10). Default: 7.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "mood": {
+              "description": "Mood. Default: 'auto'.",
+              "type": "string",
+              "enum": [
+                "auto",
+                "energetic",
+                "calm",
+                "playful",
+                "serious",
+                "luxurious",
+                "friendly",
+                "urgent"
+              ]
+            },
+            "negative_prompt": {
+              "description": "Elementos a evitar (ex.: 'texto borrado, mãos deformadas').",
+              "type": "string",
+              "maxLength": 500
             }
           },
           "required": [

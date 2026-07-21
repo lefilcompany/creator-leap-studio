@@ -519,24 +519,69 @@ import { z as z17 } from "npm:zod@^4.4.3";
 var create_image_content_default = defineTool18({
   name: "create_image_content",
   title: "Criar imagem (pipeline completo)",
-  description: "Gera uma imagem usando o pipeline completo do Creator (marca, persona, tema, tom de voz, plataforma). Retorna a URL da imagem e o id da action.",
+  description: "Gera uma imagem via pipeline completo do Creator (marca, persona, tema, tom, plataforma, refer\xEAncias visuais). Consome cr\xE9ditos (COMPLETE_IMAGE = 8). Retorna imageUrl, action_id, headline/subtexto sugeridos e cr\xE9ditos consumidos.",
   inputSchema: {
-    brand_id: z17.string().uuid().describe("ID da marca (obrigat\xF3rio para contexto)."),
-    description: z17.string().min(1).describe("Descri\xE7\xE3o da cena a ser gerada."),
+    // ===== Contexto obrigatório =====
+    brand_id: z17.string().uuid().describe("OBRIGAT\xD3RIO. UUID da marca \u2014 puxa identidade, paleta, restri\xE7\xF5es e feedback aprovado."),
+    description: z17.string().min(1).max(2e3).describe("OBRIGAT\xD3RIO. Descri\xE7\xE3o livre da cena/pe\xE7a a ser gerada (o 'briefing' bruto)."),
     reference_image_url: z17.string().url().describe(
-      "OBRIGAT\xD3RIO. URL p\xFAblica (https) de uma imagem de refer\xEAncia que guiar\xE1 a gera\xE7\xE3o (composi\xE7\xE3o, produto, estilo). Aceita data URL base64 tamb\xE9m."
+      "OBRIGAT\xD3RIO. URL https (ou data URL base64) da imagem de refer\xEAncia principal. Vai como userReferenceImages[0] no pipeline e guia composi\xE7\xE3o/produto/pessoa."
     ),
-    persona_id: z17.string().uuid().optional(),
-    theme_id: z17.string().uuid().optional(),
-    narrative: z17.string().optional().describe("Narrativa a contar para a persona."),
-    tone: z17.array(z17.string()).max(4).optional().describe("Tons de voz (at\xE9 4). Ex.: ['inspirador','profissional']."),
-    platform: z17.string().optional().describe("Plataforma alvo (ex.: 'instagram_feed')."),
-    aspect_ratio: z17.string().optional().describe("Ex.: '1:1', '4:5', '9:16'."),
-    include_text: z17.boolean().optional().describe("Se deve incluir texto sobre a imagem."),
-    text_content: z17.string().optional().describe("Texto a aparecer na imagem."),
-    content_type: z17.enum(["organic", "paid"]).optional(),
-    campaign_context: z17.string().optional().describe("Bloco de campanha (nome, objetivo, posicionamento)."),
-    visual_style: z17.string().optional()
+    // ===== Contexto opcional =====
+    persona_id: z17.string().uuid().optional().describe("UUID da persona-alvo."),
+    theme_id: z17.string().uuid().optional().describe("UUID do tema estrat\xE9gico/editoria."),
+    narrative: z17.string().max(2e3).optional().describe("Narrativa/hist\xF3ria a contar para a persona."),
+    campaign_context: z17.string().max(2e3).optional().describe("Bloco de campanha (nome, objetivo, posicionamento) se a pe\xE7a faz parte de uma campanha."),
+    objective: z17.string().max(500).optional().describe("Objetivo espec\xEDfico da pe\xE7a. Se omitido, usa `description`."),
+    tone: z17.array(z17.string().max(50)).max(4).optional().describe("Tons de voz (at\xE9 4). Ex.: ['inspirador','profissional']."),
+    // ===== Formato / plataforma =====
+    platform: z17.string().optional().describe("Plataforma alvo. Ex.: 'instagram_feed', 'instagram_stories', 'facebook_feed', 'linkedin_feed', 'tiktok'."),
+    aspect_ratio: z17.enum(["1:1", "4:5", "9:16", "16:9", "3:4", "4:3"]).optional().describe("Propor\xE7\xE3o final da imagem. Se omitido, derivado de `platform`. Default: 1:1."),
+    width: z17.number().int().positive().optional().describe("Largura em px (opcional; sobrep\xF5e aspect_ratio)."),
+    height: z17.number().int().positive().optional().describe("Altura em px (opcional; sobrep\xF5e aspect_ratio)."),
+    content_type: z17.enum(["organic", "paid"]).optional().describe("Tipo de conte\xFAdo: org\xE2nico ou tr\xE1fego pago. Default: 'organic'."),
+    // ===== Referências visuais adicionais =====
+    brand_reference_images: z17.array(z17.string().url()).max(3).optional().describe("At\xE9 3 URLs adicionais da marca (moodboard, logo, packaging). Tratadas como 'preservar'."),
+    style_reference_images: z17.array(z17.string().url()).max(5).optional().describe("At\xE9 5 URLs para inspira\xE7\xE3o de estilo/paleta (n\xE3o precisam ser reproduzidas pixel-a-pixel)."),
+    preserve_image_indices: z17.array(z17.number().int().min(0)).optional().describe(
+      "\xCDndices (em style_reference_images) que tamb\xE9m devem ser preservados pixel-perfect em vez de servirem s\xF3 como estilo."
+    ),
+    // ===== Texto sobre a imagem =====
+    include_text: z17.boolean().optional().describe("Se deve incluir texto sobre a imagem. Default: true quando `text_content` \xE9 fornecido."),
+    text_content: z17.string().max(200).optional().describe("Texto principal a aparecer na imagem (headline)."),
+    text_position: z17.enum(["top", "center", "bottom", "top_left", "top_right", "bottom_left", "bottom_right"]).optional().describe("Posi\xE7\xE3o do texto. Default: 'center'."),
+    font_style: z17.enum(["modern", "classic", "handwritten", "bold", "elegant"]).optional().describe("Estilo tipogr\xE1fico. Default: 'modern'."),
+    text_design_style: z17.enum(["clean", "highlighted", "outlined", "shadow", "badge"]).optional().describe("Tratamento visual do texto. Default: 'clean'."),
+    font_size: z17.number().int().min(12).max(120).optional().describe("Tamanho da fonte em px (12-120)."),
+    font_family: z17.string().max(80).optional().describe("Nome da fam\xEDlia tipogr\xE1fica (ex.: 'Inter', 'Playfair')."),
+    font_weight: z17.enum(["300", "400", "500", "600", "700", "800", "900"]).optional().describe("Peso da fonte."),
+    font_italic: z17.boolean().optional().describe("Se o texto deve ser it\xE1lico."),
+    // ===== Extras de anúncio/CTA =====
+    cta_text: z17.string().max(80).optional().describe("Texto de CTA (ex.: 'Compre agora')."),
+    ad_mode: z17.enum(["regular", "professional"]).optional().describe("'professional' ativa regras hier\xE1rquicas de an\xFAncio (Headline Hero 30-40%)."),
+    price_text: z17.string().max(40).optional().describe("Texto de pre\xE7o a exibir (ex.: 'R$ 199')."),
+    include_brand_logo: z17.boolean().optional().describe("Se o logo da marca deve ser aplicado na pe\xE7a."),
+    disclaimer_text: z17.string().max(300).optional().describe("Disclaimer/legal a incluir na pe\xE7a."),
+    disclaimer_style: z17.enum(["bottom_horizontal", "bottom_vertical", "top_horizontal", "corner"]).optional().describe("Formato do disclaimer. Default: 'bottom_horizontal'."),
+    // ===== Direção visual =====
+    visual_style: z17.enum([
+      "realistic",
+      "cinematic",
+      "editorial",
+      "minimalist",
+      "3d",
+      "illustration",
+      "flat",
+      "vintage",
+      "cyberpunk"
+    ]).optional().describe("Estilo visual base. Default: 'realistic'."),
+    color_palette: z17.string().max(80).optional().describe("Paleta ('auto', 'brand', 'warm', 'cool', 'monochrome', 'pastel', 'vivid'). Default: 'auto'."),
+    lighting: z17.enum(["natural", "studio", "golden_hour", "dramatic", "soft", "neon"]).optional().describe("Ilumina\xE7\xE3o. Default: 'natural'."),
+    composition: z17.enum(["auto", "rule_of_thirds", "centered", "symmetrical", "diagonal", "frame_within_frame"]).optional().describe("Composi\xE7\xE3o. Default: 'auto'."),
+    camera_angle: z17.enum(["eye_level", "low_angle", "high_angle", "birds_eye", "dutch_angle", "close_up", "wide_shot"]).optional().describe("\xC2ngulo de c\xE2mera. Default: 'eye_level'."),
+    detail_level: z17.number().int().min(0).max(10).optional().describe("N\xEDvel de detalhe/renderiza\xE7\xE3o (0-10). Default: 7."),
+    mood: z17.enum(["auto", "energetic", "calm", "playful", "serious", "luxurious", "friendly", "urgent"]).optional().describe("Mood. Default: 'auto'."),
+    negative_prompt: z17.string().max(500).optional().describe("Elementos a evitar (ex.: 'texto borrado, m\xE3os deformadas').")
   },
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
   handler: async (input, ctx) => {
@@ -546,21 +591,52 @@ var create_image_content_default = defineTool18({
     }
     const supabase = supabaseForUser3(ctx);
     const body = {
+      // contexto
       brandId: input.brand_id,
-      description: input.description,
       personaId: input.persona_id,
       themeId: input.theme_id,
+      description: input.description,
+      objective: input.objective ?? input.description,
       narrative: input.narrative,
+      campaignContext: input.campaign_context,
       tone: input.tone ?? [],
+      contentType: input.content_type ?? "organic",
+      // formato
       platform: input.platform,
       aspectRatio: input.aspect_ratio,
+      width: input.width,
+      height: input.height,
+      // referências
+      userReferenceImages: [input.reference_image_url, ...input.style_reference_images ?? []],
+      brandReferenceImages: input.brand_reference_images ?? [],
+      styleReferenceImages: input.style_reference_images ?? [],
+      preserveImageIndices: input.preserve_image_indices ?? [],
+      // texto
       includeText: input.include_text ?? Boolean(input.text_content),
       textContent: input.text_content,
-      contentType: input.content_type ?? "organic",
-      campaignContext: input.campaign_context,
+      textPosition: input.text_position,
+      fontStyle: input.font_style,
+      textDesignStyle: input.text_design_style,
+      fontSize: input.font_size,
+      fontFamily: input.font_family,
+      fontWeight: input.font_weight,
+      fontItalic: input.font_italic,
+      // anúncio
+      ctaText: input.cta_text,
+      adMode: input.ad_mode,
+      priceText: input.price_text,
+      includeBrandLogo: input.include_brand_logo,
+      disclaimerText: input.disclaimer_text,
+      disclaimerStyle: input.disclaimer_style,
+      // direção visual
       visualStyle: input.visual_style ?? "realistic",
-      objective: input.description,
-      userReferenceImages: [input.reference_image_url]
+      colorPalette: input.color_palette,
+      lighting: input.lighting,
+      composition: input.composition,
+      cameraAngle: input.camera_angle,
+      detailLevel: input.detail_level,
+      mood: input.mood,
+      negativePrompt: input.negative_prompt
     };
     const { data, error } = await supabase.functions.invoke("generate-image", { body });
     if (error) return errorResult(error.message);
