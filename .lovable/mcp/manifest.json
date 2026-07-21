@@ -732,6 +732,11 @@
               "minLength": 1,
               "description": "Descrição da cena a ser gerada."
             },
+            "reference_image_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "OBRIGATÓRIO. URL pública (https) de uma imagem de referência que guiará a geração (composição, produto, estilo). Aceita data URL base64 também."
+            },
             "persona_id": {
               "type": "string",
               "format": "uuid",
@@ -787,7 +792,8 @@
           },
           "required": [
             "brand_id",
-            "description"
+            "description",
+            "reference_image_url"
           ]
         },
         "outputSchema": null

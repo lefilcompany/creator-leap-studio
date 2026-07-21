@@ -523,6 +523,9 @@ var create_image_content_default = defineTool18({
   inputSchema: {
     brand_id: z17.string().uuid().describe("ID da marca (obrigat\xF3rio para contexto)."),
     description: z17.string().min(1).describe("Descri\xE7\xE3o da cena a ser gerada."),
+    reference_image_url: z17.string().url().describe(
+      "OBRIGAT\xD3RIO. URL p\xFAblica (https) de uma imagem de refer\xEAncia que guiar\xE1 a gera\xE7\xE3o (composi\xE7\xE3o, produto, estilo). Aceita data URL base64 tamb\xE9m."
+    ),
     persona_id: z17.string().uuid().optional(),
     theme_id: z17.string().uuid().optional(),
     narrative: z17.string().optional().describe("Narrativa a contar para a persona."),
@@ -538,6 +541,9 @@ var create_image_content_default = defineTool18({
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
   handler: async (input, ctx) => {
     if (!ctx.isAuthenticated()) return notAuthenticated();
+    if (!input.reference_image_url || !input.reference_image_url.trim()) {
+      return errorResult("reference_image_url \xE9 obrigat\xF3rio: informe a URL de uma imagem de refer\xEAncia.");
+    }
     const supabase = supabaseForUser3(ctx);
     const body = {
       brandId: input.brand_id,
@@ -553,7 +559,8 @@ var create_image_content_default = defineTool18({
       contentType: input.content_type ?? "organic",
       campaignContext: input.campaign_context,
       visualStyle: input.visual_style ?? "realistic",
-      objective: input.description
+      objective: input.description,
+      userReferenceImages: [input.reference_image_url]
     };
     const { data, error } = await supabase.functions.invoke("generate-image", { body });
     if (error) return errorResult(error.message);

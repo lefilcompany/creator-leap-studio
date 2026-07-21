@@ -10,6 +10,12 @@ export default defineTool({
   inputSchema: {
     brand_id: z.string().uuid().describe("ID da marca (obrigatório para contexto)."),
     description: z.string().min(1).describe("Descrição da cena a ser gerada."),
+    reference_image_url: z
+      .string()
+      .url()
+      .describe(
+        "OBRIGATÓRIO. URL pública (https) de uma imagem de referência que guiará a geração (composição, produto, estilo). Aceita data URL base64 também.",
+      ),
     persona_id: z.string().uuid().optional(),
     theme_id: z.string().uuid().optional(),
     narrative: z.string().optional().describe("Narrativa a contar para a persona."),
@@ -29,6 +35,9 @@ export default defineTool({
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
   handler: async (input, ctx) => {
     if (!ctx.isAuthenticated()) return notAuthenticated();
+    if (!input.reference_image_url || !input.reference_image_url.trim()) {
+      return errorResult("reference_image_url é obrigatório: informe a URL de uma imagem de referência.");
+    }
     const supabase = supabaseForUser(ctx);
     const body: Record<string, unknown> = {
       brandId: input.brand_id,
@@ -45,6 +54,7 @@ export default defineTool({
       campaignContext: input.campaign_context,
       visualStyle: input.visual_style ?? "realistic",
       objective: input.description,
+      userReferenceImages: [input.reference_image_url],
     };
     const { data, error } = await supabase.functions.invoke("generate-image", { body });
     if (error) return errorResult(error.message);
