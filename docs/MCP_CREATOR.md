@@ -73,13 +73,15 @@ Para planejamento em lote: `create_content_plan` → `list_calendar_items`.
 - **update_theme** / **delete_theme**.
 
 ### Criação de conteúdo
-- **create_image_content** — pipeline completo. Inputs principais:
-  - `brand_id` (obrig.), `description` (obrig.)
-  - `persona_id`, `theme_id`, `narrative`
-  - `tone[]` até 4, `platform`, `aspect_ratio`
-  - `include_text`, `text_content`
-  - `content_type` (`organic`/`paid`), `campaign_context`
-  - Retorna `imageUrl`, `action_id` e demais campos que a edge function `generate-image` devolve.
+- **create_image_content** — pipeline completo. Custo: 8 créditos (COMPLETE_IMAGE).
+  - **Obrigatórios**: `brand_id` (uuid), `description` (≤2000), `reference_image_url` (https ou data URL).
+  - **Contexto**: `persona_id`, `theme_id`, `narrative`, `campaign_context`, `objective`, `tone[]` (máx 4), `content_type` (`organic`/`paid`).
+  - **Formato**: `platform`, `aspect_ratio` (`1:1`|`4:5`|`9:16`|`16:9`|`3:4`|`4:3`), `width`, `height`.
+  - **Referências extras**: `brand_reference_images[]` (máx 3, preservadas), `style_reference_images[]` (máx 5, estilo/paleta), `preserve_image_indices[]` (índices de style_ref a preservar pixel-perfect).
+  - **Texto na imagem**: `include_text`, `text_content` (≤200), `text_position`, `font_style`, `text_design_style`, `font_size` (12–120), `font_family`, `font_weight`, `font_italic`.
+  - **Anúncio**: `cta_text` (≤80), `ad_mode` (`regular`/`professional` → Headline Hero 30–40%), `price_text`, `include_brand_logo`, `disclaimer_text`, `disclaimer_style`.
+  - **Direção visual**: `visual_style` (`realistic` default), `color_palette`, `lighting`, `composition`, `camera_angle`, `detail_level` (0–10, default 7), `mood`, `negative_prompt` (≤500).
+  - **Retorno**: `imageUrl`, `action_id`, `title`, `headline`, `subtexto`, `creditsConsumed` e demais campos que `generate-image` devolve.
 - **create_quick_content** — versão simplificada (`prompt` livre).
 - **generate_caption** — legenda a partir de imagem/contexto.
 - **create_content_plan** — calendário: `brand_id`, `quantity`, `objective`, `platforms[]`.
