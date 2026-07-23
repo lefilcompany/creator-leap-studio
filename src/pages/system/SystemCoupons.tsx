@@ -284,8 +284,8 @@ export default function SystemCoupons() {
       <Dialog open={showCreateModal} onOpenChange={handleModalOpenChange}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-xl">Criar Cupom</DialogTitle>
-            <DialogDescription className="sr-only">Formulário para criar um novo cupom</DialogDescription>
+            <DialogTitle className="text-xl">{isEditing ? "Editar Cupom" : "Criar Cupom"}</DialogTitle>
+            <DialogDescription className="sr-only">Formulário para {isEditing ? "editar" : "criar"} um cupom</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-5 py-2">
