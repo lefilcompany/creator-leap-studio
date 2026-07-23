@@ -492,9 +492,10 @@ function CouponCard({ coupon, onCopy, onEdit, onToggle }: {
 
 // ─── Coupon List Item Component ──────────────────────────────────
 
-function CouponListItem({ coupon, onCopy, onToggle }: {
+function CouponListItem({ coupon, onCopy, onEdit, onToggle }: {
   coupon: any;
   onCopy: (code: string) => void;
+  onEdit: (coupon: any) => void;
   onToggle: (id: string, isActive: boolean) => void;
 }) {
   const status = getCouponStatus(coupon);
