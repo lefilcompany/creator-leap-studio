@@ -261,6 +261,7 @@ export default function SystemCoupons() {
               key={coupon.id}
               coupon={coupon}
               onCopy={copyCode}
+              onEdit={handleOpenEdit}
               onToggle={(id, isActive) => toggleCoupon.mutate({ id, isActive })}
             />
           ))}
@@ -271,16 +272,16 @@ export default function SystemCoupons() {
             <CouponListItem
               key={coupon.id}
               coupon={coupon}
-              
               onCopy={copyCode}
+              onEdit={handleOpenEdit}
               onToggle={(id, isActive) => toggleCoupon.mutate({ id, isActive })}
             />
           ))}
         </div>
       )}
 
-      {/* Create Coupon Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+      {/* Create/Edit Coupon Modal */}
+      <Dialog open={showCreateModal} onOpenChange={handleModalOpenChange}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-xl">Criar Cupom</DialogTitle>
