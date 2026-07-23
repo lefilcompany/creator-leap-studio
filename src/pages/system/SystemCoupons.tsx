@@ -131,6 +131,40 @@ export default function SystemCoupons() {
     },
   });
 
+  const updateCoupon = useMutation({
+    mutationFn: async () => {
+      if (!editingId) throw new Error("Cupom inválido");
+      const prizeValue = parseInt(formData.customCredits);
+      if (!prizeValue || prizeValue <= 0) throw new Error("Valor de créditos inválido");
+
+      const code = formData.code.trim().toUpperCase();
+      if (!code) throw new Error("Código inválido");
+
+      const { error } = await supabase.from("coupons").update({
+        code,
+        prefix: formData.prefix || code.split("-")[0] || "SOMA",
+        prize_type: formData.prizeType || "credits",
+        prize_value: prizeValue,
+        max_uses: formData.maxUses ? parseInt(formData.maxUses) : null,
+        expires_at: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : null,
+      }).eq("id", editingId);
+
+      if (error) {
+        if (error.code === "23505") throw new Error("Já existe um cupom com esse código");
+        throw new Error(error.message || "Erro ao atualizar cupom");
+      }
+      return code;
+    },
+    onSuccess: (code) => {
+      toast.success(`Cupom ${code} atualizado!`);
+      queryClient.invalidateQueries({ queryKey: ["system-coupons"] });
+      setFormData(initialFormData);
+      setEditingId(null);
+      setShowCreateModal(false);
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success("Código copiado!");
@@ -141,9 +175,33 @@ export default function SystemCoupons() {
   };
 
   const handleOpenCreate = () => {
+    setEditingId(null);
     setFormData({ ...initialFormData, code: generateCouponCode(initialFormData.prefix) });
     setShowCreateModal(true);
   };
+
+  const handleOpenEdit = (coupon: any) => {
+    setEditingId(coupon.id);
+    setFormData({
+      code: coupon.code || "",
+      prefix: coupon.prefix || "CREATOR",
+      prizeType: coupon.prize_type || "credits",
+      customCredits: String(coupon.prize_value ?? ""),
+      maxUses: coupon.max_uses ? String(coupon.max_uses) : "",
+      expiresAt: coupon.expires_at ? format(new Date(coupon.expires_at), "yyyy-MM-dd") : "",
+    });
+    setShowCreateModal(true);
+  };
+
+  const handleModalOpenChange = (open: boolean) => {
+    setShowCreateModal(open);
+    if (!open) {
+      setEditingId(null);
+      setFormData(initialFormData);
+    }
+  };
+
+  const isEditing = editingId !== null;
 
   return (
     <div className="space-y-6">
