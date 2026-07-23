@@ -59,6 +59,7 @@ export default function SystemCoupons() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [formData, setFormData] = useState<CouponFormData>(initialFormData);
 
@@ -130,6 +131,40 @@ export default function SystemCoupons() {
     },
   });
 
+  const updateCoupon = useMutation({
+    mutationFn: async () => {
+      if (!editingId) throw new Error("Cupom inválido");
+      const prizeValue = parseInt(formData.customCredits);
+      if (!prizeValue || prizeValue <= 0) throw new Error("Valor de créditos inválido");
+
+      const code = formData.code.trim().toUpperCase();
+      if (!code) throw new Error("Código inválido");
+
+      const { error } = await supabase.from("coupons").update({
+        code,
+        prefix: formData.prefix || code.split("-")[0] || "SOMA",
+        prize_type: formData.prizeType || "credits",
+        prize_value: prizeValue,
+        max_uses: formData.maxUses ? parseInt(formData.maxUses) : null,
+        expires_at: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : null,
+      }).eq("id", editingId);
+
+      if (error) {
+        if (error.code === "23505") throw new Error("Já existe um cupom com esse código");
+        throw new Error(error.message || "Erro ao atualizar cupom");
+      }
+      return code;
+    },
+    onSuccess: (code) => {
+      toast.success(`Cupom ${code} atualizado!`);
+      queryClient.invalidateQueries({ queryKey: ["system-coupons"] });
+      setFormData(initialFormData);
+      setEditingId(null);
+      setShowCreateModal(false);
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success("Código copiado!");
@@ -140,9 +175,33 @@ export default function SystemCoupons() {
   };
 
   const handleOpenCreate = () => {
+    setEditingId(null);
     setFormData({ ...initialFormData, code: generateCouponCode(initialFormData.prefix) });
     setShowCreateModal(true);
   };
+
+  const handleOpenEdit = (coupon: any) => {
+    setEditingId(coupon.id);
+    setFormData({
+      code: coupon.code || "",
+      prefix: coupon.prefix || "CREATOR",
+      prizeType: coupon.prize_type || "credits",
+      customCredits: String(coupon.prize_value ?? ""),
+      maxUses: coupon.max_uses ? String(coupon.max_uses) : "",
+      expiresAt: coupon.expires_at ? format(new Date(coupon.expires_at), "yyyy-MM-dd") : "",
+    });
+    setShowCreateModal(true);
+  };
+
+  const handleModalOpenChange = (open: boolean) => {
+    setShowCreateModal(open);
+    if (!open) {
+      setEditingId(null);
+      setFormData(initialFormData);
+    }
+  };
+
+  const isEditing = editingId !== null;
 
   return (
     <div className="space-y-6">
@@ -202,6 +261,7 @@ export default function SystemCoupons() {
               key={coupon.id}
               coupon={coupon}
               onCopy={copyCode}
+              onEdit={handleOpenEdit}
               onToggle={(id, isActive) => toggleCoupon.mutate({ id, isActive })}
             />
           ))}
@@ -212,20 +272,20 @@ export default function SystemCoupons() {
             <CouponListItem
               key={coupon.id}
               coupon={coupon}
-              
               onCopy={copyCode}
+              onEdit={handleOpenEdit}
               onToggle={(id, isActive) => toggleCoupon.mutate({ id, isActive })}
             />
           ))}
         </div>
       )}
 
-      {/* Create Coupon Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+      {/* Create/Edit Coupon Modal */}
+      <Dialog open={showCreateModal} onOpenChange={handleModalOpenChange}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-xl">Criar Cupom</DialogTitle>
-            <DialogDescription className="sr-only">Formulário para criar um novo cupom</DialogDescription>
+            <DialogTitle className="text-xl">{isEditing ? "Editar Cupom" : "Criar Cupom"}</DialogTitle>
+            <DialogDescription className="sr-only">Formulário para {isEditing ? "editar" : "criar"} um cupom</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-5 py-2">
@@ -308,11 +368,16 @@ export default function SystemCoupons() {
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+            <Button variant="outline" onClick={() => handleModalOpenChange(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => createCoupon.mutate()} disabled={createCoupon.isPending}>
-              {createCoupon.isPending ? "Criando..." : "Criar Cupom"}
+            <Button
+              onClick={() => (isEditing ? updateCoupon.mutate() : createCoupon.mutate())}
+              disabled={isEditing ? updateCoupon.isPending : createCoupon.isPending}
+            >
+              {isEditing
+                ? (updateCoupon.isPending ? "Salvando..." : "Salvar alterações")
+                : (createCoupon.isPending ? "Criando..." : "Criar Cupom")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -323,9 +388,10 @@ export default function SystemCoupons() {
 
 // ─── Coupon Card Component ───────────────────────────────────────
 
-function CouponCard({ coupon, onCopy, onToggle }: {
+function CouponCard({ coupon, onCopy, onEdit, onToggle }: {
   coupon: any;
   onCopy: (code: string) => void;
+  onEdit: (coupon: any) => void;
   onToggle: (id: string, isActive: boolean) => void;
 }) {
   const status = getCouponStatus(coupon);
@@ -358,7 +424,7 @@ function CouponCard({ coupon, onCopy, onToggle }: {
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onCopy(coupon.code)}>
               <Copy className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(coupon)} aria-label="Editar cupom">
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -426,9 +492,10 @@ function CouponCard({ coupon, onCopy, onToggle }: {
 
 // ─── Coupon List Item Component ──────────────────────────────────
 
-function CouponListItem({ coupon, onCopy, onToggle }: {
+function CouponListItem({ coupon, onCopy, onEdit, onToggle }: {
   coupon: any;
   onCopy: (code: string) => void;
+  onEdit: (coupon: any) => void;
   onToggle: (id: string, isActive: boolean) => void;
 }) {
   const status = getCouponStatus(coupon);
@@ -472,6 +539,9 @@ function CouponListItem({ coupon, onCopy, onToggle }: {
               {coupon.is_active ? "Ativo" : "Inativo"}
             </span>
           </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(coupon)} aria-label="Editar cupom">
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onCopy(coupon.code)}>
             <Copy className="h-3.5 w-3.5" />
           </Button>
