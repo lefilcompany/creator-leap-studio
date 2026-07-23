@@ -388,9 +388,10 @@ export default function SystemCoupons() {
 
 // ─── Coupon Card Component ───────────────────────────────────────
 
-function CouponCard({ coupon, onCopy, onToggle }: {
+function CouponCard({ coupon, onCopy, onEdit, onToggle }: {
   coupon: any;
   onCopy: (code: string) => void;
+  onEdit: (coupon: any) => void;
   onToggle: (id: string, isActive: boolean) => void;
 }) {
   const status = getCouponStatus(coupon);
