@@ -539,6 +539,9 @@ function CouponListItem({ coupon, onCopy, onEdit, onToggle }: {
               {coupon.is_active ? "Ativo" : "Inativo"}
             </span>
           </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(coupon)} aria-label="Editar cupom">
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onCopy(coupon.code)}>
             <Copy className="h-3.5 w-3.5" />
           </Button>
