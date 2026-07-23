@@ -368,7 +368,6 @@ export default function SystemCoupons() {
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
-          <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => handleModalOpenChange(false)}>
               Cancelar
             </Button>
