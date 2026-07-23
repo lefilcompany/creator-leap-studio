@@ -59,6 +59,7 @@ export default function SystemCoupons() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [formData, setFormData] = useState<CouponFormData>(initialFormData);
 
