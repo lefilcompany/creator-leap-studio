@@ -368,11 +368,17 @@ export default function SystemCoupons() {
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => handleModalOpenChange(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => createCoupon.mutate()} disabled={createCoupon.isPending}>
-              {createCoupon.isPending ? "Criando..." : "Criar Cupom"}
+            <Button
+              onClick={() => (isEditing ? updateCoupon.mutate() : createCoupon.mutate())}
+              disabled={isEditing ? updateCoupon.isPending : createCoupon.isPending}
+            >
+              {isEditing
+                ? (updateCoupon.isPending ? "Salvando..." : "Salvar alterações")
+                : (createCoupon.isPending ? "Criando..." : "Criar Cupom")}
             </Button>
           </DialogFooter>
         </DialogContent>
