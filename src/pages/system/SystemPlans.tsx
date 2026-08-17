@@ -340,6 +340,24 @@ export default function AdminPlans() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vendas no Período</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(stripeData?.totalRevenue ?? 0)}</div>
+            <p className="text-xs text-muted-foreground">
+              {stripeData?.paymentsCount ?? 0} pagamento(s) · {formatCurrency(stripeData?.oneTimeRevenue ?? 0)} avulsos
+            </p>
+            {stripeData?.lastPayment && (
+              <p className="text-xs text-green-600 mt-1">
+                Última: {formatCurrency(stripeData.lastPayment.amount)} em{" "}
+                {format(new Date(stripeData.lastPayment.created), "dd/MM/yyyy", { locale: ptBR })}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Equipes</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
