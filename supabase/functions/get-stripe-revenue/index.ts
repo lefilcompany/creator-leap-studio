@@ -111,17 +111,17 @@ serve(async (req) => {
     // Get revenue history for the requested period
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
-    
-    console.log(`[get-stripe-revenue] Fetching invoices from ${startDate.toISOString()}`);
 
-    // Fetch paid invoices - need to paginate for longer periods
-    const allInvoices: any[] = [];
+    console.log(`[get-stripe-revenue] Fetching charges from ${startDate.toISOString()}`);
+
+    // Fetch ALL succeeded charges (covers one-time payments AND subscription invoices).
+    // Using invoices only would miss one-off Checkout payments (credit packs / boleto).
+    const allCharges: any[] = [];
     let hasMore = true;
     let startingAfter: string | undefined = undefined;
 
     while (hasMore) {
       const params: any = {
-        status: "paid",
         created: {
           gte: Math.floor(startDate.getTime() / 1000),
         },
@@ -131,19 +131,21 @@ serve(async (req) => {
         params.starting_after = startingAfter;
       }
 
-      const invoices = await stripe.invoices.list(params);
-      allInvoices.push(...invoices.data);
-      hasMore = invoices.has_more;
-      if (invoices.data.length > 0) {
-        startingAfter = invoices.data[invoices.data.length - 1].id;
+      const charges = await stripe.charges.list(params);
+      allCharges.push(...charges.data);
+      hasMore = charges.has_more;
+      if (charges.data.length > 0) {
+        startingAfter = charges.data[charges.data.length - 1].id;
       }
     }
 
-    console.log(`[get-stripe-revenue] Fetched ${allInvoices.length} invoices`);
+    const paidCharges = allCharges.filter((c) => c.paid && c.status === "succeeded");
 
-    // Group invoices by month
+    console.log(`[get-stripe-revenue] Fetched ${allCharges.length} charges, ${paidCharges.length} paid`);
+
+    // Group charges by month (net of refunds)
     const revenueByMonth: Record<string, number> = {};
-    
+
     // Initialize all months with 0
     for (let i = 0; i < months; i++) {
       const date = new Date(now.getFullYear(), now.getMonth() - months + 1 + i, 1);
@@ -151,14 +153,26 @@ serve(async (req) => {
       revenueByMonth[key] = 0;
     }
 
-    // Sum up invoice amounts by month
-    for (const invoice of allInvoices) {
-      if (invoice.status_transitions?.paid_at) {
-        const paidDate = new Date(invoice.status_transitions.paid_at * 1000);
-        const key = `${paidDate.getFullYear()}-${String(paidDate.getMonth() + 1).padStart(2, '0')}`;
-        if (revenueByMonth[key] !== undefined) {
-          revenueByMonth[key] += (invoice.amount_paid || 0) / 100;
-        }
+    let totalRevenue = 0;
+    let oneTimeRevenue = 0;
+    let recurringRevenue = 0;
+    let lastPayment: { amount: number; created: string } | null = null;
+
+    for (const charge of paidCharges) {
+      const net = ((charge.amount_captured ?? charge.amount ?? 0) - (charge.amount_refunded || 0)) / 100;
+      const created = new Date(charge.created * 1000);
+      const key = `${created.getFullYear()}-${String(created.getMonth() + 1).padStart(2, '0')}`;
+      if (revenueByMonth[key] !== undefined) {
+        revenueByMonth[key] += net;
+      }
+      totalRevenue += net;
+      if (charge.invoice) {
+        recurringRevenue += net;
+      } else {
+        oneTimeRevenue += net;
+      }
+      if (!lastPayment) {
+        lastPayment = { amount: net, created: created.toISOString() };
       }
     }
 
@@ -170,7 +184,9 @@ serve(async (req) => {
         revenue: Math.round(revenue * 100) / 100,
       }));
 
-    console.log(`[get-stripe-revenue] Revenue history: ${revenueHistory.length} months`);
+    const round2 = (v: number) => Math.round(v * 100) / 100;
+
+    console.log(`[get-stripe-revenue] Revenue history: ${revenueHistory.length} months, total ${totalRevenue}`);
 
     return new Response(
       JSON.stringify({
@@ -181,6 +197,11 @@ serve(async (req) => {
         pendingBalance: pendingBalance / 100,
         currency: "BRL",
         revenueHistory,
+        totalRevenue: round2(totalRevenue),
+        oneTimeRevenue: round2(oneTimeRevenue),
+        recurringRevenue: round2(recurringRevenue),
+        paymentsCount: paidCharges.length,
+        lastPayment,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
