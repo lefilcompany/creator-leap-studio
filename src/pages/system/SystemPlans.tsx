@@ -58,6 +58,11 @@ interface StripeRevenue {
   pendingBalance: number;
   currency: string;
   revenueHistory?: RevenueHistoryItem[];
+  totalRevenue?: number;
+  oneTimeRevenue?: number;
+  recurringRevenue?: number;
+  paymentsCount?: number;
+  lastPayment?: { amount: number; created: string } | null;
 }
 
 export default function AdminPlans() {
