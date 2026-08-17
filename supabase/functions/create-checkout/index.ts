@@ -138,6 +138,10 @@ serve(async (req) => {
         mode: checkoutMode,
         success_url: successUrl,
         cancel_url: `${origin}/credits?canceled=true`,
+        // Solicita CPF/CNPJ obrigatoriamente no checkout
+        tax_id_collection: { enabled: true, required: 'if_supported' },
+        billing_address_collection: 'required',
+        customer_update: customerId ? { name: 'auto', address: 'auto' } : undefined,
         metadata: {
           user_id: user.id,
           team_id: teamId || '',
