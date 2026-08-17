@@ -288,21 +288,30 @@ export default function AdminPlans() {
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-lg font-semibold">Visão Geral</h2>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => fetchStripeData(parseInt(revenuePeriod))}
-          disabled={isLoadingStripe}
-        >
-          {isLoadingStripe ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <RefreshCw className="h-4 w-4 mr-2" />
-          )}
-          Atualizar Stripe
-        </Button>
+        <div className="flex items-center gap-3">
+          <NativeSelect
+            value={statsPeriod}
+            onValueChange={setStatsPeriod}
+            options={periodOptions}
+            placeholder="Período"
+            triggerClassName="w-[180px]"
+          />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => fetchStripeData(parseInt(statsPeriod))}
+            disabled={isLoadingStripe}
+          >
+            {isLoadingStripe ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            Atualizar Stripe
+          </Button>
+        </div>
       </div>
       <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
         <Card>
