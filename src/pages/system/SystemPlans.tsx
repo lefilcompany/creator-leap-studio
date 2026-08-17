@@ -58,6 +58,11 @@ interface StripeRevenue {
   pendingBalance: number;
   currency: string;
   revenueHistory?: RevenueHistoryItem[];
+  totalRevenue?: number;
+  oneTimeRevenue?: number;
+  recurringRevenue?: number;
+  paymentsCount?: number;
+  lastPayment?: { amount: number; created: string } | null;
 }
 
 export default function AdminPlans() {
@@ -290,7 +295,7 @@ export default function AdminPlans() {
           Atualizar Stripe
         </Button>
       </div>
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Planos</CardTitle>
@@ -331,6 +336,24 @@ export default function AdminPlans() {
               recorrente
               {stripeData && <span className="text-green-600 ml-1">• Stripe</span>}
             </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vendas no Período</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(stripeData?.totalRevenue ?? 0)}</div>
+            <p className="text-xs text-muted-foreground">
+              {stripeData?.paymentsCount ?? 0} pagamento(s) · {formatCurrency(stripeData?.oneTimeRevenue ?? 0)} avulsos
+            </p>
+            {stripeData?.lastPayment && (
+              <p className="text-xs text-green-600 mt-1">
+                Última: {formatCurrency(stripeData.lastPayment.amount)} em{" "}
+                {format(new Date(stripeData.lastPayment.created), "dd/MM/yyyy", { locale: ptBR })}
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card>
