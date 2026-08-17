@@ -102,6 +102,10 @@ export default function AdminPlans() {
     fetchStripeData(parseInt(revenuePeriod));
   }, [revenuePeriod]);
 
+  useEffect(() => {
+    fetchStripeData(parseInt(statsPeriod));
+  }, [statsPeriod]);
+
   const fetchStripeData = async (months: number = 12) => {
     setIsLoadingStripe(true);
     try {
