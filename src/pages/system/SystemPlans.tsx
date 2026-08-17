@@ -81,7 +81,12 @@ export default function AdminPlans() {
   // Revenue chart period filter
   const [revenuePeriod, setRevenuePeriod] = useState("12");
 
+  // Stats cards period filter
+  const [statsPeriod, setStatsPeriod] = useState("12");
+
   const periodOptions = [
+    { value: "1", label: "Último mês" },
+    { value: "3", label: "Últimos 3 meses" },
     { value: "6", label: "Últimos 6 meses" },
     { value: "12", label: "Último ano" },
     { value: "24", label: "Últimos 2 anos" },
