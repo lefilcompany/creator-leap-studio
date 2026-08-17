@@ -295,7 +295,7 @@ export default function AdminPlans() {
           Atualizar Stripe
         </Button>
       </div>
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Planos</CardTitle>
