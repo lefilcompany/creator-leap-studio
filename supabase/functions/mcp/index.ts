@@ -941,7 +941,7 @@ function resolveOauthIssuer() {
     }
   } catch {
   }
-  const buildRef = "lcpmqnkorcsclmpfbizr";
+  const buildRef = "afxwqkrneraatgovhpkb";
   return `https://${buildRef}.supabase.co/auth/v1`;
 }
 var mcp_default = defineMcp({
